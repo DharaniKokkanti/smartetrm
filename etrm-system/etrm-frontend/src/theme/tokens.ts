@@ -40,6 +40,12 @@ export const color = {
   modulePower: '#B7791F',
   moduleTrade: '#1F3864',
   modulePosition: '#2E75B6',
+  moduleOrganization: '#534AB7', // violet — internal org (desks, books, traders)
+  moduleMarkets: '#1E6A9E',      // ocean blue — markets, products, indices
+  moduleLogistics: '#2E6B5C',    // forest — vessels, pipelines, locations
+  moduleCalendar: '#6B4F9E',     // plum — calendars, periods
+  modulePricing: '#8B3A2F',      // rust — pricing rules, formulas
+  moduleCredit: '#1B6B6B',       // teal/dark — credit instruments, collateral
 
   // Status
   success: '#1B7A5C',
@@ -79,6 +85,12 @@ export const darkColor = {
   modulePower: '#D9A23B',
   moduleTrade: '#4C7BC4',
   modulePosition: '#5B9BD9',
+  moduleOrganization: '#8B7FE8',
+  moduleMarkets: '#4A9FD4',
+  moduleLogistics: '#4BAF8C',
+  moduleCalendar: '#9B7FD4',
+  modulePricing: '#C4695A',
+  moduleCredit: '#3ABABA',
 
   success: '#3FA37D',
   warning: '#D9A23B',
@@ -140,9 +152,15 @@ export const motion = {
 /** Maps a module_group string (from master_data_table_registry) to its rail color. */
 export function moduleColor(group: string, palette: typeof color = color): string {
   const key = group.toLowerCase();
-  if (key.includes('freight')) return palette.moduleFreight;
+  if (key.includes('freight') || key.includes('logistics')) return palette.moduleLogistics;
   if (key.includes('power')) return palette.modulePower;
   if (key.includes('trade')) return palette.moduleTrade;
   if (key.includes('position')) return palette.modulePosition;
+  if (key.includes('org') || key.includes('desk') || key.includes('book') || key.includes('trader')) return palette.moduleOrganization;
+  if (key.includes('market') || key.includes('product') || key.includes('index') || key.includes('exchange')) return palette.moduleMarkets;
+  if (key.includes('vessel') || key.includes('pipeline') || key.includes('location') || key.includes('storage')) return palette.moduleLogistics;
+  if (key.includes('calendar') || key.includes('period') || key.includes('holiday')) return palette.moduleCalendar;
+  if (key.includes('pric') || key.includes('formula')) return palette.modulePricing;
+  if (key.includes('credit') || key.includes('collateral') || key.includes('margin') || key.includes('lc') || key.includes('guarantee')) return palette.moduleCredit;
   return palette.moduleTier2;
 }
