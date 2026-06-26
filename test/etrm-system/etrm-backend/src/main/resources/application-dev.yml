@@ -1,0 +1,29 @@
+# Activate with: mvn spring-boot:run -Dspring-boot.run.profiles=dev
+#
+# IMPORTANT LIMITATION: Tier 2's generic metadata endpoint
+# (ReferenceDataMetadataService) queries SQL Server system catalogs
+# (INFORMATION_SCHEMA, sys.check_constraints, sys.foreign_keys) directly —
+# these don't exist on H2. Everything else (Legal Entity, Counterparty,
+# Guarantees) works against H2 for local smoke-testing; Tier 2's metadata
+# endpoint specifically requires a real SQL Server instance (or temporarily
+# stubbing MetadataService) to exercise.
+spring:
+  datasource:
+    url: jdbc:h2:mem:etrm;DB_CLOSE_DELAY=-1;MODE=MSSQLServer
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.H2Dialect
+  flyway:
+    enabled: false   # H2 isn't SQL Server — the real migrations won't run cleanly against it
+
+logging:
+  level:
+    com.etrm: DEBUG

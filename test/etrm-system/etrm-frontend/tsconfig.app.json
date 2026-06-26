@@ -1,0 +1,42 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "strict": true,
+    "ignoreDeprecations": "6.0",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
+
+    /* Path aliases — mirrors the folder structure under src/ so imports never
+       need to climb with ../../../.. as features get deeper */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@app/*": ["src/app/*"],
+      "@components/*": ["src/components/*"],
+      "@features/*": ["src/features/*"],
+      "@pages/*": ["src/pages/*"],
+      "@services/*": ["src/services/*"],
+      "@store/*": ["src/store/*"],
+      "@theme/*": ["src/theme/*"],
+      "@models/*": ["src/types/*"],
+      "@utils/*": ["src/utils/*"]
+    }
+  },
+  "include": ["src"]
+}

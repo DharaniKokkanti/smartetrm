@@ -1,0 +1,184 @@
+{
+  "folders": [
+    { "name": "etrm-frontend", "path": "etrm-frontend" },
+    { "name": "etrm-backend", "path": "etrm-backend" },
+    { "name": "database (SQL scripts)", "path": "database" },
+    { "name": "docs", "path": "docs" }
+  ],
+
+  "settings": {
+    // Frontend
+    "eslint.workingDirectories": [{ "directory": "etrm-frontend" }],
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "[typescript]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+    "[typescriptreact]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+    "[json]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+    "typescript.tsdk": "etrm-frontend/node_modules/typescript/lib",
+    "typescript.enablePromptUseWorkspaceTsdk": true,
+
+    // Backend
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.compile.nullAnalysis.mode": "automatic",
+    "[java]": { "editor.defaultFormatter": "redhat.java" },
+    "maven.executable.preferMavenWrapper": false,
+
+    // SQL
+    "[sql]": { "editor.tabSize": 4 },
+
+    // Shared
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/target": true,
+      "**/dist": true,
+      "**/.git": true
+    },
+    "files.watcherExclude": {
+      "**/node_modules/**": true,
+      "**/target/**": true
+    }
+  },
+
+  "extensions": {
+    "recommendations": [
+      // Frontend
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode",
+      "bradlc.vscode-tailwindcss",
+      // Backend
+      "vscjava.vscode-java-pack",
+      "vmware.vscode-spring-boot",
+      "vscjava.vscode-spring-initializr",
+      "vscjava.vscode-spring-boot-dashboard",
+      // SQL
+      "ms-mssql.mssql",
+      // General
+      "eamodio.gitlens",
+      "editorconfig.editorconfig"
+    ]
+  },
+
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Frontend: Launch Chrome",
+        "type": "chrome",
+        "request": "launch",
+        "url": "http://localhost:5173",
+        "webRoot": "${workspaceFolder:etrm-frontend}",
+        "preLaunchTask": "Frontend: Dev Server"
+      },
+      {
+        "name": "Backend: Debug (H2 dev profile, no SQL Server needed)",
+        "type": "java",
+        "request": "launch",
+        "mainClass": "com.etrm.system.EtrmBackendApplication",
+        "projectName": "etrm-backend",
+        "args": "--spring.profiles.active=dev",
+        "cwd": "${workspaceFolder:etrm-backend}"
+      },
+      {
+        "name": "Backend: Debug (real SQL Server, reads etrm-backend/.env)",
+        "type": "java",
+        "request": "launch",
+        "mainClass": "com.etrm.system.EtrmBackendApplication",
+        "projectName": "etrm-backend",
+        "envFile": "${workspaceFolder:etrm-backend}/.env",
+        "cwd": "${workspaceFolder:etrm-backend}"
+      }
+    ],
+    "compounds": [
+      {
+        "name": "Full Stack: Frontend (mocks) + Chrome",
+        "configurations": ["Frontend: Launch Chrome"],
+        "preLaunchTask": "Frontend: Dev Server"
+      },
+      {
+        "name": "Full Stack: Frontend + Real Backend + Chrome",
+        "configurations": ["Backend: Debug (real SQL Server, reads etrm-backend/.env)", "Frontend: Launch Chrome"]
+      }
+    ]
+  },
+
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Frontend: Install",
+        "type": "shell",
+        "command": "npm install",
+        "options": { "cwd": "${workspaceFolder:etrm-frontend}" },
+        "problemMatcher": []
+      },
+      {
+        "label": "Frontend: Dev Server",
+        "type": "shell",
+        "command": "npm run dev",
+        "options": { "cwd": "${workspaceFolder:etrm-frontend}" },
+        "isBackground": true,
+        "problemMatcher": {
+          "pattern": { "regexp": "." , "file": 1, "location": 2, "message": 3 },
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": "VITE",
+            "endsPattern": "ready in"
+          }
+        },
+        "presentation": { "panel": "dedicated", "group": "fullstack" }
+      },
+      {
+        "label": "Frontend: Build",
+        "type": "shell",
+        "command": "npm run build",
+        "options": { "cwd": "${workspaceFolder:etrm-frontend}" },
+        "group": "build",
+        "problemMatcher": ["$tsc"]
+      },
+      {
+        "label": "Frontend: Lint",
+        "type": "shell",
+        "command": "npm run lint",
+        "options": { "cwd": "${workspaceFolder:etrm-frontend}" },
+        "problemMatcher": ["$eslint-stylish"]
+      },
+      {
+        "label": "Backend: Build (Maven)",
+        "type": "shell",
+        "command": "mvn clean install",
+        "options": { "cwd": "${workspaceFolder:etrm-backend}" },
+        "group": { "kind": "build", "isDefault": true },
+        "problemMatcher": ["$gradle"]
+      },
+      {
+        "label": "Backend: Run (H2 dev profile)",
+        "type": "shell",
+        "command": "mvn spring-boot:run -Dspring-boot.run.profiles=dev",
+        "options": { "cwd": "${workspaceFolder:etrm-backend}" },
+        "isBackground": true,
+        "presentation": { "panel": "dedicated", "group": "fullstack" },
+        "problemMatcher": []
+      },
+      {
+        "label": "Backend: Run (real SQL Server)",
+        "type": "shell",
+        "command": "mvn spring-boot:run",
+        "options": { "cwd": "${workspaceFolder:etrm-backend}" },
+        "isBackground": true,
+        "presentation": { "panel": "dedicated", "group": "fullstack" },
+        "problemMatcher": []
+      },
+      {
+        "label": "Full Stack: Start (mocks only, no backend needed)",
+        "dependsOn": ["Frontend: Dev Server"],
+        "problemMatcher": []
+      },
+      {
+        "label": "Full Stack: Start (real backend + frontend)",
+        "dependsOn": ["Backend: Run (real SQL Server)", "Frontend: Dev Server"],
+        "dependsOrder": "parallel",
+        "problemMatcher": []
+      }
+    ]
+  }
+}
