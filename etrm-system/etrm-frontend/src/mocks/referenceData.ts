@@ -104,6 +104,18 @@ export const registrySeed: RegistryEntry[] = [
     isEnabled: true,
     displayOrder: 3,
   },
+  {
+    registryId: 9,
+    tableName: 'custom_config',
+    displayName: 'Custom Config',
+    moduleGroup: 'Reference',
+    allowCreate: true,
+    allowEdit: true,
+    allowDelete: false,
+    allowExcelUpload: false,
+    isEnabled: true,
+    displayOrder: 5,
+  },
 ];
 
 export const metadataSeed: Record<string, TableMetadata> = {
