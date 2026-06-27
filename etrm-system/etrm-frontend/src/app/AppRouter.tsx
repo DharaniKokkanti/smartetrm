@@ -7,99 +7,99 @@ import { NotFoundPage } from '@pages/NotFoundPage';
 import { LoginPage } from '@features/auth/LoginPage';
 import { RequireAuth } from '@features/auth/RequireAuth';
 
-const Tier1Placeholder = lazy(() =>
-  import('@features/tier1/Tier1Placeholder').then((m) => ({ default: m.Tier1Placeholder })),
-);
-const Tier2HomePage = lazy(() =>
-  import('@features/tier2/Tier2HomePage').then((m) => ({ default: m.Tier2HomePage })),
-);
-const LegalEntityListPage = lazy(() =>
-  import('@features/tier1/legal-entity/LegalEntityListPage').then((m) => ({
-    default: m.LegalEntityListPage,
-  })),
-);
-const CounterpartyListPage = lazy(() =>
-  import('@features/tier1/counterparty/CounterpartyListPage').then((m) => ({
-    default: m.CounterpartyListPage,
-  })),
-);
-const CounterpartyFormPage = lazy(() =>
-  import('@features/tier1/counterparty/CounterpartyFormPage').then((m) => ({
-    default: m.CounterpartyFormPage,
-  })),
-);
+function lazy1<T extends Record<string, React.ComponentType>>(
+  factory: () => Promise<T>,
+  exportName: keyof T,
+) {
+  return lazy(() => factory().then((m) => ({ default: m[exportName] as React.ComponentType })));
+}
+
+// Legacy tier pages
+const Tier1Placeholder = lazy1(() => import('@features/tier1/Tier1Placeholder'), 'Tier1Placeholder');
+const Tier2HomePage = lazy1(() => import('@features/tier2/Tier2HomePage'), 'Tier2HomePage');
+const LegalEntityListPage = lazy1(() => import('@features/tier1/legal-entity/LegalEntityListPage'), 'LegalEntityListPage');
+const CounterpartyListPage = lazy1(() => import('@features/tier1/counterparty/CounterpartyListPage'), 'CounterpartyListPage');
+const CounterpartyFormPage = lazy1(() => import('@features/tier1/counterparty/CounterpartyFormPage'), 'CounterpartyFormPage');
+
+// Organization
+const DesksPage = lazy1(() => import('@features/organization/desks/DesksPage'), 'DesksPage');
+const BooksPage = lazy1(() => import('@features/organization/books/BooksPage'), 'BooksPage');
+const TradersPage = lazy1(() => import('@features/organization/traders/TradersPage'), 'TradersPage');
+
+// Markets
+const MarketsPage = lazy1(() => import('@features/markets/markets/MarketsPage'), 'MarketsPage');
+const ProductsPage = lazy1(() => import('@features/markets/products/ProductsPage'), 'ProductsPage');
+const PriceIndicesPage = lazy1(() => import('@features/markets/price-indices/PriceIndicesPage'), 'PriceIndicesPage');
+const ExchangesPage = lazy1(() => import('@features/markets/exchanges/ExchangesPage'), 'ExchangesPage');
+
+// Logistics
+const LocationsPage = lazy1(() => import('@features/logistics/locations/LocationsPage'), 'LocationsPage');
+const VesselsPage = lazy1(() => import('@features/logistics/vessels/VesselsPage'), 'VesselsPage');
+const PipelinesPage = lazy1(() => import('@features/logistics/pipelines/PipelinesPage'), 'PipelinesPage');
+
+// Calendar
+const HolidayCalendarsPage = lazy1(() => import('@features/calendar/holiday-calendars/HolidayCalendarsPage'), 'HolidayCalendarsPage');
+const PeriodsPage = lazy1(() => import('@features/calendar/periods/PeriodsPage'), 'PeriodsPage');
+
+// Pricing
+const PricingRulesPage = lazy1(() => import('@features/pricing/pricing-rules/PricingRulesPage'), 'PricingRulesPage');
+const PriceSourcesPage = lazy1(() => import('@features/pricing/price-sources/PriceSourcesPage'), 'PriceSourcesPage');
+
+// Trade
+const TradeBlotter = lazy1(() => import('@features/trade/TradeBlotter'), 'TradeBlotter');
 
 function RouteFallback() {
-  return (
-    <div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}>
-      <Spin size="large" />
-    </div>
-  );
+  return <div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}><Spin size="large" /></div>;
+}
+
+function S({ children }: { children: React.ReactNode }) {
+  return <Suspense fallback={<RouteFallback />}>{children}</Suspense>;
 }
 
 export function AppRouter() {
   return (
     <Routes>
-      {/* Public */}
       <Route path="/login" element={<LoginPage />} />
-
-      {/* Protected — RequireAuth redirects to /login if not authenticated */}
-      <Route
-        element={
-          <RequireAuth>
-            <AppShell />
-          </RequireAuth>
-        }
-      >
+      <Route element={<RequireAuth><AppShell /></RequireAuth>}>
         <Route path="/" element={<DashboardPage />} />
-        <Route
-          path="/tier1"
-          element={
-            <Suspense fallback={<RouteFallback />}>
-              <Tier1Placeholder />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/tier1/legal-entity"
-          element={
-            <Suspense fallback={<RouteFallback />}>
-              <LegalEntityListPage />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/tier1/counterparty"
-          element={
-            <Suspense fallback={<RouteFallback />}>
-              <CounterpartyListPage />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/tier1/counterparty/:id"
-          element={
-            <Suspense fallback={<RouteFallback />}>
-              <CounterpartyFormPage />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/tier2"
-          element={
-            <Suspense fallback={<RouteFallback />}>
-              <Tier2HomePage />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/tier2/:tableName"
-          element={
-            <Suspense fallback={<RouteFallback />}>
-              <Tier2HomePage />
-            </Suspense>
-          }
-        />
+
+        {/* Organization */}
+        <Route path="/org/desks" element={<S><DesksPage /></S>} />
+        <Route path="/org/books" element={<S><BooksPage /></S>} />
+        <Route path="/org/traders" element={<S><TradersPage /></S>} />
+
+        {/* Counterparties */}
+        <Route path="/tier1/legal-entity" element={<S><LegalEntityListPage /></S>} />
+        <Route path="/tier1/counterparty" element={<S><CounterpartyListPage /></S>} />
+        <Route path="/tier1/counterparty/:id" element={<S><CounterpartyFormPage /></S>} />
+        <Route path="/tier1" element={<S><Tier1Placeholder /></S>} />
+
+        {/* Markets */}
+        <Route path="/markets/markets" element={<S><MarketsPage /></S>} />
+        <Route path="/markets/products" element={<S><ProductsPage /></S>} />
+        <Route path="/markets/price-indices" element={<S><PriceIndicesPage /></S>} />
+        <Route path="/markets/exchanges" element={<S><ExchangesPage /></S>} />
+
+        {/* Logistics */}
+        <Route path="/logistics/locations" element={<S><LocationsPage /></S>} />
+        <Route path="/logistics/vessels" element={<S><VesselsPage /></S>} />
+        <Route path="/logistics/pipelines" element={<S><PipelinesPage /></S>} />
+
+        {/* Calendar */}
+        <Route path="/calendar/holiday-calendars" element={<S><HolidayCalendarsPage /></S>} />
+        <Route path="/calendar/periods" element={<S><PeriodsPage /></S>} />
+
+        {/* Pricing */}
+        <Route path="/pricing/pricing-rules" element={<S><PricingRulesPage /></S>} />
+        <Route path="/pricing/price-sources" element={<S><PriceSourcesPage /></S>} />
+
+        {/* Trade */}
+        <Route path="/trade/blotter" element={<S><TradeBlotter /></S>} />
+
+        {/* Reference */}
+        <Route path="/tier2" element={<S><Tier2HomePage /></S>} />
+        <Route path="/tier2/:tableName" element={<S><Tier2HomePage /></S>} />
+
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

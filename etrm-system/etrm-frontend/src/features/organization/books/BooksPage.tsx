@@ -4,7 +4,7 @@ import { EditOutlined, StopOutlined } from '@ant-design/icons';
 import type { ColDef } from 'ag-grid-community';
 import { PageHeader } from '@components/layout/PageHeader';
 import { SmartGrid } from '@components/smart/SmartGrid';
-import { StatusTag, ActiveTag } from '@components/smart/StatusTag';
+import { ActiveTag } from '@components/smart/StatusTag';
 import { useBooks, useDeactivateBook } from './hooks';
 import type { Book, BookType } from './types';
 import { BookFormDrawer } from './BookFormDrawer';

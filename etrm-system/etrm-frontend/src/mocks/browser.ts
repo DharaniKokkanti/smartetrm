@@ -4,6 +4,7 @@ import { legalEntityHandlers } from './handlers';
 import { counterpartyHandlers } from './counterpartyHandlers';
 import { guaranteeHandlers } from './guaranteeHandlers';
 import { referenceDataHandlers } from './referenceDataHandlers';
+import { etrmHandlers } from './etrmHandlers';
 
 export const worker = setupWorker(
   ...authHandlers,
@@ -11,4 +12,5 @@ export const worker = setupWorker(
   ...counterpartyHandlers,
   ...guaranteeHandlers,
   ...referenceDataHandlers,
+  ...etrmHandlers,
 );
