@@ -9,13 +9,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.time.LocalDate;
 
-@Getter
-@Setter
 @Entity
 @Table(name = "legal_entity")
 public class LegalEntity extends AuditableEntity {
@@ -88,4 +84,156 @@ public class LegalEntity extends AuditableEntity {
 
     @Column(name = "notes", length = 1000)
     private String notes;
+
+    public Long getLegalEntityId() {
+        return legalEntityId;
+    }
+
+    public void setLegalEntityId(Long legalEntityId) {
+        this.legalEntityId = legalEntityId;
+    }
+
+    public String getEntityCode() {
+        return entityCode;
+    }
+
+    public void setEntityCode(String entityCode) {
+        this.entityCode = entityCode;
+    }
+
+    public String getEntityName() {
+        return entityName;
+    }
+
+    public void setEntityName(String entityName) {
+        this.entityName = entityName;
+    }
+
+    public String getShortName() {
+        return shortName;
+    }
+
+    public void setShortName(String shortName) {
+        this.shortName = shortName;
+    }
+
+    public String getLeiCode() {
+        return leiCode;
+    }
+
+    public void setLeiCode(String leiCode) {
+        this.leiCode = leiCode;
+    }
+
+    public String getEntityType() {
+        return entityType;
+    }
+
+    public void setEntityType(String entityType) {
+        this.entityType = entityType;
+    }
+
+    public Long getParentEntityId() {
+        return parentEntityId;
+    }
+
+    public void setParentEntityId(Long parentEntityId) {
+        this.parentEntityId = parentEntityId;
+    }
+
+    public String getJurisdiction() {
+        return jurisdiction;
+    }
+
+    public void setJurisdiction(String jurisdiction) {
+        this.jurisdiction = jurisdiction;
+    }
+
+    public String getIncorporationCountry() {
+        return incorporationCountry;
+    }
+
+    public void setIncorporationCountry(String incorporationCountry) {
+        this.incorporationCountry = incorporationCountry;
+    }
+
+    public String getIncorporationNumber() {
+        return incorporationNumber;
+    }
+
+    public void setIncorporationNumber(String incorporationNumber) {
+        this.incorporationNumber = incorporationNumber;
+    }
+
+    public String getBaseCurrency() {
+        return baseCurrency;
+    }
+
+    public void setBaseCurrency(String baseCurrency) {
+        this.baseCurrency = baseCurrency;
+    }
+
+    public String getDefaultTimezone() {
+        return defaultTimezone;
+    }
+
+    public void setDefaultTimezone(String defaultTimezone) {
+        this.defaultTimezone = defaultTimezone;
+    }
+
+    public String getRegulator() {
+        return regulator;
+    }
+
+    public void setRegulator(String regulator) {
+        this.regulator = regulator;
+    }
+
+    public String getRegulatoryLicence() {
+        return regulatoryLicence;
+    }
+
+    public void setRegulatoryLicence(String regulatoryLicence) {
+        this.regulatoryLicence = regulatoryLicence;
+    }
+
+    public Boolean getIsInternal() {
+        return isInternal;
+    }
+
+    public void setIsInternal(Boolean isInternal) {
+        this.isInternal = isInternal;
+    }
+
+    public Boolean getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
+    }
+
+    public LocalDate getGoLiveDate() {
+        return goLiveDate;
+    }
+
+    public void setGoLiveDate(LocalDate goLiveDate) {
+        this.goLiveDate = goLiveDate;
+    }
+
+    public LocalDate getDeactivatedDate() {
+        return deactivatedDate;
+    }
+
+    public void setDeactivatedDate(LocalDate deactivatedDate) {
+        this.deactivatedDate = deactivatedDate;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
 }

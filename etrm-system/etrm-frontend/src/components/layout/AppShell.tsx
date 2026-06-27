@@ -1,10 +1,8 @@
-import type { ReactNode } from 'react';
 import { Layout, Menu, Typography, Space, Avatar, Button, Badge, Tooltip, Dropdown } from 'antd';
 import {
   MenuFoldOutlined, MenuUnfoldOutlined, SwapOutlined, FundOutlined,
   SunOutlined, MoonOutlined, CodeOutlined, LogoutOutlined, UserOutlined, HomeOutlined,
-  BankOutlined, ShopOutlined, ApartmentOutlined, GlobalOutlined, CalendarOutlined,
-  DollarOutlined, DatabaseOutlined, TeamOutlined,
+  BankOutlined, AppstoreOutlined,
 } from '@ant-design/icons';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useUiStore } from '@store/uiStore';
@@ -16,78 +14,21 @@ import { ApiLogDrawer } from './ApiLogDrawer';
 
 const { Header, Sider, Content } = Layout;
 
-interface NavChild { key: string; label: string; disabled?: boolean; }
-interface NavSection { key: string; icon: ReactNode; label: string; children: NavChild[]; }
-
-const navSections: NavSection[] = [
+const NAV_ITEMS = [
+  { key: '/',               icon: <HomeOutlined />,       label: 'Dashboard' },
+  { key: '/trade/blotter',  icon: <SwapOutlined />,       label: 'Trade Blotter' },
+  { key: '/position',       icon: <FundOutlined />,       label: 'Position & P&L', disabled: true },
+  { type: 'divider' as const },
   {
-    key: 'dashboard', icon: <HomeOutlined />, label: 'Dashboard',
-    children: [{ key: '/', label: 'Overview & KPIs' }],
-  },
-  {
-    key: 'organization', icon: <ApartmentOutlined />, label: 'Organization',
+    type: 'group' as const,
+    label: <span style={{ fontSize: 10, letterSpacing: 1, fontWeight: 700, color: '#6b7280' }}>MASTER DATA</span>,
     children: [
-      { key: '/org/desks', label: 'Trading Desks' },
-      { key: '/org/books', label: 'Books' },
-      { key: '/org/traders', label: 'Traders' },
+      { key: '/master-data', icon: <AppstoreOutlined />, label: 'Master Data Hub' },
     ],
-  },
-  {
-    key: 'counterparties', icon: <TeamOutlined />, label: 'Counterparties',
-    children: [
-      { key: '/tier1/legal-entity', label: 'Legal Entities' },
-      { key: '/tier1/counterparty', label: 'Counterparties' },
-    ],
-  },
-  {
-    key: 'markets', icon: <ShopOutlined />, label: 'Products & Markets',
-    children: [
-      { key: '/markets/markets', label: 'Markets' },
-      { key: '/markets/products', label: 'Products' },
-      { key: '/markets/price-indices', label: 'Price Indices' },
-      { key: '/markets/exchanges', label: 'Exchanges' },
-    ],
-  },
-  {
-    key: 'logistics', icon: <GlobalOutlined />, label: 'Locations & Logistics',
-    children: [
-      { key: '/logistics/locations', label: 'Locations' },
-      { key: '/logistics/vessels', label: 'Vessels' },
-      { key: '/logistics/pipelines', label: 'Pipelines' },
-    ],
-  },
-  {
-    key: 'calendar', icon: <CalendarOutlined />, label: 'Calendar & Periods',
-    children: [
-      { key: '/calendar/holiday-calendars', label: 'Holiday Calendars' },
-      { key: '/calendar/periods', label: 'Periods' },
-    ],
-  },
-  {
-    key: 'pricing', icon: <DollarOutlined />, label: 'Pricing Config',
-    children: [
-      { key: '/pricing/price-sources', label: 'Price Sources' },
-      { key: '/pricing/pricing-rules', label: 'Pricing Rules' },
-    ],
-  },
-  {
-    key: 'reference', icon: <DatabaseOutlined />, label: 'Reference Data',
-    children: [
-      { key: '/tier2', label: 'All Reference Tables' },
-      { key: '/tier1', label: 'Core Entities' },
-    ],
-  },
-  {
-    key: 'trade', icon: <SwapOutlined />, label: 'Trade',
-    children: [{ key: '/trade/blotter', label: 'Trade Blotter' }],
-  },
-  {
-    key: 'position', icon: <FundOutlined />, label: 'Position',
-    children: [{ key: '/position', label: 'Position & P&L', disabled: true }],
   },
 ];
 
-const allNavChildren = navSections.flatMap((s) => s.children);
+const ALL_KEYS = ['/', '/trade/blotter', '/position', '/master-data'];
 
 export function AppShell() {
   const { sidebarCollapsed, toggleSidebar } = useUiStore();
@@ -100,13 +41,15 @@ export function AppShell() {
 
   function handleLogout() { clearAuth(); navigate('/login', { replace: true }); }
 
-  const activeKey = allNavChildren.find((c) => c.key !== '/' && location.pathname.startsWith(c.key))?.key
-    ?? (location.pathname === '/' ? '/' : location.pathname);
-
-  const openKeys = navSections.filter((s) => s.children.some((c) => c.key === activeKey)).map((s) => s.key);
+  const activeKey =
+    ALL_KEYS.find((k) => k !== '/' && location.pathname.startsWith(k)) ??
+    (location.pathname === '/' ? '/' : '/master-data');
 
   const userMenuItems = [
-    { key: 'profile', label: user?.fullName ?? user?.username ?? 'User', disabled: true, style: { cursor: 'default', color: color.textSecondary, fontSize: 12 } },
+    {
+      key: 'profile', label: user?.fullName ?? user?.username ?? 'User',
+      disabled: true, style: { cursor: 'default', color: color.textSecondary, fontSize: 12 },
+    },
     { type: 'divider' as const },
     { key: 'logout', icon: <LogoutOutlined />, label: 'Sign out', onClick: handleLogout },
   ];
@@ -115,8 +58,11 @@ export function AppShell() {
     <>
       <Layout style={{ minHeight: '100vh' }}>
         <Header style={{ display: 'flex', alignItems: 'center', padding: '0 16px', gap: 16, position: 'sticky', top: 0, zIndex: 10 }}>
-          <button onClick={toggleSidebar} aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+          <button
+            onClick={toggleSidebar}
+            aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+          >
             {sidebarCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
           </button>
           <Space align="center" size={8}>
@@ -131,7 +77,14 @@ export function AppShell() {
             </Badge>
           </Tooltip>
           <Tooltip title={mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
-            <Button type="text" icon={mode === 'dark' ? <SunOutlined style={{ color: '#fff', fontSize: 16 }} /> : <MoonOutlined style={{ color: '#fff', fontSize: 16 }} />} onClick={toggleTheme} aria-label="Toggle dark mode" />
+            <Button
+              type="text"
+              icon={mode === 'dark'
+                ? <SunOutlined style={{ color: '#fff', fontSize: 16 }} />
+                : <MoonOutlined style={{ color: '#fff', fontSize: 16 }} />}
+              onClick={toggleTheme}
+              aria-label="Toggle dark mode"
+            />
           </Tooltip>
           <Dropdown menu={{ items: userMenuItems }} trigger={['click']} placement="bottomRight">
             <Tooltip title={user?.fullName ?? 'Account'}>
@@ -143,15 +96,12 @@ export function AppShell() {
         </Header>
 
         <Layout>
-          <Sider collapsible collapsed={sidebarCollapsed} trigger={null} width={220} style={{ borderRight: `1px solid ${color.border}` }}>
-            <Menu mode="inline" selectedKeys={[activeKey]} defaultOpenKeys={openKeys}
+          <Sider collapsible collapsed={sidebarCollapsed} trigger={null} width={210} style={{ borderRight: `1px solid ${color.border}` }}>
+            <Menu
+              mode="inline"
+              selectedKeys={[activeKey]}
               style={{ borderRight: 'none', paddingTop: 4, fontSize: 13 }}
-              items={navSections.map((section) => ({
-                key: section.key,
-                icon: section.icon,
-                label: section.label,
-                children: section.children.map((child) => ({ key: child.key, label: child.label, disabled: child.disabled })),
-              }))}
+              items={NAV_ITEMS}
               onClick={({ key }) => { void navigate(key); }}
             />
           </Sider>

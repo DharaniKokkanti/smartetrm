@@ -1,11 +1,10 @@
 import { Form, Input, Select, Switch } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { ChildRecordSection, PrimaryTag } from './ChildRecordSection';
-import { BANK_ACCOUNT_TYPES, type BankAccount } from './types';
+import type { BankAccount } from './types';
 import { CURRENCY_LOOKUP } from './staticLookups';
 import { localId } from '@utils/localId';
-
-const TYPE_OPTIONS = BANK_ACCOUNT_TYPES.map((t) => ({ label: t, value: t }));
+import { useCustomConfigOptions } from './configLookups';
 const CURRENCY_OPTIONS = CURRENCY_LOOKUP.map((c) => ({
   label: `${c.currencyCode} — ${c.currencyName}`,
   value: c.currencyId,
@@ -17,6 +16,7 @@ interface Props {
 }
 
 export function BankAccountsSection({ items, onChange }: Props) {
+  const { data: typeOptions = [], isLoading } = useCustomConfigOptions('BANK_ACCOUNT_TYPE');
   const columns: ColumnsType<BankAccount> = [
     { title: 'Account Name', dataIndex: 'accountName' },
     { title: 'Bank', dataIndex: 'bankName' },
@@ -55,7 +55,7 @@ export function BankAccountsSection({ items, onChange }: Props) {
       renderFormFields={() => (
         <>
           <Form.Item name="accountType" label="Account Type" rules={[{ required: true }]}>
-            <Select options={TYPE_OPTIONS} />
+            <Select options={typeOptions} loading={isLoading} />
           </Form.Item>
           <Form.Item name="currencyId" label="Currency" rules={[{ required: true }]}>
             <Select options={CURRENCY_OPTIONS} />

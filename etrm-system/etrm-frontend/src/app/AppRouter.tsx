@@ -48,6 +48,27 @@ const PriceSourcesPage = lazy1(() => import('@features/pricing/price-sources/Pri
 // Trade
 const TradeBlotter = lazy1(() => import('@features/trade/TradeBlotter'), 'TradeBlotter');
 
+// Master Data Hub
+const MasterDataHub = lazy1(() => import('@features/master-data/MasterDataHub'), 'MasterDataHub');
+
+// Admin
+const SystemUsersPage = lazy1(() => import('@features/admin/system-users/SystemUsersPage'), 'SystemUsersPage');
+
+// Contracts
+const PaymentTermsPage = lazy1(() => import('@features/contracts/payment-terms/PaymentTermsPage'), 'PaymentTermsPage');
+const PaymentMethodsPage = lazy1(() => import('@features/contracts/payment-methods/PaymentMethodsPage'), 'PaymentMethodsPage');
+const GtcsPage = lazy1(() => import('@features/contracts/gtcs/GtcsPage'), 'GtcsPage');
+
+// Logistics (new)
+const TrucksPage = lazy1(() => import('@features/logistics/trucks/TrucksPage'), 'TrucksPage');
+const StoragePage = lazy1(() => import('@features/logistics/storage/StoragePage'), 'StoragePage');
+
+// Reference
+const CurrenciesPage = lazy1(() => import('@features/reference/currencies/CurrenciesPage'), 'CurrenciesPage');
+const UomPage = lazy1(() => import('@features/reference/uom/UomPage'), 'UomPage');
+const CountriesPage = lazy1(() => import('@features/reference/countries/CountriesPage'), 'CountriesPage');
+const IncotermsPage = lazy1(() => import('@features/reference/incoterms/IncotermsPage'), 'IncotermsPage');
+
 function RouteFallback() {
   return <div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}><Spin size="large" /></div>;
 }
@@ -96,7 +117,26 @@ export function AppRouter() {
         {/* Trade */}
         <Route path="/trade/blotter" element={<S><TradeBlotter /></S>} />
 
+        {/* Master Data Hub */}
+        <Route path="/master-data" element={<S><MasterDataHub /></S>} />
+
+        {/* Admin */}
+        <Route path="/admin/users" element={<S><SystemUsersPage /></S>} />
+
+        {/* Contracts */}
+        <Route path="/contracts/payment-terms" element={<S><PaymentTermsPage /></S>} />
+        <Route path="/contracts/payment-methods" element={<S><PaymentMethodsPage /></S>} />
+        <Route path="/contracts/gtcs" element={<S><GtcsPage /></S>} />
+
+        {/* Logistics (new) */}
+        <Route path="/logistics/trucks" element={<S><TrucksPage /></S>} />
+        <Route path="/logistics/storage" element={<S><StoragePage /></S>} />
+
         {/* Reference */}
+        <Route path="/reference/currencies" element={<S><CurrenciesPage /></S>} />
+        <Route path="/reference/uom" element={<S><UomPage /></S>} />
+        <Route path="/reference/countries" element={<S><CountriesPage /></S>} />
+        <Route path="/reference/incoterms" element={<S><IncotermsPage /></S>} />
         <Route path="/tier2" element={<S><Tier2HomePage /></S>} />
         <Route path="/tier2/:tableName" element={<S><Tier2HomePage /></S>} />
 

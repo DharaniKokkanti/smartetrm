@@ -1,10 +1,9 @@
 import { Form, Input, Select, Switch } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { ChildRecordSection, PrimaryTag } from './ChildRecordSection';
-import { CONTACT_ROLES, type Contact } from './types';
+import type { Contact } from './types';
 import { localId } from '@utils/localId';
-
-const ROLE_OPTIONS = CONTACT_ROLES.map((r) => ({ label: r.replaceAll('_', ' '), value: r }));
+import { useCustomConfigOptions } from './configLookups';
 
 interface Props {
   items: Contact[];
@@ -12,6 +11,7 @@ interface Props {
 }
 
 export function ContactsSection({ items, onChange }: Props) {
+  const { data: roleOptions = [], isLoading } = useCustomConfigOptions('CONTACT_ROLE');
   const columns: ColumnsType<Contact> = [
     {
       title: 'Name',
@@ -57,7 +57,7 @@ export function ContactsSection({ items, onChange }: Props) {
       renderFormFields={() => (
         <>
           <Form.Item name="contactRole" label="Role" rules={[{ required: true }]}>
-            <Select options={ROLE_OPTIONS} />
+            <Select options={roleOptions} loading={isLoading} />
           </Form.Item>
           <Form.Item name="firstName" label="First Name" rules={[{ required: true }]}>
             <Input />

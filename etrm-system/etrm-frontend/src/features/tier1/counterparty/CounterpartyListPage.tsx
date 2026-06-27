@@ -8,9 +8,10 @@ import { PageHeader } from '@components/layout/PageHeader';
 import { buildAgGridTheme } from '@theme/ag-grid-theme';
 import { useThemeStore } from '@store/themeStore';
 import { useCounterparties, useDeactivateCounterparty } from './hooks';
-import { KYC_STATUSES, type Counterparty, type KycStatus } from './types';
+import { useCustomConfigOptions } from './configLookups';
+import type { Counterparty, KycStatus } from './types';
 
-const KYC_TAG_COLOR: Record<KycStatus, string> = {
+const KYC_TAG_COLOR: Record<string, string> = {
   PENDING: 'default',
   APPROVED: 'success',
   REVIEW: 'processing',
@@ -18,15 +19,12 @@ const KYC_TAG_COLOR: Record<KycStatus, string> = {
   REJECTED: 'error',
 };
 
-const KYC_FILTER_OPTIONS = [
-  { label: 'All KYC Statuses', value: 'ALL' },
-  ...KYC_STATUSES.map((s) => ({ label: s, value: s })),
-];
 
 export function CounterpartyListPage() {
   const navigate = useNavigate();
   const { data: counterparties, isLoading } = useCounterparties();
   const deactivateMutation = useDeactivateCounterparty();
+  const { data: kycStatusOptions = [] } = useCustomConfigOptions('KYC_STATUS');
   const [kycFilter, setKycFilter] = useState<string>('ALL');
   const mode = useThemeStore((s) => s.mode);
   const gridTheme = useMemo(() => buildAgGridTheme(mode), [mode]);
@@ -109,7 +107,7 @@ export function CounterpartyListPage() {
             <Select
               value={kycFilter}
               onChange={setKycFilter}
-              options={KYC_FILTER_OPTIONS}
+              options={[{ label: 'All KYC Statuses', value: 'ALL' }, ...kycStatusOptions.map((o) => ({ label: o.label, value: o.value }))]}
               style={{ width: 180 }}
             />
             <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/tier1/counterparty/new')}>

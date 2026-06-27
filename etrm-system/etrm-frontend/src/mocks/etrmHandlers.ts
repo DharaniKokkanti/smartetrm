@@ -190,6 +190,133 @@ const pricingRulesStore: unknown[] = [
   { pricingRuleId: 8, ruleCode: 'FIXED-75.00-USD', ruleName: 'Fixed Price USD 75.00/BBL', pricingType: 'FIXED', priceIndexCode: null, differentialAmount: 75.0, differentialCurrencyCode: 'USD', differentialUomCode: 'BBL', formulaExpression: null, averagingMethod: null, pricingCalendarCode: null, publicationSource: null, rounding: 'ROUND_2DP', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
 ];
 
+// ─── SYSTEM USERS ─────────────────────────────────────────────────────────────
+const systemUsersStore: unknown[] = [
+  { userId: 1, username: 'admin', email: 'admin@smartetrm.com', fullName: 'System Administrator', role: 'ADMIN', traderId: null, department: 'IT', phone: '+44 20 7123 0001', isActive: true, lastLogin: '2026-06-27T08:00:00Z', createdAt: '2024-01-01T00:00:00Z' },
+  { userId: 2, username: 'j.doe', email: 'john.doe@smartetrm.com', fullName: 'John Doe', role: 'TRADER', traderId: 1, department: 'Crude Oil Trading', phone: '+44 20 7123 0002', isActive: true, lastLogin: '2026-06-27T09:30:00Z', createdAt: '2024-01-01T00:00:00Z' },
+  { userId: 3, username: 'a.smith', email: 'alice.smith@smartetrm.com', fullName: 'Alice Smith', role: 'TRADER', traderId: 2, department: 'European Gas', phone: '+44 20 7123 0003', isActive: true, lastLogin: '2026-06-26T17:00:00Z', createdAt: '2024-01-01T00:00:00Z' },
+  { userId: 4, username: 'risk.mgr', email: 'risk@smartetrm.com', fullName: 'Risk Manager', role: 'RISK_MANAGER', traderId: null, department: 'Risk Management', phone: null, isActive: true, lastLogin: '2026-06-27T07:45:00Z', createdAt: '2024-01-01T00:00:00Z' },
+  { userId: 5, username: 'compliance', email: 'compliance@smartetrm.com', fullName: 'Compliance Officer', role: 'COMPLIANCE', traderId: null, department: 'Legal & Compliance', phone: null, isActive: true, lastLogin: '2026-06-25T14:00:00Z', createdAt: '2024-01-01T00:00:00Z' },
+  { userId: 6, username: 'ops.team', email: 'operations@smartetrm.com', fullName: 'Operations Team', role: 'OPERATIONS', traderId: null, department: 'Operations', phone: '+44 20 7123 0006', isActive: true, lastLogin: '2026-06-27T08:30:00Z', createdAt: '2024-01-01T00:00:00Z' },
+  { userId: 7, username: 'viewer1', email: 'viewer@smartetrm.com', fullName: 'Board Viewer', role: 'VIEWER', traderId: null, department: 'Executive', phone: null, isActive: false, lastLogin: '2026-05-01T10:00:00Z', createdAt: '2024-01-01T00:00:00Z' },
+];
+
+// ─── PAYMENT TERMS ─────────────────────────────────────────────────────────────
+const paymentTermsStore: unknown[] = [
+  { paymentTermId: 1, termCode: 'NET30', termName: 'Net 30 Days', netDays: 30, discountDays: null, discountPct: null, description: 'Payment due 30 calendar days after invoice date. Standard for crude oil physical trades.', isDefault: true, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { paymentTermId: 2, termCode: 'NET45', termName: 'Net 45 Days', netDays: 45, discountDays: null, discountPct: null, description: 'Payment due 45 calendar days — standard for LNG cargo settlements.', isDefault: false, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { paymentTermId: 3, termCode: '2/10-NET30', termName: '2% 10 Net 30', netDays: 30, discountDays: 10, discountPct: 2.0, description: '2% discount if paid within 10 days, otherwise net 30 days.', isDefault: false, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { paymentTermId: 4, termCode: 'NET2-LME', termName: 'Net 2 Days (LME)', netDays: 2, discountDays: null, discountPct: null, description: 'LME standard — payment 2 business days after prompt date.', isDefault: false, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { paymentTermId: 5, termCode: 'PREPAY-3D', termName: 'Prepayment 3 Days', netDays: -3, discountDays: null, discountPct: null, description: 'Payment required 3 days before B/L date — applied to high-risk counterparties.', isDefault: false, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { paymentTermId: 6, termCode: 'NET60', termName: 'Net 60 Days', netDays: 60, discountDays: null, discountPct: null, description: 'Extended terms for agricultural bulk trades with established counterparties.', isDefault: false, isActive: false, createdAt: '2024-01-01T00:00:00Z' },
+];
+
+// ─── PAYMENT METHODS ───────────────────────────────────────────────────────────
+const paymentMethodsStore: unknown[] = [
+  { paymentMethodId: 1, methodCode: 'SWIFT-USD', methodName: 'SWIFT Wire USD', methodType: 'SWIFT', currencyRestriction: 'USD', processingDays: 1, description: 'Standard SWIFT MT103 wire transfer in US Dollars via correspondent banking.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { paymentMethodId: 2, methodCode: 'SWIFT-EUR', methodName: 'SWIFT Wire EUR', methodType: 'SWIFT', currencyRestriction: 'EUR', processingDays: 1, description: 'Standard SWIFT MT103 wire transfer in Euros — same-day in TARGET2 window.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { paymentMethodId: 3, methodCode: 'SEPA-CT', methodName: 'SEPA Credit Transfer', methodType: 'SEPA', currencyRestriction: 'EUR', processingDays: 0, description: 'Same-day EUR settlement within SEPA zone — faster and cheaper than SWIFT.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { paymentMethodId: 4, methodCode: 'NETTING', methodName: 'Bilateral Netting', methodType: 'NETTING', currencyRestriction: null, processingDays: 0, description: 'Offset of payables vs receivables under ISDA/EFET netting agreement — reduces settlement risk.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { paymentMethodId: 5, methodCode: 'LC-SIGHT', methodName: 'Letter of Credit (Sight)', methodType: 'LETTER_OF_CREDIT', currencyRestriction: null, processingDays: 5, description: 'Documentary LC payable at sight against B/L + cargo docs — used for new counterparties.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { paymentMethodId: 6, methodCode: 'BANK-GTY', methodName: 'Bank Guarantee', methodType: 'BANK_GUARANTEE', currencyRestriction: null, processingDays: 3, description: 'On-demand bank guarantee — alternative to LC for secured but unfunded exposure.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+];
+
+// ─── GENERAL TERMS & CONDITIONS ────────────────────────────────────────────────
+const gtcsStore: unknown[] = [
+  { gtcId: 1, gtcCode: 'BP-OIL-2020', gtcName: 'BP Standard Crude Oil GTCs 2020', gtcType: 'CRUDE_OIL', version: '2020-v3', effectiveDate: '2020-01-01', expiryDate: null, jurisdiction: 'England & Wales', governingLaw: 'English Law', disputeResolution: 'LCIA', documentRef: 'DOC-GTC-001', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { gtcId: 2, gtcCode: 'EFET-GAS-2019', gtcName: 'EFET General Agreement Gas 2019', gtcType: 'GAS', version: '2019-v2', effectiveDate: '2019-07-01', expiryDate: null, jurisdiction: 'England & Wales', governingLaw: 'English Law', disputeResolution: 'ICC', documentRef: 'DOC-GTC-002', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { gtcId: 3, gtcCode: 'LME-METALS-2021', gtcName: 'LME Contract Rules & Regulations 2021', gtcType: 'METALS', version: '2021-v1', effectiveDate: '2021-01-01', expiryDate: null, jurisdiction: 'England & Wales', governingLaw: 'English Law', disputeResolution: 'Court', documentRef: 'DOC-GTC-003', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { gtcId: 4, gtcCode: 'GAFTA-100', gtcName: 'GAFTA Contract No.100 (Grains CIF)', gtcType: 'AGRICULTURAL', version: 'Rev 2024', effectiveDate: '2024-01-01', expiryDate: null, jurisdiction: 'England & Wales', governingLaw: 'English Law', disputeResolution: 'GAFTA Arbitration', documentRef: 'DOC-GTC-004', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { gtcId: 5, gtcCode: 'ISDA-2002-MA', gtcName: 'ISDA 2002 Master Agreement (Derivatives)', gtcType: 'GENERIC', version: '2002', effectiveDate: '2002-01-01', expiryDate: null, jurisdiction: 'New York', governingLaw: 'New York Law', disputeResolution: 'Court (SDNY)', documentRef: 'DOC-GTC-005', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { gtcId: 6, gtcCode: 'NAESB-GAS-2013', gtcName: 'NAESB Base Contract for Sale of Natural Gas', gtcType: 'GAS', version: '2013', effectiveDate: '2013-01-01', expiryDate: null, jurisdiction: 'Texas', governingLaw: 'Texas Law', disputeResolution: 'AAA', documentRef: 'DOC-GTC-006', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+];
+
+// ─── TRUCKS ───────────────────────────────────────────────────────────────────
+const trucksStore: unknown[] = [
+  { vehicleId: 1, vehicleCode: 'TRK-001', vehicleName: 'Mercedes Actros 2663', vehicleType: 'ROAD_TANKER', licensePlate: 'LK21 ABT', operatorName: 'Hoyer Group', capacity: 32000, capacityUomCode: 'LTR', countryCode: 'GB', gvwTonnes: 44, licenseExpiryDate: '2027-06-30', inspectionExpiryDate: '2026-09-15', adrCertExpiry: '2027-01-01', commodityType: 'OIL', statusCode: 'ACTIVE', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { vehicleId: 2, vehicleCode: 'TRK-002', vehicleName: 'Volvo FH 500', vehicleType: 'ROAD_TANKER', licensePlate: 'DE-MUC-H4521', operatorName: 'Tank & Rast GmbH', capacity: 30000, capacityUomCode: 'LTR', countryCode: 'DE', gvwTonnes: 40, licenseExpiryDate: '2026-12-31', inspectionExpiryDate: '2026-08-01', adrCertExpiry: '2026-09-30', commodityType: 'OIL', statusCode: 'ACTIVE', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { vehicleId: 3, vehicleCode: 'TRK-003', vehicleName: 'Scania R 450', vehicleType: 'DRY_BULK', licensePlate: 'NL-RT-1234', operatorName: 'Van den Bosch Transporten', capacity: 90, capacityUomCode: 'MT', countryCode: 'NL', gvwTonnes: 40, licenseExpiryDate: '2027-03-31', inspectionExpiryDate: '2026-11-30', adrCertExpiry: null, commodityType: 'AGRICULTURAL', statusCode: 'ACTIVE', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { vehicleId: 4, vehicleCode: 'TRK-004', vehicleName: 'DAF XF 480 Isotank', vehicleType: 'ISOTANK', licensePlate: 'SG-TK-8821', operatorName: 'Bulk Liquid Logistics SG', capacity: 25000, capacityUomCode: 'LTR', countryCode: 'SG', gvwTonnes: 38, licenseExpiryDate: '2026-07-15', inspectionExpiryDate: '2026-07-15', adrCertExpiry: '2026-07-15', commodityType: 'GAS', statusCode: 'MAINTENANCE', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { vehicleId: 5, vehicleCode: 'TRK-005', vehicleName: 'Iveco Stralis 460', vehicleType: 'ROAD_TANKER', licensePlate: 'IT-MI-42918', operatorName: 'PETROLAV SpA', capacity: 28000, capacityUomCode: 'LTR', countryCode: 'IT', gvwTonnes: 44, licenseExpiryDate: '2027-09-30', inspectionExpiryDate: '2027-03-31', adrCertExpiry: '2028-06-30', commodityType: 'OIL', statusCode: 'ACTIVE', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+];
+
+// ─── STORAGE FACILITIES ────────────────────────────────────────────────────────
+const storageStore: unknown[] = [
+  { storageId: 1, storageCode: 'CUSHING-T1', storageName: 'Cushing Tank Farm T-1', storageType: 'TANK_FARM', locationCode: 'CUSHING-OK', commodityType: 'OIL', capacity: 15000000, capacityUomCode: 'BBL', operatorName: 'Magellan Midstream Partners', countryCode: 'US', regulatoryRef: 'FERC-TSA-001', injectionRate: 500000, withdrawalRate: 500000, statusCode: 'OPERATIONAL', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { storageId: 2, storageCode: 'HUMBLY-GROVE', storageName: 'Humbly Grove Gas Storage', storageType: 'GAS_STORAGE', locationCode: 'NBP-UK', commodityType: 'GAS', capacity: 270000000, capacityUomCode: 'THERM', operatorName: 'Storengy UK', countryCode: 'GB', regulatoryRef: 'Ofgem-GAS-UGS-001', injectionRate: 750000, withdrawalRate: 1200000, statusCode: 'OPERATIONAL', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { storageId: 3, storageCode: 'BERGERMEER-NL', storageName: 'Bergermeer Gas Storage', storageType: 'SALT_CAVERN', locationCode: 'TTF-NL', commodityType: 'GAS', capacity: 4600000000, capacityUomCode: 'M3', operatorName: 'TAQA Energy BV', countryCode: 'NL', regulatoryRef: 'ACM-GAS-BGM-001', injectionRate: 25000000, withdrawalRate: 35000000, statusCode: 'OPERATIONAL', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { storageId: 4, storageCode: 'GATE-LNG-RTM', storageName: 'Gate LNG Terminal Rotterdam', storageType: 'LNG_TANK', locationCode: 'ROTTERDAM', commodityType: 'GAS', capacity: 540000, capacityUomCode: 'M3_LNG', operatorName: 'Gate Terminal BV', countryCode: 'NL', regulatoryRef: 'ACM-LNG-GATE-001', injectionRate: null, withdrawalRate: 12000000, statusCode: 'OPERATIONAL', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { storageId: 5, storageCode: 'LME-METRO-DT', storageName: 'Metro Detroit LME Approved Warehouse', storageType: 'WAREHOUSE', locationCode: null, commodityType: 'METALS', capacity: 500000, capacityUomCode: 'MT', operatorName: 'Metro International Trade Services', countryCode: 'US', regulatoryRef: 'LME-WH-2024-DT01', injectionRate: null, withdrawalRate: null, statusCode: 'OPERATIONAL', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { storageId: 6, storageCode: 'SULLOM-STORAGE', storageName: 'Sullom Voe Crude Storage Tanks', storageType: 'TANK_FARM', locationCode: 'SULLOM-VOE', commodityType: 'OIL', capacity: 12000000, capacityUomCode: 'BBL', operatorName: 'Equinor / Shetland Islands Council', countryCode: 'GB', regulatoryRef: 'NSTA-OFFSHORE-001', injectionRate: 200000, withdrawalRate: 200000, statusCode: 'OPERATIONAL', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+];
+
+// ─── CURRENCIES ───────────────────────────────────────────────────────────────
+const currenciesStore: unknown[] = [
+  { currencyId: 1, currencyCode: 'USD', currencyName: 'US Dollar', symbol: '$', countryCode: 'US', decimalPlaces: 2, isBaseCurrency: true, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { currencyId: 2, currencyCode: 'EUR', currencyName: 'Euro', symbol: '€', countryCode: null, decimalPlaces: 2, isBaseCurrency: false, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { currencyId: 3, currencyCode: 'GBP', currencyName: 'Pound Sterling', symbol: '£', countryCode: 'GB', decimalPlaces: 2, isBaseCurrency: false, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { currencyId: 4, currencyCode: 'JPY', currencyName: 'Japanese Yen', symbol: '¥', countryCode: 'JP', decimalPlaces: 0, isBaseCurrency: false, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { currencyId: 5, currencyCode: 'CNY', currencyName: 'Chinese Renminbi', symbol: '¥', countryCode: 'CN', decimalPlaces: 2, isBaseCurrency: false, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { currencyId: 6, currencyCode: 'CAD', currencyName: 'Canadian Dollar', symbol: 'C$', countryCode: 'CA', decimalPlaces: 2, isBaseCurrency: false, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { currencyId: 7, currencyCode: 'SGD', currencyName: 'Singapore Dollar', symbol: 'S$', countryCode: 'SG', decimalPlaces: 2, isBaseCurrency: false, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { currencyId: 8, currencyCode: 'NOK', currencyName: 'Norwegian Krone', symbol: 'kr', countryCode: 'NO', decimalPlaces: 2, isBaseCurrency: false, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { currencyId: 9, currencyCode: 'AED', currencyName: 'UAE Dirham', symbol: 'د.إ', countryCode: 'AE', decimalPlaces: 2, isBaseCurrency: false, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { currencyId: 10, currencyCode: 'CHF', currencyName: 'Swiss Franc', symbol: 'Fr', countryCode: 'CH', decimalPlaces: 2, isBaseCurrency: false, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+];
+
+// ─── UNITS OF MEASURE ─────────────────────────────────────────────────────────
+const uomStore: unknown[] = [
+  { uomId: 1, uomCode: 'BBL', uomName: 'Barrel (42 US Gallons)', uomType: 'VOLUME', baseUomCode: 'BBL', conversionFactor: 1, commodityHint: 'Crude oil, refined products (Americas)', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 2, uomCode: 'MT', uomName: 'Metric Tonne', uomType: 'WEIGHT', baseUomCode: 'MT', conversionFactor: 1, commodityHint: 'All physical commodities (international)', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 3, uomCode: 'MWH', uomName: 'Megawatt Hour', uomType: 'ENERGY', baseUomCode: 'MWH', conversionFactor: 1, commodityHint: 'Power, natural gas (EU)', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 4, uomCode: 'MMBTU', uomName: 'Million British Thermal Units', uomType: 'ENERGY', baseUomCode: 'MWH', conversionFactor: 0.29307, commodityHint: 'Natural gas (US), LNG', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 5, uomCode: 'THERM', uomName: 'Therm (100,000 BTU)', uomType: 'ENERGY', baseUomCode: 'MWH', conversionFactor: 0.02931, commodityHint: 'UK NBP gas market', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 6, uomCode: 'BUSHEL', uomName: 'Bushel (US 60 lb)', uomType: 'VOLUME', baseUomCode: 'MT', conversionFactor: 0.027216, commodityHint: 'Grains: corn, wheat, soybeans (CBOT)', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 7, uomCode: 'GAL', uomName: 'US Gallon', uomType: 'VOLUME', baseUomCode: 'BBL', conversionFactor: 0.02381, commodityHint: 'Refined products, NYMEX heating oil', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 8, uomCode: 'M3', uomName: 'Cubic Metre', uomType: 'VOLUME', baseUomCode: 'MWH', conversionFactor: 10.55, commodityHint: 'Gas pipeline, LNG storage', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 9, uomCode: 'KG', uomName: 'Kilogram', uomType: 'WEIGHT', baseUomCode: 'MT', conversionFactor: 0.001, commodityHint: 'Precious metals, chemicals', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 10, uomCode: 'MW', uomName: 'Megawatt (capacity)', uomType: 'POWER', baseUomCode: 'MW', conversionFactor: 1, commodityHint: 'Power capacity (not energy)', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 11, uomCode: 'LTR', uomName: 'Litre', uomType: 'VOLUME', baseUomCode: 'BBL', conversionFactor: 0.006290, commodityHint: 'Road tankers, retail fuel', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 12, uomCode: 'SCFD', uomName: 'Standard Cubic Feet per Day', uomType: 'ENERGY', baseUomCode: 'MWH', conversionFactor: 0.000293, commodityHint: 'Pipeline gas capacity (US)', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+];
+
+// ─── COUNTRIES ────────────────────────────────────────────────────────────────
+const countriesStore: unknown[] = [
+  { countryCode: 'GB', countryName: 'United Kingdom', region: 'EUROPE', phoneCode: '+44', fatfStatus: 'COMPLIANT', sanctionStatus: 'CLEAR', isActive: true },
+  { countryCode: 'US', countryName: 'United States', region: 'AMERICAS', phoneCode: '+1', fatfStatus: 'COMPLIANT', sanctionStatus: 'CLEAR', isActive: true },
+  { countryCode: 'NL', countryName: 'Netherlands', region: 'EUROPE', phoneCode: '+31', fatfStatus: 'COMPLIANT', sanctionStatus: 'CLEAR', isActive: true },
+  { countryCode: 'DE', countryName: 'Germany', region: 'EUROPE', phoneCode: '+49', fatfStatus: 'COMPLIANT', sanctionStatus: 'CLEAR', isActive: true },
+  { countryCode: 'NO', countryName: 'Norway', region: 'EUROPE', phoneCode: '+47', fatfStatus: 'COMPLIANT', sanctionStatus: 'CLEAR', isActive: true },
+  { countryCode: 'SA', countryName: 'Saudi Arabia', region: 'MIDDLE_EAST', phoneCode: '+966', fatfStatus: 'COMPLIANT', sanctionStatus: 'CLEAR', isActive: true },
+  { countryCode: 'AE', countryName: 'United Arab Emirates', region: 'MIDDLE_EAST', phoneCode: '+971', fatfStatus: 'COMPLIANT', sanctionStatus: 'CLEAR', isActive: true },
+  { countryCode: 'SG', countryName: 'Singapore', region: 'ASIA_PACIFIC', phoneCode: '+65', fatfStatus: 'COMPLIANT', sanctionStatus: 'CLEAR', isActive: true },
+  { countryCode: 'JP', countryName: 'Japan', region: 'ASIA_PACIFIC', phoneCode: '+81', fatfStatus: 'COMPLIANT', sanctionStatus: 'CLEAR', isActive: true },
+  { countryCode: 'CN', countryName: 'China', region: 'ASIA_PACIFIC', phoneCode: '+86', fatfStatus: 'COMPLIANT', sanctionStatus: 'CLEAR', isActive: true },
+  { countryCode: 'AU', countryName: 'Australia', region: 'ASIA_PACIFIC', phoneCode: '+61', fatfStatus: 'COMPLIANT', sanctionStatus: 'CLEAR', isActive: true },
+  { countryCode: 'IN', countryName: 'India', region: 'ASIA_PACIFIC', phoneCode: '+91', fatfStatus: 'COMPLIANT', sanctionStatus: 'CLEAR', isActive: true },
+  { countryCode: 'RU', countryName: 'Russia', region: 'CIS', phoneCode: '+7', fatfStatus: 'GREY_LIST', sanctionStatus: 'EU_SANCTIONS', isActive: true },
+  { countryCode: 'IR', countryName: 'Iran', region: 'MIDDLE_EAST', phoneCode: '+98', fatfStatus: 'BLACK_LIST', sanctionStatus: 'OFAC', isActive: true },
+  { countryCode: 'VE', countryName: 'Venezuela', region: 'AMERICAS', phoneCode: '+58', fatfStatus: 'GREY_LIST', sanctionStatus: 'OFAC', isActive: true },
+  { countryCode: 'FR', countryName: 'France', region: 'EUROPE', phoneCode: '+33', fatfStatus: 'COMPLIANT', sanctionStatus: 'CLEAR', isActive: true },
+  { countryCode: 'CA', countryName: 'Canada', region: 'AMERICAS', phoneCode: '+1', fatfStatus: 'COMPLIANT', sanctionStatus: 'CLEAR', isActive: true },
+  { countryCode: 'QA', countryName: 'Qatar', region: 'MIDDLE_EAST', phoneCode: '+974', fatfStatus: 'COMPLIANT', sanctionStatus: 'CLEAR', isActive: true },
+];
+
+// ─── INCOTERMS REFERENCE ──────────────────────────────────────────────────────
+const incotermsRefStore: unknown[] = [
+  { incotermId: 1, incotermCode: 'EXW', incotermName: 'Ex Works', version: 'INCOTERMS_2020', transportMode: 'ANY', riskTransferPoint: 'At seller\'s named premises', costResponsibility: 'Buyer bears all costs from seller\'s door', titleTransfer: 'At collection', isActive: true },
+  { incotermId: 2, incotermCode: 'FCA', incotermName: 'Free Carrier', version: 'INCOTERMS_2020', transportMode: 'ANY', riskTransferPoint: 'When handed to first carrier at named place', costResponsibility: 'Seller loads, buyer arranges onward transport', titleTransfer: 'At delivery to carrier', isActive: true },
+  { incotermId: 3, incotermCode: 'CPT', incotermName: 'Carriage Paid To', version: 'INCOTERMS_2020', transportMode: 'ANY', riskTransferPoint: 'When handed to first carrier', costResponsibility: 'Seller pays freight to destination; buyer bears risk from first carrier', titleTransfer: null, isActive: true },
+  { incotermId: 4, incotermCode: 'CIP', incotermName: 'Carriage & Insurance Paid To', version: 'INCOTERMS_2020', transportMode: 'ANY', riskTransferPoint: 'When handed to first carrier', costResponsibility: 'Seller pays freight + insurance (ICC-A) to destination', titleTransfer: null, isActive: true },
+  { incotermId: 5, incotermCode: 'DAP', incotermName: 'Delivered at Place', version: 'INCOTERMS_2020', transportMode: 'ANY', riskTransferPoint: 'At named destination ready to unload', costResponsibility: 'Seller bears all costs to destination; buyer unloads + clears import', titleTransfer: null, isActive: true },
+  { incotermId: 6, incotermCode: 'DPU', incotermName: 'Delivered at Place Unloaded', version: 'INCOTERMS_2020', transportMode: 'ANY', riskTransferPoint: 'After unloading at named destination', costResponsibility: 'Seller bears all costs including unloading; buyer clears import', titleTransfer: null, isActive: true },
+  { incotermId: 7, incotermCode: 'DDP', incotermName: 'Delivered Duty Paid', version: 'INCOTERMS_2020', transportMode: 'ANY', riskTransferPoint: 'At destination, import cleared', costResponsibility: 'Seller bears maximum responsibility including import duties', titleTransfer: null, isActive: true },
+  { incotermId: 8, incotermCode: 'FAS', incotermName: 'Free Alongside Ship', version: 'INCOTERMS_2020', transportMode: 'SEA_INLAND', riskTransferPoint: 'Alongside vessel at named load port', costResponsibility: 'Seller delivers to quay; buyer loads + pays freight', titleTransfer: 'Alongside vessel', isActive: true },
+  { incotermId: 9, incotermCode: 'FOB', incotermName: 'Free On Board', version: 'INCOTERMS_2020', transportMode: 'SEA_INLAND', riskTransferPoint: 'On board vessel at named load port', costResponsibility: 'Seller loads; buyer pays freight + insurance from load port', titleTransfer: 'Ship\'s rail / on board', isActive: true },
+  { incotermId: 10, incotermCode: 'CFR', incotermName: 'Cost and Freight', version: 'INCOTERMS_2020', transportMode: 'SEA_INLAND', riskTransferPoint: 'On board vessel at load port', costResponsibility: 'Seller pays freight; risk transfers at load port; buyer insures', titleTransfer: 'Ship\'s rail at load port', isActive: true },
+  { incotermId: 11, incotermCode: 'CIF', incotermName: 'Cost Insurance and Freight', version: 'INCOTERMS_2020', transportMode: 'SEA_INLAND', riskTransferPoint: 'On board vessel at load port', costResponsibility: 'Seller pays freight + min insurance (ICC-C); risk at load port', titleTransfer: 'Ship\'s rail at load port', isActive: true },
+];
+
 // ─── TRADES ───────────────────────────────────────────────────────────────────
 const tradesStore: unknown[] = [
   { tradeId: 1, tradeReference: 'TRD-2026-00001', tradeDate: '2026-06-01', executionDatetime: '2026-06-01T09:30:00Z', commodityType: 'OIL', tradeType: 'PHYSICAL', direction: 'BUY', counterpartyId: 1, counterpartyName: 'Shell Trading International', traderId: 1, traderCode: 'JDO', bookId: 1, bookCode: 'CRUDE-PROP', legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', productId: 1, productCode: 'BRENT-CRUDE', marketId: 5, marketCode: 'OTC_NS_CRUDE', pricingRuleId: 1, pricingRuleCode: 'FLT-DTBRT-AVG', quantity: 500000, uomCode: 'BBL', price: 82.45, currencyCode: 'USD', incotermCode: 'FOB', deliveryLocationCode: 'SULLOM-VOE', periodCode: 'M2026-07', settlementType: 'PHYSICAL', status: 'CONFIRMED', notes: 'Forties blend cargo', amendmentNumber: 0, isLatestVersion: true, oilDetail: { crudeGrade: 'FORTIES', apiGravity: 40.7, sulphurPct: 0.26, loadLocationCode: 'SULLOM-VOE', dischargeLocationCode: 'ROTTERDAM', vesselName: 'NORDIC LUNA', laycanStart: '2026-07-10', laycanEnd: '2026-07-12', blDate: null, norsTenderedDate: null, codDate: null, pipelineId: null }, createdAt: '2026-06-01T09:30:00Z', updatedAt: '2026-06-01T09:30:00Z' },
@@ -217,14 +344,18 @@ function crudHandlers<T extends { [K: string]: unknown }>(
       return HttpResponse.json(row, { status: 201 });
     }),
     http.put(`${API}/${path}/:id`, async ({ params, request }) => {
-      const idx = store.findIndex((r) => r[idField] === Number(params.id));
+      const rawId = params.id as string;
+      const id = isNaN(Number(rawId)) ? rawId : Number(rawId);
+      const idx = store.findIndex((r) => r[idField] === id);
       if (idx === -1) return problem(404, 'Not Found', `${String(idField)} ${params.id} not found.`);
       const input = (await request.json()) as Partial<T>;
       store[idx] = { ...store[idx], ...input };
       return HttpResponse.json(store[idx]);
     }),
     http.patch(`${API}/${path}/:id/deactivate`, ({ params }) => {
-      const idx = store.findIndex((r) => r[idField] === Number(params.id));
+      const rawId = params.id as string;
+      const id = isNaN(Number(rawId)) ? rawId : Number(rawId);
+      const idx = store.findIndex((r) => r[idField] === id);
       if (idx === -1) return problem(404, 'Not Found', `${String(idField)} ${params.id} not found.`);
       store[idx] = { ...store[idx], isActive: false };
       return new HttpResponse(null, { status: 204 });
@@ -435,6 +566,19 @@ export const etrmHandlers = [
     (tradesStore as Array<Record<string, unknown>>)[idx].updatedAt = now();
     return HttpResponse.json((tradesStore as Array<Record<string, unknown>>)[idx]);
   }),
+
+  // New master data domains
+  ...crudHandlers('admin/users', systemUsersStore as Array<Record<string, unknown>>, 'userId'),
+  ...crudHandlers('payment-terms', paymentTermsStore as Array<Record<string, unknown>>, 'paymentTermId'),
+  ...crudHandlers('payment-methods', paymentMethodsStore as Array<Record<string, unknown>>, 'paymentMethodId'),
+  ...crudHandlers('gtcs', gtcsStore as Array<Record<string, unknown>>, 'gtcId'),
+  ...crudHandlers('trucks', trucksStore as Array<Record<string, unknown>>, 'vehicleId'),
+  ...crudHandlers('storage', storageStore as Array<Record<string, unknown>>, 'storageId'),
+  ...crudHandlers('currencies', currenciesStore as Array<Record<string, unknown>>, 'currencyId'),
+  ...crudHandlers('uom', uomStore as Array<Record<string, unknown>>, 'uomId'),
+  ...crudHandlers('countries', countriesStore as Array<Record<string, unknown>>, 'countryCode'),
+  http.get(`${API}/incoterms-ref`, () => HttpResponse.json(incotermsRefStore)),
+  ...crudHandlers('incoterms-ref', incotermsRefStore as Array<Record<string, unknown>>, 'incotermId'),
 
   // Reference data lookups for trade capture dropdowns
   http.get(`${API}/counterparties`, () => HttpResponse.json([

@@ -3,21 +3,8 @@ export type PolymorphicEntityType = 'LEGAL_ENTITY' | 'COUNTERPARTY';
 
 // ── Counterparty ──────────────────────────────────────────────────────────
 
-export const CP_TYPES = [
-  'PRODUCER',
-  'CONSUMER',
-  'TRADER',
-  'BANK',
-  'BROKER',
-  'EXCHANGE',
-  'INTERCOMPANY',
-  'UTILITY',
-  'OTHER',
-] as const;
-export type CpType = (typeof CP_TYPES)[number];
-
-export const KYC_STATUSES = ['PENDING', 'APPROVED', 'REVIEW', 'SUSPENDED', 'REJECTED'] as const;
-export type KycStatus = (typeof KYC_STATUSES)[number];
+export type CpType = string;
+export type KycStatus = string;
 
 export interface Counterparty {
   counterpartyId: number;
@@ -58,20 +45,7 @@ export type CounterpartyInput = Omit<
 // real server id, i.e. while staged client-side), entityType + entityId
 // (assigned only once the parent is saved), and isActive for soft-remove.
 
-export const CONTACT_ROLES = [
-  'TRADER',
-  'BACK_OFFICE',
-  'LEGAL',
-  'COMPLIANCE',
-  'ACCOUNTS',
-  'PRIMARY',
-  'OPERATIONS',
-  'TECHNICAL',
-  'CREDIT',
-  'KYC',
-  'OTHER',
-] as const;
-export type ContactRole = (typeof CONTACT_ROLES)[number];
+export type ContactRole = string;
 
 export interface Contact {
   contactId: number | null; // null = staged, not yet saved to server
@@ -92,15 +66,7 @@ export interface Contact {
   notes: string | null;
 }
 
-export const BANK_ACCOUNT_TYPES = [
-  'SETTLEMENT',
-  'COLLATERAL',
-  'FEE',
-  'MARGIN',
-  'GENERAL',
-  'ESCROW',
-] as const;
-export type BankAccountType = (typeof BANK_ACCOUNT_TYPES)[number];
+export type BankAccountType = string;
 
 export interface BankAccount {
   bankAccountId: number | null;
@@ -122,8 +88,7 @@ export interface BankAccount {
   notes: string | null;
 }
 
-export const ADDRESS_TYPES = ['REGISTERED', 'TRADING', 'BILLING', 'SHIPPING', 'DELIVERY', 'OTHER'] as const;
-export type AddressType = (typeof ADDRESS_TYPES)[number];
+export type AddressType = string;
 
 export interface Address {
   addressId: number | null;

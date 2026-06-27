@@ -1,10 +1,9 @@
 import { Form, Input, Select, Switch } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { ChildRecordSection, PrimaryTag } from './ChildRecordSection';
-import { ADDRESS_TYPES, type Address } from './types';
+import type { Address } from './types';
 import { localId } from '@utils/localId';
-
-const TYPE_OPTIONS = ADDRESS_TYPES.map((t) => ({ label: t, value: t }));
+import { useCustomConfigOptions } from './configLookups';
 
 interface Props {
   items: Address[];
@@ -12,6 +11,7 @@ interface Props {
 }
 
 export function AddressesSection({ items, onChange }: Props) {
+  const { data: typeOptions = [], isLoading } = useCustomConfigOptions('ADDRESS_TYPE');
   const columns: ColumnsType<Address> = [
     { title: 'Type', dataIndex: 'addressType', width: 110 },
     {
@@ -51,7 +51,7 @@ export function AddressesSection({ items, onChange }: Props) {
       renderFormFields={() => (
         <>
           <Form.Item name="addressType" label="Address Type" rules={[{ required: true }]}>
-            <Select options={TYPE_OPTIONS} />
+            <Select options={typeOptions} loading={isLoading} />
           </Form.Item>
           <Form.Item name="addressLine1" label="Address Line 1" rules={[{ required: true }]}>
             <Input />

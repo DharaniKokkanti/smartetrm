@@ -15,24 +15,16 @@ import {
 } from 'antd';
 import dayjs from 'dayjs';
 import { PageHeader } from '@components/layout/PageHeader';
-import {
-  CP_TYPES,
-  KYC_STATUSES,
-  type Address,
-  type BankAccount,
-  type Contact,
-  type CounterpartyInput,
-} from './types';
+import { type Address, type BankAccount, type Contact, type CounterpartyInput } from './types';
 import { CURRENCY_LOOKUP, CREDIT_RATING_LOOKUP } from './staticLookups';
 import { useCounterparty, useCounterpartyChildren, useSaveCounterpartyDraft } from './hooks';
+import { useCustomConfigOptions } from './configLookups';
 import { useLegalEntities } from '@features/tier1/legal-entity/hooks';
 import { ContactsSection } from './ContactsSection';
 import { BankAccountsSection } from './BankAccountsSection';
 import { AddressesSection } from './AddressesSection';
 import { EntityGuaranteesPanel } from '@features/tier1/guarantee/EntityGuaranteesPanel';
 
-const CP_TYPE_OPTIONS = CP_TYPES.map((t) => ({ label: t, value: t }));
-const KYC_OPTIONS = KYC_STATUSES.map((s) => ({ label: s, value: s }));
 const CURRENCY_OPTIONS = CURRENCY_LOOKUP.map((c) => ({
   label: c.currencyCode,
   value: c.currencyId,
@@ -63,6 +55,8 @@ export function CounterpartyFormPage() {
   const { data: existingChildren, isLoading: loadingChildren } = useCounterpartyChildren(cpId);
   const { data: legalEntities } = useLegalEntities();
   const saveDraft = useSaveCounterpartyDraft();
+  const { data: cpTypeOptions = [], isLoading: loadingCpTypes } = useCustomConfigOptions('COUNTERPARTY_TYPE');
+  const { data: kycStatusOptions = [], isLoading: loadingKycStatus } = useCustomConfigOptions('KYC_STATUS');
 
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
@@ -195,7 +189,7 @@ export function CounterpartyFormPage() {
                       <Input maxLength={20} />
                     </Form.Item>
                     <Form.Item name="cpType" label="Counterparty Type" rules={[{ required: true }]}>
-                      <Select options={CP_TYPE_OPTIONS} />
+                      <Select options={cpTypeOptions} loading={loadingCpTypes} />
                     </Form.Item>
                     <Form.Item
                       name="jurisdiction"
@@ -268,7 +262,7 @@ export function CounterpartyFormPage() {
                       <Select options={CURRENCY_OPTIONS} allowClear />
                     </Form.Item>
                     <Form.Item name="kycStatus" label="KYC Status" rules={[{ required: true }]}>
-                      <Select options={KYC_OPTIONS} />
+                      <Select options={kycStatusOptions} loading={loadingKycStatus} />
                     </Form.Item>
                     <Form.Item name="kycApprovedDate" label="KYC Approved Date">
                       <DatePicker style={{ width: '100%' }} />

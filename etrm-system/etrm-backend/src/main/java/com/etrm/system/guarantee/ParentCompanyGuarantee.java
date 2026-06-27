@@ -12,14 +12,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-@Getter
-@Setter
 @Entity
 @Table(name = "parent_company_guarantee")
 public class ParentCompanyGuarantee extends AuditableEntity {
@@ -97,4 +93,156 @@ public class ParentCompanyGuarantee extends AuditableEntity {
 
     @Column(name = "notes", length = 500)
     private String notes;
+
+    public Long getPcgId() {
+        return pcgId;
+    }
+
+    public void setPcgId(Long pcgId) {
+        this.pcgId = pcgId;
+    }
+
+    public String getPcgReference() {
+        return pcgReference;
+    }
+
+    public void setPcgReference(String pcgReference) {
+        this.pcgReference = pcgReference;
+    }
+
+    public String getDirection() {
+        return direction;
+    }
+
+    public void setDirection(String direction) {
+        this.direction = direction;
+    }
+
+    public EntityType getGuarantorEntityType() {
+        return guarantorEntityType;
+    }
+
+    public void setGuarantorEntityType(EntityType guarantorEntityType) {
+        this.guarantorEntityType = guarantorEntityType;
+    }
+
+    public Long getGuarantorEntityId() {
+        return guarantorEntityId;
+    }
+
+    public void setGuarantorEntityId(Long guarantorEntityId) {
+        this.guarantorEntityId = guarantorEntityId;
+    }
+
+    public EntityType getPrincipalEntityType() {
+        return principalEntityType;
+    }
+
+    public void setPrincipalEntityType(EntityType principalEntityType) {
+        this.principalEntityType = principalEntityType;
+    }
+
+    public Long getPrincipalEntityId() {
+        return principalEntityId;
+    }
+
+    public void setPrincipalEntityId(Long principalEntityId) {
+        this.principalEntityId = principalEntityId;
+    }
+
+    public EntityType getBeneficiaryEntityType() {
+        return beneficiaryEntityType;
+    }
+
+    public void setBeneficiaryEntityType(EntityType beneficiaryEntityType) {
+        this.beneficiaryEntityType = beneficiaryEntityType;
+    }
+
+    public Long getBeneficiaryEntityId() {
+        return beneficiaryEntityId;
+    }
+
+    public void setBeneficiaryEntityId(Long beneficiaryEntityId) {
+        this.beneficiaryEntityId = beneficiaryEntityId;
+    }
+
+    public BigDecimal getGuaranteeAmount() {
+        return guaranteeAmount;
+    }
+
+    public void setGuaranteeAmount(BigDecimal guaranteeAmount) {
+        this.guaranteeAmount = guaranteeAmount;
+    }
+
+    public Long getCurrencyId() {
+        return currencyId;
+    }
+
+    public void setCurrencyId(Long currencyId) {
+        this.currencyId = currencyId;
+    }
+
+    public LocalDate getIssueDate() {
+        return issueDate;
+    }
+
+    public void setIssueDate(LocalDate issueDate) {
+        this.issueDate = issueDate;
+    }
+
+    public Boolean getIsEvergreen() {
+        return isEvergreen;
+    }
+
+    public void setIsEvergreen(Boolean isEvergreen) {
+        this.isEvergreen = isEvergreen;
+    }
+
+    public LocalDate getExpiryDate() {
+        return expiryDate;
+    }
+
+    public void setExpiryDate(LocalDate expiryDate) {
+        this.expiryDate = expiryDate;
+    }
+
+    public String getPcgStatus() {
+        return pcgStatus;
+    }
+
+    public void setPcgStatus(String pcgStatus) {
+        this.pcgStatus = pcgStatus;
+    }
+
+    public BigDecimal getAmountCalled() {
+        return amountCalled;
+    }
+
+    public void setAmountCalled(BigDecimal amountCalled) {
+        this.amountCalled = amountCalled;
+    }
+
+    public Long getDocumentStoreId() {
+        return documentStoreId;
+    }
+
+    public void setDocumentStoreId(Long documentStoreId) {
+        this.documentStoreId = documentStoreId;
+    }
+
+    public Boolean getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
 }
