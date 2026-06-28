@@ -1,6 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { App as AntApp } from 'antd';
-import { counterpartyApi, fetchCounterpartyChildren } from './api';
+import {
+  counterpartyApi,
+  addressApi,
+  contactApi,
+  fetchCounterpartyChildren,
+  saveAddressAssignment,
+  saveContactAssignment,
+} from './api';
 import type { CounterpartyDraft } from './types';
 import type { ProblemDetail } from '@services/api';
 
@@ -40,14 +47,18 @@ export function useDeactivateCounterparty() {
   });
 }
 
-/**
- * Orchestrates the full "associated data added immediately" save: the
- * parent record is created/updated first (so it has a real id), then every
- * staged or edited child record is flushed against that id — new children
- * (no server id yet) POST, existing children PUT. This is what lets the
- * form feel like "one save" to the user while still respecting the nested
- * REST contract (POST/PUT /counterparties/{id}/contacts etc.) underneath.
- */
+// ── Address / contact pool queries ────────────────────────────────────────────
+
+export function useAddressPool() {
+  return useQuery({ queryKey: ['address-pool'], queryFn: addressApi.pool, staleTime: 60_000 });
+}
+
+export function useContactPool() {
+  return useQuery({ queryKey: ['contact-pool'], queryFn: contactApi.pool, staleTime: 60_000 });
+}
+
+// ── Save full counterparty draft ──────────────────────────────────────────────
+
 export function useSaveCounterpartyDraft() {
   const queryClient = useQueryClient();
   const { message } = AntApp.useApp();
@@ -55,19 +66,34 @@ export function useSaveCounterpartyDraft() {
   return useMutation({
     mutationFn: async ({ id, draft }: { id: number | null; draft: CounterpartyDraft }) => {
       const parent =
-        id === null ? await counterpartyApi.create(draft.core) : await counterpartyApi.update(id, draft.core);
+        id === null
+          ? await counterpartyApi.create(draft.core)
+          : await counterpartyApi.update(id, draft.core);
       const cpId = parent.counterpartyId;
 
       const errors: string[] = [];
 
-      for (const contact of draft.contacts) {
-        const { _localId: _l, contactId, ...rest } = contact;
-        const payload = { ...rest, entityType: 'COUNTERPARTY' as const, entityId: cpId };
+      for (const assignment of draft.addresses) {
         try {
-          if (contactId === null) await counterpartyApi.contacts.create(cpId, payload);
-          else await counterpartyApi.contacts.update(cpId, contactId, payload);
+          await saveAddressAssignment({
+            ...assignment,
+            entityType: 'COUNTERPARTY',
+            entityId: cpId,
+          });
         } catch {
-          errors.push(`Contact "${contact.firstName} ${contact.lastName}" failed to save.`);
+          errors.push(`Address "${assignment.address.addressLine1}" failed to save.`);
+        }
+      }
+
+      for (const assignment of draft.contacts) {
+        try {
+          await saveContactAssignment({
+            ...assignment,
+            entityType: 'COUNTERPARTY',
+            entityId: cpId,
+          });
+        } catch {
+          errors.push(`Contact "${assignment.contact.firstName} ${assignment.contact.lastName}" failed to save.`);
         }
       }
 
@@ -82,27 +108,18 @@ export function useSaveCounterpartyDraft() {
         }
       }
 
-      for (const address of draft.addresses) {
-        const { _localId: _l, addressId, ...rest } = address;
-        const payload = { ...rest, entityType: 'COUNTERPARTY' as const, entityId: cpId };
-        try {
-          if (addressId === null) await counterpartyApi.addresses.create(cpId, payload);
-          else await counterpartyApi.addresses.update(cpId, addressId, payload);
-        } catch {
-          errors.push(`Address "${address.addressLine1}" failed to save.`);
-        }
-      }
-
       return { parent, errors };
     },
     onSuccess: ({ parent, errors }) => {
       queryClient.invalidateQueries({ queryKey: LIST_KEY });
       queryClient.invalidateQueries({ queryKey: childrenKey(parent.counterpartyId) });
+      queryClient.invalidateQueries({ queryKey: ['address-pool'] });
+      queryClient.invalidateQueries({ queryKey: ['contact-pool'] });
       if (errors.length === 0) {
         message.success(`Counterparty "${parent.cpCode}" saved.`);
       } else {
         message.warning(
-          `Counterparty saved, but ${errors.length} associated record(s) failed: ${errors.join(' ')}`,
+          `Counterparty saved, but ${errors.length} record(s) failed: ${errors.join(' ')}`,
         );
       }
     },

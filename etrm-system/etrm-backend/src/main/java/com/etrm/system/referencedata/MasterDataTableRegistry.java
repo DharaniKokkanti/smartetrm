@@ -48,6 +48,12 @@ public class MasterDataTableRegistry extends AuditableEntity {
     @Column(name = "display_order", nullable = false)
     private Integer displayOrder = 0;
 
+    @Column(name = "sub_group", length = 100)
+    private String subGroup;
+
+    @Column(name = "description", length = 1000)
+    private String description;
+
     @Column(name = "notes", length = 500)
     private String notes;
 }

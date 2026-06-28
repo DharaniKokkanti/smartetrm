@@ -1,5 +1,5 @@
 /** Shared by every polymorphic child table (address, contact, bank_account, tax_registration). */
-export type PolymorphicEntityType = 'LEGAL_ENTITY' | 'COUNTERPARTY';
+export type PolymorphicEntityType = 'LEGAL_ENTITY' | 'COUNTERPARTY' | 'BROKER';
 
 // ── Counterparty ──────────────────────────────────────────────────────────
 
@@ -40,19 +40,47 @@ export type CounterpartyInput = Omit<
   'counterpartyId' | 'isActive' | 'deactivatedDate' | 'createdAt' | 'createdBy' | 'updatedAt' | 'updatedBy'
 >;
 
-// ── Polymorphic children ────────────────────────────────────────────────────
-// Every child shares: a local-only `_localId` (used before the record has a
-// real server id, i.e. while staged client-side), entityType + entityId
-// (assigned only once the parent is saved), and isActive for soft-remove.
+// ── Address pool record (no entity binding) ──────────────────────────────────
+// entity_address rows link these pool records to entities (M:M).
 
-export type ContactRole = string;
+export interface Address {
+  addressId: number | null;
+  _localId: string;
+  addressLine1: string;
+  addressLine2: string | null;
+  addressLine3: string | null;
+  city: string;
+  stateProvince: string | null;
+  postalCode: string | null;
+  countryCode: string;
+  poBox: string | null;
+  phoneNumber: string | null;
+  isActive: boolean;
+  notes: string | null;
+}
 
-export interface Contact {
-  contactId: number | null; // null = staged, not yet saved to server
+export type AddressType = string;
+
+// Link record: one Address assigned to one entity with role / primary flag.
+// addressId is always set; address (embedded) is populated when fetched.
+export interface AddressAssignment {
+  entityAddressId: number | null;
   _localId: string;
   entityType: PolymorphicEntityType;
   entityId: number;
-  contactRole: ContactRole;
+  addressId: number | null;       // null only while the pool record itself is also new
+  address: Address;               // embedded for display / editing
+  addressType: AddressType;
+  isPrimary: boolean;
+  isActive: boolean;
+  isLinked: boolean;              // true = pool record already existed (reused)
+}
+
+// ── Contact pool record (no entity binding) ──────────────────────────────────
+
+export interface Contact {
+  contactId: number | null;
+  _localId: string;
   salutation: string | null;
   firstName: string;
   lastName: string;
@@ -61,9 +89,24 @@ export interface Contact {
   phoneDirect: string | null;
   phoneMobile: string | null;
   phoneMain: string | null;
-  isPrimary: boolean;
   isActive: boolean;
   notes: string | null;
+}
+
+export type ContactRole = string;
+
+// Link record: one Contact assigned to one entity.
+export interface ContactAssignment {
+  entityContactId: number | null;
+  _localId: string;
+  entityType: PolymorphicEntityType;
+  entityId: number;
+  contactId: number | null;
+  contact: Contact;
+  contactRole: ContactRole;
+  isPrimary: boolean;
+  isActive: boolean;
+  isLinked: boolean;
 }
 
 export type BankAccountType = string;
@@ -88,31 +131,10 @@ export interface BankAccount {
   notes: string | null;
 }
 
-export type AddressType = string;
-
-export interface Address {
-  addressId: number | null;
-  _localId: string;
-  entityType: PolymorphicEntityType;
-  entityId: number;
-  addressType: AddressType;
-  isPrimary: boolean;
-  addressLine1: string;
-  addressLine2: string | null;
-  addressLine3: string | null;
-  city: string;
-  stateProvince: string | null;
-  postalCode: string | null;
-  countryCode: string;
-  poBox: string | null;
-  isActive: boolean;
-  notes: string | null;
-}
-
 /** Everything needed to render + save the counterparty form in one place. */
 export interface CounterpartyDraft {
   core: CounterpartyInput;
-  contacts: Contact[];
+  contacts: ContactAssignment[];
   bankAccounts: BankAccount[];
-  addresses: Address[];
+  addresses: AddressAssignment[];
 }

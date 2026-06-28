@@ -20,18 +20,20 @@ public class Address extends AuditableEntity {
     @Column(name = "address_id")
     private Long addressId;
 
+    // Legacy binding columns — nulled out by V19 when pool pattern was introduced.
+    // Kept for backward read compatibility; assignments now live in entity_address.
     @Enumerated(EnumType.STRING)
-    @Column(name = "entity_type", nullable = false, length = 20)
+    @Column(name = "entity_type", length = 20)
     private EntityType entityType;
 
-    @Column(name = "entity_id", nullable = false)
+    @Column(name = "entity_id")
     private Long entityId;
 
-    @Column(name = "address_type", nullable = false, length = 20)
+    @Column(name = "address_type", length = 20)
     private String addressType;
 
-    @Column(name = "is_primary", nullable = false)
-    private Boolean isPrimary = false;
+    @Column(name = "is_primary")
+    private Boolean isPrimary;
 
     @NotBlank
     @Column(name = "address_line1", nullable = false, length = 200)
@@ -61,6 +63,9 @@ public class Address extends AuditableEntity {
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
+
+    @Column(name = "phone_number", length = 30)
+    private String phoneNumber;
 
     @Column(name = "notes", length = 500)
     private String notes;
@@ -175,6 +180,14 @@ public class Address extends AuditableEntity {
 
     public void setIsActive(Boolean isActive) {
         this.isActive = isActive;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     public String getNotes() {

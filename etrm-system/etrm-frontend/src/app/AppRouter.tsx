@@ -53,6 +53,7 @@ const MasterDataHub = lazy1(() => import('@features/master-data/MasterDataHub'),
 
 // Admin
 const SystemUsersPage = lazy1(() => import('@features/admin/system-users/SystemUsersPage'), 'SystemUsersPage');
+const RolesPage = lazy1(() => import('@features/admin/roles/RolesPage'), 'RolesPage');
 
 // Contracts
 const PaymentTermsPage = lazy1(() => import('@features/contracts/payment-terms/PaymentTermsPage'), 'PaymentTermsPage');
@@ -122,6 +123,7 @@ export function AppRouter() {
 
         {/* Admin */}
         <Route path="/admin/users" element={<S><SystemUsersPage /></S>} />
+        <Route path="/admin/roles" element={<S><RolesPage /></S>} />
 
         {/* Contracts */}
         <Route path="/contracts/payment-terms" element={<S><PaymentTermsPage /></S>} />
@@ -137,8 +139,8 @@ export function AppRouter() {
         <Route path="/reference/uom" element={<S><UomPage /></S>} />
         <Route path="/reference/countries" element={<S><CountriesPage /></S>} />
         <Route path="/reference/incoterms" element={<S><IncotermsPage /></S>} />
-        <Route path="/tier2" element={<S><Tier2HomePage /></S>} />
-        <Route path="/tier2/:tableName" element={<S><Tier2HomePage /></S>} />
+        <Route path="/static-data" element={<S><Tier2HomePage /></S>} />
+        <Route path="/static-data/:tableName" element={<S><Tier2HomePage /></S>} />
 
         <Route path="*" element={<NotFoundPage />} />
       </Route>

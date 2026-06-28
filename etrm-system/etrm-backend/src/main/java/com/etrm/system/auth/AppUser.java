@@ -43,6 +43,24 @@ public class AppUser extends AuditableEntity {
     @Column(name = "last_login")
     private Instant lastLogin;
 
+    @Column(name = "role", length = 30)
+    private String role;
+
+    @Column(name = "department", length = 100)
+    private String department;
+
+    @Column(name = "phone", length = 30)
+    private String phone;
+
+    @Column(name = "trader_id")
+    private Long traderId;
+
+    @Column(name = "preferred_locale", length = 10)
+    private String preferredLocale;
+
+    @Column(name = "office_location", length = 100)
+    private String officeLocation;
+
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
@@ -118,11 +136,24 @@ public class AppUser extends AuditableEntity {
         this.lastLogin = lastLogin;
     }
 
-    public Boolean getIsActive() {
-        return isActive;
-    }
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
 
-    public void setIsActive(Boolean isActive) {
-        this.isActive = isActive;
-    }
+    public String getDepartment() { return department; }
+    public void setDepartment(String department) { this.department = department; }
+
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+
+    public Long getTraderId() { return traderId; }
+    public void setTraderId(Long traderId) { this.traderId = traderId; }
+
+    public String getPreferredLocale() { return preferredLocale; }
+    public void setPreferredLocale(String preferredLocale) { this.preferredLocale = preferredLocale; }
+
+    public String getOfficeLocation() { return officeLocation; }
+    public void setOfficeLocation(String officeLocation) { this.officeLocation = officeLocation; }
+
+    public Boolean getIsActive() { return isActive; }
+    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
 }

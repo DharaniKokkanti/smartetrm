@@ -43,6 +43,8 @@ export function SystemUsersPage() {
       traderId: u.traderId ?? undefined,
       department: u.department ?? undefined,
       phone: u.phone ?? undefined,
+      preferredLocale: u.preferredLocale ?? undefined,
+      officeLocation: u.officeLocation ?? undefined,
       isActive: u.isActive,
     });
     setOpen(true);
@@ -65,6 +67,8 @@ export function SystemUsersPage() {
       ),
     },
     { field: 'department', headerName: 'Department', flex: 0.8, valueFormatter: (p) => p.value ?? '—' },
+    { field: 'officeLocation', headerName: 'Location', width: 120, valueFormatter: (p) => p.value ?? '—' },
+    { field: 'preferredLocale', headerName: 'Locale', width: 100, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },
     {
       field: 'lastLogin', headerName: 'Last Login', width: 160,
       valueFormatter: (p) => p.value ? new Date(p.value).toLocaleString() : '—',
@@ -151,6 +155,19 @@ export function SystemUsersPage() {
           </Form.Item>
           <Form.Item name="phone" label="Phone">
             <Input placeholder="+1 212 555 0100" />
+          </Form.Item>
+          <Form.Item
+            name="preferredLocale"
+            label={hint('Preferred Locale', 'BCP 47 locale tag — drives date and number formatting. e.g. en-GB, en-US, fr-FR, de-DE', 'en-GB')}
+            rules={[{ pattern: /^[a-z]{2}(-[A-Z]{2})?$/, message: 'Use BCP 47 format: en-GB, fr-FR, etc.' }]}
+          >
+            <Input placeholder="en-GB" style={{ fontFamily: 'monospace', width: 140 }} />
+          </Form.Item>
+          <Form.Item
+            name="officeLocation"
+            label={hint('Office Location', 'City or office where this user is based. Used to set default timezone context.', 'London')}
+          >
+            <Input placeholder="London" />
           </Form.Item>
           <Form.Item name="isActive" label="Active" valuePropName="checked">
             <Switch />

@@ -6,6 +6,10 @@ export interface RegistryEntry {
   tableName: string;
   displayName: string;
   moduleGroup: string;
+  /** Second-level grouping within moduleGroup, shown as a collapsible header in the sidebar */
+  subGroup?: string;
+  /** Short paragraph shown in the description panel above the table */
+  description?: string;
   allowCreate: boolean;
   allowEdit: boolean;
   allowDelete: boolean;

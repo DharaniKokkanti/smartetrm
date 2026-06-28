@@ -10,6 +10,10 @@ export interface SystemUser {
   traderId: number | null;
   department: string | null;
   phone: string | null;
+  /** BCP 47 locale tag, e.g. en-GB, fr-FR — drives date/number formatting */
+  preferredLocale: string | null;
+  /** Office location / city, e.g. London, Singapore */
+  officeLocation: string | null;
   isActive: boolean;
   lastLogin: string | null;
   createdAt: string;

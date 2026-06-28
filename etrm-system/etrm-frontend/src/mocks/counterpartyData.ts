@@ -1,10 +1,11 @@
-import type { Counterparty } from '@features/tier1/counterparty/types';
-import type { Contact, BankAccount, Address } from '@features/tier1/counterparty/types';
+import type { Counterparty, Address, AddressAssignment, Contact, ContactAssignment, BankAccount } from '@features/tier1/counterparty/types';
 
 let nextCpId = 4;
 let nextContactId = 4;
 let nextBankAccountId = 3;
-let nextAddressId = 3;
+let nextAddressId = 4;
+let nextAddressAssignmentId = 5;
+let nextContactAssignmentId = 5;
 
 export const counterpartySeed: Counterparty[] = [
   {
@@ -85,8 +86,7 @@ export const counterpartySeed: Counterparty[] = [
     kycExpiryDate: '2027-01-15',
     onboardedDate: '2026-01-15',
     deactivatedDate: null,
-    notes:
-      'Ultimate parent of Shell Trading International Ltd — set up here only so it can act as PCG guarantor.',
+    notes: 'Ultimate parent of Shell Trading International Ltd — set up here only so it can act as PCG guarantor.',
     createdAt: '2026-01-15T09:00:00Z',
     createdBy: 'SYSTEM',
     updatedAt: '2026-01-15T09:00:00Z',
@@ -94,13 +94,114 @@ export const counterpartySeed: Counterparty[] = [
   },
 ];
 
-export const contactSeed: Contact[] = [
+// ── Address pool (standalone records, no entity binding) ────────────────────
+export const addressPoolSeed: Address[] = [
   {
-    contactId: 1,
-    _localId: 'seed-c1',
+    addressId: 1,
+    _localId: 'pool-a1',
+    addressLine1: 'Shell Centre',
+    addressLine2: 'York Road',
+    addressLine3: null,
+    city: 'London',
+    stateProvince: null,
+    postalCode: 'SE1 7NA',
+    countryCode: 'GB',
+    poBox: null,
+    phoneNumber: '+44 20 7934 1234',
+    isActive: true,
+    notes: 'Shell Group London HQ',
+  },
+  {
+    addressId: 2,
+    _localId: 'pool-a2',
+    addressLine1: 'Baarermattstrasse 3',
+    addressLine2: null,
+    addressLine3: null,
+    city: 'Baar',
+    stateProvince: 'Zug',
+    postalCode: '6340',
+    countryCode: 'CH',
+    poBox: null,
+    phoneNumber: null,
+    isActive: true,
+    notes: null,
+  },
+  {
+    addressId: 3,
+    _localId: 'pool-a3',
+    addressLine1: '80 Strand',
+    addressLine2: null,
+    addressLine3: null,
+    city: 'London',
+    stateProvince: null,
+    postalCode: 'WC2R 0RL',
+    countryCode: 'GB',
+    poBox: null,
+    phoneNumber: '+44 20 7010 1000',
+    isActive: true,
+    notes: 'SmartETRM Trading Ltd registered office',
+  },
+];
+
+// ── Address assignments (entity → address pool link) ────────────────────────
+export const addressAssignmentSeed: AddressAssignment[] = [
+  {
+    entityAddressId: 1,
+    _localId: 'ea-1',
     entityType: 'COUNTERPARTY',
     entityId: 1,
-    contactRole: 'TRADER',
+    addressId: 1,
+    address: addressPoolSeed[0],
+    addressType: 'REGISTERED',
+    isPrimary: true,
+    isActive: true,
+    isLinked: false,
+  },
+  {
+    entityAddressId: 2,
+    _localId: 'ea-2',
+    entityType: 'COUNTERPARTY',
+    entityId: 2,
+    addressId: 2,
+    address: addressPoolSeed[1],
+    addressType: 'REGISTERED',
+    isPrimary: true,
+    isActive: true,
+    isLinked: false,
+  },
+  // Shell plc (CP #3) shares the same London HQ address as Shell Trading (CP #1)
+  {
+    entityAddressId: 3,
+    _localId: 'ea-3',
+    entityType: 'COUNTERPARTY',
+    entityId: 3,
+    addressId: 1,
+    address: addressPoolSeed[0],
+    addressType: 'REGISTERED',
+    isPrimary: true,
+    isActive: true,
+    isLinked: true,
+  },
+  // SmartETRM Legal Entity 1 also uses address #3
+  {
+    entityAddressId: 4,
+    _localId: 'ea-4',
+    entityType: 'LEGAL_ENTITY',
+    entityId: 1,
+    addressId: 3,
+    address: addressPoolSeed[2],
+    addressType: 'REGISTERED',
+    isPrimary: true,
+    isActive: true,
+    isLinked: false,
+  },
+];
+
+// ── Contact pool ─────────────────────────────────────────────────────────────
+export const contactPoolSeed: Contact[] = [
+  {
+    contactId: 1,
+    _localId: 'pool-c1',
     salutation: null,
     firstName: 'Helen',
     lastName: 'Marsh',
@@ -109,16 +210,12 @@ export const contactSeed: Contact[] = [
     phoneDirect: '+44 20 7000 1111',
     phoneMobile: null,
     phoneMain: null,
-    isPrimary: true,
     isActive: true,
     notes: null,
   },
   {
     contactId: 2,
-    _localId: 'seed-c2',
-    entityType: 'COUNTERPARTY',
-    entityId: 1,
-    contactRole: 'BACK_OFFICE',
+    _localId: 'pool-c2',
     salutation: null,
     firstName: 'Tom',
     lastName: 'Reilly',
@@ -127,16 +224,12 @@ export const contactSeed: Contact[] = [
     phoneDirect: null,
     phoneMobile: '+44 7700 900111',
     phoneMain: null,
-    isPrimary: false,
     isActive: true,
     notes: null,
   },
   {
     contactId: 3,
-    _localId: 'seed-c3',
-    entityType: 'COUNTERPARTY',
-    entityId: 2,
-    contactRole: 'PRIMARY',
+    _localId: 'pool-c3',
     salutation: null,
     firstName: 'Lukas',
     lastName: 'Brunner',
@@ -145,9 +238,61 @@ export const contactSeed: Contact[] = [
     phoneDirect: '+41 22 000 2222',
     phoneMobile: null,
     phoneMain: null,
-    isPrimary: true,
     isActive: true,
     notes: null,
+  },
+];
+
+// ── Contact assignments ───────────────────────────────────────────────────────
+export const contactAssignmentSeed: ContactAssignment[] = [
+  {
+    entityContactId: 1,
+    _localId: 'ec-1',
+    entityType: 'COUNTERPARTY',
+    entityId: 1,
+    contactId: 1,
+    contact: contactPoolSeed[0],
+    contactRole: 'TRADER',
+    isPrimary: true,
+    isActive: true,
+    isLinked: false,
+  },
+  {
+    entityContactId: 2,
+    _localId: 'ec-2',
+    entityType: 'COUNTERPARTY',
+    entityId: 1,
+    contactId: 2,
+    contact: contactPoolSeed[1],
+    contactRole: 'BACK_OFFICE',
+    isPrimary: false,
+    isActive: true,
+    isLinked: false,
+  },
+  {
+    entityContactId: 3,
+    _localId: 'ec-3',
+    entityType: 'COUNTERPARTY',
+    entityId: 2,
+    contactId: 3,
+    contact: contactPoolSeed[2],
+    contactRole: 'PRIMARY',
+    isPrimary: true,
+    isActive: true,
+    isLinked: false,
+  },
+  // Helen Marsh is also the primary contact for the Legal Entity (shared)
+  {
+    entityContactId: 4,
+    _localId: 'ec-4',
+    entityType: 'LEGAL_ENTITY',
+    entityId: 1,
+    contactId: 1,
+    contact: contactPoolSeed[0],
+    contactRole: 'PRIMARY',
+    isPrimary: true,
+    isActive: true,
+    isLinked: true,
   },
 ];
 
@@ -192,54 +337,9 @@ export const bankAccountSeed: BankAccount[] = [
   },
 ];
 
-export const addressSeed: Address[] = [
-  {
-    addressId: 1,
-    _localId: 'seed-a1',
-    entityType: 'COUNTERPARTY',
-    entityId: 1,
-    addressType: 'REGISTERED',
-    isPrimary: true,
-    addressLine1: 'Shell Centre',
-    addressLine2: 'York Road',
-    addressLine3: null,
-    city: 'London',
-    stateProvince: null,
-    postalCode: 'SE1 7NA',
-    countryCode: 'GB',
-    poBox: null,
-    isActive: true,
-    notes: null,
-  },
-  {
-    addressId: 2,
-    _localId: 'seed-a2',
-    entityType: 'COUNTERPARTY',
-    entityId: 2,
-    addressType: 'REGISTERED',
-    isPrimary: true,
-    addressLine1: 'Baarermattstrasse 3',
-    addressLine2: null,
-    addressLine3: null,
-    city: 'Baar',
-    stateProvince: 'Zug',
-    postalCode: '6340',
-    countryCode: 'CH',
-    poBox: null,
-    isActive: true,
-    notes: null,
-  },
-];
-
-export function nextCounterpartyId(): number {
-  return nextCpId++;
-}
-export function nextContactRecordId(): number {
-  return nextContactId++;
-}
-export function nextBankAccountRecordId(): number {
-  return nextBankAccountId++;
-}
-export function nextAddressRecordId(): number {
-  return nextAddressId++;
-}
+export function nextCounterpartyId(): number { return nextCpId++; }
+export function nextContactRecordId(): number { return nextContactId++; }
+export function nextBankAccountRecordId(): number { return nextBankAccountId++; }
+export function nextAddressId_(): number { return nextAddressId++; }
+export function nextAddressAssignmentId_(): number { return nextAddressAssignmentId++; }
+export function nextContactAssignmentId_(): number { return nextContactAssignmentId++; }

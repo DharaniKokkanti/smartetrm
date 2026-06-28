@@ -21,14 +21,15 @@ public class Contact extends AuditableEntity {
     @Column(name = "contact_id")
     private Long contactId;
 
+    // Legacy binding columns — nulled out by V19; assignments now live in entity_contact.
     @Enumerated(EnumType.STRING)
-    @Column(name = "entity_type", nullable = false, length = 20)
+    @Column(name = "entity_type", length = 20)
     private EntityType entityType;
 
-    @Column(name = "entity_id", nullable = false)
+    @Column(name = "entity_id")
     private Long entityId;
 
-    @Column(name = "contact_role", nullable = false, length = 20)
+    @Column(name = "contact_role", length = 20)
     private String contactRole;
 
     @Column(name = "salutation", length = 10)
@@ -58,8 +59,8 @@ public class Contact extends AuditableEntity {
     @Column(name = "phone_main", length = 30)
     private String phoneMain;
 
-    @Column(name = "is_primary", nullable = false)
-    private Boolean isPrimary = false;
+    @Column(name = "is_primary")
+    private Boolean isPrimary;
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;

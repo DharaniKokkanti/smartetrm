@@ -26,6 +26,28 @@ interface Props {
   table: RegistryEntry;
 }
 
+/** Columns that must follow ISO 4217 (3-letter uppercase) */
+const ISO_4217_COLS = new Set(['currencyCode']);
+/** Columns that must follow ISO 3166-1 alpha-2 (2-letter uppercase) */
+const ISO_3166_COLS = new Set(['countryCode', 'jurisdictionCode', 'incorporationCountry']);
+
+/** Extra validation rules injected for globally-standardised codes */
+function isoRules(col: ColumnMetadata) {
+  if (ISO_4217_COLS.has(col.name)) {
+    return [
+      { len: 3, message: 'Must be exactly 3 characters (ISO 4217)' },
+      { pattern: /^[A-Z]{3}$/, message: 'Must be 3 uppercase letters (ISO 4217)' },
+    ];
+  }
+  if (ISO_3166_COLS.has(col.name)) {
+    return [
+      { len: 2, message: 'Must be exactly 2 characters (ISO 3166-1)' },
+      { pattern: /^[A-Z]{2}$/, message: 'Must be 2 uppercase letters (ISO 3166-1)' },
+    ];
+  }
+  return [];
+}
+
 /** Renders the right input control for a column purely from its metadata
  *  kind — this is the mechanism that lets one component cover every Tier 2
  *  table instead of hand-writing a form per table. */
@@ -44,8 +66,18 @@ function fieldControl(col: ColumnMetadata) {
       return <DatePicker style={{ width: '100%' }} />;
     case 'enum':
       return <Select options={(col.enumValues ?? []).map((v) => ({ label: v, value: v }))} />;
-    default:
-      return <Input maxLength={col.maxLength ?? undefined} />;
+    default: {
+      const isCodeCol = ISO_4217_COLS.has(col.name) || ISO_3166_COLS.has(col.name);
+      return (
+        <Input
+          maxLength={col.maxLength ?? undefined}
+          style={isCodeCol ? { textTransform: 'uppercase', fontFamily: 'monospace' } : undefined}
+          onChange={isCodeCol ? (e) => {
+            e.target.value = e.target.value.toUpperCase();
+          } : undefined}
+        />
+      );
+    }
   }
 }
 
@@ -180,7 +212,10 @@ export function ReferenceDataTable({ table }: Props) {
               name={col.name}
               label={col.label}
               valuePropName={col.kind === 'boolean' ? 'checked' : 'value'}
-              rules={[{ required: !col.nullable, message: `${col.label} is required` }]}
+              rules={[
+                { required: !col.nullable, message: `${col.label} is required` },
+                ...isoRules(col),
+              ]}
             >
               {fieldControl(col)}
             </Form.Item>

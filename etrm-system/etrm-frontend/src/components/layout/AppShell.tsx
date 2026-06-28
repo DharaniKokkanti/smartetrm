@@ -2,7 +2,7 @@ import { Layout, Menu, Typography, Space, Avatar, Button, Badge, Tooltip, Dropdo
 import {
   MenuFoldOutlined, MenuUnfoldOutlined, SwapOutlined, FundOutlined,
   SunOutlined, MoonOutlined, CodeOutlined, LogoutOutlined, UserOutlined, HomeOutlined,
-  BankOutlined, AppstoreOutlined,
+  BankOutlined, AppstoreOutlined, TableOutlined, TeamOutlined, SafetyCertificateOutlined,
 } from '@ant-design/icons';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useUiStore } from '@store/uiStore';
@@ -24,11 +24,21 @@ const NAV_ITEMS = [
     label: <span style={{ fontSize: 10, letterSpacing: 1, fontWeight: 700, color: '#6b7280' }}>MASTER DATA</span>,
     children: [
       { key: '/master-data', icon: <AppstoreOutlined />, label: 'Master Data Hub' },
+      { key: '/static-data',       icon: <TableOutlined />,    label: 'Static Data' },
+    ],
+  },
+  { type: 'divider' as const },
+  {
+    type: 'group' as const,
+    label: <span style={{ fontSize: 10, letterSpacing: 1, fontWeight: 700, color: '#6b7280' }}>ADMIN</span>,
+    children: [
+      { key: '/admin/users', icon: <TeamOutlined />,                label: 'Users' },
+      { key: '/admin/roles', icon: <SafetyCertificateOutlined />,   label: 'Roles & Permissions' },
     ],
   },
 ];
 
-const ALL_KEYS = ['/', '/trade/blotter', '/position', '/master-data'];
+const ALL_KEYS = ['/', '/trade/blotter', '/position', '/static-data', '/master-data', '/admin/users', '/admin/roles'];
 
 export function AppShell() {
   const { sidebarCollapsed, toggleSidebar } = useUiStore();

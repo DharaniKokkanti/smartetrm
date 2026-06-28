@@ -5,6 +5,7 @@ import { counterpartyHandlers } from './counterpartyHandlers';
 import { guaranteeHandlers } from './guaranteeHandlers';
 import { referenceDataHandlers } from './referenceDataHandlers';
 import { etrmHandlers } from './etrmHandlers';
+import { rbacHandlers } from './rbacHandlers';
 
 export const worker = setupWorker(
   ...authHandlers,
@@ -13,4 +14,5 @@ export const worker = setupWorker(
   ...guaranteeHandlers,
   ...referenceDataHandlers,
   ...etrmHandlers,
+  ...rbacHandlers,
 );

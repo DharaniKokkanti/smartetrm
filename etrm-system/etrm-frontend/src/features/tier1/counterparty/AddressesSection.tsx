@@ -1,85 +1,265 @@
-import { Form, Input, Select, Switch } from 'antd';
+import { useState } from 'react';
+import {
+  Button, Form, Input, Modal, Popconfirm, Select, Space,
+  Switch, Table, Tag, Empty, Segmented,
+} from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, LinkOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
-import { ChildRecordSection, PrimaryTag } from './ChildRecordSection';
-import type { Address } from './types';
+import { PrimaryTag } from './ChildRecordSection';
+import type { Address, AddressAssignment, PolymorphicEntityType } from './types';
 import { localId } from '@utils/localId';
 import { useCustomConfigOptions } from './configLookups';
+import { useAddressPool } from './hooks';
 
 interface Props {
-  items: Address[];
-  onChange: (items: Address[]) => void;
+  items: AddressAssignment[];
+  onChange: (items: AddressAssignment[]) => void;
+  entityType?: PolymorphicEntityType;
 }
 
-export function AddressesSection({ items, onChange }: Props) {
-  const { data: typeOptions = [], isLoading } = useCustomConfigOptions('ADDRESS_TYPE');
-  const columns: ColumnsType<Address> = [
-    { title: 'Type', dataIndex: 'addressType', width: 110 },
+const BLANK_ADDRESS: Address = {
+  addressId: null, _localId: '',
+  addressLine1: '', addressLine2: null, addressLine3: null,
+  city: '', stateProvince: null, postalCode: null,
+  countryCode: '', poBox: null, phoneNumber: null,
+  isActive: true, notes: null,
+};
+
+export function AddressesSection({ items, onChange, entityType = 'COUNTERPARTY' }: Props) {
+  const { data: typeOptions = [], isLoading: loadingTypes } = useCustomConfigOptions('ADDRESS_TYPE');
+  const { data: pool = [] } = useAddressPool();
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [mode, setMode] = useState<'new' | 'link'>('new');
+  const [editing, setEditing] = useState<AddressAssignment | null>(null);
+  const [form] = Form.useForm();
+  const [selectedPoolId, setSelectedPoolId] = useState<number | null>(null);
+
+  const visible = items.filter((a) => a.isActive);
+
+  const columns: ColumnsType<AddressAssignment> = [
     {
-      title: 'Address',
-      key: 'address',
-      render: (_, r) => [r.addressLine1, r.city, r.countryCode].filter(Boolean).join(', '),
+      title: 'Type', dataIndex: 'addressType', width: 120,
+      render: (v, r) => (
+        <Space size={4}>
+          {v}
+          {r.isLinked && <Tag color="purple" style={{ fontSize: 10, padding: '0 4px', lineHeight: '16px' }}>Linked</Tag>}
+        </Space>
+      ),
     },
-    { title: 'Postal Code', dataIndex: 'postalCode', width: 110, render: (v) => v || '—' },
-    { title: '', key: 'primary', width: 80, render: (_, r) => <PrimaryTag isPrimary={r.isPrimary} /> },
+    {
+      title: 'Address', key: 'address',
+      render: (_, r) => [r.address.addressLine1, r.address.city, r.address.countryCode].filter(Boolean).join(', '),
+    },
+    { title: 'Postal', dataIndex: ['address', 'postalCode'], width: 100, render: (v) => v || '—' },
+    { title: 'Phone', dataIndex: ['address', 'phoneNumber'], width: 140, render: (v) => v || '—' },
+    { title: '', key: 'primary', width: 70, render: (_, r) => <PrimaryTag isPrimary={r.isPrimary} /> },
+    {
+      title: '', key: '_actions', width: 80,
+      render: (_, record) => (
+        <Space size={4}>
+          <Button type="text" size="small" icon={<EditOutlined />} onClick={() => openEdit(record)} />
+          <Popconfirm title="Remove this address?" onConfirm={() => handleRemove(record)}>
+            <Button type="text" size="small" danger icon={<DeleteOutlined />} />
+          </Popconfirm>
+        </Space>
+      ),
+    },
   ];
 
-  return (
-    <ChildRecordSection<Address>
-      title="Addresses"
-      addLabel="Add Address"
-      items={items}
-      onChange={onChange}
-      displayColumns={columns}
-      emptyItem={() => ({
-        addressId: null,
-        _localId: localId(),
-        entityType: 'COUNTERPARTY',
+  function openAdd() {
+    setEditing(null);
+    setMode('new');
+    setSelectedPoolId(null);
+    form.resetFields();
+    form.setFieldsValue({ addressType: 'REGISTERED', isPrimary: visible.length === 0 });
+    setModalOpen(true);
+  }
+
+  function openEdit(item: AddressAssignment) {
+    setEditing(item);
+    setMode(item.isLinked ? 'link' : 'new');
+    setSelectedPoolId(item.isLinked ? (item.addressId ?? null) : null);
+    form.setFieldsValue({
+      addressType: item.addressType,
+      isPrimary: item.isPrimary,
+      ...item.address,
+    });
+    setModalOpen(true);
+  }
+
+  function handleRemove(item: AddressAssignment) {
+    if (item.entityAddressId !== null) {
+      onChange(items.map((i) => i._localId === item._localId ? { ...i, isActive: false } : i));
+    } else {
+      onChange(items.filter((i) => i._localId !== item._localId));
+    }
+  }
+
+  async function handleOk() {
+    const values = await form.validateFields();
+
+    if (mode === 'link') {
+      if (!selectedPoolId) return;
+      const poolAddr = pool.find((a) => a.addressId === selectedPoolId)!;
+      const assignment: AddressAssignment = {
+        entityAddressId: editing?.entityAddressId ?? null,
+        _localId: editing?._localId ?? localId(),
+        entityType,
         entityId: 0,
-        addressType: 'REGISTERED',
-        isPrimary: items.length === 0,
-        addressLine1: '',
-        addressLine2: null,
+        addressId: poolAddr.addressId,
+        address: poolAddr,
+        addressType: values.addressType as string,
+        isPrimary: values.isPrimary as boolean,
+        isActive: true,
+        isLinked: true,
+      };
+      onChange(
+        editing
+          ? items.map((i) => i._localId === editing._localId ? assignment : i)
+          : [...items, assignment],
+      );
+    } else {
+      const address: Address = {
+        addressId: editing?.isLinked ? null : (editing?.address.addressId ?? null),
+        _localId: editing?.address._localId ?? localId(),
+        addressLine1: values.addressLine1 as string,
+        addressLine2: values.addressLine2 as string | null ?? null,
         addressLine3: null,
-        city: '',
-        stateProvince: null,
-        postalCode: null,
-        countryCode: '',
+        city: values.city as string,
+        stateProvince: values.stateProvince as string | null ?? null,
+        postalCode: values.postalCode as string | null ?? null,
+        countryCode: (values.countryCode as string).toUpperCase(),
         poBox: null,
+        phoneNumber: values.phoneNumber as string | null ?? null,
         isActive: true,
         notes: null,
-      })}
-      renderFormFields={() => (
-        <>
+      };
+      const assignment: AddressAssignment = {
+        entityAddressId: editing?.isLinked ? null : (editing?.entityAddressId ?? null),
+        _localId: editing?.isLinked ? localId() : (editing?._localId ?? localId()),
+        entityType,
+        entityId: 0,
+        addressId: address.addressId,
+        address,
+        addressType: values.addressType as string,
+        isPrimary: values.isPrimary as boolean,
+        isActive: true,
+        isLinked: false,
+      };
+      onChange(
+        editing && !editing.isLinked
+          ? items.map((i) => i._localId === editing._localId ? assignment : i)
+          : [...items, assignment],
+      );
+    }
+    setModalOpen(false);
+  }
+
+  // pool options excluding addresses already assigned
+  const assignedIds = new Set(items.filter((a) => a.isActive && a.addressId).map((a) => a.addressId));
+  const poolOptions = pool
+    .filter((a) => a.isActive)
+    .map((a) => ({
+      value: a.addressId!,
+      label: `${a.addressLine1}, ${a.city}, ${a.countryCode}${a.postalCode ? ` ${a.postalCode}` : ''}`,
+      disabled: assignedIds.has(a.addressId!) && selectedPoolId !== a.addressId,
+    }));
+
+  return (
+    <div>
+      <Space style={{ marginBottom: 12, justifyContent: 'flex-end', width: '100%' }}>
+        <Button icon={<PlusOutlined />} onClick={openAdd}>Add Address</Button>
+      </Space>
+
+      <Table<AddressAssignment>
+        size="small"
+        rowKey="_localId"
+        dataSource={visible}
+        columns={columns}
+        pagination={false}
+        locale={{ emptyText: <Empty description="No addresses added yet" /> }}
+      />
+
+      <Modal
+        title={editing ? 'Edit Address' : 'Add Address'}
+        open={modalOpen}
+        onCancel={() => setModalOpen(false)}
+        onOk={handleOk}
+        okText="Done"
+        destroyOnHidden
+        width={520}
+      >
+        {!editing && (
+          <Segmented
+            block
+            value={mode}
+            onChange={(v) => { setMode(v as 'new' | 'link'); form.resetFields(['addressLine1','addressLine2','city','stateProvince','postalCode','countryCode','phoneNumber']); setSelectedPoolId(null); }}
+            options={[
+              { label: 'New Address', value: 'new' },
+              { label: <><LinkOutlined style={{ marginRight: 4 }} />Link Existing</>, value: 'link' },
+            ]}
+            style={{ marginBottom: 16 }}
+          />
+        )}
+
+        <Form form={form} layout="vertical">
           <Form.Item name="addressType" label="Address Type" rules={[{ required: true }]}>
-            <Select options={typeOptions} loading={isLoading} />
+            <Select options={typeOptions} loading={loadingTypes} />
           </Form.Item>
-          <Form.Item name="addressLine1" label="Address Line 1" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="addressLine2" label="Address Line 2">
-            <Input />
-          </Form.Item>
-          <Form.Item name="city" label="City" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="stateProvince" label="State / Province">
-            <Input />
-          </Form.Item>
-          <Form.Item name="postalCode" label="Postal Code">
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="countryCode"
-            label="Country (ISO 2)"
-            rules={[{ required: true }, { len: 2, message: '2-letter code' }]}
-          >
-            <Input maxLength={2} style={{ textTransform: 'uppercase' }} />
-          </Form.Item>
+
+          {mode === 'link' ? (
+            <Form.Item label="Select Existing Address" required>
+              <Select
+                showSearch
+                placeholder="Search by street, city…"
+                optionFilterProp="label"
+                value={selectedPoolId}
+                onChange={(v) => setSelectedPoolId(v as number)}
+                options={poolOptions}
+                style={{ width: '100%' }}
+              />
+              {selectedPoolId && (() => {
+                const a = pool.find((x) => x.addressId === selectedPoolId);
+                return a ? (
+                  <div style={{ marginTop: 8, padding: '8px 10px', background: '#f9f9f9', borderRadius: 4, fontSize: 12, color: '#595959' }}>
+                    {[a.addressLine1, a.addressLine2, a.city, a.stateProvince, a.postalCode, a.countryCode].filter(Boolean).join(', ')}
+                    {a.phoneNumber && <div style={{ marginTop: 2 }}>{a.phoneNumber}</div>}
+                  </div>
+                ) : null;
+              })()}
+            </Form.Item>
+          ) : (
+            <>
+              <Form.Item name="addressLine1" label="Address Line 1" rules={[{ required: true }]}>
+                <Input />
+              </Form.Item>
+              <Form.Item name="addressLine2" label="Address Line 2">
+                <Input />
+              </Form.Item>
+              <Form.Item name="city" label="City" rules={[{ required: true }]}>
+                <Input />
+              </Form.Item>
+              <Form.Item name="stateProvince" label="State / Province">
+                <Input />
+              </Form.Item>
+              <Form.Item name="postalCode" label="Postal Code">
+                <Input />
+              </Form.Item>
+              <Form.Item name="countryCode" label="Country (ISO 2)" rules={[{ required: true }, { len: 2, message: '2-letter code' }]}>
+                <Input maxLength={2} style={{ textTransform: 'uppercase' }} />
+              </Form.Item>
+              <Form.Item name="phoneNumber" label="Phone Number">
+                <Input placeholder="+1 212 555 0100" />
+              </Form.Item>
+            </>
+          )}
+
           <Form.Item name="isPrimary" label="Primary Address" valuePropName="checked">
             <Switch />
           </Form.Item>
-        </>
-      )}
-    />
+        </Form>
+      </Modal>
+    </div>
   );
 }
