@@ -67,6 +67,7 @@ const StoragePage = lazy1(() => import('@features/logistics/storage/StoragePage'
 // Reference
 const CurrenciesPage = lazy1(() => import('@features/reference/currencies/CurrenciesPage'), 'CurrenciesPage');
 const UomPage = lazy1(() => import('@features/reference/uom/UomPage'), 'UomPage');
+const UomConversionPage = lazy1(() => import('@features/reference/uom-conversions/UomConversionPage'), 'UomConversionPage');
 const CountriesPage = lazy1(() => import('@features/reference/countries/CountriesPage'), 'CountriesPage');
 const IncotermsPage = lazy1(() => import('@features/reference/incoterms/IncotermsPage'), 'IncotermsPage');
 
@@ -137,6 +138,7 @@ export function AppRouter() {
         {/* Reference */}
         <Route path="/reference/currencies" element={<S><CurrenciesPage /></S>} />
         <Route path="/reference/uom" element={<S><UomPage /></S>} />
+        <Route path="/reference/uom-conversions" element={<S><UomConversionPage /></S>} />
         <Route path="/reference/countries" element={<S><CountriesPage /></S>} />
         <Route path="/reference/incoterms" element={<S><IncotermsPage /></S>} />
         <Route path="/static-data" element={<S><Tier2HomePage /></S>} />

@@ -116,12 +116,17 @@ COMMODITY MODULES (plug in one at a time)
 - `cp_legal_entity_link` — authorised trading pairs with per-pair credit limits
 
 **GROUP 5 — Commodity & product**
-- `product` — tradeable products
-- `uom_conversion` — explicit conversion factors between any two units
-- `product_price_index` — valid price indices per product
+- `commodity` — top-level commodity (OIL, GAS, POWER, METALS, AGRICULTURAL). Added V23: `commodity_subtype` (23 enum values), `default_uom_id`, `default_currency_id`
+- `product` — tradeable products. Added V23: `grade_code`, `product_family` (17 families), `bloomberg_ticker`, `reuters_ric`, `platts_code`, `is_exchange_traded`, `is_otc`. Added V24: `is_blend BIT`, `blend_notes VARCHAR(500)`. Added V25: 7 pricing basis fields — `density_estimate_kg_m3` / `density_base_kg_m3` (OIL BBL↔MT), `cv_gross_mj_scm` / `cv_net_mj_scm` (GAS vol↔energy), `purity_basis_pct` (METALS grade), `moisture_basis_pct` / `protein_basis_pct` (AGRI quality adjustments)
+- `product_blend_component` — (V24) M:M bridge for blended products; stores min/target/max/tolerance % per component
+- `product_spec_template` — (V4 schema, V24 seeded) named quality spec per product, linked to issuing body and standard reference
+- `product_spec_value` — (V4 schema, V24 seeded) parameter bounds (min/max/typical/exact) within a spec template
+- `spec_parameter` — (V4 schema, V24 added 13 new rows, V25 added 24 more) complete catalogue of measurable quality parameters across all commodity types: OIL (28 params incl. TAN, CCR, WAX, asphaltene, ULSD-specific), GAS (16 incl. composition + energy), METALS (11 incl. LME purity, impurity limits), AGRICULTURAL (12 incl. moisture, protein, starch, oil content), POWER (5 incl. CO₂ intensity, renewable cert)
+- `uom_conversion` — explicit conversion factors between any two units. V25 seeded 29 rows: universal weight (MT↔KG, MT↔LB), precious metals (Troy Oz↔KG/MT), OIL volume (BBL↔GAL, BBL↔CBM, BBL↔MT defaults), GAS energy (MWH↔MMBTU/GJ/THERM, SCM↔MWH/MMBTU), POWER (GWH↔MWH), AGRI (BUSHEL↔MT). Product-level density/GCV fields override default commodity-level factors
+- `product_price_index` — M:M bridge: products ↔ price indices with `role` (PRIMARY_MTM / SETTLEMENT / BACKUP / REFERENCE) and `is_primary` flag
 
 **GROUP 6 — Commercial terms**
-- `payment_term` — Net 30, Net 45, LC, prepayment etc. (seeded: 11 terms)
+- `payment_term` — redesigned V22: `term_code`, `base_date_event` (11 values), `month_offset`, `offset_days`, `fixed_day_of_month`, `business_day_convention` (5 values), `holiday_calendar_id`, `discount_days`, `discount_pct`, `payment_method`, `invoice_lead_days`, `is_default`. Seeded: 20 commodity-representative terms
 - `credit_term` — credit period, collateral, netting (seeded: 8 terms)
 - `gtc` — master General Terms & Conditions
 - `gtc_version` — versioned GTC documents
@@ -471,7 +476,111 @@ cod_date, pipeline_id, pipeline_point_id
 
 ---
 
-## 13. Script Execution Order
+## 13. Flyway Migration History
+
+All migrations live in `etrm-backend/src/main/resources/db/migration/` and are mirrored for reference to `etrm-system/database/`.
+
+| Version | File | Summary |
+|---------|------|---------|
+| V1–V8 | `V1__...` – `V8__...` | Initial schema: master data, trader, market/price, product spec, MOT/pipeline, pricing |
+| V9 | `V9__trade_schema.sql` | Trade blotter tables + commodity extension tables (oil/gas/power/metals/agri) |
+| V10 | `V10__position_schema.sql` | Position ledger |
+| V11 | `V11__power_schema.sql` | Power-specific: grid nodes, transmission rights, balancing |
+| V12 | `V12__power_transmission_rights.sql` | Transmission right detail |
+| V13 | `V13__parent_company_guarantee.sql` | PCG for counterparty credit |
+| V14 | `V14__master_data_table_registry.sql` | `md_table_registry` — powers Static Data admin UI |
+| V15 | `V15__temporal_tables_fix.sql` | Temporal table DDL corrections |
+| V17 | `V17__parent_lookup_tables.sql` | First wave of parent lookup tables (commodity type, UoM class, etc.) |
+| V18 | `V18__address_phone_contact_entity_type.sql` | Polymorphic contact/address entity types |
+| V19 | `V19__entity_address_contact_link_tables.sql` | Entity ↔ address/contact junction tables |
+| V20 | `V20__rbac_roles_functions.sql` | RBAC: `app_function`, `app_role`, `role_function_grant`, `user_role` |
+| V21 | `V21__address_contact_rbac_user_profile.sql` | `user_profile` table; address/contact linking |
+| V22 | `V22__payment_term_redesign.sql` | **Payment Term redesign** — adds `base_date_event`, `month_offset`, `business_day_convention`, `holiday_calendar_id`, `discount_pct`, `payment_method`, `invoice_lead_days`, `is_default`. Re-seeds 20 commodity-representative terms |
+| V23 | `V23__base_date_event_commodity_product_fields.sql` | **Lookup tables + commodity/product enrichment**: creates `base_date_event_type` (11 rows) and `business_day_convention_type` (5 rows) as managed static data; adds `commodity_subtype`, `default_uom_id`, `default_currency_id` to commodity; adds `grade_code`, `product_family`, `bloomberg_ticker`, `reuters_ric`, `platts_code`, `is_exchange_traded`, `is_otc` to product |
+| V24 | `V24__product_blend_spec_seeds.sql` | **Product blend model + quality spec seeds**: adds `is_blend BIT` and `blend_notes VARCHAR(500)` to `product`; adds 13 new `spec_parameter` rows (ULSD/diesel quality, gas composition, metals purity, agri); creates `product_blend_component` M:M bridge table (parent_product_id, component_product_id, min/target/max_pct, tolerance_pct); seeds 3 products (ULSD-10PPM, ETHANOL, GAS97-BLEND); seeds 2 blend component rows for GAS97-BLEND recipe (97% ULSD + 3% Ethanol); seeds 6 `product_spec_template` rows (Brent/BFOE, WTI/NYMEX, TTF/EFET, LME Grade A Copper, EN590 ULSD, GAS97 internal); seeds 32 `product_spec_value` rows with industry-standard min/max/typical bounds |
+| V25 | `V25__pricing_basis_uom_conversion_spec_additions.sql` | **Pricing basis fields + UoM conversion seeds + extended spec catalogue**: adds 7 pricing basis columns to `product` (`density_estimate_kg_m3`, `density_base_kg_m3`, `cv_gross_mj_scm`, `cv_net_mj_scm`, `purity_basis_pct`, `moisture_basis_pct`, `protein_basis_pct`); adds 8 UoM rows (GJ, SCM, MMSCM, LB, CBM, TROY_OZ, GWH + corrects existing); seeds 29 `uom_conversion` rows covering universal weight, precious metals, OIL volume, GAS energy, POWER, and AGRI; adds 24 more `spec_parameter` rows (ULSD-specific, extended gas composition, metals impurity limits, agri oil/starch/hectolitre, power CO₂/REC); UPDATE all 15 products with appropriate pricing basis values |
+
+---
+
+## 14. Static Data Admin UI — Lookup Table Design
+
+Payment term dropdowns (Base Date Event and Business Day Convention) are driven by managed lookup tables, not hardcoded TypeScript enums. This means operations teams can add new event types without code changes.
+
+**Pattern:**
+1. Lookup table in SQL (e.g. `base_date_event_type`) with `type_code` matching the CHECK constraint on the data column
+2. Entry in `PARENT_LOOKUP_TABLES` array in `referenceData.ts` — auto-registers the table in the Tier 2 Static Data UI
+3. Frontend uses `useTableRows('base_date_event_type')` hook to load options at runtime
+4. Form select uses grouped options (`applicableCommodity` as group header) with search enabled
+
+**Tables managed via Static Data UI:**
+- `base_date_event_type` — 11 payment date anchors (BL_DATE, DELIVERY_DATE, END_OF_DELIVERY_MONTH, etc.)
+- `business_day_convention_type` — 5 BD rolling rules (MOD_FOLLOWING, FOLLOWING, etc.)
+- `crude_grade_type` — 14 named crude grades (BRENT, WTI, FORTIES, URALS, DUBAI, ESPO, etc.) with region and benchmark index
+- `metal_shape` — 9 physical metal forms (CATHODE, INGOT, BILLET, COIL, ROD, SLAB, WIRE, POWDER, T_BAR)
+- `gas_day_type` — 3 gas day boundary types (STANDARD 06:00–06:00, MIDNIGHT, EXTENDED)
+- `nomination_type` — 3 gas nomination types (FIRM, INTERRUPTIBLE, RENOMINATABLE)
+- `lng_price_basis` — 6 LNG price linkages (JCC, HH, TTF, NBP, DES_SPOT, HYBRID)
+- `power_load_type` — 4 power load profiles (BASELOAD, PEAK, OFF_PEAK, SHAPED)
+- All other `PARENT_LOOKUP_TABLES` entries (commodity type, pricing type, UoM class, etc.)
+
+**TradeBlotter dropdowns** — all formerly-hardcoded option arrays replaced with `useTableRows()` hooks and `useUom()`:
+| Previously hardcoded | Now served by |
+|---|---|
+| `UOM_OPTIONS` | `useUom()` → `/api/v1/uom` |
+| `CURRENCY_OPTIONS` | `useTableRows('currency')` |
+| `CRUDE_GRADES` | `useTableRows('crude_grade_type')` |
+| `METALS_SHAPES` | `useTableRows('metal_shape')` |
+| `LNG_PRICE_BASES` | `useTableRows('lng_price_basis')` |
+| inline `nominationType` options | `useTableRows('nomination_type')` |
+| inline `gasDayType` options | `useTableRows('gas_day_type')` |
+| inline `loadType` options | `useTableRows('power_load_type')` |
+
+## 14a. Product Blend & Quality Spec Data Model
+
+### Blend Products
+A product can be flagged `is_blend = true` to indicate it is manufactured by blending component products. The recipe is stored in `product_blend_component`:
+
+```
+product_blend_component
+├── parent_product_id   → blended product (e.g. GAS97-BLEND)
+├── component_product_id → a constituent (e.g. ULSD-10PPM, ETHANOL)
+├── sequence_no         → display order
+├── min_pct / target_pct / max_pct  → volume-basis blending recipe
+└── tolerance_pct       → allowable variance from target
+```
+
+**Example**: GAS97-BLEND = Component 1: ULSD-10PPM (target 97%vol ±0.5%) + Component 2: ETHANOL (target 3%vol ±0.25%).
+
+### Quality Spec Templates
+Spec data flows through three linked tables:
+
+```
+spec_parameter (parameter catalogue — API gravity, sulphur %, GCV, purity %, etc.)
+    └── product_spec_template (named spec per product — e.g. EN590_10PPM for ULSD)
+            └── product_spec_value (min/max/typical bounds per parameter)
+                    └── spec_override (pipeline or vessel tighter requirements) [future]
+```
+
+**Seeded standards** (V24):
+| Template Code | Product | Standard |
+|---|---|---|
+| DTBRT_BFOE_STD | BRENT-CRUDE | BFOE MoU 2023 |
+| WTI_NYMEX_STD | WTI-CRUDE | NYMEX Rule 200 |
+| TTF_EFET_2020 | TTF-GAS | NTA 8000 / EFET 2020 |
+| LME_CU_GRADE_A | LME-COPPER | LME Annex A / BS EN 1978 |
+| EN590_10PPM | ULSD-10PPM | EN 590:2022+A1 |
+| GAS97_INTERNAL | GAS97-BLEND | EN 228:2012 / Internal |
+
+### Frontend — ProductsPage Quality Specs Tab
+The `ProductsPage.tsx` drawer now has 4 tabs:
+- **Details** — all product fields including `isBlend` switch and `blendNotes` (shown when blend enabled)
+- **Price Indices** — link/unlink price index relationships
+- **Markets** — read-only view of market listings
+- **Quality Specs** — blend recipe (when `isBlend=true`) + spec template accordion with parameter bounds table
+
+---
+
+## 15. Script Execution Order (Legacy)
 
 ```
 1.  etrm_master_data_v2.0.sql
@@ -482,10 +591,7 @@ cod_date, pipeline_id, pipeline_point_id
 6.  etrm_financial_operational_md_v1.0.sql
 7.  etrm_pricing_triggers_rules_v1.0.sql
 8.  etrm_pricing_lifecycle_v1.0.sql
--- Next:
-9.  etrm_trade_schema.sql              (not yet built)
-10. etrm_position_schema.sql           (not yet built)
-11. etrm_settlement_schema.sql         (not yet built)
+-- All now superseded by Flyway migrations V1–V23 above
 ```
 
 ---

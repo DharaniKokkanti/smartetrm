@@ -23,6 +23,8 @@ import { usePricingRules } from '@features/pricing/pricing-rules/hooks';
 import { useLocations } from '@features/logistics/locations/hooks';
 import { useVessels } from '@features/logistics/vessels/hooks';
 import { usePeriods } from '@features/calendar/periods/hooks';
+import { useUom } from '@features/reference/uom/hooks';
+import { useTableRows } from '@features/tier2/hooks';
 
 const { Text } = Typography;
 
@@ -40,11 +42,7 @@ const TRADE_TYPE_COLOR: Record<string, string> = {
   PHYSICAL: 'orange', FINANCIAL: 'geekblue', OPTION: 'purple', FREIGHT: 'cyan',
 };
 
-const UOM_OPTIONS = ['BBL', 'MT', 'MWH', 'MMBTU', 'THERM', 'BUSHEL', 'LOT', 'MT/DAY', 'SCFD'];
-const CURRENCY_OPTIONS = ['USD', 'EUR', 'GBP', 'JPY', 'CNY', 'CAD', 'SGD'];
-const CRUDE_GRADES = ['BRENT', 'FORTIES', 'OSEBERG', 'EKOFISK', 'TROLL', 'WTI', 'URALS', 'DUBAI', 'OMAN', 'ESPO', 'BONNY LIGHT', 'BASRA LIGHT', 'ARAB HEAVY', 'IRAN HEAVY'];
-const METALS_SHAPES = ['CATHODE', 'INGOT', 'BILLET', 'COIL', 'ROD', 'SLAB', 'WIRE'];
-const LNG_PRICE_BASES = ['JCC', 'HH', 'TTF', 'NBP', 'CUSTOM'];
+type SelectOpt = { value: string; label: string };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function sectionTitle(label: string) {
@@ -56,14 +54,14 @@ function sectionTitle(label: string) {
 }
 
 // ─── OIL detail section ───────────────────────────────────────────────────────
-function OilSection({ locations, vessels }: { locations: { value: string; label: string }[]; vessels: { value: string; label: string }[] }) {
+function OilSection({ locations, vessels, crudeGrades }: { locations: SelectOpt[]; vessels: SelectOpt[]; crudeGrades: SelectOpt[] }) {
   return (
     <>
       {sectionTitle('Oil Cargo Details')}
       <Row gutter={16}>
         <Col span={12}>
           <Form.Item name={['oilDetail', 'crudeGrade']} label={hint('Crude Grade', 'The crude oil benchmark or named blend traded — e.g. Forties, Urals, Arab Light. Determines applicable API/sulphur specs.', 'FORTIES')}>
-            <Select options={CRUDE_GRADES.map((g) => ({ value: g, label: g }))} placeholder="Select grade" allowClear showSearch />
+            <Select options={crudeGrades} placeholder="Select grade" allowClear showSearch />
           </Form.Item>
         </Col>
         <Col span={6}>
@@ -128,7 +126,7 @@ function OilSection({ locations, vessels }: { locations: { value: string; label:
 }
 
 // ─── GAS detail section ───────────────────────────────────────────────────────
-function GasSection() {
+function GasSection({ nominationTypes, gasDayTypes }: { nominationTypes: SelectOpt[]; gasDayTypes: SelectOpt[] }) {
   return (
     <>
       {sectionTitle('Gas Delivery Details')}
@@ -145,7 +143,7 @@ function GasSection() {
         </Col>
         <Col span={6}>
           <Form.Item name={['gasDetail', 'nominationType']} label={hint('Nomination', 'FIRM = guaranteed capacity. INTERRUPTIBLE = supplier can curtail with notice — cheaper but unreliable.')}>
-            <Select options={[{ value: 'FIRM', label: 'Firm' }, { value: 'INTERRUPTIBLE', label: 'Interruptible' }]} allowClear />
+            <Select options={nominationTypes} allowClear />
           </Form.Item>
         </Col>
       </Row>
@@ -162,7 +160,7 @@ function GasSection() {
         </Col>
         <Col span={6}>
           <Form.Item name={['gasDetail', 'gasDayType']} label={hint('Gas Day Type', 'STANDARD = 06:00–06:00 UK time (NBP). EXTENDED = some European hubs use different boundaries.')}>
-            <Select options={[{ value: 'STANDARD', label: 'Standard (06:00–06:00)' }, { value: 'EXTENDED', label: 'Extended' }]} allowClear />
+            <Select options={gasDayTypes} allowClear />
           </Form.Item>
         </Col>
       </Row>
@@ -171,19 +169,14 @@ function GasSection() {
 }
 
 // ─── POWER detail section ─────────────────────────────────────────────────────
-function PowerSection() {
+function PowerSection({ powerLoadTypes }: { powerLoadTypes: SelectOpt[] }) {
   return (
     <>
       {sectionTitle('Power Delivery Details')}
       <Row gutter={16}>
         <Col span={8}>
           <Form.Item name={['powerDetail', 'loadType']} label={hint('Load Type', 'BASELOAD = 24h/day every day. PEAK = defined peak hours (e.g. Mon–Fri 07:00–23:00). OFF_PEAK = remaining hours.')}>
-            <Select options={[
-              { value: 'BASELOAD', label: 'Baseload (24h)' },
-              { value: 'PEAK', label: 'Peak Hours' },
-              { value: 'OFF_PEAK', label: 'Off-Peak' },
-              { value: 'CUSTOM', label: 'Custom Profile' },
-            ]} allowClear />
+            <Select options={powerLoadTypes} allowClear />
           </Form.Item>
         </Col>
         <Col span={8}>
@@ -219,7 +212,7 @@ function PowerSection() {
 }
 
 // ─── LNG detail section ───────────────────────────────────────────────────────
-function LngSection({ locations }: { locations: { value: string; label: string }[] }) {
+function LngSection({ locations, lngPriceBases }: { locations: SelectOpt[]; lngPriceBases: SelectOpt[] }) {
   return (
     <>
       {sectionTitle('LNG Cargo Details')}
@@ -243,7 +236,7 @@ function LngSection({ locations }: { locations: { value: string; label: string }
         </Col>
         <Col span={12}>
           <Form.Item name={['lngDetail', 'priceBasis']} label={hint('Price Basis', 'LNG pricing linkage. JCC (Japan Crude Cocktail) for Asia. HH (Henry Hub) for US export. TTF/NBP for Europe.')}>
-            <Select options={LNG_PRICE_BASES.map((b) => ({ value: b, label: b }))} allowClear />
+            <Select options={lngPriceBases} allowClear />
           </Form.Item>
         </Col>
       </Row>
@@ -252,7 +245,7 @@ function LngSection({ locations }: { locations: { value: string; label: string }
 }
 
 // ─── METALS detail section ────────────────────────────────────────────────────
-function MetalsSection({ locations }: { locations: { value: string; label: string }[] }) {
+function MetalsSection({ locations, metalShapes }: { locations: SelectOpt[]; metalShapes: SelectOpt[] }) {
   return (
     <>
       {sectionTitle('Metal Physical Details')}
@@ -264,7 +257,7 @@ function MetalsSection({ locations }: { locations: { value: string; label: strin
         </Col>
         <Col span={8}>
           <Form.Item name={['metalsDetail', 'shape']} label={hint('Shape / Form', 'Physical form of the metal. Cathode (copper), Ingot (lead/zinc), Billet (aluminium extrusion), Coil (steel).')}>
-            <Select options={METALS_SHAPES.map((s) => ({ value: s, label: s }))} allowClear />
+            <Select options={metalShapes} allowClear />
           </Form.Item>
         </Col>
         <Col span={8}>
@@ -336,6 +329,14 @@ export function TradeBlotter() {
   const { data: locations = [] } = useLocations();
   const { data: vessels = [] } = useVessels();
   const { data: periods = [] } = usePeriods();
+  const { data: uomRows = [] }             = useUom();
+  const { data: currencyRows = [] }        = useTableRows('currency');
+  const { data: crudeGradeRows = [] }      = useTableRows('crude_grade_type');
+  const { data: metalShapeRows = [] }      = useTableRows('metal_shape');
+  const { data: gasDayTypeRows = [] }      = useTableRows('gas_day_type');
+  const { data: nominationTypeRows = [] }  = useTableRows('nomination_type');
+  const { data: lngPriceBasisRows = [] }   = useTableRows('lng_price_basis');
+  const { data: powerLoadTypeRows = [] }   = useTableRows('power_load_type');
 
   const saveTrade = useSaveTrade();
   const cancelTrade = useCancelTrade();
@@ -357,6 +358,15 @@ export function TradeBlotter() {
       value: v.vesselName,
       label: `${v.vesselName} (${v.imoNumber})`,
     })), [vessels]);
+
+  const uomOpts          = useMemo(() => (uomRows        as { uomCode: string }[]).map((r) => ({ value: r.uomCode, label: r.uomCode })), [uomRows]);
+  const currencyOpts     = useMemo(() => (currencyRows   as { currencyCode: string; currencyName: string }[]).map((r) => ({ value: r.currencyCode, label: `${r.currencyCode} — ${r.currencyName}` })), [currencyRows]);
+  const crudeGradeOpts   = useMemo(() => (crudeGradeRows as { typeCode: string; typeName: string }[]).map((r) => ({ value: r.typeCode, label: `${r.typeCode} — ${r.typeName}` })), [crudeGradeRows]);
+  const metalShapeOpts   = useMemo(() => (metalShapeRows as { typeCode: string; typeName: string }[]).map((r) => ({ value: r.typeCode, label: r.typeName })), [metalShapeRows]);
+  const gasDayTypeOpts   = useMemo(() => (gasDayTypeRows as { typeCode: string; typeName: string }[]).map((r) => ({ value: r.typeCode, label: r.typeName })), [gasDayTypeRows]);
+  const nominationOpts   = useMemo(() => (nominationTypeRows as { typeCode: string; typeName: string }[]).map((r) => ({ value: r.typeCode, label: r.typeName })), [nominationTypeRows]);
+  const lngPriceOpts     = useMemo(() => (lngPriceBasisRows as { typeCode: string; typeName: string }[]).map((r) => ({ value: r.typeCode, label: r.typeName })), [lngPriceBasisRows]);
+  const powerLoadOpts    = useMemo(() => (powerLoadTypeRows as { typeCode: string; typeName: string }[]).map((r) => ({ value: r.typeCode, label: r.typeName })), [powerLoadTypeRows]);
 
   function openNew() {
     setEditing(null);
@@ -632,7 +642,7 @@ export function TradeBlotter() {
             </Col>
             <Col span={6}>
               <Form.Item name="uomCode" label="Unit of Measure" rules={[{ required: true }]}>
-                <Select options={UOM_OPTIONS.map((u) => ({ value: u, label: u }))} />
+                <Select options={uomOpts} showSearch />
               </Form.Item>
             </Col>
             <Col span={6}>
@@ -642,7 +652,7 @@ export function TradeBlotter() {
             </Col>
             <Col span={4}>
               <Form.Item name="currencyCode" label="Currency" rules={[{ required: true }]}>
-                <Select options={CURRENCY_OPTIONS.map((c) => ({ value: c, label: c }))} />
+                <Select options={currencyOpts} showSearch />
               </Form.Item>
             </Col>
           </Row>
@@ -672,12 +682,12 @@ export function TradeBlotter() {
 
           {/* ── Commodity-specific sections ── */}
           {commodityType === 'OIL' && (
-            <OilSection locations={locationOpts} vessels={vesselOpts} />
+            <OilSection locations={locationOpts} vessels={vesselOpts} crudeGrades={crudeGradeOpts} />
           )}
-          {commodityType === 'GAS' && <GasSection />}
-          {commodityType === 'POWER' && <PowerSection />}
-          {commodityType === 'LNG' && <LngSection locations={locationOpts} />}
-          {commodityType === 'METALS' && <MetalsSection locations={locationOpts} />}
+          {commodityType === 'GAS' && <GasSection nominationTypes={nominationOpts} gasDayTypes={gasDayTypeOpts} />}
+          {commodityType === 'POWER' && <PowerSection powerLoadTypes={powerLoadOpts} />}
+          {commodityType === 'LNG' && <LngSection locations={locationOpts} lngPriceBases={lngPriceOpts} />}
+          {commodityType === 'METALS' && <MetalsSection locations={locationOpts} metalShapes={metalShapeOpts} />}
           {commodityType === 'AGRICULTURAL' && <AgriSection />}
 
           {/* ── Notes ── */}

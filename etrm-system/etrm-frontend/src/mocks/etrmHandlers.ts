@@ -44,16 +44,100 @@ const tradersStore: unknown[] = [
 
 // ─── PRODUCTS ─────────────────────────────────────────────────────────────────
 const productsStore: unknown[] = [
-  { productId: 1, productCode: 'BRENT-CRUDE', productName: 'Brent Crude Oil', commodityType: 'OIL', settlementType: 'PHYSICAL', defaultUomCode: 'BBL', lotSize: 500000, minQty: 50000, maxQty: 5000000, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { productId: 2, productCode: 'WTI-CRUDE', productName: 'West Texas Intermediate', commodityType: 'OIL', settlementType: 'PHYSICAL', defaultUomCode: 'BBL', lotSize: 1000, minQty: 1000, maxQty: 5000000, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { productId: 3, productCode: 'BRENT-FUTURES', productName: 'Brent Futures', commodityType: 'OIL', settlementType: 'FINANCIAL', defaultUomCode: 'BBL', lotSize: 1000, minQty: 1000, maxQty: 1000000, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { productId: 4, productCode: 'TTF-GAS', productName: 'TTF Natural Gas', commodityType: 'GAS', settlementType: 'FINANCIAL', defaultUomCode: 'MWH', lotSize: 1, minQty: 1, maxQty: 1000000, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { productId: 5, productCode: 'NBP-GAS', productName: 'NBP Natural Gas', commodityType: 'GAS', settlementType: 'PHYSICAL', defaultUomCode: 'MMBTU', lotSize: 1, minQty: 1, maxQty: 500000, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { productId: 6, productCode: 'LME-COPPER', productName: 'LME Copper', commodityType: 'METALS', settlementType: 'PHYSICAL', defaultUomCode: 'MT', lotSize: 25, minQty: 25, maxQty: 10000, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { productId: 7, productCode: 'LME-ALUMINIUM', productName: 'LME Primary Aluminium', commodityType: 'METALS', settlementType: 'PHYSICAL', defaultUomCode: 'MT', lotSize: 25, minQty: 25, maxQty: 25000, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { productId: 8, productCode: 'EEX-DE-POWER', productName: 'EEX German Power', commodityType: 'POWER', settlementType: 'FINANCIAL', defaultUomCode: 'MWH', lotSize: 1, minQty: 1, maxQty: 100000, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { productId: 9, productCode: 'ICE-BRENT-OPT', productName: 'ICE Brent Options', commodityType: 'OIL', settlementType: 'OPTIONS', defaultUomCode: 'BBL', lotSize: 1000, minQty: 1000, maxQty: 500000, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { productId: 10, productCode: 'HEATING-OIL', productName: 'Heating Oil / Gas Oil', commodityType: 'OIL', settlementType: 'PHYSICAL', defaultUomCode: 'MT', lotSize: 100, minQty: 100, maxQty: 50000, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { productId: 1,  productCode: 'BRENT-CRUDE',    productName: 'Brent Crude Oil',           commodityId: 1, commodityType: 'OIL',         settlementType: 'PHYSICAL',  defaultPricingTypeCode: 'INDEX',        defaultUomCode: 'BBL',    defaultCurrencyCode: 'USD', defaultIncotermCode: 'FOB',  gradeCode: 'LIGHT_SWEET',  productFamily: 'CRUDE_OIL',         bloombergTicker: 'CO1 Comdty',    reutersRic: 'LCOc1',       plattsCode: 'AAWLD00', isExchangeTraded: false, isOtc: true,  lotSize: 500000, minQuantity: 50000,  maxQuantity: 5000000, isBlend: false, blendNotes: null, densityEstimateKgM3: 857.0, densityBaseKgM3: 836.0, cvGrossMjScm: null, cvNetMjScm: null, purityBasisPct: null, moistureBasisPct: null, proteinBasisPct: null, description: 'Dated Brent crude — benchmark for North Sea, West African, and Asian physical crude markets.', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { productId: 2,  productCode: 'WTI-CRUDE',      productName: 'West Texas Intermediate',   commodityId: 1, commodityType: 'OIL',         settlementType: 'PHYSICAL',  defaultPricingTypeCode: 'INDEX',        defaultUomCode: 'BBL',    defaultCurrencyCode: 'USD', defaultIncotermCode: 'FOB',  gradeCode: 'LIGHT_SWEET',  productFamily: 'CRUDE_OIL',         bloombergTicker: 'CL1 Comdty',    reutersRic: 'CLc1',        plattsCode: 'AAXHZ00', isExchangeTraded: false, isOtc: true,  lotSize: 1000,   minQuantity: 1000,   maxQuantity: 5000000, isBlend: false, blendNotes: null, densityEstimateKgM3: 828.0, densityBaseKgM3: 800.0, cvGrossMjScm: null, cvNetMjScm: null, purityBasisPct: null, moistureBasisPct: null, proteinBasisPct: null, description: 'WTI crude — primary US benchmark, delivery at Cushing Oklahoma.', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { productId: 3,  productCode: 'BRENT-FUTURES',  productName: 'Brent Crude Futures',       commodityId: 1, commodityType: 'OIL',         settlementType: 'FINANCIAL', defaultPricingTypeCode: 'INDEX',        defaultUomCode: 'BBL',    defaultCurrencyCode: 'USD', defaultIncotermCode: null,   gradeCode: null,           productFamily: 'CRUDE_OIL',         bloombergTicker: 'CO1 Comdty',    reutersRic: 'LCOc1',       plattsCode: null,      isExchangeTraded: true,  isOtc: false, lotSize: 1000,   minQuantity: 1000,   maxQuantity: 1000000, isBlend: false, blendNotes: null, densityEstimateKgM3: 857.0, densityBaseKgM3: 836.0, cvGrossMjScm: null, cvNetMjScm: null, purityBasisPct: null, moistureBasisPct: null, proteinBasisPct: null, description: 'ICE Brent futures contract — cash-settled against ICE Brent Index.', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { productId: 4,  productCode: 'TTF-GAS',        productName: 'TTF Natural Gas',           commodityId: 2, commodityType: 'GAS',         settlementType: 'FINANCIAL', defaultPricingTypeCode: 'INDEX',        defaultUomCode: 'MWH',    defaultCurrencyCode: 'EUR', defaultIncotermCode: null,   gradeCode: null,           productFamily: 'NATURAL_GAS',       bloombergTicker: 'TTFG1 Comdty',  reutersRic: 'TTFMc1',      plattsCode: null,      isExchangeTraded: true,  isOtc: true,  lotSize: 1,      minQuantity: 1,      maxQuantity: 1000000, isBlend: false, blendNotes: null, densityEstimateKgM3: null, densityBaseKgM3: null, cvGrossMjScm: 38.0,  cvNetMjScm: 34.2, purityBasisPct: null, moistureBasisPct: null, proteinBasisPct: null, description: 'Title Transfer Facility day-ahead and forward natural gas traded on ICE/EEX.', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { productId: 5,  productCode: 'NBP-GAS',        productName: 'NBP Natural Gas',           commodityId: 2, commodityType: 'GAS',         settlementType: 'PHYSICAL',  defaultPricingTypeCode: 'INDEX',        defaultUomCode: 'THERM',  defaultCurrencyCode: 'GBP', defaultIncotermCode: null,   gradeCode: null,           productFamily: 'NATURAL_GAS',       bloombergTicker: 'NBPG1 Comdty',  reutersRic: 'GBPGASDAc1',  plattsCode: null,      isExchangeTraded: true,  isOtc: true,  lotSize: 1,      minQuantity: 1,      maxQuantity: 500000,  isBlend: false, blendNotes: null, densityEstimateKgM3: null, densityBaseKgM3: null, cvGrossMjScm: 39.5,  cvNetMjScm: 35.6, purityBasisPct: null, moistureBasisPct: null, proteinBasisPct: null, description: 'UK National Balancing Point — physical and financial gas delivery at NBP.', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { productId: 6,  productCode: 'LME-COPPER',     productName: 'LME Grade A Copper',        commodityId: 3, commodityType: 'METALS',      settlementType: 'PHYSICAL',  defaultPricingTypeCode: 'INDEX',        defaultUomCode: 'MT',     defaultCurrencyCode: 'USD', defaultIncotermCode: null,   gradeCode: 'GRADE_A',      productFamily: 'BASE_METALS',       bloombergTicker: 'LMCADY Comdty', reutersRic: 'MCUCASH=',    plattsCode: null,      isExchangeTraded: true,  isOtc: true,  lotSize: 25,     minQuantity: 25,     maxQuantity: 10000,   isBlend: false, blendNotes: null, densityEstimateKgM3: null, densityBaseKgM3: null, cvGrossMjScm: null, cvNetMjScm: null, purityBasisPct: 99.9935, moistureBasisPct: null, proteinBasisPct: null, description: 'LME Grade A copper cathodes — 99.9935% purity minimum, 25 MT lots.', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { productId: 7,  productCode: 'LME-ALUMINIUM',  productName: 'LME Primary Aluminium',     commodityId: 3, commodityType: 'METALS',      settlementType: 'PHYSICAL',  defaultPricingTypeCode: 'INDEX',        defaultUomCode: 'MT',     defaultCurrencyCode: 'USD', defaultIncotermCode: null,   gradeCode: 'STANDARD',     productFamily: 'BASE_METALS',       bloombergTicker: 'LMADAY Comdty', reutersRic: 'MALCASH=',    plattsCode: null,      isExchangeTraded: true,  isOtc: true,  lotSize: 25,     minQuantity: 25,     maxQuantity: 25000,   isBlend: false, blendNotes: null, densityEstimateKgM3: null, densityBaseKgM3: null, cvGrossMjScm: null, cvNetMjScm: null, purityBasisPct: 99.7, moistureBasisPct: null, proteinBasisPct: null, description: 'LME primary aluminium — 99.7% minimum purity, 25 MT lots, P1020 or equivalent.', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { productId: 8,  productCode: 'EEX-DE-POWER',   productName: 'EEX German Power Baseload', commodityId: 4, commodityType: 'POWER',       settlementType: 'FINANCIAL', defaultPricingTypeCode: 'INDEX',        defaultUomCode: 'MWH',    defaultCurrencyCode: 'EUR', defaultIncotermCode: null,   gradeCode: null,           productFamily: 'ELECTRICITY',       bloombergTicker: 'AACXBMNY Index',reutersRic: 'DEPWRBSLm1',  plattsCode: null,      isExchangeTraded: true,  isOtc: true,  lotSize: 1,      minQuantity: 1,      maxQuantity: 100000,  isBlend: false, blendNotes: null, densityEstimateKgM3: null, densityBaseKgM3: null, cvGrossMjScm: null, cvNetMjScm: null, purityBasisPct: null, moistureBasisPct: null, proteinBasisPct: null, description: 'EEX German Power day-ahead and forward contracts, hourly and baseload.', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { productId: 9,  productCode: 'ICE-BRENT-OPT',  productName: 'ICE Brent Crude Options',   commodityId: 1, commodityType: 'OIL',         settlementType: 'OPTIONS',   defaultPricingTypeCode: 'FORMULA',      defaultUomCode: 'BBL',    defaultCurrencyCode: 'USD', defaultIncotermCode: null,   gradeCode: null,           productFamily: 'CRUDE_OIL',         bloombergTicker: 'CO Comdty',     reutersRic: 'LCO',         plattsCode: null,      isExchangeTraded: true,  isOtc: false, lotSize: 1000,   minQuantity: 1000,   maxQuantity: 500000,  isBlend: false, blendNotes: null, densityEstimateKgM3: 857.0, densityBaseKgM3: 836.0, cvGrossMjScm: null, cvNetMjScm: null, purityBasisPct: null, moistureBasisPct: null, proteinBasisPct: null, description: 'ICE Brent crude options — European-style options exercisable at expiry.', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { productId: 10, productCode: 'HEATING-OIL',    productName: 'Gas Oil / Heating Oil',     commodityId: 1, commodityType: 'OIL',         settlementType: 'PHYSICAL',  defaultPricingTypeCode: 'DIFFERENTIAL', defaultUomCode: 'MT',     defaultCurrencyCode: 'USD', defaultIncotermCode: 'CIF',  gradeCode: null,           productFamily: 'REFINED_PRODUCTS',  bloombergTicker: 'QS1 Comdty',    reutersRic: 'LGOc1',       plattsCode: 'AAGLD00', isExchangeTraded: false, isOtc: true,  lotSize: 100,    minQuantity: 100,    maxQuantity: 50000,   isBlend: false, blendNotes: null, densityEstimateKgM3: 845.0, densityBaseKgM3: 820.0, cvGrossMjScm: null, cvNetMjScm: null, purityBasisPct: null, moistureBasisPct: null, proteinBasisPct: null, description: 'ICE Gas Oil / Heating Oil — European distillate benchmark, 100 MT lots.', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { productId: 11, productCode: 'JKM-LNG',        productName: 'JKM LNG Japan/Korea',       commodityId: 2, commodityType: 'GAS',         settlementType: 'FINANCIAL', defaultPricingTypeCode: 'INDEX',        defaultUomCode: 'MMBTU',  defaultCurrencyCode: 'USD', defaultIncotermCode: 'DES',  gradeCode: null,           productFamily: 'LNG',               bloombergTicker: 'PLNJKM Comdty', reutersRic: 'PLNJKM',      plattsCode: 'ASGIM00', isExchangeTraded: false, isOtc: true,  lotSize: 1,      minQuantity: 1,      maxQuantity: 1000000, isBlend: false, blendNotes: null, densityEstimateKgM3: null, densityBaseKgM3: null, cvGrossMjScm: 40.5,  cvNetMjScm: 36.5, purityBasisPct: null, moistureBasisPct: null, proteinBasisPct: null, description: 'Platts JKM benchmark for LNG into Japan, South Korea, China, Taiwan.', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { productId: 12, productCode: 'CBOT-CORN',      productName: 'CBOT Corn Futures',         commodityId: 5, commodityType: 'AGRICULTURAL', settlementType: 'PHYSICAL',  defaultPricingTypeCode: 'INDEX',        defaultUomCode: 'BUSHEL', defaultCurrencyCode: 'USD', defaultIncotermCode: null,   gradeCode: 'US_GRADE_2_YELLOW', productFamily: 'GRAINS',   bloombergTicker: 'C 1 Comdty',    reutersRic: 'Cc1',         plattsCode: null,      isExchangeTraded: true,  isOtc: false, lotSize: 5000,   minQuantity: 5000,   maxQuantity: 500000,  isBlend: false, blendNotes: null, densityEstimateKgM3: null, densityBaseKgM3: null, cvGrossMjScm: null, cvNetMjScm: null, purityBasisPct: null, moistureBasisPct: 14.0, proteinBasisPct: 8.0, description: 'CBOT No. 2 Yellow Corn — 5,000 bushel standard lots.', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  // Blend component base products + blend product
+  { productId: 13, productCode: 'ULSD-10PPM',  productName: 'Ultra-Low Sulphur Diesel 10ppm',          commodityId: 1, commodityType: 'OIL', settlementType: 'PHYSICAL', defaultPricingTypeCode: 'INDEX',        defaultUomCode: 'MT',    defaultCurrencyCode: 'USD', defaultIncotermCode: 'CIF', gradeCode: 'ULSD',  productFamily: 'REFINED_PRODUCTS', bloombergTicker: 'QS1 Comdty', reutersRic: 'LGOc1', plattsCode: 'AAGLD00', isExchangeTraded: false, isOtc: true, lotSize: 100, minQuantity: 100, maxQuantity: 50000, isBlend: false, blendNotes: null, densityEstimateKgM3: 838.0, densityBaseKgM3: 815.0, cvGrossMjScm: null, cvNetMjScm: null, purityBasisPct: null, moistureBasisPct: null, proteinBasisPct: null, description: 'European EN590 ULSD — max 10ppm sulphur, CIF ARA / FOB Rotterdam barge.', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { productId: 14, productCode: 'ETHANOL',     productName: 'Fuel Ethanol (Denatured, Industrial Grade)', commodityId: 1, commodityType: 'OIL', settlementType: 'PHYSICAL', defaultPricingTypeCode: 'INDEX',        defaultUomCode: 'CBM',   defaultCurrencyCode: 'EUR', defaultIncotermCode: 'FOB', gradeCode: null,    productFamily: 'PETROCHEMICAL',    bloombergTicker: null,         reutersRic: null,    plattsCode: 'AAAPQ00', isExchangeTraded: false, isOtc: true, lotSize: 100, minQuantity: 100, maxQuantity: 10000, isBlend: false, blendNotes: null, densityEstimateKgM3: 794.0, densityBaseKgM3: 789.0, cvGrossMjScm: null, cvNetMjScm: null, purityBasisPct: null, moistureBasisPct: null, proteinBasisPct: null, description: 'Denatured fuel-grade ethanol, European spec. Blend feedstock for gasoline pools.', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { productId: 15, productCode: 'GAS97-BLEND', productName: 'Gasoline 97 E3 (ULSD/Ethanol Blend)',      commodityId: 1, commodityType: 'OIL', settlementType: 'PHYSICAL', defaultPricingTypeCode: 'DIFFERENTIAL', defaultUomCode: 'CBM',   defaultCurrencyCode: 'USD', defaultIncotermCode: 'CIF', gradeCode: 'GAS97', productFamily: 'REFINED_PRODUCTS', bloombergTicker: null,         reutersRic: null,    plattsCode: null,      isExchangeTraded: false, isOtc: true, lotSize: 100, minQuantity: 100, maxQuantity: 50000, isBlend: true,  blendNotes: '97%vol ULSD-10PPM + 3%vol Denatured Ethanol — EN228 Euro-5 compliant gasoline blend.', densityEstimateKgM3: 835.0, densityBaseKgM3: 812.0, cvGrossMjScm: null, cvNetMjScm: null, purityBasisPct: null, moistureBasisPct: null, proteinBasisPct: null, description: 'Internal 97-octane gasoline blend per EN228. Formula-priced vs. ULSD benchmark + ethanol premium.', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+];
+
+// ─── PRODUCT SPEC TEMPLATES ───────────────────────────────────────────────────
+const productSpecTemplateStore: unknown[] = [
+  { templateId: 1, productId: 1, templateCode: 'DTBRT_BFOE_STD', templateName: 'Dated Brent / BFOE Standard Loadable Quality', commodityType: 'OIL', isDefault: true, issuingBody: 'Platts / Shell / BP / TotalEnergies', standardRef: 'BFOE Memorandum of Understanding', version: '2023', effectiveFrom: '2023-01-01', effectiveTo: null, notes: 'Forties, Oseberg, Ekofisk, Brent blend loadable quality.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { templateId: 2, productId: 2, templateCode: 'WTI_NYMEX_STD',  templateName: 'WTI Crude NYMEX Contract Specification',       commodityType: 'OIL', isDefault: true, issuingBody: 'CME Group / NYMEX', standardRef: 'NYMEX Rule 200.00 — Light Sweet Crude Oil', version: '2023', effectiveFrom: '1983-03-30', effectiveTo: null, notes: 'Light sweet crude deliverable into Cushing OK pipeline network.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { templateId: 3, productId: 4, templateCode: 'TTF_EFET_2020',  templateName: 'TTF Natural Gas — H-Gas Quality per GTS Network Code', commodityType: 'GAS', isDefault: true, issuingBody: 'EFET / GTS (Gasunie Transport Services)', standardRef: 'NTA 8000 / Interconnection Agreement', version: '2020', effectiveFrom: '2020-01-01', effectiveTo: null, notes: 'H-Gas quality for delivery at TTF virtual trading point.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { templateId: 4, productId: 6, templateCode: 'LME_CU_GRADE_A', templateName: 'LME Grade A Copper Chemical Specification',       commodityType: 'METALS', isDefault: true, issuingBody: 'London Metal Exchange', standardRef: 'LME Rules — Annex A / BS EN 1978:1998', version: '2022', effectiveFrom: '1993-01-01', effectiveTo: null, notes: 'Cu+Ag ≥ 99.9935%. Must be LME-registered brand.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { templateId: 5, productId: 13, templateCode: 'EN590_10PPM',    templateName: 'EN 590 Ultra-Low Sulphur Diesel — European Road Fuel Standard', commodityType: 'OIL', isDefault: true, issuingBody: 'CEN (European Committee for Standardization)', standardRef: 'EN 590:2022+A1', version: '2022', effectiveFrom: '2022-01-01', effectiveTo: null, notes: 'European automotive diesel standard. Applies to CIF ARA, FOB Rotterdam barges.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { templateId: 6, productId: 15, templateCode: 'GAS97_INTERNAL', templateName: 'Gasoline 97 E3 Internal Blend Specification',      commodityType: 'OIL', isDefault: true, issuingBody: 'Internal / EN 228', standardRef: 'EN 228:2012+A1 / Internal Blend Spec v2.1', version: '2023', effectiveFrom: '2023-01-01', effectiveTo: null, notes: 'Internal spec for 97%vol ULSD + 3%vol ethanol blend meeting EN228 Euro-5.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+];
+
+const productSpecValueStore: unknown[] = [
+  // Brent (templateId=1)
+  { specValueId: 1,  templateId: 1, parameterId: 1, parameterCode: 'API_GRAVITY',    parameterName: 'API Gravity',                 parameterCategory: 'PHYSICAL', uomCode: null,   valueMin: 28.0, valueMax: 46.0, valueTypical: 38.5, valueExact: null, valueText: null, boundDirection: 'RANGE',    isMandatory: true,  testMethod: 'ASTM D5002', notes: 'Forties ~40-41°, Oseberg ~34-36°, Ekofisk ~41-43°, Brent ~38-39°' },
+  { specValueId: 2,  templateId: 1, parameterId: 2, parameterCode: 'SULPHUR_PCT',    parameterName: 'Sulphur Content (%wt)',       parameterCategory: 'CHEMICAL', uomCode: null,   valueMin: null, valueMax: 0.60, valueTypical: 0.26, valueExact: null, valueText: null, boundDirection: 'MAX_ONLY', isMandatory: true,  testMethod: 'ASTM D4294', notes: 'Sweet crude. Forties ~0.26%, Ekofisk ~0.15%' },
+  { specValueId: 3,  templateId: 1, parameterId: 7, parameterCode: 'BSW_PCT',        parameterName: 'Basic Sediment & Water (%vol)', parameterCategory: 'QUALITY', uomCode: null,  valueMin: null, valueMax: 0.50, valueTypical: null, valueExact: null, valueText: null, boundDirection: 'MAX_ONLY', isMandatory: true,  testMethod: 'ASTM D4006', notes: null },
+  { specValueId: 4,  templateId: 1, parameterId: 8, parameterCode: 'SALT_PTB',       parameterName: 'Salt Content (ptb)',          parameterCategory: 'CHEMICAL', uomCode: null,   valueMin: null, valueMax: 50.0, valueTypical: null, valueExact: null, valueText: null, boundDirection: 'MAX_ONLY', isMandatory: true,  testMethod: 'ASTM D1748', notes: 'Max 50 ptb (lbs/1000 bbls)' },
+  // WTI (templateId=2)
+  { specValueId: 5,  templateId: 2, parameterId: 1, parameterCode: 'API_GRAVITY',    parameterName: 'API Gravity',                 parameterCategory: 'PHYSICAL', uomCode: null,   valueMin: 37.0, valueMax: 42.0, valueTypical: 39.6, valueExact: null, valueText: null, boundDirection: 'RANGE',    isMandatory: true,  testMethod: 'ASTM D5002', notes: null },
+  { specValueId: 6,  templateId: 2, parameterId: 2, parameterCode: 'SULPHUR_PCT',    parameterName: 'Sulphur Content (%wt)',       parameterCategory: 'CHEMICAL', uomCode: null,   valueMin: null, valueMax: 0.42, valueTypical: null, valueExact: null, valueText: null, boundDirection: 'MAX_ONLY', isMandatory: true,  testMethod: 'ASTM D4294', notes: 'Light sweet per NYMEX Rule 200' },
+  { specValueId: 7,  templateId: 2, parameterId: 7, parameterCode: 'BSW_PCT',        parameterName: 'Basic Sediment & Water (%vol)', parameterCategory: 'QUALITY', uomCode: null,  valueMin: null, valueMax: 1.00, valueTypical: null, valueExact: null, valueText: null, boundDirection: 'MAX_ONLY', isMandatory: true,  testMethod: 'ASTM D4006', notes: null },
+  // TTF Gas (templateId=3)
+  { specValueId: 8,  templateId: 3, parameterId: 14, parameterCode: 'GCV_MJSCM',     parameterName: 'Gross Calorific Value (MJ/scm)', parameterCategory: 'ENERGY', uomCode: null,  valueMin: 35.17, valueMax: 41.89, valueTypical: null, valueExact: null, valueText: null, boundDirection: 'RANGE',   isMandatory: true,  testMethod: 'ISO 6976', notes: 'GCV at 25°C combustion, 15°C metering, dry basis' },
+  { specValueId: 9,  templateId: 3, parameterId: 15, parameterCode: 'WOBBE_INDEX',   parameterName: 'Wobbe Index (MJ/scm)',         parameterCategory: 'ENERGY',   uomCode: null,   valueMin: 46.07, valueMax: 56.91, valueTypical: null, valueExact: null, valueText: null, boundDirection: 'RANGE',   isMandatory: true,  testMethod: 'ISO 6976', notes: null },
+  { specValueId: 10, templateId: 3, parameterId: 16, parameterCode: 'METHANE_PCT',   parameterName: 'Methane Content (%mol)',      parameterCategory: 'CHEMICAL', uomCode: null,   valueMin: 81.3, valueMax: null,  valueTypical: null, valueExact: null, valueText: null, boundDirection: 'MIN_ONLY', isMandatory: true,  testMethod: 'ISO 6974', notes: 'H-Gas minimum methane 81.3% mol' },
+  { specValueId: 11, templateId: 3, parameterId: 17, parameterCode: 'CO2_PCT',       parameterName: 'CO2 Content (%mol)',          parameterCategory: 'CHEMICAL', uomCode: null,   valueMin: null, valueMax: 2.5,  valueTypical: null, valueExact: null, valueText: null, boundDirection: 'MAX_ONLY', isMandatory: true,  testMethod: 'ISO 6974', notes: null },
+  { specValueId: 12, templateId: 3, parameterId: 18, parameterCode: 'H2S_MG',        parameterName: 'H2S Content (mg/Nm3)',        parameterCategory: 'SAFETY',   uomCode: null,   valueMin: null, valueMax: 5.0,  valueTypical: null, valueExact: null, valueText: null, boundDirection: 'MAX_ONLY', isMandatory: true,  testMethod: 'UOP 212', notes: 'H2S max 5.0 mg/Nm³ — corrosion control' },
+  { specValueId: 13, templateId: 3, parameterId: 19, parameterCode: 'WATER_DEW',     parameterName: 'Water Dew Point (°C at bar)', parameterCategory: 'QUALITY',  uomCode: null,   valueMin: null, valueMax: -8.0, valueTypical: null, valueExact: null, valueText: null, boundDirection: 'MAX_ONLY', isMandatory: true,  testMethod: 'ISO 6327', notes: 'Water dew point max -8°C at 70 bar' },
+  // LME Copper (templateId=4)
+  { specValueId: 14, templateId: 4, parameterId: 30, parameterCode: 'PURITY_PCT',    parameterName: 'Purity (%)',                  parameterCategory: 'QUALITY',  uomCode: null,   valueMin: 99.9935, valueMax: null, valueTypical: null, valueExact: null, valueText: null, boundDirection: 'MIN_ONLY', isMandatory: true, testMethod: 'EN ISO 1553', notes: 'Minimum 99.9935% Cu+Ag combined' },
+  { specValueId: 15, templateId: 4, parameterId: 31, parameterCode: 'LME_BRAND',     parameterName: 'LME Approved Brand',          parameterCategory: 'REGULATORY', uomCode: null, valueMin: null, valueMax: null, valueTypical: null, valueExact: null, valueText: 'TRUE', boundDirection: 'EXACT', isMandatory: true, testMethod: 'LME Brand Register', notes: 'Must be from LME-approved smelter list' },
+  { specValueId: 16, templateId: 4, parameterId: 32, parameterCode: 'COPPER_PCT',    parameterName: 'Copper Content (%)',          parameterCategory: 'CHEMICAL', uomCode: null,   valueMin: 99.0, valueMax: null, valueTypical: null, valueExact: null, valueText: null, boundDirection: 'MIN_ONLY', isMandatory: true, testMethod: 'EN ISO 1553', notes: 'Copper excluding silver ≥ 99.0%' },
+  // ULSD-10PPM (templateId=5)
+  { specValueId: 17, templateId: 5, parameterId: 39, parameterCode: 'DENSITY_KGL',   parameterName: 'Density @ 15°C (kg/L)',       parameterCategory: 'PHYSICAL', uomCode: 'KG/L', valueMin: 0.820, valueMax: 0.845, valueTypical: null, valueExact: null, valueText: null, boundDirection: 'RANGE',   isMandatory: true,  testMethod: 'EN ISO 12185', notes: 'Density at 15°C in kg/L' },
+  { specValueId: 18, templateId: 5, parameterId: 2,  parameterCode: 'SULPHUR_PCT',   parameterName: 'Sulphur Content (%wt)',       parameterCategory: 'CHEMICAL', uomCode: null,   valueMin: null, valueMax: 0.001, valueTypical: null, valueExact: null, valueText: null, boundDirection: 'MAX_ONLY', isMandatory: true,  testMethod: 'EN ISO 20884', notes: 'Sulphur max 10ppm = 0.001% mass — ULSD threshold' },
+  { specValueId: 19, templateId: 5, parameterId: 40, parameterCode: 'CETANE_INDEX',  parameterName: 'Cetane Index / Number',       parameterCategory: 'QUALITY',  uomCode: null,   valueMin: 51.0, valueMax: null, valueTypical: null, valueExact: null, valueText: null, boundDirection: 'MIN_ONLY', isMandatory: true,  testMethod: 'EN ISO 5165', notes: 'Cetane min 51 — EN590 combustion quality' },
+  { specValueId: 20, templateId: 5, parameterId: 12, parameterCode: 'FLASH_POINT',   parameterName: 'Flash Point (°C)',            parameterCategory: 'SAFETY',   uomCode: null,   valueMin: 55.0, valueMax: null, valueTypical: null, valueExact: null, valueText: null, boundDirection: 'MIN_ONLY', isMandatory: true,  testMethod: 'EN ISO 2719', notes: 'Flash point min 55°C — safety classification' },
+  { specValueId: 21, templateId: 5, parameterId: 3,  parameterCode: 'VISCOSITY_40',  parameterName: 'Kinematic Viscosity @ 40°C', parameterCategory: 'PHYSICAL', uomCode: 'cSt',  valueMin: 2.00, valueMax: 4.50, valueTypical: null, valueExact: null, valueText: null, boundDirection: 'RANGE',    isMandatory: true,  testMethod: 'EN ISO 3104', notes: 'Viscosity at 40°C in mm²/s (cSt)' },
+  { specValueId: 22, templateId: 5, parameterId: 42, parameterCode: 'DISTILL_T95',   parameterName: 'Distillation T95 (°C)',       parameterCategory: 'PHYSICAL', uomCode: null,   valueMin: null, valueMax: 360.0, valueTypical: null, valueExact: null, valueText: null, boundDirection: 'MAX_ONLY', isMandatory: true, testMethod: 'EN ISO 3405', notes: 'T95 max 360°C limits heavy residue' },
+  { specValueId: 23, templateId: 5, parameterId: 43, parameterCode: 'LUBRICITY',     parameterName: 'Lubricity HFRR (µm)',         parameterCategory: 'PHYSICAL', uomCode: 'µm',   valueMin: null, valueMax: 460.0, valueTypical: null, valueExact: null, valueText: null, boundDirection: 'MAX_ONLY', isMandatory: true, testMethod: 'EN ISO 12156-1', notes: 'HFRR wear scar diameter max 460 µm at 60°C' },
+  // GAS97-BLEND (templateId=6)
+  { specValueId: 24, templateId: 6, parameterId: 39, parameterCode: 'DENSITY_KGL',   parameterName: 'Density @ 15°C (kg/L)',       parameterCategory: 'PHYSICAL', uomCode: 'KG/L', valueMin: 0.720, valueMax: 0.775, valueTypical: null, valueExact: null, valueText: null, boundDirection: 'RANGE',   isMandatory: true,  testMethod: 'EN ISO 12185', notes: 'Lower than ULSD base due to ethanol addition' },
+  { specValueId: 25, templateId: 6, parameterId: 2,  parameterCode: 'SULPHUR_PCT',   parameterName: 'Sulphur Content (%wt)',       parameterCategory: 'CHEMICAL', uomCode: null,   valueMin: null, valueMax: 0.001, valueTypical: null, valueExact: null, valueText: null, boundDirection: 'MAX_ONLY', isMandatory: true, testMethod: 'EN ISO 20884', notes: null },
+  { specValueId: 26, templateId: 6, parameterId: 46, parameterCode: 'ETHANOL_PCT',   parameterName: 'Ethanol Blend Content (%vol)', parameterCategory: 'QUALITY', uomCode: '%vol', valueMin: 2.70, valueMax: 3.30, valueTypical: 3.0, valueExact: null, valueText: null, boundDirection: 'RANGE',   isMandatory: true,  testMethod: 'EN ISO 5275', notes: '3%vol ± 0.3%vol blend ratio' },
+];
+
+// ─── PRODUCT BLEND COMPONENTS ─────────────────────────────────────────────────
+const productBlendComponentStore: unknown[] = [
+  // GAS97-BLEND (productId=15) = 97% ULSD-10PPM (productId=13) + 3% ETHANOL (productId=14)
+  { blendComponentId: 1, parentProductId: 15, componentProductId: 13, componentCode: 'ULSD-10PPM', componentName: 'Ultra-Low Sulphur Diesel 10ppm', sequenceNo: 1, minPct: 95.00, targetPct: 97.00, maxPct: 99.00, tolerancePct: 0.50, notes: 'ULSD-10PPM base component — volume basis. Target 97%vol, tolerance ±0.5%vol.', isActive: true },
+  { blendComponentId: 2, parentProductId: 15, componentProductId: 14, componentCode: 'ETHANOL',    componentName: 'Fuel Ethanol (Denatured, Industrial Grade)', sequenceNo: 2, minPct: 1.00, targetPct: 3.00, maxPct: 5.00, tolerancePct: 0.25, notes: 'Denatured ethanol — volume basis. Target 3%vol (E3). Max 5%vol (EN228 E5 limit).', isActive: true },
+];
+
+// ─── PRODUCT PRICE INDEX LINKS ────────────────────────────────────────────────
+const productPriceIndexStore: unknown[] = [
+  // Brent Crude — Physical OTC
+  { productIndexId: 1, productId: 1, priceIndexId: 1,  indexCode: 'DTBRT',      indexName: 'Platts Dated Brent',           publicationSource: 'PLATTS', currencyCode: 'USD', uomCode: 'BBL', role: 'PRIMARY_MTM', isPrimary: true,  isActive: true },
+  { productIndexId: 2, productId: 1, priceIndexId: 9,  indexCode: 'ARGUS-URALS', indexName: 'Argus Urals Med',             publicationSource: 'ARGUS',  currencyCode: 'USD', uomCode: 'BBL', role: 'REFERENCE',   isPrimary: false, isActive: true },
+  // WTI Crude — Physical OTC
+  { productIndexId: 3, productId: 2, priceIndexId: 2,  indexCode: 'WTI-NYMEX',  indexName: 'NYMEX WTI Front Month',        publicationSource: 'NYMEX',  currencyCode: 'USD', uomCode: 'BBL', role: 'PRIMARY_MTM', isPrimary: true,  isActive: true },
+  // Brent Futures
+  { productIndexId: 4, productId: 3, priceIndexId: 1,  indexCode: 'DTBRT',      indexName: 'Platts Dated Brent',           publicationSource: 'PLATTS', currencyCode: 'USD', uomCode: 'BBL', role: 'SETTLEMENT',  isPrimary: true,  isActive: true },
+  { productIndexId: 5, productId: 3, priceIndexId: 2,  indexCode: 'WTI-NYMEX',  indexName: 'NYMEX WTI Front Month',        publicationSource: 'NYMEX',  currencyCode: 'USD', uomCode: 'BBL', role: 'REFERENCE',   isPrimary: false, isActive: true },
+  // TTF Gas
+  { productIndexId: 6, productId: 4, priceIndexId: 3,  indexCode: 'TTF-ICE',    indexName: 'ICE TTF Natural Gas',          publicationSource: 'ICE',    currencyCode: 'EUR', uomCode: 'MWH', role: 'PRIMARY_MTM', isPrimary: true,  isActive: true },
+  // NBP Gas
+  { productIndexId: 7, productId: 5, priceIndexId: 4,  indexCode: 'NBP-ICE',    indexName: 'ICE UK NBP Natural Gas',       publicationSource: 'ICE',    currencyCode: 'GBP', uomCode: 'THERM', role: 'PRIMARY_MTM', isPrimary: true, isActive: true },
+  // LME Copper
+  { productIndexId: 8, productId: 6, priceIndexId: 6,  indexCode: 'LME-CU-CASH', indexName: 'LME Copper Cash',            publicationSource: 'LME',    currencyCode: 'USD', uomCode: 'MT', role: 'PRIMARY_MTM', isPrimary: true,  isActive: true },
+  // LME Aluminium
+  { productIndexId: 9, productId: 7, priceIndexId: 7,  indexCode: 'LME-AL-CASH', indexName: 'LME Aluminium Cash',         publicationSource: 'LME',    currencyCode: 'USD', uomCode: 'MT', role: 'PRIMARY_MTM', isPrimary: true,  isActive: true },
+  // EEX Power
+  { productIndexId: 10, productId: 8, priceIndexId: 8, indexCode: 'EEX-DE-SPOT', indexName: 'EEX Germany Day-Ahead Power', publicationSource: 'EEX',   currencyCode: 'EUR', uomCode: 'MWH', role: 'PRIMARY_MTM', isPrimary: true,  isActive: true },
+  // JKM LNG
+  { productIndexId: 11, productId: 11, priceIndexId: 19, indexCode: 'JKM',       indexName: 'Platts JKM LNG Japan/Korea Marker', publicationSource: 'PLATTS', currencyCode: 'USD', uomCode: 'MMBTU', role: 'PRIMARY_MTM', isPrimary: true, isActive: true },
+  // CBOT Corn
+  { productIndexId: 12, productId: 12, priceIndexId: 29, indexCode: 'CBOT-CORN', indexName: 'CBOT Corn Futures Front Month', publicationSource: 'CME',  currencyCode: 'USD', uomCode: 'BUSHEL', role: 'PRIMARY_MTM', isPrimary: true, isActive: true },
 ];
 
 // ─── PRICE INDICES ────────────────────────────────────────────────────────────
@@ -203,12 +287,31 @@ const systemUsersStore: unknown[] = [
 
 // ─── PAYMENT TERMS ─────────────────────────────────────────────────────────────
 const paymentTermsStore: unknown[] = [
-  { paymentTermId: 1, termCode: 'NET30', termName: 'Net 30 Days', netDays: 30, discountDays: null, discountPct: null, description: 'Payment due 30 calendar days after invoice date. Standard for crude oil physical trades.', isDefault: true, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { paymentTermId: 2, termCode: 'NET45', termName: 'Net 45 Days', netDays: 45, discountDays: null, discountPct: null, description: 'Payment due 45 calendar days — standard for LNG cargo settlements.', isDefault: false, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { paymentTermId: 3, termCode: '2/10-NET30', termName: '2% 10 Net 30', netDays: 30, discountDays: 10, discountPct: 2.0, description: '2% discount if paid within 10 days, otherwise net 30 days.', isDefault: false, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { paymentTermId: 4, termCode: 'NET2-LME', termName: 'Net 2 Days (LME)', netDays: 2, discountDays: null, discountPct: null, description: 'LME standard — payment 2 business days after prompt date.', isDefault: false, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { paymentTermId: 5, termCode: 'PREPAY-3D', termName: 'Prepayment 3 Days', netDays: -3, discountDays: null, discountPct: null, description: 'Payment required 3 days before B/L date — applied to high-risk counterparties.', isDefault: false, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { paymentTermId: 6, termCode: 'NET60', termName: 'Net 60 Days', netDays: 60, discountDays: null, discountPct: null, description: 'Extended terms for agricultural bulk trades with established counterparties.', isDefault: false, isActive: false, createdAt: '2024-01-01T00:00:00Z' },
+  // Generic / Commercial
+  { paymentTermId: 1,  termCode: 'NET_30',       termName: 'Net 30 Calendar Days',             baseDateEvent: 'INVOICE_DATE',          monthOffset: 0, offsetDays: 30,  daysBasis: 'CALENDAR', fixedDayOfMonth: null, businessDayConvention: 'MOD_FOLLOWING', calendarId: null, discountDays: null, discountPct: null,   paymentMethod: 'WIRE',              invoiceLeadDays: 0, isDefault: true,  description: 'Payment due 30 calendar days from invoice date. System default.',                          isActive: true,  createdAt: '2024-01-01T00:00:00Z' },
+  { paymentTermId: 2,  termCode: 'NET_45',       termName: 'Net 45 Calendar Days',             baseDateEvent: 'INVOICE_DATE',          monthOffset: 0, offsetDays: 45,  daysBasis: 'CALENDAR', fixedDayOfMonth: null, businessDayConvention: 'MOD_FOLLOWING', calendarId: null, discountDays: null, discountPct: null,   paymentMethod: 'WIRE',              invoiceLeadDays: 0, isDefault: false, description: 'Payment due 45 calendar days from invoice date.',                                          isActive: true,  createdAt: '2024-01-01T00:00:00Z' },
+  { paymentTermId: 3,  termCode: 'NET_60',       termName: 'Net 60 Calendar Days',             baseDateEvent: 'INVOICE_DATE',          monthOffset: 0, offsetDays: 60,  daysBasis: 'CALENDAR', fixedDayOfMonth: null, businessDayConvention: 'MOD_FOLLOWING', calendarId: null, discountDays: null, discountPct: null,   paymentMethod: 'WIRE',              invoiceLeadDays: 0, isDefault: false, description: 'Extended payment terms — agricultural bulk and long-haul trades.',                          isActive: true,  createdAt: '2024-01-01T00:00:00Z' },
+  { paymentTermId: 4,  termCode: 'NET_5_BIZ',    termName: 'Net 5 Business Days',              baseDateEvent: 'INVOICE_DATE',          monthOffset: 0, offsetDays: 5,   daysBasis: 'BUSINESS', fixedDayOfMonth: null, businessDayConvention: 'MOD_FOLLOWING', calendarId: null, discountDays: null, discountPct: null,   paymentMethod: 'WIRE',              invoiceLeadDays: 0, isDefault: false, description: 'Payment 5 business days from invoice date.',                                               isActive: true,  createdAt: '2024-01-01T00:00:00Z' },
+  { paymentTermId: 5,  termCode: 'NET_10_BIZ',   termName: 'Net 10 Business Days',             baseDateEvent: 'INVOICE_DATE',          monthOffset: 0, offsetDays: 10,  daysBasis: 'BUSINESS', fixedDayOfMonth: null, businessDayConvention: 'MOD_FOLLOWING', calendarId: null, discountDays: null, discountPct: null,   paymentMethod: 'WIRE',              invoiceLeadDays: 0, isDefault: false, description: 'Payment 10 business days from invoice date.',                                              isActive: true,  createdAt: '2024-01-01T00:00:00Z' },
+  { paymentTermId: 6,  termCode: '2_10_NET_30',  termName: '2% / 10 Net 30',                  baseDateEvent: 'INVOICE_DATE',          monthOffset: 0, offsetDays: 30,  daysBasis: 'CALENDAR', fixedDayOfMonth: null, businessDayConvention: 'MOD_FOLLOWING', calendarId: null, discountDays: 10,   discountPct: 0.02,  paymentMethod: 'WIRE',              invoiceLeadDays: 0, isDefault: false, description: '2 % early payment discount if settled within 10 days; otherwise net 30.',                  isActive: true,  createdAt: '2024-01-01T00:00:00Z' },
+  // Crude Oil & LNG
+  { paymentTermId: 7,  termCode: 'BL_PLUS_30',   termName: 'BL Date +30 Calendar Days',        baseDateEvent: 'BL_DATE',               monthOffset: 0, offsetDays: 30,  daysBasis: 'CALENDAR', fixedDayOfMonth: null, businessDayConvention: 'MOD_FOLLOWING', calendarId: null, discountDays: null, discountPct: null,   paymentMethod: 'WIRE',              invoiceLeadDays: 0, isDefault: false, description: 'Crude oil standard — 30 calendar days from Bill of Lading date.',                          isActive: true,  createdAt: '2024-01-01T00:00:00Z' },
+  { paymentTermId: 8,  termCode: 'BL_PLUS_45',   termName: 'BL Date +45 Calendar Days',        baseDateEvent: 'BL_DATE',               monthOffset: 0, offsetDays: 45,  daysBasis: 'CALENDAR', fixedDayOfMonth: null, businessDayConvention: 'MOD_FOLLOWING', calendarId: null, discountDays: null, discountPct: null,   paymentMethod: 'WIRE',              invoiceLeadDays: 0, isDefault: false, description: 'LNG cargo standard — 45 calendar days from Bill of Lading date.',                          isActive: true,  createdAt: '2024-01-01T00:00:00Z' },
+  { paymentTermId: 9,  termCode: 'BL_PLUS_5_BIZ',termName: 'BL Date +5 Business Days',         baseDateEvent: 'BL_DATE',               monthOffset: 0, offsetDays: 5,   daysBasis: 'BUSINESS', fixedDayOfMonth: null, businessDayConvention: 'MOD_FOLLOWING', calendarId: null, discountDays: null, discountPct: null,   paymentMethod: 'WIRE',              invoiceLeadDays: 0, isDefault: false, description: 'Product cargoes — 5 business days from B/L date.',                                         isActive: true,  createdAt: '2024-01-01T00:00:00Z' },
+  { paymentTermId: 10, termCode: 'NOR_PLUS_7_BIZ',termName: 'NOR Tendered +7 Business Days',   baseDateEvent: 'NOR_TENDERED',          monthOffset: 0, offsetDays: 7,   daysBasis: 'BUSINESS', fixedDayOfMonth: null, businessDayConvention: 'MOD_FOLLOWING', calendarId: null, discountDays: null, discountPct: null,   paymentMethod: 'WIRE',              invoiceLeadDays: 0, isDefault: false, description: 'Tanker demurrage / outturn — 7 business days from Notice of Readiness.',                   isActive: true,  createdAt: '2024-01-01T00:00:00Z' },
+  // Gas & Power
+  { paymentTermId: 11, termCode: 'M_PLUS_20',    termName: 'EDM +20 Calendar Days',            baseDateEvent: 'END_OF_DELIVERY_MONTH', monthOffset: 0, offsetDays: 20,  daysBasis: 'CALENDAR', fixedDayOfMonth: null, businessDayConvention: 'MOD_FOLLOWING', calendarId: null, discountDays: null, discountPct: null,   paymentMethod: 'WIRE',              invoiceLeadDays: 0, isDefault: false, description: 'Gas pipeline — 20 calendar days after end of delivery month.',                             isActive: true,  createdAt: '2024-01-01T00:00:00Z' },
+  { paymentTermId: 12, termCode: 'M1_DOM_20',    termName: '20th of Month Following Delivery', baseDateEvent: 'END_OF_DELIVERY_MONTH', monthOffset: 1, offsetDays: 0,   daysBasis: 'CALENDAR', fixedDayOfMonth: 20,   businessDayConvention: 'MOD_FOLLOWING', calendarId: null, discountDays: null, discountPct: null,   paymentMethod: 'WIRE',              invoiceLeadDays: 0, isDefault: false, description: 'Power — fixed 20th of the month following the delivery month.',                            isActive: true,  createdAt: '2024-01-01T00:00:00Z' },
+  { paymentTermId: 13, termCode: 'M1_DOM_25',    termName: '25th of Month Following Delivery', baseDateEvent: 'END_OF_DELIVERY_MONTH', monthOffset: 1, offsetDays: 0,   daysBasis: 'CALENDAR', fixedDayOfMonth: 25,   businessDayConvention: 'MOD_FOLLOWING', calendarId: null, discountDays: null, discountPct: null,   paymentMethod: 'WIRE',              invoiceLeadDays: 0, isDefault: false, description: 'Gas — fixed 25th of the month following the delivery month.',                              isActive: true,  createdAt: '2024-01-01T00:00:00Z' },
+  { paymentTermId: 14, termCode: 'NETTING_EFET', termName: 'EFET Monthly Netting',             baseDateEvent: 'END_OF_DELIVERY_MONTH', monthOffset: 1, offsetDays: 0,   daysBasis: 'BUSINESS', fixedDayOfMonth: null, businessDayConvention: 'MOD_FOLLOWING', calendarId: null, discountDays: null, discountPct: null,   paymentMethod: 'NETTING',           invoiceLeadDays: 0, isDefault: false, description: 'EFET bilateral netting — net position settled at start of following month.',               isActive: true,  createdAt: '2024-01-01T00:00:00Z' },
+  // Metals
+  { paymentTermId: 15, termCode: 'LME_2_BIZ',   termName: 'LME Prompt +2 Business Days',      baseDateEvent: 'PRICING_DATE',          monthOffset: 0, offsetDays: 2,   daysBasis: 'BUSINESS', fixedDayOfMonth: null, businessDayConvention: 'MOD_FOLLOWING', calendarId: 4,    discountDays: null, discountPct: null,   paymentMethod: 'WIRE',              invoiceLeadDays: 0, isDefault: false, description: 'LME standard — payment 2 business days after the pricing / prompt date.',                  isActive: true,  createdAt: '2024-01-01T00:00:00Z' },
+  { paymentTermId: 16, termCode: 'COMEX_1_BIZ',  termName: 'COMEX Settlement +1 Business Day', baseDateEvent: 'SETTLEMENT_DATE',       monthOffset: 0, offsetDays: 1,   daysBasis: 'BUSINESS', fixedDayOfMonth: null, businessDayConvention: 'MOD_FOLLOWING', calendarId: 3,    discountDays: null, discountPct: null,   paymentMethod: 'WIRE',              invoiceLeadDays: 0, isDefault: false, description: 'COMEX / NYMEX cleared metals — T+1 business day settlement.',                              isActive: true,  createdAt: '2024-01-01T00:00:00Z' },
+  // Prepayment & LC
+  { paymentTermId: 17, termCode: 'PREPAY_3D',    termName: 'Prepayment 3 Days Prior',          baseDateEvent: 'DELIVERY_DATE',         monthOffset: 0, offsetDays: -3,  daysBasis: 'CALENDAR', fixedDayOfMonth: null, businessDayConvention: 'MOD_PRECEDING', calendarId: null, discountDays: null, discountPct: null,   paymentMethod: 'WIRE',              invoiceLeadDays: -3, isDefault: false, description: 'Payment required 3 calendar days before delivery — high-risk counterparties.',             isActive: true,  createdAt: '2024-01-01T00:00:00Z' },
+  { paymentTermId: 18, termCode: 'LC_AT_SIGHT',  termName: 'Letter of Credit at Sight',        baseDateEvent: 'BL_DATE',               monthOffset: 0, offsetDays: 7,   daysBasis: 'BUSINESS', fixedDayOfMonth: null, businessDayConvention: 'MOD_FOLLOWING', calendarId: null, discountDays: null, discountPct: null,   paymentMethod: 'LETTER_OF_CREDIT',  invoiceLeadDays: 0, isDefault: false, description: 'Documentary LC payable at sight — typically 5-7 banking days after presentation.',         isActive: true,  createdAt: '2024-01-01T00:00:00Z' },
+  { paymentTermId: 19, termCode: 'LC_90',        termName: 'Letter of Credit 90 Days Usance',  baseDateEvent: 'BL_DATE',               monthOffset: 0, offsetDays: 90,  daysBasis: 'CALENDAR', fixedDayOfMonth: null, businessDayConvention: 'MOD_FOLLOWING', calendarId: null, discountDays: null, discountPct: null,   paymentMethod: 'LETTER_OF_CREDIT',  invoiceLeadDays: 0, isDefault: false, description: '90-day usance LC — deferred payment letter of credit from B/L date.',                     isActive: true,  createdAt: '2024-01-01T00:00:00Z' },
+  { paymentTermId: 20, termCode: 'BG_30',        termName: 'Bank Guarantee 30 Days',           baseDateEvent: 'DELIVERY_DATE',         monthOffset: 0, offsetDays: 30,  daysBasis: 'CALENDAR', fixedDayOfMonth: null, businessDayConvention: 'MOD_FOLLOWING', calendarId: null, discountDays: null, discountPct: null,   paymentMethod: 'BANK_GUARANTEE',    invoiceLeadDays: 0, isDefault: false, description: 'Payment backed by bank guarantee, due 30 calendar days from delivery.',                    isActive: false, createdAt: '2024-01-01T00:00:00Z' },
 ];
 
 // ─── PAYMENT METHODS ───────────────────────────────────────────────────────────
@@ -277,7 +380,137 @@ const uomStore: unknown[] = [
   { uomId: 9, uomCode: 'KG', uomName: 'Kilogram', uomType: 'WEIGHT', baseUomCode: 'MT', conversionFactor: 0.001, commodityHint: 'Precious metals, chemicals', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
   { uomId: 10, uomCode: 'MW', uomName: 'Megawatt (capacity)', uomType: 'POWER', baseUomCode: 'MW', conversionFactor: 1, commodityHint: 'Power capacity (not energy)', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
   { uomId: 11, uomCode: 'LTR', uomName: 'Litre', uomType: 'VOLUME', baseUomCode: 'BBL', conversionFactor: 0.006290, commodityHint: 'Road tankers, retail fuel', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { uomId: 12, uomCode: 'SCFD', uomName: 'Standard Cubic Feet per Day', uomType: 'ENERGY', baseUomCode: 'MWH', conversionFactor: 0.000293, commodityHint: 'Pipeline gas capacity (US)', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 12, uomCode: 'SCFD',    uomName: 'Standard Cubic Feet per Day',      uomType: 'ENERGY', baseUomCode: 'MWH', conversionFactor: 0.000293,   commodityHint: 'Pipeline gas capacity (US)', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 13, uomCode: 'GJ',      uomName: 'Gigajoule',                         uomType: 'ENERGY', baseUomCode: 'MWH', conversionFactor: 0.27778,    commodityHint: 'Gas (Australia, continental EU wholesale)', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 14, uomCode: 'SCM',     uomName: 'Standard Cubic Metre',              uomType: 'VOLUME', baseUomCode: 'MWH', conversionFactor: 0.010559,   commodityHint: 'Gas pipeline volumes (EU, Asia — H-Gas default)', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 15, uomCode: 'MMSCM',   uomName: 'Million Standard Cubic Metres',     uomType: 'VOLUME', baseUomCode: 'MWH', conversionFactor: 10559,      commodityHint: 'Large gas pipeline capacity', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 16, uomCode: 'LB',      uomName: 'Pound (weight)',                    uomType: 'WEIGHT', baseUomCode: 'MT',  conversionFactor: 0.0004536,  commodityHint: 'US agricultural (soybeans, wheat) and metals', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 17, uomCode: 'CBM',     uomName: 'Cubic Metre (oil/liquid)',          uomType: 'VOLUME', baseUomCode: 'BBL', conversionFactor: 6.28981,    commodityHint: 'Oil product road tankers, refinery volumes', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 18, uomCode: 'TROY_OZ', uomName: 'Troy Ounce',                        uomType: 'WEIGHT', baseUomCode: 'MT',  conversionFactor: 0.0000311,  commodityHint: 'Precious metals (gold, silver, platinum, palladium)', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 19, uomCode: 'GWH',     uomName: 'Gigawatt Hour',                     uomType: 'ENERGY', baseUomCode: 'MWH', conversionFactor: 1000,       commodityHint: 'Large-scale power contracts, interconnector capacity', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+];
+
+// ─── UOM CONVERSION ───────────────────────────────────────────────────────────
+const uomConversionStore: unknown[] = [
+  // ── Weight (universal) ────────────────────────────────────────────────────────
+  { conversionId: 1,  fromUomCode: 'MT',     toUomCode: 'KG',     factor: 1000,          commodityType: null,           notes: '1 MT = 1,000 kg — universal weight conversion' },
+  { conversionId: 2,  fromUomCode: 'KG',     toUomCode: 'MT',     factor: 0.001,         commodityType: null,           notes: '1 kg = 0.001 MT — universal weight conversion' },
+  { conversionId: 3,  fromUomCode: 'MT',     toUomCode: 'LB',     factor: 2204.6226218,  commodityType: null,           notes: '1 MT = 2,204.62 lb — universal weight conversion' },
+  { conversionId: 4,  fromUomCode: 'LB',     toUomCode: 'MT',     factor: 0.0004535924,  commodityType: null,           notes: '1 lb = 0.0004536 MT' },
+  // ── Precious metals ───────────────────────────────────────────────────────────
+  { conversionId: 5,  fromUomCode: 'TROY_OZ',toUomCode: 'KG',     factor: 0.0311034768,  commodityType: null,           notes: '1 Troy Oz = 31.1035 g — London good delivery standard' },
+  { conversionId: 6,  fromUomCode: 'KG',     toUomCode: 'TROY_OZ',factor: 32.1507466,    commodityType: null,           notes: '1 kg = 32.1507 Troy Oz' },
+  { conversionId: 7,  fromUomCode: 'MT',     toUomCode: 'TROY_OZ',factor: 32150.7466,    commodityType: null,           notes: '1 MT = 32,150.75 Troy Oz' },
+  { conversionId: 8,  fromUomCode: 'TROY_OZ',toUomCode: 'MT',     factor: 0.0000311035,  commodityType: null,           notes: '1 Troy Oz = 0.0000311035 MT' },
+  // ── OIL volume ────────────────────────────────────────────────────────────────
+  { conversionId: 9,  fromUomCode: 'BBL',    toUomCode: 'GAL',    factor: 42,            commodityType: 'OIL',          notes: '1 BBL = 42 US gallons — exact, API standard' },
+  { conversionId: 10, fromUomCode: 'GAL',    toUomCode: 'BBL',    factor: 0.0238095238,  commodityType: 'OIL',          notes: '1 US gallon = 1/42 BBL' },
+  { conversionId: 11, fromUomCode: 'BBL',    toUomCode: 'CBM',    factor: 0.158987295,   commodityType: 'OIL',          notes: '1 BBL = 0.158987 m³ — exact (42 gal × 3.785412 L)' },
+  { conversionId: 12, fromUomCode: 'CBM',    toUomCode: 'BBL',    factor: 6.28981077,    commodityType: 'OIL',          notes: '1 m³ = 6.28981 BBL' },
+  { conversionId: 13, fromUomCode: 'BBL',    toUomCode: 'MT',     factor: 0.1364,        commodityType: 'OIL',          notes: 'DEFAULT: 1 BBL ≈ 0.1364 MT (crude ~857 kg/m³). Override with product.densityEstimateKgM3. Brent ≈ 0.1325, WTI ≈ 0.1349, ULSD ≈ 0.1344.' },
+  { conversionId: 14, fromUomCode: 'MT',     toUomCode: 'BBL',    factor: 7.33,          commodityType: 'OIL',          notes: 'DEFAULT: 1 MT ≈ 7.33 BBL (OPEC standard). Brent ≈ 7.55, WTI ≈ 7.41, ULSD ≈ 7.44.' },
+  // ── GAS energy ───────────────────────────────────────────────────────────────
+  { conversionId: 15, fromUomCode: 'MWH',    toUomCode: 'MMBTU',  factor: 3.41214148,    commodityType: 'GAS',          notes: '1 MWh = 3.412142 MMBTU — exact thermodynamic (1 BTU = 0.293071 Wh)' },
+  { conversionId: 16, fromUomCode: 'MMBTU',  toUomCode: 'MWH',    factor: 0.29307108,    commodityType: 'GAS',          notes: '1 MMBTU = 0.293071 MWh' },
+  { conversionId: 17, fromUomCode: 'MWH',    toUomCode: 'THERM',  factor: 34.1214148,    commodityType: 'GAS',          notes: '1 MWh = 34.1214 Therms' },
+  { conversionId: 18, fromUomCode: 'THERM',  toUomCode: 'MWH',    factor: 0.029307108,   commodityType: 'GAS',          notes: '1 Therm = 0.0293071 MWh (= 100,000 BTU)' },
+  { conversionId: 19, fromUomCode: 'MWH',    toUomCode: 'GJ',     factor: 3.6,           commodityType: 'GAS',          notes: '1 MWh = 3.6 GJ — exact (1 W = 1 J/s)' },
+  { conversionId: 20, fromUomCode: 'GJ',     toUomCode: 'MWH',    factor: 0.2777777778,  commodityType: 'GAS',          notes: '1 GJ = 0.27778 MWh' },
+  { conversionId: 21, fromUomCode: 'MMBTU',  toUomCode: 'GJ',     factor: 1.0550558526,  commodityType: 'GAS',          notes: '1 MMBTU = 1.055056 GJ — exact (1 BTU = 1055.06 J)' },
+  { conversionId: 22, fromUomCode: 'GJ',     toUomCode: 'MMBTU',  factor: 0.9478171203,  commodityType: 'GAS',          notes: '1 GJ = 0.947817 MMBTU' },
+  { conversionId: 23, fromUomCode: 'SCM',    toUomCode: 'MMBTU',  factor: 0.03603936,    commodityType: 'GAS',          notes: 'DEFAULT: 1 SCM ≈ 0.03604 MMBTU (H-Gas GCV ~38.0 MJ/scm). Override with product.cvGrossMjScm.' },
+  { conversionId: 24, fromUomCode: 'SCM',    toUomCode: 'MWH',    factor: 0.010559,      commodityType: 'GAS',          notes: 'DEFAULT: 1 SCM ≈ 0.010559 MWh (H-Gas GCV ~38 MJ/scm). Override with product.cvGrossMjScm.' },
+  // ── POWER ────────────────────────────────────────────────────────────────────
+  { conversionId: 25, fromUomCode: 'GWH',    toUomCode: 'MWH',    factor: 1000,          commodityType: 'POWER',        notes: '1 GWh = 1,000 MWh' },
+  { conversionId: 26, fromUomCode: 'MWH',    toUomCode: 'GWH',    factor: 0.001,         commodityType: 'POWER',        notes: '1 MWh = 0.001 GWh' },
+  { conversionId: 27, fromUomCode: 'MWH',    toUomCode: 'GJ',     factor: 3.6,           commodityType: 'POWER',        notes: '1 MWh = 3.6 GJ — exact' },
+  // ── AGRICULTURAL ─────────────────────────────────────────────────────────────
+  { conversionId: 28, fromUomCode: 'BUSHEL', toUomCode: 'MT',     factor: 0.027216,      commodityType: 'AGRICULTURAL', notes: '1 bushel (60 lb) = 27.2155 kg — wheat, corn, soybeans (all 60 lb/bu CBOT). Sorghum 56 lb/bu → 0.02540 MT/bu.' },
+  { conversionId: 29, fromUomCode: 'MT',     toUomCode: 'BUSHEL', factor: 36.7437,       commodityType: 'AGRICULTURAL', notes: '1 MT = 36.7437 bushels (60 lb/bu standard — wheat/corn/soy)' },
+];
+
+// ─── SPEC PARAMETER CATALOG ───────────────────────────────────────────────────
+const specParameterStore: unknown[] = [
+  // OIL
+  { parameterId: 1,  commodityType: 'OIL',         parameterCode: 'API_GRAVITY',    parameterName: 'API Gravity',                     parameterCategory: 'PHYSICAL',   dataType: 'DECIMAL', decimalPlaces: 1  },
+  { parameterId: 2,  commodityType: 'OIL',         parameterCode: 'SULPHUR_PCT',    parameterName: 'Sulphur Content (%wt)',           parameterCategory: 'CHEMICAL',   dataType: 'DECIMAL', decimalPlaces: 4  },
+  { parameterId: 3,  commodityType: 'OIL',         parameterCode: 'VISCOSITY_40',   parameterName: 'Kinematic Viscosity @ 40°C (cSt)', parameterCategory: 'PHYSICAL',  dataType: 'DECIMAL', decimalPlaces: 2  },
+  { parameterId: 4,  commodityType: 'OIL',         parameterCode: 'VISCOSITY_50',   parameterName: 'Kinematic Viscosity @ 50°C (cSt)', parameterCategory: 'PHYSICAL',  dataType: 'DECIMAL', decimalPlaces: 2  },
+  { parameterId: 5,  commodityType: 'OIL',         parameterCode: 'POUR_POINT',     parameterName: 'Pour Point (°C)',                 parameterCategory: 'PHYSICAL',   dataType: 'DECIMAL', decimalPlaces: 0  },
+  { parameterId: 6,  commodityType: 'OIL',         parameterCode: 'RVP',            parameterName: 'Reid Vapour Pressure (psi)',      parameterCategory: 'SAFETY',     dataType: 'DECIMAL', decimalPlaces: 2  },
+  { parameterId: 7,  commodityType: 'OIL',         parameterCode: 'BSW_PCT',        parameterName: 'Basic Sediment & Water (%vol)',   parameterCategory: 'QUALITY',    dataType: 'DECIMAL', decimalPlaces: 4  },
+  { parameterId: 8,  commodityType: 'OIL',         parameterCode: 'SALT_PTB',       parameterName: 'Salt Content (ptb)',              parameterCategory: 'CHEMICAL',   dataType: 'DECIMAL', decimalPlaces: 1  },
+  { parameterId: 9,  commodityType: 'OIL',         parameterCode: 'WATER_PCT',      parameterName: 'Free Water Content (%vol)',       parameterCategory: 'QUALITY',    dataType: 'DECIMAL', decimalPlaces: 3  },
+  { parameterId: 10, commodityType: 'OIL',         parameterCode: 'NICKEL_PPM',     parameterName: 'Nickel Content (ppm)',            parameterCategory: 'CHEMICAL',   dataType: 'DECIMAL', decimalPlaces: 1  },
+  { parameterId: 11, commodityType: 'OIL',         parameterCode: 'VANADIUM_PPM',   parameterName: 'Vanadium Content (ppm)',          parameterCategory: 'CHEMICAL',   dataType: 'DECIMAL', decimalPlaces: 1  },
+  { parameterId: 12, commodityType: 'OIL',         parameterCode: 'FLASH_POINT',    parameterName: 'Flash Point (°C)',                parameterCategory: 'SAFETY',     dataType: 'DECIMAL', decimalPlaces: 0  },
+  { parameterId: 13, commodityType: 'OIL',         parameterCode: 'NITROGEN_PPM',   parameterName: 'Nitrogen Content (ppm)',          parameterCategory: 'CHEMICAL',   dataType: 'DECIMAL', decimalPlaces: 0  },
+  { parameterId: 39, commodityType: 'OIL',         parameterCode: 'DENSITY_KGL',    parameterName: 'Density @ 15°C (kg/L)',           parameterCategory: 'PHYSICAL',   dataType: 'DECIMAL', decimalPlaces: 4  },
+  { parameterId: 40, commodityType: 'OIL',         parameterCode: 'CETANE_INDEX',   parameterName: 'Cetane Index / Number',           parameterCategory: 'QUALITY',    dataType: 'DECIMAL', decimalPlaces: 0  },
+  { parameterId: 41, commodityType: 'OIL',         parameterCode: 'DISTILL_T90',    parameterName: 'Distillation T90 (°C)',           parameterCategory: 'PHYSICAL',   dataType: 'DECIMAL', decimalPlaces: 0  },
+  { parameterId: 42, commodityType: 'OIL',         parameterCode: 'DISTILL_T95',    parameterName: 'Distillation T95 (°C)',           parameterCategory: 'PHYSICAL',   dataType: 'DECIMAL', decimalPlaces: 0  },
+  { parameterId: 43, commodityType: 'OIL',         parameterCode: 'LUBRICITY',      parameterName: 'Lubricity HFRR (µm)',             parameterCategory: 'PHYSICAL',   dataType: 'DECIMAL', decimalPlaces: 0  },
+  { parameterId: 44, commodityType: 'OIL',         parameterCode: 'POLYCYCLIC_PCT', parameterName: 'Polycyclic Aromatic HC (%m/m)',   parameterCategory: 'CHEMICAL',   dataType: 'DECIMAL', decimalPlaces: 1  },
+  { parameterId: 45, commodityType: 'OIL',         parameterCode: 'ETHANOL_PCT',    parameterName: 'Ethanol Blend Content (%vol)',    parameterCategory: 'QUALITY',    dataType: 'DECIMAL', decimalPlaces: 1  },
+  { parameterId: 46, commodityType: 'OIL',         parameterCode: 'FAME_PCT',       parameterName: 'FAME / Biodiesel Content (%vol)', parameterCategory: 'QUALITY',    dataType: 'DECIMAL', decimalPlaces: 1  },
+  { parameterId: 52, commodityType: 'OIL',         parameterCode: 'TAN',            parameterName: 'Total Acid Number (mg KOH/g)',    parameterCategory: 'CHEMICAL',   dataType: 'DECIMAL', decimalPlaces: 3  },
+  { parameterId: 53, commodityType: 'OIL',         parameterCode: 'CCR_PCT',        parameterName: 'Conradson Carbon Residue (%wt)', parameterCategory: 'CHEMICAL',   dataType: 'DECIMAL', decimalPlaces: 2  },
+  { parameterId: 54, commodityType: 'OIL',         parameterCode: 'WAX_PCT',        parameterName: 'Wax Content (%wt)',               parameterCategory: 'PHYSICAL',   dataType: 'DECIMAL', decimalPlaces: 1  },
+  { parameterId: 55, commodityType: 'OIL',         parameterCode: 'ASPHALTENE_PCT', parameterName: 'Asphaltene Content (%wt)',        parameterCategory: 'CHEMICAL',   dataType: 'DECIMAL', decimalPlaces: 2  },
+  { parameterId: 56, commodityType: 'OIL',         parameterCode: 'DISTILLATE_YIELD',parameterName:'Distillate Yield (%vol)',         parameterCategory: 'QUALITY',    dataType: 'DECIMAL', decimalPlaces: 1  },
+  { parameterId: 57, commodityType: 'OIL',         parameterCode: 'CLOUD_POINT',    parameterName: 'Cloud Point (°C)',                parameterCategory: 'PHYSICAL',   dataType: 'DECIMAL', decimalPlaces: 0  },
+  { parameterId: 58, commodityType: 'OIL',         parameterCode: 'COLD_FILTER',    parameterName: 'Cold Filter Plugging Point (°C)', parameterCategory: 'PHYSICAL',   dataType: 'DECIMAL', decimalPlaces: 0  },
+  // GAS
+  { parameterId: 14, commodityType: 'GAS',         parameterCode: 'GCV_MJSCM',      parameterName: 'Gross Calorific Value (MJ/scm)', parameterCategory: 'ENERGY',     dataType: 'DECIMAL', decimalPlaces: 3  },
+  { parameterId: 15, commodityType: 'GAS',         parameterCode: 'WOBBE_INDEX',    parameterName: 'Wobbe Index (MJ/scm)',            parameterCategory: 'ENERGY',     dataType: 'DECIMAL', decimalPlaces: 3  },
+  { parameterId: 16, commodityType: 'GAS',         parameterCode: 'METHANE_PCT',    parameterName: 'Methane Content (%mol)',          parameterCategory: 'CHEMICAL',   dataType: 'DECIMAL', decimalPlaces: 3  },
+  { parameterId: 17, commodityType: 'GAS',         parameterCode: 'CO2_PCT',        parameterName: 'CO2 Content (%mol)',              parameterCategory: 'CHEMICAL',   dataType: 'DECIMAL', decimalPlaces: 3  },
+  { parameterId: 18, commodityType: 'GAS',         parameterCode: 'H2S_MG',         parameterName: 'H2S Content (mg/Nm³)',            parameterCategory: 'SAFETY',     dataType: 'DECIMAL', decimalPlaces: 2  },
+  { parameterId: 19, commodityType: 'GAS',         parameterCode: 'WATER_DEW',      parameterName: 'Water Dew Point (°C at bar)',     parameterCategory: 'QUALITY',    dataType: 'DECIMAL', decimalPlaces: 1  },
+  { parameterId: 20, commodityType: 'GAS',         parameterCode: 'HC_DEW',         parameterName: 'Hydrocarbon Dew Point (°C)',      parameterCategory: 'QUALITY',    dataType: 'DECIMAL', decimalPlaces: 1  },
+  { parameterId: 21, commodityType: 'GAS',         parameterCode: 'OXYGEN_PPM',     parameterName: 'Oxygen Content (ppm mol)',        parameterCategory: 'CHEMICAL',   dataType: 'DECIMAL', decimalPlaces: 0  },
+  { parameterId: 22, commodityType: 'GAS',         parameterCode: 'TOTAL_SULPHUR',  parameterName: 'Total Sulphur (mg/Nm³)',          parameterCategory: 'CHEMICAL',   dataType: 'DECIMAL', decimalPlaces: 2  },
+  { parameterId: 47, commodityType: 'GAS',         parameterCode: 'ETHANE_PCT',     parameterName: 'Ethane Content (%mol)',           parameterCategory: 'CHEMICAL',   dataType: 'DECIMAL', decimalPlaces: 3  },
+  { parameterId: 48, commodityType: 'GAS',         parameterCode: 'NITROGEN_PCT',   parameterName: 'Nitrogen Content (%mol)',         parameterCategory: 'CHEMICAL',   dataType: 'DECIMAL', decimalPlaces: 3  },
+  { parameterId: 59, commodityType: 'GAS',         parameterCode: 'PROPANE_PCT',    parameterName: 'Propane Content (%mol)',          parameterCategory: 'CHEMICAL',   dataType: 'DECIMAL', decimalPlaces: 3  },
+  { parameterId: 60, commodityType: 'GAS',         parameterCode: 'BUTANE_PCT',     parameterName: 'Butane Content (%mol)',           parameterCategory: 'CHEMICAL',   dataType: 'DECIMAL', decimalPlaces: 3  },
+  { parameterId: 61, commodityType: 'GAS',         parameterCode: 'C5PLUS_PCT',     parameterName: 'C5+ Heavier Hydrocarbons (%mol)',parameterCategory: 'CHEMICAL',   dataType: 'DECIMAL', decimalPlaces: 3  },
+  { parameterId: 62, commodityType: 'GAS',         parameterCode: 'RELATIVE_DENSITY',parameterName: 'Relative Density (vs air)',     parameterCategory: 'PHYSICAL',   dataType: 'DECIMAL', decimalPlaces: 4  },
+  { parameterId: 63, commodityType: 'GAS',         parameterCode: 'OXYGEN_PCT',     parameterName: 'Oxygen Content (%mol)',           parameterCategory: 'CHEMICAL',   dataType: 'DECIMAL', decimalPlaces: 3  },
+  // METALS
+  { parameterId: 30, commodityType: 'METALS',      parameterCode: 'PURITY_PCT',     parameterName: 'Purity (%)',                      parameterCategory: 'QUALITY',    dataType: 'DECIMAL', decimalPlaces: 3  },
+  { parameterId: 31, commodityType: 'METALS',      parameterCode: 'LME_BRAND',      parameterName: 'LME Approved Brand',              parameterCategory: 'REGULATORY', dataType: 'BOOLEAN', decimalPlaces: 0  },
+  { parameterId: 32, commodityType: 'METALS',      parameterCode: 'COPPER_PCT',     parameterName: 'Copper Content (%)',              parameterCategory: 'CHEMICAL',   dataType: 'DECIMAL', decimalPlaces: 3  },
+  { parameterId: 33, commodityType: 'METALS',      parameterCode: 'ZINC_PCT',       parameterName: 'Zinc Content (%)',                parameterCategory: 'CHEMICAL',   dataType: 'DECIMAL', decimalPlaces: 3  },
+  { parameterId: 34, commodityType: 'METALS',      parameterCode: 'LEAD_PCT',       parameterName: 'Lead Content (%)',                parameterCategory: 'CHEMICAL',   dataType: 'DECIMAL', decimalPlaces: 3  },
+  { parameterId: 50, commodityType: 'METALS',      parameterCode: 'SILVER_PCT',     parameterName: 'Silver Content (%)',              parameterCategory: 'CHEMICAL',   dataType: 'DECIMAL', decimalPlaces: 4  },
+  { parameterId: 64, commodityType: 'METALS',      parameterCode: 'ALUMINIUM_PCT',  parameterName: 'Aluminium Impurity (%)',          parameterCategory: 'CHEMICAL',   dataType: 'DECIMAL', decimalPlaces: 4  },
+  { parameterId: 65, commodityType: 'METALS',      parameterCode: 'IRON_PCT',       parameterName: 'Iron Impurity (%)',               parameterCategory: 'CHEMICAL',   dataType: 'DECIMAL', decimalPlaces: 4  },
+  { parameterId: 66, commodityType: 'METALS',      parameterCode: 'ANTIMONY_PCT',   parameterName: 'Antimony Impurity (%)',           parameterCategory: 'CHEMICAL',   dataType: 'DECIMAL', decimalPlaces: 4  },
+  { parameterId: 67, commodityType: 'METALS',      parameterCode: 'ARSENIC_PCT',    parameterName: 'Arsenic Impurity (%)',            parameterCategory: 'CHEMICAL',   dataType: 'DECIMAL', decimalPlaces: 4  },
+  { parameterId: 68, commodityType: 'METALS',      parameterCode: 'GOLD_FINENESS',  parameterName: 'Gold Fineness (ppt)',             parameterCategory: 'QUALITY',    dataType: 'DECIMAL', decimalPlaces: 1  },
+  { parameterId: 69, commodityType: 'METALS',      parameterCode: 'NICKEL_PURITY',  parameterName: 'Nickel Purity (%)',               parameterCategory: 'QUALITY',    dataType: 'DECIMAL', decimalPlaces: 3  },
+  // AGRICULTURAL
+  { parameterId: 23, commodityType: 'AGRICULTURAL',parameterCode: 'MOISTURE_PCT',   parameterName: 'Moisture Content (%)',            parameterCategory: 'QUALITY',    dataType: 'DECIMAL', decimalPlaces: 1  },
+  { parameterId: 24, commodityType: 'AGRICULTURAL',parameterCode: 'PROTEIN_PCT',    parameterName: 'Protein Content (%)',             parameterCategory: 'QUALITY',    dataType: 'DECIMAL', decimalPlaces: 1  },
+  { parameterId: 25, commodityType: 'AGRICULTURAL',parameterCode: 'TEST_WEIGHT',    parameterName: 'Test Weight (kg/hl)',             parameterCategory: 'PHYSICAL',   dataType: 'DECIMAL', decimalPlaces: 1  },
+  { parameterId: 26, commodityType: 'AGRICULTURAL',parameterCode: 'FOREIGN_MATTER', parameterName: 'Foreign Matter (%)',              parameterCategory: 'QUALITY',    dataType: 'DECIMAL', decimalPlaces: 1  },
+  { parameterId: 27, commodityType: 'AGRICULTURAL',parameterCode: 'BROKEN_KERNELS', parameterName: 'Broken/Damaged Kernels (%)',      parameterCategory: 'QUALITY',    dataType: 'DECIMAL', decimalPlaces: 1  },
+  { parameterId: 28, commodityType: 'AGRICULTURAL',parameterCode: 'AFLATOXIN_PPB',  parameterName: 'Aflatoxin (ppb)',                 parameterCategory: 'SAFETY',     dataType: 'DECIMAL', decimalPlaces: 1  },
+  { parameterId: 29, commodityType: 'AGRICULTURAL',parameterCode: 'GMO_STATUS',     parameterName: 'GMO Status',                      parameterCategory: 'REGULATORY', dataType: 'BOOLEAN', decimalPlaces: 0  },
+  { parameterId: 51, commodityType: 'AGRICULTURAL',parameterCode: 'FALLING_NUMBER', parameterName: 'Falling Number (sec)',            parameterCategory: 'QUALITY',    dataType: 'DECIMAL', decimalPlaces: 0  },
+  { parameterId: 52, commodityType: 'AGRICULTURAL',parameterCode: 'GLUTEN_PCT',     parameterName: 'Wet Gluten Content (%)',          parameterCategory: 'QUALITY',    dataType: 'DECIMAL', decimalPlaces: 1  },
+  { parameterId: 70, commodityType: 'AGRICULTURAL',parameterCode: 'OIL_CONTENT_PCT',parameterName: 'Oil Content (%)',                 parameterCategory: 'QUALITY',    dataType: 'DECIMAL', decimalPlaces: 1  },
+  { parameterId: 71, commodityType: 'AGRICULTURAL',parameterCode: 'STARCH_PCT',     parameterName: 'Starch Content (%)',              parameterCategory: 'QUALITY',    dataType: 'DECIMAL', decimalPlaces: 1  },
+  { parameterId: 72, commodityType: 'AGRICULTURAL',parameterCode: 'HECTOLITRE_WT',  parameterName: 'Hectolitre Weight (kg/hl)',       parameterCategory: 'PHYSICAL',   dataType: 'DECIMAL', decimalPlaces: 1  },
+  // POWER
+  { parameterId: 35, commodityType: 'POWER',       parameterCode: 'VOLTAGE_KV',     parameterName: 'Voltage (kV)',                    parameterCategory: 'PHYSICAL',   dataType: 'DECIMAL', decimalPlaces: 1  },
+  { parameterId: 36, commodityType: 'POWER',       parameterCode: 'FREQUENCY_HZ',   parameterName: 'Frequency (Hz)',                  parameterCategory: 'PHYSICAL',   dataType: 'DECIMAL', decimalPlaces: 3  },
+  { parameterId: 37, commodityType: 'POWER',       parameterCode: 'POWER_FACTOR',   parameterName: 'Power Factor',                    parameterCategory: 'PHYSICAL',   dataType: 'DECIMAL', decimalPlaces: 3  },
+  { parameterId: 38, commodityType: 'POWER',       parameterCode: 'GEN_SOURCE',     parameterName: 'Generation Source',               parameterCategory: 'REGULATORY', dataType: 'TEXT',    decimalPlaces: 0  },
+  { parameterId: 73, commodityType: 'POWER',       parameterCode: 'CO2_INTENSITY',  parameterName: 'CO2 Intensity (g/kWh)',           parameterCategory: 'REGULATORY', dataType: 'DECIMAL', decimalPlaces: 1  },
+  { parameterId: 74, commodityType: 'POWER',       parameterCode: 'RENEWABLE_CERT', parameterName: 'Renewable Energy Certificate',    parameterCategory: 'REGULATORY', dataType: 'BOOLEAN', decimalPlaces: 0  },
+  { parameterId: 75, commodityType: 'POWER',       parameterCode: 'LOAD_FACTOR',    parameterName: 'Load Factor / Capacity Factor (%)',parameterCategory: 'QUALITY',   dataType: 'DECIMAL', decimalPlaces: 1  },
 ];
 
 // ─── COUNTRIES ────────────────────────────────────────────────────────────────
@@ -505,6 +738,136 @@ export const etrmHandlers = [
   ...crudHandlers('books', booksStore as Array<Record<string, unknown>>, 'bookId'),
   ...crudHandlers('traders', tradersStore as Array<Record<string, unknown>>, 'traderId'),
   ...crudHandlers('products', productsStore as Array<Record<string, unknown>>, 'productId'),
+  // Product-PriceIndex sub-resource
+  http.get(`${API}/products/:id/price-indices`, ({ params }) => {
+    const productId = Number(params.id);
+    return HttpResponse.json((productPriceIndexStore as Array<Record<string, unknown>>).filter((r) => r['productId'] === productId));
+  }),
+  http.post(`${API}/products/:id/price-indices`, async ({ params, request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const priceIndexId = Number(input['priceIndexId']);
+    const idx = (priceIndicesStore as Array<Record<string, unknown>>).find((pi) => pi['priceIndexId'] === priceIndexId);
+    if (!idx) return problem(404, 'Not Found', `Price index ${priceIndexId} not found.`);
+    const row: Record<string, unknown> = {
+      ...input,
+      productIndexId: nextId(),
+      productId: Number(params.id),
+      indexCode: idx['indexCode'],
+      indexName: idx['indexName'],
+      publicationSource: idx['publicationSource'],
+      currencyCode: idx['currencyCode'],
+      uomCode: idx['uomCode'],
+      isActive: true,
+    };
+    productPriceIndexStore.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.delete(`${API}/products/:id/price-indices/:linkId`, ({ params }) => {
+    const linkId = Number(params.linkId);
+    const idx = (productPriceIndexStore as Array<Record<string, unknown>>).findIndex((r) => r['productIndexId'] === linkId);
+    if (idx >= 0) productPriceIndexStore.splice(idx, 1);
+    return new HttpResponse(null, { status: 204 });
+  }),
+  // Product-Market sub-resource (read-only — joined view from marketProductsStore)
+  http.get(`${API}/products/:id/markets`, ({ params }) => {
+    const productId = Number(params.id);
+    const links = (marketProductsStore as Array<Record<string, unknown>>).filter((mp) => mp['productId'] === productId);
+    const joined = links.map((mp) => {
+      const market = (marketsStore as Array<Record<string, unknown>>).find((m) => m['marketId'] === mp['marketId']) ?? {};
+      return {
+        marketProductId: mp['marketProductId'],
+        marketId: mp['marketId'],
+        marketCode: market['marketCode'] ?? null,
+        marketName: market['marketName'] ?? null,
+        ticker: mp['ticker'] ?? null,
+        currencyCode: mp['currencyCode'] ?? market['currencyCode'] ?? null,
+        uomCode: mp['uomCode'] ?? null,
+        lotSize: mp['lotSize'] ?? null,
+        pricePrecision: mp['pricePrecision'] ?? null,
+        settlementType: mp['settlementType'] ?? null,
+        lastTradingDayOffset: mp['lastTradingDayOffset'] ?? null,
+        listedDate: mp['listedDate'] ?? null,
+        delistedDate: mp['delistedDate'] ?? null,
+        isActive: mp['isActive'] ?? true,
+      };
+    });
+    return HttpResponse.json(joined);
+  }),
+  // ── Spec templates ────────────────────────────────────────────────────────────
+  http.get(`${API}/products/:id/spec-templates`, ({ params }) => {
+    const productId = Number(params.id);
+    const rows = (productSpecTemplateStore as Array<Record<string, unknown>>).filter((t) => t['productId'] === productId);
+    return HttpResponse.json(rows);
+  }),
+  http.post(`${API}/products/:id/spec-templates`, async ({ params, request }) => {
+    const productId = Number(params.id);
+    const body = await request.json() as Record<string, unknown>;
+    const next = { templateId: Date.now(), productId, createdAt: new Date().toISOString(), isActive: true, ...body };
+    (productSpecTemplateStore as Array<Record<string, unknown>>).push(next);
+    return HttpResponse.json(next, { status: 201 });
+  }),
+
+  // ── Spec values ───────────────────────────────────────────────────────────────
+  http.get(`${API}/spec-templates/:id/values`, ({ params }) => {
+    const templateId = Number(params.id);
+    const rows = (productSpecValueStore as Array<Record<string, unknown>>).filter((v) => v['templateId'] === templateId);
+    return HttpResponse.json(rows);
+  }),
+  http.post(`${API}/spec-templates/:id/values`, async ({ params, request }) => {
+    const templateId = Number(params.id);
+    const body = await request.json() as Record<string, unknown>;
+    const next = { specValueId: Date.now(), templateId, ...body };
+    (productSpecValueStore as Array<Record<string, unknown>>).push(next);
+    return HttpResponse.json(next, { status: 201 });
+  }),
+  http.put(`${API}/spec-templates/:templateId/values/:valueId`, async ({ params, request }) => {
+    const valueId = Number(params.valueId);
+    const store = productSpecValueStore as Array<Record<string, unknown>>;
+    const idx = store.findIndex((v) => v['specValueId'] === valueId);
+    if (idx === -1) return new HttpResponse(null, { status: 404 });
+    const body = await request.json() as Record<string, unknown>;
+    store[idx] = { ...store[idx], ...body };
+    return HttpResponse.json(store[idx]);
+  }),
+  http.delete(`${API}/spec-templates/:templateId/values/:valueId`, ({ params }) => {
+    const valueId = Number(params.valueId);
+    const store = productSpecValueStore as Array<Record<string, unknown>>;
+    const idx = store.findIndex((v) => v['specValueId'] === valueId);
+    if (idx === -1) return new HttpResponse(null, { status: 404 });
+    store.splice(idx, 1);
+    return new HttpResponse(null, { status: 204 });
+  }),
+
+  // ── Blend components ──────────────────────────────────────────────────────────
+  http.get(`${API}/products/:id/blend-components`, ({ params }) => {
+    const productId = Number(params.id);
+    const rows = (productBlendComponentStore as Array<Record<string, unknown>>).filter((c) => c['parentProductId'] === productId);
+    return HttpResponse.json(rows);
+  }),
+  http.post(`${API}/products/:id/blend-components`, async ({ params, request }) => {
+    const parentProductId = Number(params.id);
+    const body = await request.json() as Record<string, unknown>;
+    const comp = (productsStore as Array<Record<string, unknown>>).find((p) => p['productId'] === body['componentProductId']);
+    const next = {
+      blendComponentId: Date.now(),
+      parentProductId,
+      componentCode: comp?.['productCode'] ?? null,
+      componentName: comp?.['productName'] ?? null,
+      isActive: true,
+      ...body,
+    };
+    (productBlendComponentStore as Array<Record<string, unknown>>).push(next);
+    return HttpResponse.json(next, { status: 201 });
+  }),
+  http.delete(`${API}/products/:id/blend-components/:blendComponentId`, ({ params }) => {
+    const blendComponentId = Number(params.blendComponentId);
+    const store = productBlendComponentStore as Array<Record<string, unknown>>;
+    const idx = store.findIndex((c) => c['blendComponentId'] === blendComponentId);
+    if (idx === -1) return new HttpResponse(null, { status: 404 });
+    store.splice(idx, 1);
+    return new HttpResponse(null, { status: 204 });
+  }),
+
   ...crudHandlers('price-indices', priceIndicesStore as Array<Record<string, unknown>>, 'priceIndexId'),
   ...crudHandlers('exchanges', exchangesStore as Array<Record<string, unknown>>, 'exchangeId'),
   ...crudHandlers('locations', locationsStore as Array<Record<string, unknown>>, 'locationId'),
@@ -576,6 +939,54 @@ export const etrmHandlers = [
   ...crudHandlers('storage', storageStore as Array<Record<string, unknown>>, 'storageId'),
   ...crudHandlers('currencies', currenciesStore as Array<Record<string, unknown>>, 'currencyId'),
   ...crudHandlers('uom', uomStore as Array<Record<string, unknown>>, 'uomId'),
+
+  // ── UoM Conversions ──────────────────────────────────────────────────────────
+  http.get(`${API}/uom-conversions`, ({ request }) => {
+    const url = new URL(request.url);
+    const commodityType = url.searchParams.get('commodityType');
+    const store = uomConversionStore as Array<Record<string, unknown>>;
+    const result = commodityType
+      ? store.filter((r) => r['commodityType'] === commodityType || r['commodityType'] === null)
+      : store;
+    return HttpResponse.json(result);
+  }),
+  http.post(`${API}/uom-conversions`, async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    const store = uomConversionStore as Array<Record<string, unknown>>;
+    const maxId = store.reduce((m, r) => Math.max(m, r['conversionId'] as number), 0);
+    const row = { ...body, conversionId: maxId + 1 };
+    store.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/uom-conversions/:id`, async ({ request, params }) => {
+    const id = Number(params['id']);
+    const body = (await request.json()) as Record<string, unknown>;
+    const store = uomConversionStore as Array<Record<string, unknown>>;
+    const idx = store.findIndex((r) => r['conversionId'] === id);
+    if (idx === -1) return HttpResponse.json({ title: 'Not Found' }, { status: 404 });
+    store[idx] = { ...store[idx], ...body, conversionId: id };
+    return HttpResponse.json(store[idx]);
+  }),
+  http.delete(`${API}/uom-conversions/:id`, ({ params }) => {
+    const id = Number(params['id']);
+    const store = uomConversionStore as Array<Record<string, unknown>>;
+    const idx = store.findIndex((r) => r['conversionId'] === id);
+    if (idx === -1) return HttpResponse.json({ title: 'Not Found' }, { status: 404 });
+    store.splice(idx, 1);
+    return new HttpResponse(null, { status: 204 });
+  }),
+
+  // ── Spec Parameter Catalog ────────────────────────────────────────────────────
+  http.get(`${API}/spec-parameters`, ({ request }) => {
+    const url = new URL(request.url);
+    const commodityType = url.searchParams.get('commodityType');
+    const store = specParameterStore as Array<Record<string, unknown>>;
+    const result = commodityType
+      ? store.filter((r) => r['commodityType'] === commodityType)
+      : store;
+    return HttpResponse.json(result);
+  }),
+
   ...crudHandlers('countries', countriesStore as Array<Record<string, unknown>>, 'countryCode'),
   http.get(`${API}/incoterms-ref`, () => HttpResponse.json(incotermsRefStore)),
   ...crudHandlers('incoterms-ref', incotermsRefStore as Array<Record<string, unknown>>, 'incotermId'),
