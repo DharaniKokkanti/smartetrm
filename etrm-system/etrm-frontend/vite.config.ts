@@ -17,6 +17,7 @@ export default defineConfig({
       '@theme': fileURLToPath(new URL('./src/theme', import.meta.url)),
       '@models': fileURLToPath(new URL('./src/types', import.meta.url)),
       '@utils': fileURLToPath(new URL('./src/utils', import.meta.url)),
+      '@permissions': fileURLToPath(new URL('./src/permissions', import.meta.url)),
     },
   },
   server: {

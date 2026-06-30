@@ -162,6 +162,7 @@ export interface BlendComponent {
   tolerancePct: number;
   notes: string | null;
   isActive: boolean;
+  needsPositionGen: boolean;
 }
 
 export type BlendComponentInput = {
@@ -172,6 +173,7 @@ export type BlendComponentInput = {
   maxPct: number | null;
   tolerancePct: number;
   notes: string | null;
+  needsPositionGen: boolean;
 };
 
 // ── Spec parameter catalog (spec_parameter) ───────────────────────────────────

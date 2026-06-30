@@ -41,10 +41,14 @@ GO
 -- =============================================================================
 INSERT INTO dbo.unit_of_measure (uom_code, uom_name, uom_category, commodity_type, base_uom_code, conversion_factor)
 VALUES
-    ('GJ',     'Gigajoule',                'ENERGY', 'GAS',          'MMBTU',  0.947817),  -- 1 GJ = 0.947817 MMBTU
-    ('SCM',    'Standard Cubic Metre',     'VOLUME', 'GAS',          'MMBTU',  0.035315),  -- 1 SCM ≈ 35.315 BTU/scf
-    ('MMSCM',  'Million Standard Cu Metres','VOLUME','GAS',          'MMBTU',  35315.0),
-    ('LB',     'Pound',                    'WEIGHT', 'METALS',       'MT',     0.000454),  -- 1 lb = 0.4536 kg
+    -- GJ: universal energy unit (used in GAS and POWER), base = MWH (1 GJ = 0.277778 MWh)
+    ('GJ',     'Gigajoule',                'ENERGY', NULL,           'MWH',    0.277778),
+    -- SCM: VOLUME unit — base is itself (SCM). Cross-type SCM↔MWH requires product GCV (see section 4)
+    ('SCM',    'Standard Cubic Metre',     'VOLUME', NULL,           'SCM',    1.0),
+    -- MMSCM: VOLUME unit — 1 MMSCM = 1,000,000 SCM
+    ('MMSCM',  'Million Standard Cu Metres','VOLUME',NULL,           'SCM',    1000000.0),
+    -- LB: universal weight unit (used in AGRI and METALS), base = MT
+    ('LB',     'Pound',                    'WEIGHT', NULL,           'MT',     0.000454),  -- 1 lb = 0.4536 kg
     ('GAL',    'US Gallon',                'VOLUME', 'OIL',          'BBL',    0.023810),  -- 1 gal = 1/42 BBL
     ('CBM',    'Cubic Metre',              'VOLUME', 'OIL',          'BBL',    6.289814);  -- 1 m³ = 6.289814 BBL
 GO
@@ -131,23 +135,17 @@ SELECT f.uom_id, t.uom_id, 6.2898107704, 'OIL',
 FROM dbo.unit_of_measure f, dbo.unit_of_measure t
 WHERE f.uom_code = 'CBM' AND t.uom_code = 'BBL';
 
--- BBL ↔ MT (OIL): density-dependent — default uses API 35 crude ≈ 848 kg/m³
--- For product-specific conversion, use density_estimate_kg_m3 on the product.
--- Formula: MT = BBL × 0.158987 × density_kg_m3 / 1000
-INSERT INTO dbo.uom_conversion (from_uom_id, to_uom_id, factor, commodity_type, notes)
-SELECT f.uom_id, t.uom_id, 0.1364000000, 'OIL',
-    'DEFAULT: 1 BBL ≈ 0.1364 MT (assumes crude density ~857 kg/m³, API ~33°). '
-    + 'Override with product.density_estimate_kg_m3 for accuracy. '
-    + 'ULSD/EN590: ~0.1344 MT/BBL. Brent: ~0.1361. WTI: ~0.1349.'
-FROM dbo.unit_of_measure f, dbo.unit_of_measure t
-WHERE f.uom_code = 'BBL' AND t.uom_code = 'MT';
-
-INSERT INTO dbo.uom_conversion (from_uom_id, to_uom_id, factor, commodity_type, notes)
-SELECT f.uom_id, t.uom_id, 7.3300000000, 'OIL',
-    'DEFAULT: 1 MT ≈ 7.33 BBL (OPEC standard; crude ~857 kg/m³). '
-    + 'Brent: ~7.35 BBL/MT. WTI: ~7.41 BBL/MT. ULSD: ~7.44 BBL/MT.'
-FROM dbo.unit_of_measure f, dbo.unit_of_measure t
-WHERE f.uom_code = 'MT' AND t.uom_code = 'BBL';
+-- BBL ↔ MT and CBM ↔ MT are NOT seeded here.
+-- These are cross-type (VOLUME→WEIGHT) conversions that require product-specific density.
+-- Every OIL product has a different density:
+--   Brent crude  ~833 kg/m³  → 1 BBL = 0.13245 MT
+--   WTI crude    ~825 kg/m³  → 1 BBL = 0.13118 MT
+--   Gas Oil/ULSD ~845 kg/m³  → 1 BBL = 0.13436 MT
+--   Naphtha      ~720 kg/m³  → 1 BBL = 0.11447 MT
+--   Fuel Oil 380 ~990 kg/m³  → 1 BBL = 0.15741 MT
+-- A single commodity-level factor would be wrong for almost every product.
+-- Formula used by the position engine: MT = BBL × 0.158987 × density_kg_m3 / 1000
+-- Set density_estimate_kg_m3 and density_base_kg_m3 on each product in section 4 below.
 
 -- ── ENERGY — GAS ──────────────────────────────────────────────────────────────
 INSERT INTO dbo.uom_conversion (from_uom_id, to_uom_id, factor, commodity_type, notes)
@@ -198,20 +196,18 @@ SELECT f.uom_id, t.uom_id, 0.9478171203, 'GAS',
 FROM dbo.unit_of_measure f, dbo.unit_of_measure t
 WHERE f.uom_code = 'GJ' AND t.uom_code = 'MMBTU';
 
--- SCM ↔ MMBTU: GCV-dependent. Default uses H-Gas GCV ~38 MJ/scm
-INSERT INTO dbo.uom_conversion (from_uom_id, to_uom_id, factor, commodity_type, notes)
-SELECT f.uom_id, t.uom_id, 0.0360393600, 'GAS',
-    'DEFAULT: 1 SCM ≈ 0.03604 MMBTU (H-Gas GCV ~38.0 MJ/scm). '
-    + 'Override with product.cv_gross_mj_scm. TTF H-Gas range: 35.17–41.89 MJ/scm.'
-FROM dbo.unit_of_measure f, dbo.unit_of_measure t
-WHERE f.uom_code = 'SCM' AND t.uom_code = 'MMBTU';
-
-INSERT INTO dbo.uom_conversion (from_uom_id, to_uom_id, factor, commodity_type, notes)
-SELECT f.uom_id, t.uom_id, 0.0105588000, 'GAS',
-    'DEFAULT: 1 SCM ≈ 0.010559 MWh (H-Gas GCV ~38 MJ/scm). '
-    + 'Override with product.cv_gross_mj_scm.'
-FROM dbo.unit_of_measure f, dbo.unit_of_measure t
-WHERE f.uom_code = 'SCM' AND t.uom_code = 'MWH';
+-- SCM ↔ MMBTU and SCM ↔ MWH are NOT seeded here.
+-- These are cross-type (VOLUME→ENERGY) conversions that require product-specific GCV.
+-- Every GAS product has a different calorific value:
+--   TTF H-Gas  GCV ~38.5 MJ/scm → 1 SCM = 0.010694 MWh = 0.036490 MMBTU
+--   NBP        GCV ~39.5 MJ/scm → 1 SCM = 0.010972 MWh = 0.037451 MMBTU
+--   JKM LNG    GCV ~50.4 MJ/scm → 1 SCM = 0.014000 MWh = 0.047774 MMBTU
+--   L-Gas      GCV ~33.5 MJ/scm → 1 SCM = 0.009306 MWh = 0.031761 MMBTU
+-- A single commodity-level factor would be wrong for every product.
+-- Formula used by the position engine:
+--   MWh   = SCM × cv_gross_mj_scm / 3600
+--   MMBTU = SCM × cv_gross_mj_scm / 1055.056
+-- Set cv_gross_mj_scm and cv_net_mj_scm on each product in section 4 below.
 
 -- ── POWER ─────────────────────────────────────────────────────────────────────
 INSERT INTO dbo.uom_conversion (from_uom_id, to_uom_id, factor, commodity_type, notes)
@@ -296,6 +292,12 @@ WHERE product_code = 'JKM-LNG';
 -- METALS — purity basis
 UPDATE dbo.product SET purity_basis_pct = 99.9935 WHERE product_code = 'LME-COPPER';
 UPDATE dbo.product SET purity_basis_pct = 99.700  WHERE product_code = 'LME-ALUMINIUM';
+
+-- OIL blends — component products with density
+-- Ethanol: density 789 kg/m³ (anhydrous), estimate 794 kg/m³ (denatured grade)
+UPDATE dbo.product
+    SET density_estimate_kg_m3 = 794.0, density_base_kg_m3 = 789.0
+WHERE product_code = 'ETHANOL';
 
 -- AGRI — moisture and protein basis
 -- CBOT Corn No.2 Yellow: standard moisture 15.5%, min test weight 56 lb/bu
@@ -402,7 +404,7 @@ PRINT '============================================================';
 PRINT 'V25 APPLIED: Pricing Basis + UoM Conversions + Spec Parameters';
 PRINT '  - 7 pricing basis columns added to product table';
 PRINT '  - 6 new unit_of_measure rows (GJ, SCM, MMSCM, LB, GAL, CBM)';
-PRINT '  - 28 uom_conversion seed rows (OIL/GAS/POWER/AGRI/metals)';
+PRINT '  - 21 uom_conversion seed rows (OIL volume-only, GAS energy-only, POWER, AGRI, weight/metals)';
 PRINT '  - Seeded pricing basis on 12 existing products';
 PRINT '  - 26 new spec_parameter rows across all commodity types';
 PRINT '============================================================';

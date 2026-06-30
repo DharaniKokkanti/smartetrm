@@ -88,6 +88,20 @@ export function useProductSpecTemplates(productId: number | null) {
   });
 }
 
+export function useAddSpecTemplate(productId: number) {
+  const qc = useQueryClient();
+  const { message } = AntApp.useApp();
+  return useMutation({
+    mutationFn: (input: Omit<import('./types').ProductSpecTemplate, 'templateId' | 'productId' | 'createdAt'>) =>
+      productSpecApi.createTemplate(productId, input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['products', productId, 'spec-templates'] });
+      message.success('Spec template added.');
+    },
+    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Failed.'),
+  });
+}
+
 export function useSpecValues(templateId: number | null) {
   return useQuery({
     queryKey: ['spec-templates', templateId, 'values'],

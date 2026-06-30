@@ -25,6 +25,7 @@ const CounterpartyFormPage = lazy1(() => import('@features/tier1/counterparty/Co
 const DesksPage = lazy1(() => import('@features/organization/desks/DesksPage'), 'DesksPage');
 const BooksPage = lazy1(() => import('@features/organization/books/BooksPage'), 'BooksPage');
 const TradersPage = lazy1(() => import('@features/organization/traders/TradersPage'), 'TradersPage');
+const BrokersPage = lazy1(() => import('@features/organization/brokers/BrokersPage'), 'BrokersPage');
 
 // Markets
 const MarketsPage = lazy1(() => import('@features/markets/markets/MarketsPage'), 'MarketsPage');
@@ -47,6 +48,7 @@ const PriceSourcesPage = lazy1(() => import('@features/pricing/price-sources/Pri
 
 // Trade
 const TradeBlotter = lazy1(() => import('@features/trade/TradeBlotter'), 'TradeBlotter');
+const PositionPage = lazy1(() => import('@features/trade/positions/PositionPage'), 'PositionPage');
 
 // Master Data Hub
 const MasterDataHub = lazy1(() => import('@features/master-data/MasterDataHub'), 'MasterDataHub');
@@ -54,11 +56,19 @@ const MasterDataHub = lazy1(() => import('@features/master-data/MasterDataHub'),
 // Admin
 const SystemUsersPage = lazy1(() => import('@features/admin/system-users/SystemUsersPage'), 'SystemUsersPage');
 const RolesPage = lazy1(() => import('@features/admin/roles/RolesPage'), 'RolesPage');
+const FieldPermissionsPage = lazy1(() => import('@features/admin/field-permissions/FieldPermissionsPage'), 'FieldPermissionsPage');
+
+// Credit & Risk
+const CreditHub = lazy1(() => import('@features/credit/CreditHub'), 'CreditHub');
+const MarginAgreementsPage = lazy1(() => import('@features/credit/margin-agreements/MarginAgreementsPage'), 'MarginAgreementsPage');
+const CreditLimitsPage = lazy1(() => import('@features/credit/credit-limits/CreditLimitsPage'), 'CreditLimitsPage');
+const LettersOfCreditPage = lazy1(() => import('@features/credit/letters-of-credit/LettersOfCreditPage'), 'LettersOfCreditPage');
 
 // Contracts
 const PaymentTermsPage = lazy1(() => import('@features/contracts/payment-terms/PaymentTermsPage'), 'PaymentTermsPage');
 const PaymentMethodsPage = lazy1(() => import('@features/contracts/payment-methods/PaymentMethodsPage'), 'PaymentMethodsPage');
 const GtcsPage = lazy1(() => import('@features/contracts/gtcs/GtcsPage'), 'GtcsPage');
+const BrokerFeeAgreementsPage = lazy1(() => import('@features/contracts/broker-fee-agreements/BrokerFeeAgreementsPage'), 'BrokerFeeAgreementsPage');
 
 // Logistics (new)
 const TrucksPage = lazy1(() => import('@features/logistics/trucks/TrucksPage'), 'TrucksPage');
@@ -90,6 +100,7 @@ export function AppRouter() {
         <Route path="/org/desks" element={<S><DesksPage /></S>} />
         <Route path="/org/books" element={<S><BooksPage /></S>} />
         <Route path="/org/traders" element={<S><TradersPage /></S>} />
+        <Route path="/org/brokers" element={<S><BrokersPage /></S>} />
 
         {/* Counterparties */}
         <Route path="/tier1/legal-entity" element={<S><LegalEntityListPage /></S>} />
@@ -118,6 +129,7 @@ export function AppRouter() {
 
         {/* Trade */}
         <Route path="/trade/blotter" element={<S><TradeBlotter /></S>} />
+        <Route path="/position" element={<S><PositionPage /></S>} />
 
         {/* Master Data Hub */}
         <Route path="/master-data" element={<S><MasterDataHub /></S>} />
@@ -125,11 +137,19 @@ export function AppRouter() {
         {/* Admin */}
         <Route path="/admin/users" element={<S><SystemUsersPage /></S>} />
         <Route path="/admin/roles" element={<S><RolesPage /></S>} />
+        <Route path="/admin/field-permissions" element={<S><FieldPermissionsPage /></S>} />
+
+        {/* Credit & Risk */}
+        <Route path="/credit" element={<S><CreditHub /></S>} />
+        <Route path="/credit/margin-agreements" element={<S><MarginAgreementsPage /></S>} />
+        <Route path="/credit/limits" element={<S><CreditLimitsPage /></S>} />
+        <Route path="/credit/letters-of-credit" element={<S><LettersOfCreditPage /></S>} />
 
         {/* Contracts */}
         <Route path="/contracts/payment-terms" element={<S><PaymentTermsPage /></S>} />
         <Route path="/contracts/payment-methods" element={<S><PaymentMethodsPage /></S>} />
         <Route path="/contracts/gtcs" element={<S><GtcsPage /></S>} />
+        <Route path="/contracts/broker-fee-agreements" element={<S><BrokerFeeAgreementsPage /></S>} />
 
         {/* Logistics (new) */}
         <Route path="/logistics/trucks" element={<S><TrucksPage /></S>} />

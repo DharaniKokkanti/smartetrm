@@ -60,17 +60,18 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
   },
   {
     name: 'counterparty_type', label: 'Counterparty Types', pk: 'counterpartyTypeId', group: 'Counterparty', order: 1,
-    subGroup: 'Classification', description: 'Classifies trading counterparties by role — producer, consumer, trader, bank, broker, or exchange. Affects credit exposure rules, KYC requirements, and settlement workflows.',
+    subGroup: 'Classification', description: 'Classifies entities you trade WITH as the legal counterparty. IDB brokers (ICAP, BGC, Tradition etc.) are NOT counterparties — manage them in the Brokers table. FCM and Prime Broker ARE counterparties: they are the legal entity on the trade ticket and require credit lines.',
     rows: [
-      { counterpartyTypeId: 1, typeCode: 'PRODUCER',     typeName: 'Producer',     sortOrder: 1, isActive: true },
-      { counterpartyTypeId: 2, typeCode: 'CONSUMER',     typeName: 'Consumer',     sortOrder: 2, isActive: true },
-      { counterpartyTypeId: 3, typeCode: 'TRADER',       typeName: 'Trader',       sortOrder: 3, isActive: true },
-      { counterpartyTypeId: 4, typeCode: 'BANK',         typeName: 'Bank',         sortOrder: 4, isActive: true },
-      { counterpartyTypeId: 5, typeCode: 'BROKER',       typeName: 'Broker',       sortOrder: 5, isActive: true },
-      { counterpartyTypeId: 6, typeCode: 'EXCHANGE',     typeName: 'Exchange',     sortOrder: 6, isActive: true },
-      { counterpartyTypeId: 7, typeCode: 'INTERCOMPANY', typeName: 'Intercompany', sortOrder: 7, isActive: true },
-      { counterpartyTypeId: 8, typeCode: 'UTILITY',      typeName: 'Utility',      sortOrder: 8, isActive: true },
-      { counterpartyTypeId: 9, typeCode: 'OTHER',        typeName: 'Other',        sortOrder: 9, isActive: true },
+      { counterpartyTypeId: 1,  typeCode: 'PRODUCER',     typeName: 'Producer',          description: 'Physical commodity producer — oil field operator, gas producer, miner, farmer.',                                                                                                                                                                                       sortOrder: 1,  isActive: true },
+      { counterpartyTypeId: 2,  typeCode: 'CONSUMER',     typeName: 'Consumer',          description: 'End-user of physical commodity — refinery, industrial buyer, utility offtaker.',                                                                                                                                                                                        sortOrder: 2,  isActive: true },
+      { counterpartyTypeId: 3,  typeCode: 'TRADER',       typeName: 'Trader',            description: 'Trading house or commodity merchant buying and selling as principal (Vitol, Trafigura, Glencore, Mercuria).',                                                                                                                                                            sortOrder: 3,  isActive: true },
+      { counterpartyTypeId: 4,  typeCode: 'BANK',         typeName: 'Bank',              description: 'Financial institution — commodity bank, investment bank, or treasury counterparty (Goldman, JP Morgan, Citi).',                                                                                                                                                          sortOrder: 4,  isActive: true },
+      { counterpartyTypeId: 10, typeCode: 'FCM',          typeName: 'FCM — Clearing Broker', description: 'Futures Commission Merchant: the legal counterparty on your exchange-listed trades. Executes and clears futures/options on your behalf and holds your margin account (Marex, Macquarie, StoneX). Also register in Brokers for fee tracking.',                    sortOrder: 5,  isActive: true },
+      { counterpartyTypeId: 11, typeCode: 'PRIME',        typeName: 'Prime Broker',      description: 'Central counterparty across all venues under one ISDA/GMRA umbrella. Credit intermediation, cross-product netting, portfolio margining. IS always the legal counterparty on every trade. Also register in Brokers for fee tracking.',                                  sortOrder: 6,  isActive: true },
+      { counterpartyTypeId: 6,  typeCode: 'EXCHANGE',     typeName: 'Exchange',          description: 'Licensed trading exchange or CCP (ICE, NYMEX, LME, EEX) — for direct member or intercompany accounts.',                                                                                                                                                                sortOrder: 7,  isActive: true },
+      { counterpartyTypeId: 7,  typeCode: 'INTERCOMPANY', typeName: 'Intercompany',      description: 'Affiliate, subsidiary, or parent entity within your own corporate group. Subject to transfer pricing and internal netting rules.',                                                                                                                                        sortOrder: 8,  isActive: true },
+      { counterpartyTypeId: 8,  typeCode: 'UTILITY',      typeName: 'Utility',           description: 'Regulated energy utility — gas or power distribution/transmission company, often an off-taker or anchor counterparty.',                                                                                                                                                  sortOrder: 9,  isActive: true },
+      { counterpartyTypeId: 9,  typeCode: 'OTHER',        typeName: 'Other',             description: 'Any entity not fitting the above categories.',                                                                                                                                                                                                                           sortOrder: 10, isActive: true },
     ],
   },
   {
@@ -374,6 +375,77 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
       { powerLoadTypeId: 2, typeCode: 'PEAK',      typeName: 'Peak Hours',        description: 'Delivery only during defined peak hours — typically Mon–Fri 07:00–23:00 or 08:00–20:00 depending on the market. Higher per-MWh price than baseload.', sortOrder: 20, isActive: true },
       { powerLoadTypeId: 3, typeCode: 'OFF_PEAK',  typeName: 'Off-Peak Hours',    description: 'Delivery during non-peak hours: nights, weekends, and public holidays. Lower price; purchased by pumped hydro and battery operators for arbitrage.', sortOrder: 30, isActive: true },
       { powerLoadTypeId: 4, typeCode: 'SHAPED',    typeName: 'Shaped / Custom',   description: 'User-defined hourly delivery profile from a load_shape_template. Used for wind/solar shape hedges or industrial demand curves that don\'t match standard profiles.', sortOrder: 40, isActive: true },
+    ],
+  },
+  // ── Credit & Risk classification tables ───────────────────────────────────
+  {
+    name: 'margin_agreement_type', label: 'Margin Agreement Types', pk: 'marginAgreementTypeId', group: 'Credit & Risk', order: 1,
+    subGroup: 'Margin & Collateral', description: 'Types of credit support annex (CSA) and pledge arrangements governing how collateral is exchanged between two counterparties. CSA_BILATERAL = mutual obligation. CSA_ONE_WAY = only one party posts. PLEDGE = title transfer collateral. CTA = collateral transfer agreement.',
+    rows: [
+      { marginAgreementTypeId: 1, typeCode: 'CSA_BILATERAL',   typeName: 'CSA Bilateral',        description: 'Both parties can be required to post collateral depending on MTM direction. Standard under ISDA 2002 Credit Support Annex (English law).', sortOrder: 10, isActive: true },
+      { marginAgreementTypeId: 2, typeCode: 'CSA_ONE_WAY_IN',  typeName: 'CSA One-Way (We Receive)', description: 'Only the counterparty posts collateral to us — we are never required to post. Used when counterparty credit quality is significantly lower.', sortOrder: 20, isActive: true },
+      { marginAgreementTypeId: 3, typeCode: 'CSA_ONE_WAY_OUT', typeName: 'CSA One-Way (We Post)', description: 'Only we post collateral to the counterparty — they are never required to post. Typically required by highly rated bank counterparties or CCPs.', sortOrder: 30, isActive: true },
+      { marginAgreementTypeId: 4, typeCode: 'PLEDGE',          typeName: 'Pledge Agreement',      description: 'Title-transfer collateral arrangement (New York law). Collateral ownership transfers to the receiving party; no rehypothecation restrictions.', sortOrder: 40, isActive: true },
+      { marginAgreementTypeId: 5, typeCode: 'CTA',             typeName: 'CTA (Collateral Transfer)', description: 'Collateral Transfer Agreement — typically paired with an ISDA Master to govern initial margin posting under UMR (Uncleared Margin Rules) from 2016 onwards.', sortOrder: 50, isActive: true },
+    ],
+  },
+  {
+    name: 'valuation_frequency_type', label: 'Valuation Frequencies', pk: 'valuationFrequencyTypeId', group: 'Credit & Risk', order: 2,
+    subGroup: 'Margin & Collateral', description: 'How often MTM valuation is performed and compared against the CSA threshold to determine whether a margin call must be issued. Daily is the market standard under ISDA and EMIR clearing rules.',
+    rows: [
+      { valuationFrequencyTypeId: 1, typeCode: 'DAILY',   typeName: 'Daily',   description: 'MTM valuation performed every business day. Margin calls issued next business day if call amount exceeds MTA. Standard under ISDA 2002 and EMIR.', sortOrder: 10, isActive: true },
+      { valuationFrequencyTypeId: 2, typeCode: 'WEEKLY',  typeName: 'Weekly',  description: 'MTM valuation performed once per week (typically Friday). Used in some bilateral agreements for less liquid portfolios.', sortOrder: 20, isActive: true },
+      { valuationFrequencyTypeId: 3, typeCode: 'MONTHLY', typeName: 'Monthly', description: 'MTM valuation performed monthly. Used for lower-volume or long-dated contracts where daily margining is operationally impractical.', sortOrder: 30, isActive: true },
+    ],
+  },
+  {
+    name: 'governing_law_type', label: 'CSA Governing Laws', pk: 'governingLawTypeId', group: 'Credit & Risk', order: 3,
+    subGroup: 'Margin & Collateral', description: 'Legal jurisdiction under which the Credit Support Annex is governed. English law and New York law are the two dominant ISDA CSA jurisdictions; each has different title-transfer vs. security-interest treatment of collateral.',
+    rows: [
+      { governingLawTypeId: 1, typeCode: 'ENGLISH',  typeName: 'English Law',   description: 'ISDA 1995 / 2016 Credit Support Annex (Transfer — English law). Collateral is transferred by way of title, not security interest. Most common in Europe and Asia.', sortOrder: 10, isActive: true },
+      { governingLawTypeId: 2, typeCode: 'NEW_YORK', typeName: 'New York Law',  description: 'ISDA 1994 Credit Support Annex (Security Interest — New York law). Collateral is pledged as security interest; rehypothecation typically permitted. Standard in US markets.', sortOrder: 20, isActive: true },
+      { governingLawTypeId: 3, typeCode: 'OTHER',    typeName: 'Other',         description: 'Alternative jurisdiction — e.g. Japanese law CSA, French law, or bespoke bilateral arrangement. See agreement notes for details.', sortOrder: 30, isActive: true },
+    ],
+  },
+  {
+    name: 'credit_limit_type', label: 'Credit Limit Types', pk: 'creditLimitTypeId', group: 'Credit & Risk', order: 4,
+    subGroup: 'Credit Limits', description: 'Classifies what type of credit exposure the limit controls. A single counterparty typically has separate limits for each type — pre-settlement, settlement, and MTM exposure are independently tracked against their own approved limits.',
+    rows: [
+      { creditLimitTypeId: 1, typeCode: 'PRE_SETTLEMENT',  typeName: 'Pre-Settlement',    description: 'Forward exposure risk — the replacement cost if the counterparty defaults before maturity. Calculated as sum of positive MTM of all open trades. Most important limit type for long-dated OTC portfolios.', sortOrder: 10, isActive: true },
+      { creditLimitTypeId: 2, typeCode: 'SETTLEMENT',      typeName: 'Settlement',         description: 'Payment-due-today risk — the cash owed by or to the counterparty on transactions settling within T+2. Spikes on invoice payment dates and delivery day.', sortOrder: 20, isActive: true },
+      { creditLimitTypeId: 3, typeCode: 'DELIVERY',        typeName: 'Delivery',           description: 'Physical commodity delivery risk — the value of commodity we expect to deliver to (or receive from) the counterparty in the current period. Relevant for physical ETRM books.', sortOrder: 30, isActive: true },
+      { creditLimitTypeId: 4, typeCode: 'MARK_TO_MARKET',  typeName: 'Mark-to-Market',    description: 'Current unrealised gain/loss exposure on all open positions valued at today\'s market price. Used for intraday risk monitoring and variation margin calculations.', sortOrder: 40, isActive: true },
+    ],
+  },
+  {
+    name: 'credit_limit_status_type', label: 'Credit Limit Statuses', pk: 'creditLimitStatusTypeId', group: 'Credit & Risk', order: 5,
+    subGroup: 'Credit Limits', description: 'Lifecycle status of a credit limit record. Only ACTIVE limits are checked during trade booking. SUSPENDED limits block new trades but do not cancel existing ones. EXPIRED limits are automatically transitioned by the system at end of day on the expiry date.',
+    rows: [
+      { creditLimitStatusTypeId: 1, typeCode: 'ACTIVE',    typeName: 'Active',    description: 'Limit is in effect and enforced. New trades are validated against this limit during booking. Utilisaton tracked in real time.',                                   sortOrder: 10, isActive: true },
+      { creditLimitStatusTypeId: 2, typeCode: 'EXPIRED',   typeName: 'Expired',   description: 'Limit has passed its expiry date. System auto-transitions. New trades cannot consume this limit — booking will fail without a replacement active limit.',          sortOrder: 20, isActive: true },
+      { creditLimitStatusTypeId: 3, typeCode: 'SUSPENDED', typeName: 'Suspended', description: 'Limit temporarily blocked by credit team (e.g. during CP review or KYC renewal). Existing trades not affected, but no new exposure can be booked against this limit.', sortOrder: 30, isActive: true },
+      { creditLimitStatusTypeId: 4, typeCode: 'CANCELLED', typeName: 'Cancelled', description: 'Limit permanently withdrawn — counterparty credit facility removed. Any existing open trades must be novated or closed.',                                          sortOrder: 40, isActive: true },
+    ],
+  },
+  {
+    name: 'lc_type', label: 'Letter of Credit Types', pk: 'lcTypeId', group: 'Credit & Risk', order: 6,
+    subGroup: 'Letters of Credit', description: 'Category of letter of credit, which determines the conditions under which it can be drawn and whether it can be transferred or renewed. Most commodity trades use Standby or Documentary LCs. Governed by ICC UCP 600 (documentary) or ISP98 (standby).',
+    rows: [
+      { lcTypeId: 1, typeCode: 'STANDBY',       typeName: 'Standby LC',        description: 'Independent payment guarantee — drawn only on default or non-performance. No physical document presentation required. Governed by ISP98. Used as general credit support for commodity trades.', sortOrder: 10, isActive: true },
+      { lcTypeId: 2, typeCode: 'DOCUMENTARY',   typeName: 'Documentary LC',    description: 'Payment triggered by presentation of specified shipping documents (B/L, inspection certificate, invoice). Governed by ICC UCP 600. Standard for physical cargo trades — oil, LNG, metals, agri.', sortOrder: 20, isActive: true },
+      { lcTypeId: 3, typeCode: 'REVOLVING',     typeName: 'Revolving LC',      description: 'Automatically reinstates (up to the face value) after each drawing or at specified intervals. Used for regular shipment programmes to avoid issuing a new LC for every cargo.', sortOrder: 30, isActive: true },
+      { lcTypeId: 4, typeCode: 'TRANSFERABLE',  typeName: 'Transferable LC',   description: 'Beneficiary can transfer the LC (in whole or part) to a second beneficiary — typically a supplier or sub-contractor. Requires explicit "transferable" endorsement from issuing bank.', sortOrder: 40, isActive: true },
+    ],
+  },
+  {
+    name: 'lc_status_type', label: 'LC Statuses', pk: 'lcStatusTypeId', group: 'Credit & Risk', order: 7,
+    subGroup: 'Letters of Credit', description: 'Lifecycle status of a letter of credit record. Tracks the LC from issuance through partial or full drawdown to expiry or cancellation. PARTIALLY_DRAWN and FULLY_DRAWN are system-computed based on drawdown_amount vs lc_amount.',
+    rows: [
+      { lcStatusTypeId: 1, typeCode: 'ACTIVE',           typeName: 'Active',           description: 'LC is current and available to draw against. Expiry date is in the future and face value is not fully drawn.',                                                                     sortOrder: 10, isActive: true },
+      { lcStatusTypeId: 2, typeCode: 'EXPIRED',          typeName: 'Expired',          description: 'LC has passed its expiry date without being drawn or renewed. Any unused available amount is forfeited. Bank is released from obligation.',                                          sortOrder: 20, isActive: true },
+      { lcStatusTypeId: 3, typeCode: 'CANCELLED',        typeName: 'Cancelled',        description: 'LC cancelled by mutual agreement before expiry — e.g. trade novated, counterparty substituted alternative collateral, or CP provided cash instead.',                               sortOrder: 30, isActive: true },
+      { lcStatusTypeId: 4, typeCode: 'PARTIALLY_DRAWN',  typeName: 'Partially Drawn',  description: 'One or more drawdown events have occurred but the full LC face value has not been consumed. Remaining available balance still callable.',                                          sortOrder: 40, isActive: true },
+      { lcStatusTypeId: 5, typeCode: 'FULLY_DRAWN',      typeName: 'Fully Drawn',      description: 'All available LC face value has been drawn. LC is exhausted — no further drawings possible. Revolving LCs may reinstate after a drawing.',                                         sortOrder: 50, isActive: true },
     ],
   },
 ];

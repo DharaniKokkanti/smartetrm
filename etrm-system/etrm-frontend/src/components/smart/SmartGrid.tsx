@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type ReactNode } from 'react';
+import React, { useMemo, useRef, useState, type ReactNode } from 'react';
 import { Button, Input, Segmented, Tooltip } from 'antd';
 import {
   PlusOutlined,
@@ -7,7 +7,7 @@ import {
   ReloadOutlined,
 } from '@ant-design/icons';
 import { AgGridReact } from 'ag-grid-react';
-import type { ColDef, GetRowIdParams, GridApi } from 'ag-grid-community';
+import type { ColDef, GetRowIdParams, GridApi, RowClickedEvent, RowStyle, RowClassParams } from 'ag-grid-community';
 import { buildAgGridTheme } from '@theme/ag-grid-theme';
 import { useThemeStore } from '@store/themeStore';
 
@@ -25,8 +25,11 @@ interface SmartGridProps<T> {
   activeCommodity?: CommodityFilter;
   onCommodityChange?: (c: CommodityFilter) => void;
   height?: number | string;
+  style?: React.CSSProperties;
   getRowId?: (params: GetRowIdParams<T>) => string;
   onRefresh?: () => void;
+  onRowClicked?: (event: RowClickedEvent<T>) => void;
+  getRowStyle?: (params: RowClassParams<T>) => RowStyle | undefined;
 }
 
 export function SmartGrid<T>({
@@ -40,8 +43,11 @@ export function SmartGrid<T>({
   activeCommodity = 'ALL',
   onCommodityChange,
   height = 'calc(100vh - 240px)',
+  style,
   getRowId,
   onRefresh,
+  onRowClicked,
+  getRowStyle,
 }: SmartGridProps<T>) {
   const mode = useThemeStore((s) => s.mode);
   const gridTheme = useMemo(() => buildAgGridTheme(mode), [mode]);
@@ -53,7 +59,7 @@ export function SmartGrid<T>({
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, ...style }}>
       {/* Toolbar row */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
         <Input
@@ -91,7 +97,7 @@ export function SmartGrid<T>({
       </div>
 
       {/* Grid */}
-      <div style={{ height, minHeight: 300 }}>
+      <div style={{ height, minHeight: typeof height === 'number' ? height : 300 }}>
         <AgGridReact<T>
           theme={gridTheme}
           rowData={rowData}
@@ -106,6 +112,8 @@ export function SmartGrid<T>({
           onGridReady={(e) => {
             gridRef.current = e.api;
           }}
+          onRowClicked={onRowClicked}
+          getRowStyle={getRowStyle}
           overlayNoRowsTemplate='<span style="opacity:0.45">No records found</span>'
         />
       </div>

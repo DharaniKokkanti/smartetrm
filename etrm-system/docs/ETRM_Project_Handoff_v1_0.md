@@ -1,5 +1,5 @@
 # ETRM System — Project Handoff Document
-**Version:** 1.0 | **Date:** June 2026 | **Status:** Master Data Phase Complete
+**Version:** 1.1 | **Date:** June 2026 | **Status:** Trade Capture + Credit & Risk Module Complete
 
 ---
 
@@ -80,7 +80,7 @@ COMMODITY MODULES (plug in one at a time)
 
 ## 4. Database Schema — Complete Table Inventory
 
-**Total: 116 tables across 9 scripts**
+**Base schema: 116 tables across 9 legacy scripts; extended by V28–V35 Flyway migrations (see §13)**
 
 ### Script 1: Master Data v2.0 (42 tables)
 `etrm_master_data_v2.0.sql`
@@ -416,50 +416,74 @@ Internal only — not exposed externally. Called by Spring Boot.
 
 ---
 
-## 10. What's Been Built (Prototype)
+## 10. What's Been Built
 
-**Master data GUI prototype** (React artifact) — tabbed interface covering:
-- Legal entity management (add/edit/delete + Excel upload)
-- Counterparty management with KYC status filter
-- Trader management linked to legal entities
-- Excel upload with duplicate rejection and row-level validation
-- API call log panel showing all POST/PUT/DELETE calls
-- Download template functionality
+### Master data GUI (React / TypeScript full-stack prototype)
 
-**Export files created:**
-- `src/App.tsx` — main React app shell
-- `src/services/api.ts` — complete API service layer with logging
-- `src/services/upload.ts` — Excel parsing, validation, duplicate detection, template generation
+**SmartETRM full application** running on Vite + React 18, Ant Design 5, AG Grid, React Query, Zustand, MSW (Mock Service Worker).
+
+**Organization & Reference:**
+- Legal entity, counterparty (with KYC status), trader management
+- Desks, books, brokers with fee agreement setup
+- Currencies, UoM, UoM conversions, countries, incoterms
+
+**Markets & Products:**
+- Markets, exchanges, price indices, price sources
+- Products — with quality spec tabs (blend recipe + spec template accordion), pricing basis fields
+
+**Logistics & Calendar:**
+- Locations, vessels, pipelines, trucks, storage facilities
+- Holiday calendars, trading periods
+
+**Pricing:**
+- Pricing rules (assembled: product + market + trigger + window + FX handling)
+- Price sources
+
+**Contracts:**
+- Payment terms (redesigned: base date event, month offset, business day convention, discount %)
+- Payment methods, GTCs, broker fee agreements
+
+**Credit & Risk (V35):**
+- **Margin Agreements** — CSA/pledge setup per counterparty: threshold, MTA, independent amount, eligible collateral, valuation frequency, governing law
+- **Credit Limits** — pre-settlement, settlement, delivery, MTM limits per counterparty with real-time utilisation % bar
+- **Letters of Credit** — standby/documentary/revolving/transferable LCs: face value, drawdown tracking, evergreen/auto-renewal provisions, expiry alert index; summary stats band (total face value, total available, total drawdown, active count)
+- **Credit Hub** — hub card page at `/credit` linking to all three sections
+
+**Trade Capture:**
+- **Trade Blotter** — redesigned Trade → Order/Leg → Item three-tier hierarchy:
+  - Trade = contract header only (counterparty, trader, trade date, contract number, term type SPOT/RFP, deal indicator INTERNAL/EXTERNAL)
+  - RFP fields (min/max qty, start/end dates, frequency) shown conditionally when term_type = RFP
+  - Legs panel always visible below trade grid; first leg auto-tagged TEMPLATE, subsequent legs are detail legs; commodity-specific delivery fields (product, market, pricing rule, risk dates, qty, price, settlement, incoterm, delivery location) all on legs only
+  - Items section shown when a leg is selected
+
+**Admin:**
+- System users, roles & permissions, field-level permissions (EDIT/VIEW/HIDDEN per field per role profile)
+
+**Infrastructure:**
+- AppRouter with lazy-loaded routes for all modules
+- AppShell with collapsible sidebar, dark/light theme toggle, API activity log drawer
+- MSW handlers for all endpoints (crudHandlers helper + custom handlers for suspend/reinstate/cancel)
+- React Query cache with `['resource']` keys; useMutation with cache invalidation on success
 
 ---
 
-## 11. What's Next (Trade Tables)
+## 11. What's Next
 
-The immediate next step is the trade schema:
+**Phase 2 — Risk & Pricing (Months 6–9):**
+- Spring Boot service layer for trades, positions, credit
+- Python quant engine: MTM, curve building, VaR
+- Position engine: net positions per book per commodity, base-UoM normalisation (V28)
+- Credit exposure engine: real-time utilisation against `dbo.credit_limit`, breach alerts
+- Margin call workflow: link to `dbo.margin_agreement` thresholds
 
-**`trade`** — base trade record (commodity-agnostic):
-```
-trade_id, trade_reference, trade_date, commodity_type, direction (BUY/SELL),
-quantity, uom_id, price, currency_id, status, counterparty_id, trader_id,
-book_id, legal_entity_id, product_id, market_id, pricing_rule_id,
-incoterm_id, delivery_location_id, period_id, settlement_type,
-trade_type (PHYSICAL/FINANCIAL/OPTION), parent_trade_id (for amendments)
-```
+**Phase 3 — Settlement & Ops (Months 10–13):**
+- Settlement workflow, invoicing, reconciliation
+- LC drawdown processing: link trade invoices to `dbo.letter_of_credit` drawdown_amount
+- Delivery management
 
-**`trade_oil_detail`** — oil extension:
-```
-trade_id (FK, 1:1), crude_grade, api_gravity, sulphur_pct,
-load_location_id, discharge_location_id, vessel_id,
-laycan_start, laycan_end, bl_date, nors_tendered_date,
-cod_date, pipeline_id, pipeline_point_id
-```
-
-**After trade tables:**
-- Position engine schema
-- Settlement / invoicing schema
-- Spring Boot service layer (trade, position, risk)
-- Python quant engine (curve building, MTM, VaR)
-- React trade blotter UI
+**Immediate next (frontend prototype):**
+- Position & P&L page (route `/position` already exists, placeholder)
+- Pricing lifecycle UI (pricing schedule, fixing events)
 
 ---
 
@@ -498,7 +522,17 @@ All migrations live in `etrm-backend/src/main/resources/db/migration/` and are m
 | V22 | `V22__payment_term_redesign.sql` | **Payment Term redesign** — adds `base_date_event`, `month_offset`, `business_day_convention`, `holiday_calendar_id`, `discount_pct`, `payment_method`, `invoice_lead_days`, `is_default`. Re-seeds 20 commodity-representative terms |
 | V23 | `V23__base_date_event_commodity_product_fields.sql` | **Lookup tables + commodity/product enrichment**: creates `base_date_event_type` (11 rows) and `business_day_convention_type` (5 rows) as managed static data; adds `commodity_subtype`, `default_uom_id`, `default_currency_id` to commodity; adds `grade_code`, `product_family`, `bloomberg_ticker`, `reuters_ric`, `platts_code`, `is_exchange_traded`, `is_otc` to product |
 | V24 | `V24__product_blend_spec_seeds.sql` | **Product blend model + quality spec seeds**: adds `is_blend BIT` and `blend_notes VARCHAR(500)` to `product`; adds 13 new `spec_parameter` rows (ULSD/diesel quality, gas composition, metals purity, agri); creates `product_blend_component` M:M bridge table (parent_product_id, component_product_id, min/target/max_pct, tolerance_pct); seeds 3 products (ULSD-10PPM, ETHANOL, GAS97-BLEND); seeds 2 blend component rows for GAS97-BLEND recipe (97% ULSD + 3% Ethanol); seeds 6 `product_spec_template` rows (Brent/BFOE, WTI/NYMEX, TTF/EFET, LME Grade A Copper, EN590 ULSD, GAS97 internal); seeds 32 `product_spec_value` rows with industry-standard min/max/typical bounds |
-| V25 | `V25__pricing_basis_uom_conversion_spec_additions.sql` | **Pricing basis fields + UoM conversion seeds + extended spec catalogue**: adds 7 pricing basis columns to `product` (`density_estimate_kg_m3`, `density_base_kg_m3`, `cv_gross_mj_scm`, `cv_net_mj_scm`, `purity_basis_pct`, `moisture_basis_pct`, `protein_basis_pct`); adds 8 UoM rows (GJ, SCM, MMSCM, LB, CBM, TROY_OZ, GWH + corrects existing); seeds 29 `uom_conversion` rows covering universal weight, precious metals, OIL volume, GAS energy, POWER, and AGRI; adds 24 more `spec_parameter` rows (ULSD-specific, extended gas composition, metals impurity limits, agri oil/starch/hectolitre, power CO₂/REC); UPDATE all 15 products with appropriate pricing basis values |
+| V25 | `V25__pricing_basis_uom_conversion_spec_additions.sql` | **Pricing basis fields + UoM conversion seeds + extended spec catalogue**: adds 7 pricing basis columns to `product` (`density_estimate_kg_m3`, `density_base_kg_m3`, `cv_gross_mj_scm`, `cv_net_mj_scm`, `purity_basis_pct`, `moisture_basis_pct`, `protein_basis_pct`); adds 6 UoM rows (GJ commodity_type=NULL, SCM/MMSCM with self-referential VOLUME base, LB commodity_type=NULL, GAL, CBM); seeds 21 `uom_conversion` rows covering universal weight, precious metals, OIL volume (VOLUME↔VOLUME only — no BBL↔MT as these require per-product density), GAS energy (ENERGY↔ENERGY only — no SCM↔MWH as these require per-product GCV), POWER, and AGRI; adds 24 more `spec_parameter` rows; UPDATEs 16 products with pricing basis values (including ETHANOL density 794/789 kg/m³) |
+| V26 | `V26__field_level_permissions.sql` | **Field-level permission system**: creates `screen_field_registry` (developer-owned catalogue of configurable fields per screen), `field_permission_profile` (client-admin-named role profiles), `field_permission_rule` (per-field EDIT/VIEW/HIDDEN setting per profile), `object_lock_rule` (Layer 1 lifecycle-state locks); seeds 63 `screen_field_registry` rows for TRADE_BLOTTER screen across 10 field groups; seeds 3 sample profiles (Trader Full Access, Credit Manager, Read-Only Viewer) |
+| V27 | `V27__blend_component_needs_position_gen.sql` | **Blend component position flag**: adds `needs_position_gen BIT NOT NULL DEFAULT 1` to `product_blend_component`; when TRUE, the position engine generates individual sub-positions for that component in addition to the blended product position; backfills existing rows to TRUE |
+| V28 | `V28__position_base_uom_columns.sql` | **Position base-UoM normalisation**: adds `quantity_base_uom` and `base_uom_code` to `position` and `position_eod_snapshot`; position engine stores both traded quantity and commodity-normalised quantity (OIL/METALS/AGRI → MT; GAS/POWER → MWH). Conversion factors sourced from `product.density_estimate_kg_m3` and `product.cv_gross_mj_scm` |
+| V29 | `V29__trade_blotter_field_expansion.sql` | **Trade field expansion**: adds `contract_type` (SPOT/DAILY/WEEKLY/MONTHLY/QUARTERLY/ANNUAL/TERM), `risk_start_date`, `risk_end_date`, `broker_id` (FK to new `dbo.broker` table), `broker_fee_type/fee/currency`, `credit_term_code`, `credit_approval_status`, `credit_limit_used`, `gtc_reference` to `dbo.trade`; adds `mot_type` and other MOT fields to `trade_oil_detail` |
+| V30 | `V30__freight_trade_detail.sql` | **Freight trade detail table**: `dbo.trade_freight_detail` for FREIGHT commodity trades; covers voyage charters, time charters and COA; stores vessel_type (VLCC/SUEZMAX/AFRAMAX/LR2/LR1/MR/CAPE/PANAMAX/SUPRAMAX/HANDYSIZE), charter_type, route_code (TD3C, TC2, C3…), cargo_size_mt, freight_rate_type (WORLDSCALE/FLAT_RATE/LUMPSUM/TCE), rate, laycan_start/end |
+| V31 | `V31__broker_type_description.sql` | **Broker table enhancement**: adds `broker_type` (VOICE/ELECTRONIC/HYBRID), `description`, `contact_name/email/phone`, `website`, `country_code` to `dbo.broker`. Clarifies that `broker` holds IDB (inter-dealer broker) firms only — FCM and Prime Brokers are managed in `dbo.counterparty` |
+| V32 | `V32__broker_fee_agreement.sql` | **Broker fee agreement table**: `dbo.broker_fee_agreement` — standing rate cards between the firm and each IDB; stores fee_type (PER_LOT/PCT_NOTIONAL/FLAT_PER_TRADE/FLAT_MONTHLY), rate, currency, effective/expiry dates, pay_period (PER_TRADE/MONTHLY); supports multi-commodity/multi-product override rows per broker |
+| V33 | `V33__trade_order_item.sql` | **Three-tier deal structure**: creates `dbo.trade_order` (delivery legs — product, market, pricing_rule, risk dates, qty, price, settlement, incoterm, delivery_location, commodity detail) and `dbo.trade_item` (sub-line items within a leg); `order_sequence=1` is the TEMPLATE leg; subsequent legs are detail legs |
+| V34 | `V34__trade_userdata_tables.sql` | **Trade header refactor**: ALTERs `dbo.trade` — adds `contract_number`, `term_type` (SPOT/RFP, NOT NULL DEFAULT 'SPOT'), `deal_indicator` (INTERNAL/EXTERNAL, auto-set from CP type), `rfp_min_qty`, `rfp_max_qty`, `rfp_start_date`, `rfp_end_date`, `rfp_frequency` (DAILY/WEEKLY/MONTHLY/QUARTERLY); adds CHECK constraint requiring rfp_* fields when `term_type='RFP'`; ALTERs `dbo.trade_order` — adds `is_template BIT DEFAULT 0`; DROPs old delivery columns (product_id, market_id, quantity, price, settlement_type, etc.) that are now on trade_order only |
+| V35 | `V35__credit_margin_lc.sql` | **Credit & Risk master data tables**: `dbo.margin_agreement` — CSA/pledge parameters per counterparty (threshold, MTA, independent amount, eligible collateral, valuation frequency, governing law); `dbo.credit_limit` — pre-settlement/settlement/delivery/MTM limits per counterparty with used_amount tracking; `dbo.letter_of_credit` — standby/documentary/revolving/transferable LCs with face value, drawdown tracking, evergreen/auto-renewal provisions, place of expiry, applicable law (UCP 600/ISP98) |
 
 ---
 
@@ -542,11 +576,14 @@ A product can be flagged `is_blend = true` to indicate it is manufactured by ble
 
 ```
 product_blend_component
-├── parent_product_id   → blended product (e.g. GAS97-BLEND)
+├── parent_product_id    → blended product (e.g. GAS97-BLEND)
 ├── component_product_id → a constituent (e.g. ULSD-10PPM, ETHANOL)
-├── sequence_no         → display order
+├── sequence_no          → display order
 ├── min_pct / target_pct / max_pct  → volume-basis blending recipe
-└── tolerance_pct       → allowable variance from target
+├── tolerance_pct        → allowable variance from target
+└── needs_position_gen   → (V27) BIT; TRUE = position engine creates a sub-position for this
+                           component in addition to the parent blend position;
+                           FALSE = component tracked only within the blended product position
 ```
 
 **Example**: GAS97-BLEND = Component 1: ULSD-10PPM (target 97%vol ±0.5%) + Component 2: ETHANOL (target 3%vol ±0.25%).
@@ -577,6 +614,52 @@ The `ProductsPage.tsx` drawer now has 4 tabs:
 - **Price Indices** — link/unlink price index relationships
 - **Markets** — read-only view of market listings
 - **Quality Specs** — blend recipe (when `isBlend=true`) + spec template accordion with parameter bounds table
+
+---
+
+## 14b. UoM Conversion Architecture — Cross-Type Constraint
+
+**Only same-type conversions belong in `uom_conversion`.**
+
+| Same-type (stored in `uom_conversion`) | Cross-type (product-specific only) |
+|---|---|
+| VOLUME → VOLUME (BBL→GAL, BBL→CBM) | VOLUME → WEIGHT (BBL→MT requires density) |
+| WEIGHT → WEIGHT (MT→KG, MT→LB) | VOLUME → ENERGY (SCM→MWH requires GCV) |
+| ENERGY → ENERGY (MWH→MMBTU, MWH→GJ) | WEIGHT → ENERGY (not currently traded) |
+
+Cross-type conversions (e.g. BBL↔MT, SCM↔MWH) are **not** stored as commodity-level defaults because the conversion factor differs for every product:
+
+| Product | density (kg/m³) | 1 BBL → MT |
+|---|---|---|
+| Brent crude | ~833 | 0.13240 |
+| WTI crude | ~825 | 0.13113 |
+| ULSD | ~845 | 0.13432 |
+| Fuel Oil 380 | ~990 | 0.15741 |
+
+Instead, the position engine reads from the `product` table pricing basis fields:
+- **OIL**: `density_estimate_kg_m3` / `density_base_kg_m3` → `MT = BBL × 0.158987 × density / 1000`
+- **GAS**: `cv_gross_mj_scm` / `cv_net_mj_scm` → `MWH = SCM × cv_gross / 3600`; `MMBTU = SCM × cv_gross / 1055.056`
+
+`density_estimate_kg_m3` is used for daily MTM; `density_base_kg_m3` is the reference/contract value for invoice settlement.
+
+---
+
+## 14c. Field-Level Permission Architecture (V26)
+
+Two-layer model. Layer 1 always wins over Layer 2.
+
+### Layer 1 — Object Lifecycle Locks (`object_lock_rule`)
+Developer-owned, deployed via Flyway only. When an entity reaches a lifecycle state (CONFIRMED, MATURED, CLOSED, CANCELLED, INVOICED), specified fields are automatically locked to READ_ONLY or HIDDEN regardless of user role. Examples:
+- Trade CONFIRMED → price, quantity, currency → READONLY
+- Trade CLOSED → all fields → READONLY
+
+### Layer 2 — Field Permission Profiles (`field_permission_profile` + `field_permission_rule`)
+Client-admin-configurable via the **Field-Level Permissions** admin page. Profiles are scoped to one screen. Each profile assigns per-field access (EDIT / VIEW / HIDDEN) to a role. `is_required_field=1` fields cannot be set below VIEW by either layer.
+
+**Merge rule**: `effective = min(Layer1, Layer2)` where HIDDEN < VIEW < EDIT.
+
+### Frontend Hook
+`useFieldPermissions(screenCode, roleIds)` → returns a map `fieldKey → AccessLevel`. Used by `PermissionField` wrapper component which renders fields as editable/read-only/hidden based on effective access level.
 
 ---
 

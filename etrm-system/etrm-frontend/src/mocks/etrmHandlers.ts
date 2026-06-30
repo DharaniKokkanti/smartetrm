@@ -56,6 +56,8 @@ const productsStore: unknown[] = [
   { productId: 10, productCode: 'HEATING-OIL',    productName: 'Gas Oil / Heating Oil',     commodityId: 1, commodityType: 'OIL',         settlementType: 'PHYSICAL',  defaultPricingTypeCode: 'DIFFERENTIAL', defaultUomCode: 'MT',     defaultCurrencyCode: 'USD', defaultIncotermCode: 'CIF',  gradeCode: null,           productFamily: 'REFINED_PRODUCTS',  bloombergTicker: 'QS1 Comdty',    reutersRic: 'LGOc1',       plattsCode: 'AAGLD00', isExchangeTraded: false, isOtc: true,  lotSize: 100,    minQuantity: 100,    maxQuantity: 50000,   isBlend: false, blendNotes: null, densityEstimateKgM3: 845.0, densityBaseKgM3: 820.0, cvGrossMjScm: null, cvNetMjScm: null, purityBasisPct: null, moistureBasisPct: null, proteinBasisPct: null, description: 'ICE Gas Oil / Heating Oil — European distillate benchmark, 100 MT lots.', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
   { productId: 11, productCode: 'JKM-LNG',        productName: 'JKM LNG Japan/Korea',       commodityId: 2, commodityType: 'GAS',         settlementType: 'FINANCIAL', defaultPricingTypeCode: 'INDEX',        defaultUomCode: 'MMBTU',  defaultCurrencyCode: 'USD', defaultIncotermCode: 'DES',  gradeCode: null,           productFamily: 'LNG',               bloombergTicker: 'PLNJKM Comdty', reutersRic: 'PLNJKM',      plattsCode: 'ASGIM00', isExchangeTraded: false, isOtc: true,  lotSize: 1,      minQuantity: 1,      maxQuantity: 1000000, isBlend: false, blendNotes: null, densityEstimateKgM3: null, densityBaseKgM3: null, cvGrossMjScm: 40.5,  cvNetMjScm: 36.5, purityBasisPct: null, moistureBasisPct: null, proteinBasisPct: null, description: 'Platts JKM benchmark for LNG into Japan, South Korea, China, Taiwan.', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
   { productId: 12, productCode: 'CBOT-CORN',      productName: 'CBOT Corn Futures',         commodityId: 5, commodityType: 'AGRICULTURAL', settlementType: 'PHYSICAL',  defaultPricingTypeCode: 'INDEX',        defaultUomCode: 'BUSHEL', defaultCurrencyCode: 'USD', defaultIncotermCode: null,   gradeCode: 'US_GRADE_2_YELLOW', productFamily: 'GRAINS',   bloombergTicker: 'C 1 Comdty',    reutersRic: 'Cc1',         plattsCode: null,      isExchangeTraded: true,  isOtc: false, lotSize: 5000,   minQuantity: 5000,   maxQuantity: 500000,  isBlend: false, blendNotes: null, densityEstimateKgM3: null, densityBaseKgM3: null, cvGrossMjScm: null, cvNetMjScm: null, purityBasisPct: null, moistureBasisPct: 14.0, proteinBasisPct: 8.0, description: 'CBOT No. 2 Yellow Corn — 5,000 bushel standard lots.', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  // Agricultural
+  { productId: 16, productCode: 'WHEAT-EU', productName: 'Euronext Milling Wheat (EU)', commodityId: 5, commodityType: 'AGRICULTURAL', settlementType: 'PHYSICAL', defaultPricingTypeCode: 'INDEX', defaultUomCode: 'MT', defaultCurrencyCode: 'EUR', defaultIncotermCode: 'FOB', gradeCode: 'EU_MILLING_WHEAT', productFamily: 'GRAINS', bloombergTicker: null, reutersRic: null, plattsCode: null, isExchangeTraded: false, isOtc: true, lotSize: 100, minQuantity: 100, maxQuantity: 100000, isBlend: false, blendNotes: null, densityEstimateKgM3: null, densityBaseKgM3: null, cvGrossMjScm: null, cvNetMjScm: null, purityBasisPct: null, moistureBasisPct: 14.5, proteinBasisPct: 12.0, description: 'EU milling wheat — Euronext front month reference. Min 12% protein, 14.5% moisture basis.', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
   // Blend component base products + blend product
   { productId: 13, productCode: 'ULSD-10PPM',  productName: 'Ultra-Low Sulphur Diesel 10ppm',          commodityId: 1, commodityType: 'OIL', settlementType: 'PHYSICAL', defaultPricingTypeCode: 'INDEX',        defaultUomCode: 'MT',    defaultCurrencyCode: 'USD', defaultIncotermCode: 'CIF', gradeCode: 'ULSD',  productFamily: 'REFINED_PRODUCTS', bloombergTicker: 'QS1 Comdty', reutersRic: 'LGOc1', plattsCode: 'AAGLD00', isExchangeTraded: false, isOtc: true, lotSize: 100, minQuantity: 100, maxQuantity: 50000, isBlend: false, blendNotes: null, densityEstimateKgM3: 838.0, densityBaseKgM3: 815.0, cvGrossMjScm: null, cvNetMjScm: null, purityBasisPct: null, moistureBasisPct: null, proteinBasisPct: null, description: 'European EN590 ULSD — max 10ppm sulphur, CIF ARA / FOB Rotterdam barge.', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
   { productId: 14, productCode: 'ETHANOL',     productName: 'Fuel Ethanol (Denatured, Industrial Grade)', commodityId: 1, commodityType: 'OIL', settlementType: 'PHYSICAL', defaultPricingTypeCode: 'INDEX',        defaultUomCode: 'CBM',   defaultCurrencyCode: 'EUR', defaultIncotermCode: 'FOB', gradeCode: null,    productFamily: 'PETROCHEMICAL',    bloombergTicker: null,         reutersRic: null,    plattsCode: 'AAAPQ00', isExchangeTraded: false, isOtc: true, lotSize: 100, minQuantity: 100, maxQuantity: 10000, isBlend: false, blendNotes: null, densityEstimateKgM3: 794.0, densityBaseKgM3: 789.0, cvGrossMjScm: null, cvNetMjScm: null, purityBasisPct: null, moistureBasisPct: null, proteinBasisPct: null, description: 'Denatured fuel-grade ethanol, European spec. Blend feedstock for gasoline pools.', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
@@ -110,8 +112,8 @@ const productSpecValueStore: unknown[] = [
 // ─── PRODUCT BLEND COMPONENTS ─────────────────────────────────────────────────
 const productBlendComponentStore: unknown[] = [
   // GAS97-BLEND (productId=15) = 97% ULSD-10PPM (productId=13) + 3% ETHANOL (productId=14)
-  { blendComponentId: 1, parentProductId: 15, componentProductId: 13, componentCode: 'ULSD-10PPM', componentName: 'Ultra-Low Sulphur Diesel 10ppm', sequenceNo: 1, minPct: 95.00, targetPct: 97.00, maxPct: 99.00, tolerancePct: 0.50, notes: 'ULSD-10PPM base component — volume basis. Target 97%vol, tolerance ±0.5%vol.', isActive: true },
-  { blendComponentId: 2, parentProductId: 15, componentProductId: 14, componentCode: 'ETHANOL',    componentName: 'Fuel Ethanol (Denatured, Industrial Grade)', sequenceNo: 2, minPct: 1.00, targetPct: 3.00, maxPct: 5.00, tolerancePct: 0.25, notes: 'Denatured ethanol — volume basis. Target 3%vol (E3). Max 5%vol (EN228 E5 limit).', isActive: true },
+  { blendComponentId: 1, parentProductId: 15, componentProductId: 13, componentCode: 'ULSD-10PPM', componentName: 'Ultra-Low Sulphur Diesel 10ppm', sequenceNo: 1, minPct: 95.00, targetPct: 97.00, maxPct: 99.00, tolerancePct: 0.50, needsPositionGen: true,  notes: 'ULSD-10PPM base component — volume basis. Target 97%vol, tolerance ±0.5%vol.', isActive: true },
+  { blendComponentId: 2, parentProductId: 15, componentProductId: 14, componentCode: 'ETHANOL',    componentName: 'Fuel Ethanol (Denatured, Industrial Grade)', sequenceNo: 2, minPct: 1.00, targetPct: 3.00, maxPct: 5.00, tolerancePct: 0.25, needsPositionGen: false, notes: 'Denatured ethanol — volume basis. Target 3%vol (E3). Max 5%vol (EN228 E5 limit).', isActive: true },
 ];
 
 // ─── PRODUCT PRICE INDEX LINKS ────────────────────────────────────────────────
@@ -324,6 +326,47 @@ const paymentMethodsStore: unknown[] = [
   { paymentMethodId: 6, methodCode: 'BANK-GTY', methodName: 'Bank Guarantee', methodType: 'BANK_GUARANTEE', currencyRestriction: null, processingDays: 3, description: 'On-demand bank guarantee — alternative to LC for secured but unfunded exposure.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
 ];
 
+// ─── BROKER FEE AGREEMENTS ────────────────────────────────────────────────────
+const brokerFeeAgreementsStore: unknown[] = [
+  { agreementId: 1, brokerId: 1, brokerCode: 'ICAP',      brokerName: 'ICAP Energy',                  agreementCode: 'ICAP-OIL-2026',       description: 'ICAP Energy OTC crude oil rate. North Sea and Mediterranean physical cargoes and OTC Brent/WTI swaps.',             commodityType: 'OIL',    productId: null, productName: null, tradeType: null,       feeType: 'PER_LOT',       feeRate: 0.020000, feeCurrencyCode: 'USD', uomCode: 'BBL',   payPeriod: 'MONTHLY',   paymentDueDays: 30, minimumFee: 2000.00, maximumFee: null,     effectiveFrom: '2026-01-01', effectiveTo: null, isActive: true, createdAt: '2026-01-01T00:00:00Z' },
+  { agreementId: 2, brokerId: 3, brokerCode: 'BGC',       brokerName: 'BGC Partners Energy',          agreementCode: 'BGC-OIL-2026',        description: 'BGC Partners crude oil and products rate. Mediterranean and West African physical cargoes.',                       commodityType: 'OIL',    productId: null, productName: null, tradeType: null,       feeType: 'PER_LOT',       feeRate: 0.030000, feeCurrencyCode: 'USD', uomCode: 'BBL',   payPeriod: 'MONTHLY',   paymentDueDays: 30, minimumFee: 3000.00, maximumFee: null,     effectiveFrom: '2026-01-01', effectiveTo: null, isActive: true, createdAt: '2026-01-01T00:00:00Z' },
+  { agreementId: 3, brokerId: 5, brokerCode: 'TP-ICAP',   brokerName: 'TP ICAP Global Broking',       agreementCode: 'TPICAP-GAS-2026',     description: 'TP ICAP gas brokerage. TTF, NBP, NCG, PEG. Voice and Parameta electronic.',                                          commodityType: 'GAS',    productId: null, productName: null, tradeType: null,       feeType: 'PER_LOT',       feeRate: 0.010000, feeCurrencyCode: 'EUR', uomCode: 'MWH',   payPeriod: 'MONTHLY',   paymentDueDays: 30, minimumFee: 1500.00, maximumFee: null,     effectiveFrom: '2026-01-01', effectiveTo: null, isActive: true, createdAt: '2026-01-01T00:00:00Z' },
+  { agreementId: 4, brokerId: 2, brokerCode: 'GFI',       brokerName: 'GFI Group Commodities',        agreementCode: 'GFI-POWER-2026',      description: 'GFI Group power brokerage. EEX Germany baseload/peak, French and Belgian power OTC.',                               commodityType: 'POWER',  productId: null, productName: null, tradeType: null,       feeType: 'PER_LOT',       feeRate: 0.015000, feeCurrencyCode: 'EUR', uomCode: 'MWH',   payPeriod: 'MONTHLY',   paymentDueDays: 30, minimumFee: 1000.00, maximumFee: null,     effectiveFrom: '2026-01-01', effectiveTo: null, isActive: true, createdAt: '2026-01-01T00:00:00Z' },
+  { agreementId: 5, brokerId: 4, brokerCode: 'TRADITION', brokerName: 'Tradition Financial Services', agreementCode: 'TRADITION-FREIGHT-2026', description: 'Tradition freight brokerage. Flat fee per voyage — TD3C, TC2, BS3. BIMCO proforma.',                              commodityType: 'FREIGHT', productId: null, productName: null, tradeType: null,      feeType: 'FLAT_PER_TRADE', feeRate: 2500.000000, feeCurrencyCode: 'USD', uomCode: null, payPeriod: 'PER_TRADE', paymentDueDays: 5,  minimumFee: null,    maximumFee: null,     effectiveFrom: '2026-01-01', effectiveTo: null, isActive: true, createdAt: '2026-01-01T00:00:00Z' },
+  { agreementId: 6, brokerId: 6, brokerCode: 'TULLETT',   brokerName: 'Tullett Prebon',               agreementCode: 'TULLETT-METALS-2026', description: 'Tullett Prebon metals brokerage. LME copper, aluminium, zinc, nickel. Cash and 3-month contracts.',                  commodityType: 'METALS', productId: null, productName: null, tradeType: null,       feeType: 'PER_LOT',       feeRate: 1.000000, feeCurrencyCode: 'USD', uomCode: 'MT',    payPeriod: 'MONTHLY',   paymentDueDays: 30, minimumFee: 2000.00, maximumFee: null,     effectiveFrom: '2026-01-01', effectiveTo: null, isActive: true, createdAt: '2026-01-01T00:00:00Z' },
+  { agreementId: 7, brokerId: 1, brokerCode: 'ICAP',      brokerName: 'ICAP Energy',                  agreementCode: 'ICAP-OIL-FIN-2026',   description: 'ICAP Energy financial OTC rate. Applies to Brent and WTI OTC swap and CFD trades only. Higher rate than physical.',  commodityType: 'OIL',    productId: null, productName: null, tradeType: 'FINANCIAL', feeType: 'PCT_NOTIONAL',  feeRate: 0.000400, feeCurrencyCode: 'USD', uomCode: null,   payPeriod: 'MONTHLY',   paymentDueDays: 30, minimumFee: null,    maximumFee: null,     effectiveFrom: '2026-01-01', effectiveTo: null, isActive: true, createdAt: '2026-01-01T00:00:00Z' },
+  { agreementId: 8, brokerId: 7, brokerCode: 'SPARK',     brokerName: 'Spark Commodities',            agreementCode: 'SPARK-LNG-2026',      description: 'Spark Commodities electronic LNG platform. JKM spot, FOB Atlantic, DES regas. Pure electronic.',                      commodityType: 'LNG',    productId: null, productName: null, tradeType: null,       feeType: 'PER_LOT',       feeRate: 0.010000, feeCurrencyCode: 'USD', uomCode: 'MMBTU', payPeriod: 'MONTHLY',   paymentDueDays: 30, minimumFee: null,    maximumFee: 5000.00, effectiveFrom: '2026-01-01', effectiveTo: null, isActive: true, createdAt: '2026-01-01T00:00:00Z' },
+];
+
+// ─── CREDIT — MARGIN AGREEMENTS ──────────────────────────────────────────────
+let marginAgreementIdSeq = 10;
+const marginAgreementsStore: unknown[] = [
+  { marginAgreementId: 1, agreementCode: 'CSA-SHELL-2024',    agreementType: 'CSA_BILATERAL',   counterpartyId: 1, counterpartyName: 'Shell Trading International', thresholdAmount: 5000000,   thresholdCurrency: 'USD', cpThresholdAmount: 5000000,   cpThresholdCurrency: 'USD', mtaAmount: 250000,  mtaCurrency: 'USD', independentAmount: null, independentAmountCurrency: null, roundingAmount: 1000,  valuationFrequency: 'DAILY',  eligibleCollateral: 'Cash (USD, EUR, GBP); G7 Government Bonds (AAA–AA, <10yr); Gold', eligibleCurrencies: 'USD, EUR, GBP', govLaw: 'ENGLISH',   effectiveDate: '2024-01-01', expiryDate: null,         isActive: true, notes: 'ISDA 2002 Master Agreement + 2013 CSA', createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { marginAgreementId: 2, agreementCode: 'CSA-BP-2024',       agreementType: 'CSA_BILATERAL',   counterpartyId: 2, counterpartyName: 'BP Oil Trading',            thresholdAmount: 10000000,  thresholdCurrency: 'USD', cpThresholdAmount: 10000000,  cpThresholdCurrency: 'USD', mtaAmount: 500000,  mtaCurrency: 'USD', independentAmount: null, independentAmountCurrency: null, roundingAmount: 1000,  valuationFrequency: 'DAILY',  eligibleCollateral: 'Cash (USD, EUR); US Treasuries; UK Gilts',                        eligibleCurrencies: 'USD, EUR',      govLaw: 'ENGLISH',   effectiveDate: '2024-03-01', expiryDate: null,         isActive: true, notes: 'Bilateral threshold — both AA rated',  createdAt: '2024-03-01T00:00:00Z', updatedAt: '2024-03-01T00:00:00Z' },
+  { marginAgreementId: 3, agreementCode: 'CSA-EQUINOR-2023',  agreementType: 'CSA_ONE_WAY_IN',  counterpartyId: 3, counterpartyName: 'Equinor Energy AS',          thresholdAmount: 0,         thresholdCurrency: 'USD', cpThresholdAmount: 15000000,  cpThresholdCurrency: 'USD', mtaAmount: 100000,  mtaCurrency: 'USD', independentAmount: null, independentAmountCurrency: null, roundingAmount: 1000,  valuationFrequency: 'DAILY',  eligibleCollateral: 'Cash USD only',                                                    eligibleCurrencies: 'USD',           govLaw: 'ENGLISH',   effectiveDate: '2023-06-15', expiryDate: null,         isActive: true, notes: 'One-way — Equinor must post, we never do', createdAt: '2023-06-15T00:00:00Z', updatedAt: '2023-06-15T00:00:00Z' },
+  { marginAgreementId: 4, agreementCode: 'PLEDGE-GLENCORE-24', agreementType: 'PLEDGE',          counterpartyId: 4, counterpartyName: 'Glencore Metals',           thresholdAmount: 2000000,   thresholdCurrency: 'USD', cpThresholdAmount: 2000000,   cpThresholdCurrency: 'USD', mtaAmount: 200000,  mtaCurrency: 'USD', independentAmount: 1000000, independentAmountCurrency: 'USD', roundingAmount: 10000, valuationFrequency: 'WEEKLY', eligibleCollateral: 'Cash (USD); LME Grade A Copper warrants',                          eligibleCurrencies: 'USD',           govLaw: 'ENGLISH',   effectiveDate: '2024-07-01', expiryDate: '2026-12-31', isActive: true, notes: 'IA = $1M upfront (Glencore posts)',    createdAt: '2024-07-01T00:00:00Z', updatedAt: '2024-07-01T00:00:00Z' },
+];
+
+// ─── CREDIT — CREDIT LIMITS ───────────────────────────────────────────────────
+let creditLimitIdSeq = 20;
+const creditLimitsStore: unknown[] = [
+  { creditLimitId: 1, counterpartyId: 1, counterpartyName: 'Shell Trading International', limitType: 'PRE_SETTLEMENT', limitAmount: 100000000, limitCurrency: 'USD', usedAmount: 41225000,  availableAmount: 58775000,  utilisationPct: 41.2, effectiveDate: '2026-01-01', expiryDate: '2026-12-31', approvedBy: 'Credit Committee', approvalDate: '2025-12-10', status: 'ACTIVE',    nettingAgreementRef: 'ISDA-2002-SHELL-001', isActive: true, notes: 'Annual renewal. AA− rated. Netting set includes OTC & physical.', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-06-15T00:00:00Z' },
+  { creditLimitId: 2, counterpartyId: 1, counterpartyName: 'Shell Trading International', limitType: 'SETTLEMENT',     limitAmount: 50000000,  limitCurrency: 'USD', usedAmount: 0,         availableAmount: 50000000,  utilisationPct: 0,    effectiveDate: '2026-01-01', expiryDate: '2026-12-31', approvedBy: 'Credit Committee', approvalDate: '2025-12-10', status: 'ACTIVE',    nettingAgreementRef: 'ISDA-2002-SHELL-001', isActive: true, notes: 'Settlement limit — T+2 wire payments.',                          createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
+  { creditLimitId: 3, counterpartyId: 2, counterpartyName: 'BP Oil Trading',            limitType: 'PRE_SETTLEMENT', limitAmount: 75000000,  limitCurrency: 'USD', usedAmount: 8310000,   availableAmount: 66690000,  utilisationPct: 11.1, effectiveDate: '2026-01-01', expiryDate: '2026-12-31', approvedBy: 'Mary Andrews',     approvalDate: '2025-11-20', status: 'ACTIVE',    nettingAgreementRef: 'ISDA-2002-BP-002',    isActive: true, notes: 'Reduced from $100M following Q3 2025 review.',                  createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
+  { creditLimitId: 4, counterpartyId: 4, counterpartyName: 'Glencore Metals',           limitType: 'MARK_TO_MARKET', limitAmount: 20000000,  limitCurrency: 'USD', usedAmount: 2461250,   availableAmount: 17538750,  utilisationPct: 12.3, effectiveDate: '2026-01-01', expiryDate: null,         approvedBy: 'Risk Director',    approvalDate: '2026-01-05', status: 'ACTIVE',    nettingAgreementRef: null,                  isActive: true, notes: 'MTM limit for LME metals positions.',                           createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
+  { creditLimitId: 5, counterpartyId: 7, counterpartyName: 'Vitol SA',                  limitType: 'PRE_SETTLEMENT', limitAmount: 120000000, limitCurrency: 'USD', usedAmount: 59962500,  availableAmount: 60037500,  utilisationPct: 49.9, effectiveDate: '2026-01-01', expiryDate: '2026-12-31', approvedBy: 'Credit Committee', approvalDate: '2025-12-15', status: 'ACTIVE',    nettingAgreementRef: 'ISDA-2002-VITOL-007', isActive: true, notes: 'Near 50% — monitor Urals cargo exposure.', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-06-20T00:00:00Z' },
+  { creditLimitId: 6, counterpartyId: 6, counterpartyName: 'Centrica Energy Trading',   limitType: 'PRE_SETTLEMENT', limitAmount: 15000000,  limitCurrency: 'USD', usedAmount: 0,         availableAmount: 15000000,  utilisationPct: 0,    effectiveDate: '2026-01-01', expiryDate: '2026-06-30', approvedBy: 'John Davies',      approvalDate: '2026-01-10', status: 'EXPIRED',   nettingAgreementRef: null,                  isActive: false, notes: 'Expired — pending renewal.',             createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-06-30T00:00:00Z' },
+];
+
+// ─── CREDIT — LETTERS OF CREDIT ───────────────────────────────────────────────
+let lcIdSeq = 10;
+const lettersOfCreditStore: unknown[] = [
+  { lcId: 1, lcReference: 'LC/2026/HSBC/001234', lcType: 'STANDBY',     status: 'ACTIVE',           counterpartyId: 8, counterpartyName: 'Cargill International SA',  beneficiaryEntityId: 1, beneficiaryEntityName: 'SmartETRM Trading Ltd', issuingBankName: 'HSBC Bank plc',         issuingBankBic: 'HBUKGB4B', confirmingBankName: null,         lcAmount: 5000000,  lcCurrency: 'USD', issuedAmount: 5000000,  drawdownAmount: 0,       availableAmount: 5000000,  issueDate: '2026-02-01', expiryDate: '2027-01-31', presentationDeadlineDays: 21, isEvergreen: true,  autoRenewalDays: 60, placeOfExpiry: 'London',    applicableLaw: 'ISP98',   notes: 'Evergreen standby LC. 60-day cancellation notice required.', createdAt: '2026-02-01T00:00:00Z', updatedAt: '2026-02-01T00:00:00Z' },
+  { lcId: 2, lcReference: 'LC/2026/CITI/005521', lcType: 'DOCUMENTARY', status: 'PARTIALLY_DRAWN',  counterpartyId: 3, counterpartyName: 'Equinor Energy AS',          beneficiaryEntityId: 1, beneficiaryEntityName: 'SmartETRM Trading Ltd', issuingBankName: 'Citibank N.A.',         issuingBankBic: 'CITIUS33',  confirmingBankName: 'Barclays Bank', lcAmount: 3500000,  lcCurrency: 'USD', issuedAmount: 3500000,  drawdownAmount: 1750000, availableAmount: 1750000,  issueDate: '2026-03-15', expiryDate: '2026-09-14', presentationDeadlineDays: 14, isEvergreen: false, autoRenewalDays: null, placeOfExpiry: 'Houston',   applicableLaw: 'UCP 600', notes: 'TTF gas delivery LC. 50% drawn on Jul cargo.', createdAt: '2026-03-15T00:00:00Z', updatedAt: '2026-07-05T00:00:00Z' },
+  { lcId: 3, lcReference: 'LC/2026/BNP/009871', lcType: 'REVOLVING',   status: 'ACTIVE',           counterpartyId: 4, counterpartyName: 'Glencore Metals',           beneficiaryEntityId: 1, beneficiaryEntityName: 'SmartETRM Trading Ltd', issuingBankName: 'BNP Paribas SA',        issuingBankBic: 'BNPAFRPP',  confirmingBankName: null,         lcAmount: 10000000, lcCurrency: 'USD', issuedAmount: 15000000, drawdownAmount: 3200000, availableAmount: 6800000,  issueDate: '2026-01-10', expiryDate: '2026-12-31', presentationDeadlineDays: 21, isEvergreen: false, autoRenewalDays: null, placeOfExpiry: 'Paris',     applicableLaw: 'UCP 600', notes: 'Revolving LC — reinstates after each draw.',  createdAt: '2026-01-10T00:00:00Z', updatedAt: '2026-06-01T00:00:00Z' },
+  { lcId: 4, lcReference: 'LC/2025/DBS/778821',  lcType: 'STANDBY',     status: 'EXPIRED',          counterpartyId: 5, counterpartyName: 'RWE Supply & Trading',      beneficiaryEntityId: 1, beneficiaryEntityName: 'SmartETRM Trading Ltd', issuingBankName: 'DBS Bank Ltd',          issuingBankBic: 'DBSSSGSG',  confirmingBankName: null,         lcAmount: 2000000,  lcCurrency: 'EUR', issuedAmount: 2000000,  drawdownAmount: 0,       availableAmount: 0,        issueDate: '2025-01-01', expiryDate: '2025-12-31', presentationDeadlineDays: 30, isEvergreen: false, autoRenewalDays: null, placeOfExpiry: 'Singapore', applicableLaw: 'ISP98',   notes: 'Expired. Renewal under discussion.',          createdAt: '2025-01-01T00:00:00Z', updatedAt: '2025-12-31T00:00:00Z' },
+];
+
 // ─── GENERAL TERMS & CONDITIONS ────────────────────────────────────────────────
 const gtcsStore: unknown[] = [
   { gtcId: 1, gtcCode: 'BP-OIL-2020', gtcName: 'BP Standard Crude Oil GTCs 2020', gtcType: 'CRUDE_OIL', version: '2020-v3', effectiveDate: '2020-01-01', expiryDate: null, jurisdiction: 'England & Wales', governingLaw: 'English Law', disputeResolution: 'LCIA', documentRef: 'DOC-GTC-001', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
@@ -376,14 +419,14 @@ const uomStore: unknown[] = [
   { uomId: 5, uomCode: 'THERM', uomName: 'Therm (100,000 BTU)', uomType: 'ENERGY', baseUomCode: 'MWH', conversionFactor: 0.02931, commodityHint: 'UK NBP gas market', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
   { uomId: 6, uomCode: 'BUSHEL', uomName: 'Bushel (US 60 lb)', uomType: 'VOLUME', baseUomCode: 'MT', conversionFactor: 0.027216, commodityHint: 'Grains: corn, wheat, soybeans (CBOT)', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
   { uomId: 7, uomCode: 'GAL', uomName: 'US Gallon', uomType: 'VOLUME', baseUomCode: 'BBL', conversionFactor: 0.02381, commodityHint: 'Refined products, NYMEX heating oil', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { uomId: 8, uomCode: 'M3', uomName: 'Cubic Metre', uomType: 'VOLUME', baseUomCode: 'MWH', conversionFactor: 10.55, commodityHint: 'Gas pipeline, LNG storage', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 8, uomCode: 'M3', uomName: 'Cubic Metre', uomType: 'VOLUME', baseUomCode: 'SCM', conversionFactor: 1, commodityHint: 'Gas pipeline, LNG storage (M3 = SCM at standard conditions)', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
   { uomId: 9, uomCode: 'KG', uomName: 'Kilogram', uomType: 'WEIGHT', baseUomCode: 'MT', conversionFactor: 0.001, commodityHint: 'Precious metals, chemicals', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
   { uomId: 10, uomCode: 'MW', uomName: 'Megawatt (capacity)', uomType: 'POWER', baseUomCode: 'MW', conversionFactor: 1, commodityHint: 'Power capacity (not energy)', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
   { uomId: 11, uomCode: 'LTR', uomName: 'Litre', uomType: 'VOLUME', baseUomCode: 'BBL', conversionFactor: 0.006290, commodityHint: 'Road tankers, retail fuel', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { uomId: 12, uomCode: 'SCFD',    uomName: 'Standard Cubic Feet per Day',      uomType: 'ENERGY', baseUomCode: 'MWH', conversionFactor: 0.000293,   commodityHint: 'Pipeline gas capacity (US)', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 12, uomCode: 'SCFD',    uomName: 'Standard Cubic Feet per Day',      uomType: 'VOLUME', baseUomCode: 'SCM',  conversionFactor: 0.0000283168, commodityHint: 'US pipeline gas capacity (1 SCF = 0.028317 SCM)', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
   { uomId: 13, uomCode: 'GJ',      uomName: 'Gigajoule',                         uomType: 'ENERGY', baseUomCode: 'MWH', conversionFactor: 0.27778,    commodityHint: 'Gas (Australia, continental EU wholesale)', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { uomId: 14, uomCode: 'SCM',     uomName: 'Standard Cubic Metre',              uomType: 'VOLUME', baseUomCode: 'MWH', conversionFactor: 0.010559,   commodityHint: 'Gas pipeline volumes (EU, Asia — H-Gas default)', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { uomId: 15, uomCode: 'MMSCM',   uomName: 'Million Standard Cubic Metres',     uomType: 'VOLUME', baseUomCode: 'MWH', conversionFactor: 10559,      commodityHint: 'Large gas pipeline capacity', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 14, uomCode: 'SCM',     uomName: 'Standard Cubic Metre',              uomType: 'VOLUME', baseUomCode: 'SCM',  conversionFactor: 1,          commodityHint: 'Gas pipeline volumes (EU, Asia). SCM→MWH requires product GCV — no commodity default.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 15, uomCode: 'MMSCM',   uomName: 'Million Standard Cubic Metres',     uomType: 'VOLUME', baseUomCode: 'SCM',  conversionFactor: 1000000,    commodityHint: 'Large gas pipeline capacity (1 MMSCM = 1,000,000 SCM)', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
   { uomId: 16, uomCode: 'LB',      uomName: 'Pound (weight)',                    uomType: 'WEIGHT', baseUomCode: 'MT',  conversionFactor: 0.0004536,  commodityHint: 'US agricultural (soybeans, wheat) and metals', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
   { uomId: 17, uomCode: 'CBM',     uomName: 'Cubic Metre (oil/liquid)',          uomType: 'VOLUME', baseUomCode: 'BBL', conversionFactor: 6.28981,    commodityHint: 'Oil product road tankers, refinery volumes', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
   { uomId: 18, uomCode: 'TROY_OZ', uomName: 'Troy Ounce',                        uomType: 'WEIGHT', baseUomCode: 'MT',  conversionFactor: 0.0000311,  commodityHint: 'Precious metals (gold, silver, platinum, palladium)', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
@@ -402,24 +445,33 @@ const uomConversionStore: unknown[] = [
   { conversionId: 6,  fromUomCode: 'KG',     toUomCode: 'TROY_OZ',factor: 32.1507466,    commodityType: null,           notes: '1 kg = 32.1507 Troy Oz' },
   { conversionId: 7,  fromUomCode: 'MT',     toUomCode: 'TROY_OZ',factor: 32150.7466,    commodityType: null,           notes: '1 MT = 32,150.75 Troy Oz' },
   { conversionId: 8,  fromUomCode: 'TROY_OZ',toUomCode: 'MT',     factor: 0.0000311035,  commodityType: null,           notes: '1 Troy Oz = 0.0000311035 MT' },
-  // ── OIL volume ────────────────────────────────────────────────────────────────
-  { conversionId: 9,  fromUomCode: 'BBL',    toUomCode: 'GAL',    factor: 42,            commodityType: 'OIL',          notes: '1 BBL = 42 US gallons — exact, API standard' },
-  { conversionId: 10, fromUomCode: 'GAL',    toUomCode: 'BBL',    factor: 0.0238095238,  commodityType: 'OIL',          notes: '1 US gallon = 1/42 BBL' },
+  // ── OIL volume (VOLUME→VOLUME only — exact, no density needed) ───────────────
+  { conversionId: 9,  fromUomCode: 'BBL',    toUomCode: 'GAL',    factor: 42,            commodityType: 'OIL',          notes: '1 BBL = 42 US gallons — exact, API standard (42 US gal = 158.987 L)' },
+  { conversionId: 10, fromUomCode: 'GAL',    toUomCode: 'BBL',    factor: 0.0238095238,  commodityType: 'OIL',          notes: '1 US gallon = 1/42 BBL — exact' },
   { conversionId: 11, fromUomCode: 'BBL',    toUomCode: 'CBM',    factor: 0.158987295,   commodityType: 'OIL',          notes: '1 BBL = 0.158987 m³ — exact (42 gal × 3.785412 L)' },
-  { conversionId: 12, fromUomCode: 'CBM',    toUomCode: 'BBL',    factor: 6.28981077,    commodityType: 'OIL',          notes: '1 m³ = 6.28981 BBL' },
-  { conversionId: 13, fromUomCode: 'BBL',    toUomCode: 'MT',     factor: 0.1364,        commodityType: 'OIL',          notes: 'DEFAULT: 1 BBL ≈ 0.1364 MT (crude ~857 kg/m³). Override with product.densityEstimateKgM3. Brent ≈ 0.1325, WTI ≈ 0.1349, ULSD ≈ 0.1344.' },
-  { conversionId: 14, fromUomCode: 'MT',     toUomCode: 'BBL',    factor: 7.33,          commodityType: 'OIL',          notes: 'DEFAULT: 1 MT ≈ 7.33 BBL (OPEC standard). Brent ≈ 7.55, WTI ≈ 7.41, ULSD ≈ 7.44.' },
-  // ── GAS energy ───────────────────────────────────────────────────────────────
-  { conversionId: 15, fromUomCode: 'MWH',    toUomCode: 'MMBTU',  factor: 3.41214148,    commodityType: 'GAS',          notes: '1 MWh = 3.412142 MMBTU — exact thermodynamic (1 BTU = 0.293071 Wh)' },
-  { conversionId: 16, fromUomCode: 'MMBTU',  toUomCode: 'MWH',    factor: 0.29307108,    commodityType: 'GAS',          notes: '1 MMBTU = 0.293071 MWh' },
-  { conversionId: 17, fromUomCode: 'MWH',    toUomCode: 'THERM',  factor: 34.1214148,    commodityType: 'GAS',          notes: '1 MWh = 34.1214 Therms' },
-  { conversionId: 18, fromUomCode: 'THERM',  toUomCode: 'MWH',    factor: 0.029307108,   commodityType: 'GAS',          notes: '1 Therm = 0.0293071 MWh (= 100,000 BTU)' },
-  { conversionId: 19, fromUomCode: 'MWH',    toUomCode: 'GJ',     factor: 3.6,           commodityType: 'GAS',          notes: '1 MWh = 3.6 GJ — exact (1 W = 1 J/s)' },
-  { conversionId: 20, fromUomCode: 'GJ',     toUomCode: 'MWH',    factor: 0.2777777778,  commodityType: 'GAS',          notes: '1 GJ = 0.27778 MWh' },
-  { conversionId: 21, fromUomCode: 'MMBTU',  toUomCode: 'GJ',     factor: 1.0550558526,  commodityType: 'GAS',          notes: '1 MMBTU = 1.055056 GJ — exact (1 BTU = 1055.06 J)' },
-  { conversionId: 22, fromUomCode: 'GJ',     toUomCode: 'MMBTU',  factor: 0.9478171203,  commodityType: 'GAS',          notes: '1 GJ = 0.947817 MMBTU' },
-  { conversionId: 23, fromUomCode: 'SCM',    toUomCode: 'MMBTU',  factor: 0.03603936,    commodityType: 'GAS',          notes: 'DEFAULT: 1 SCM ≈ 0.03604 MMBTU (H-Gas GCV ~38.0 MJ/scm). Override with product.cvGrossMjScm.' },
-  { conversionId: 24, fromUomCode: 'SCM',    toUomCode: 'MWH',    factor: 0.010559,      commodityType: 'GAS',          notes: 'DEFAULT: 1 SCM ≈ 0.010559 MWh (H-Gas GCV ~38 MJ/scm). Override with product.cvGrossMjScm.' },
+  { conversionId: 12, fromUomCode: 'CBM',    toUomCode: 'BBL',    factor: 6.28981077,    commodityType: 'OIL',          notes: '1 m³ = 6.28981 BBL — exact inverse' },
+  // BBL↔MT and CBM↔MT are NOT stored here. They require product density (kg/m³).
+  // Each OIL product has density_estimate_kg_m3 and density_base_kg_m3.
+  // Position engine formula: MT = CBM × density_kg_m3 / 1000
+  //   Brent (857 kg/m³): 1 BBL = 0.13625 MT   WTI (828 kg/m³): 1 BBL = 0.13165 MT
+  //   ULSD (838 kg/m³): 1 BBL = 0.13324 MT     Naphtha (720 kg/m³): 1 BBL = 0.11447 MT
+  //   Fuel Oil 380 (990 kg/m³): 1 BBL = 0.15741 MT
+  // A generic commodity-level factor would be wrong for almost every product.
+  // ── GAS energy (ENERGY→ENERGY only — exact thermodynamic ratios) ─────────────
+  { conversionId: 15, fromUomCode: 'MWH',    toUomCode: 'MMBTU',  factor: 3.41214148,    commodityType: 'GAS',          notes: '1 MWh = 3.412142 MMBTU — exact (1 BTU = 0.29307107 Wh). Energy→Energy, no GCV needed.' },
+  { conversionId: 16, fromUomCode: 'MMBTU',  toUomCode: 'MWH',    factor: 0.29307108,    commodityType: 'GAS',          notes: '1 MMBTU = 0.29307108 MWh — exact inverse' },
+  { conversionId: 17, fromUomCode: 'MWH',    toUomCode: 'THERM',  factor: 34.1214148,    commodityType: 'GAS',          notes: '1 MWh = 34.1214 Therms — exact (1 Therm = 100,000 BTU)' },
+  { conversionId: 18, fromUomCode: 'THERM',  toUomCode: 'MWH',    factor: 0.029307108,   commodityType: 'GAS',          notes: '1 Therm = 0.0293071 MWh — exact' },
+  { conversionId: 19, fromUomCode: 'MWH',    toUomCode: 'GJ',     factor: 3.6,           commodityType: 'GAS',          notes: '1 MWh = 3.6 GJ — exact (1 W = 1 J/s → 1 MWh = 3,600,000 J = 3.6 GJ)' },
+  { conversionId: 20, fromUomCode: 'GJ',     toUomCode: 'MWH',    factor: 0.2777777778,  commodityType: 'GAS',          notes: '1 GJ = 0.27778 MWh — exact' },
+  { conversionId: 21, fromUomCode: 'MMBTU',  toUomCode: 'GJ',     factor: 1.0550558526,  commodityType: 'GAS',          notes: '1 MMBTU = 1.055056 GJ — exact (1 BTU = 1,055.056 J)' },
+  { conversionId: 22, fromUomCode: 'GJ',     toUomCode: 'MMBTU',  factor: 0.9478171203,  commodityType: 'GAS',          notes: '1 GJ = 0.947817 MMBTU — exact inverse' },
+  // SCM↔MWH and SCM↔MMBTU are NOT stored here. They require product GCV (MJ/scm).
+  // Each GAS product has cv_gross_mj_scm and cv_net_mj_scm.
+  // Position engine formula: MWh = SCM × cv_gross_mj_scm / 3600
+  //   TTF H-Gas (38.0 MJ/scm): 1 SCM = 0.010556 MWh   NBP (39.5 MJ/scm): 1 SCM = 0.010972 MWh
+  //   JKM LNG (40.5 MJ/scm): 1 SCM = 0.011250 MWh     L-Gas (33.5 MJ/scm): 1 SCM = 0.009306 MWh
+  // A generic commodity-level GAS SCM→MWH factor would be wrong for every product.
   // ── POWER ────────────────────────────────────────────────────────────────────
   { conversionId: 25, fromUomCode: 'GWH',    toUomCode: 'MWH',    factor: 1000,          commodityType: 'POWER',        notes: '1 GWh = 1,000 MWh' },
   { conversionId: 26, fromUomCode: 'MWH',    toUomCode: 'GWH',    factor: 0.001,         commodityType: 'POWER',        notes: '1 MWh = 0.001 GWh' },
@@ -550,16 +602,87 @@ const incotermsRefStore: unknown[] = [
   { incotermId: 11, incotermCode: 'CIF', incotermName: 'Cost Insurance and Freight', version: 'INCOTERMS_2020', transportMode: 'SEA_INLAND', riskTransferPoint: 'On board vessel at load port', costResponsibility: 'Seller pays freight + min insurance (ICC-C); risk at load port', titleTransfer: 'Ship\'s rail at load port', isActive: true },
 ];
 
-// ─── TRADES ───────────────────────────────────────────────────────────────────
+// ─── BROKERS (IDB only — FCM/PRIME firms are Counterparties) ─────────────────
+const brokersStore: unknown[] = [
+  { brokerId: 1, brokerCode: 'ICAP',      brokerName: 'ICAP Energy',                  brokerType: 'VOICE',    description: 'Leading OTC voice IDB for crude oil, products, and natural gas. FCA authorised. Covers North Sea, Mediterranean, and US physical markets. Standard OBA in place.',                                    countryCode: 'GB', contactName: 'David Clarke',   contactEmail: 'dclarke@icap.com',        contactPhone: '+44 20 7000 1000', website: 'https://www.icap.com',          isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { brokerId: 2, brokerCode: 'GFI',       brokerName: 'GFI Group Commodities',        brokerType: 'HYBRID',   description: 'OTC IDB for power, gas, and emissions. Strong European gas and power coverage including TTF, NBP, and EEX. Voice desk alongside Trayport-connected electronic platform.',                             countryCode: 'US', contactName: 'Sarah Miller',   contactEmail: 'smiller@gfi.com',         contactPhone: '+1 212 968 4100',  website: 'https://www.gfigroup.com',      isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { brokerId: 3, brokerCode: 'BGC',       brokerName: 'BGC Partners Energy',          brokerType: 'VOICE',    description: 'OTC voice IDB for crude oil, refined products, and freight. Strong tanker freight and Mediterranean crude coverage. FCA/CFTC dual regulated.',                                                       countryCode: 'GB', contactName: 'James Walker',   contactEmail: 'jwalker@bgcpartners.com', contactPhone: '+44 20 7894 7000', website: 'https://www.bgcpartners.com',   isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { brokerId: 4, brokerCode: 'TRADITION', brokerName: 'Tradition Financial Services', brokerType: 'VOICE',    description: 'Voice IDB specialising in tanker freight, crude oil, and LNG. Primary contact for TD3C, TC2, and Baltic Dirty Tanker routes. BIMCO proforma preferred.',                                             countryCode: 'GB', contactName: 'Emma Thompson',  contactEmail: 'ethompson@tradition.com', contactPhone: '+44 20 7621 5555', website: 'https://www.tradition.com',     isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { brokerId: 5, brokerCode: 'TP-ICAP',   brokerName: 'TP ICAP Global Broking',       brokerType: 'HYBRID',   description: 'Largest OTC IDB globally. Covers all energy commodities. Operates Parameta Solutions electronic platform alongside traditional voice brokerage across oil, gas, power, and freight.',               countryCode: 'GB', contactName: 'Richard Haines', contactEmail: 'rhaines@tpicap.com',      contactPhone: '+44 20 7200 7000', website: 'https://www.tpicap.com',        isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { brokerId: 6, brokerCode: 'TULLETT',   brokerName: 'Tullett Prebon',               brokerType: 'VOICE',    description: 'Voice IDB for metals and base commodities. Covers LME copper, aluminium, zinc, and nickel. Retained brand within TP ICAP group for metals brokerage.',                                              countryCode: 'GB', contactName: 'Susan Park',     contactEmail: 'spark@tullettprebon.com', contactPhone: '+44 20 7200 7000', website: 'https://www.tullettprebon.com', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { brokerId: 7, brokerCode: 'SPARK',     brokerName: 'Spark Commodities',            brokerType: 'ELECTRONIC', description: 'Pure electronic LNG and freight platform. Digital order book for JKM spot, FOB Atlantic, and Pacific freight. No voice desk — fully algorithmic matching.',                                       countryCode: 'SG', contactName: 'Wei Chen',       contactEmail: 'wchen@sparkcommodities.com', contactPhone: '+65 6511 0000', website: 'https://www.sparkcommodities.com', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+];
+
+// ─── TRADES (master deal headers — no delivery-level fields) ─────────────────
+// Delivery fields (qty, price, period, product, commodity detail) live on TradeOrder.
 const tradesStore: unknown[] = [
-  { tradeId: 1, tradeReference: 'TRD-2026-00001', tradeDate: '2026-06-01', executionDatetime: '2026-06-01T09:30:00Z', commodityType: 'OIL', tradeType: 'PHYSICAL', direction: 'BUY', counterpartyId: 1, counterpartyName: 'Shell Trading International', traderId: 1, traderCode: 'JDO', bookId: 1, bookCode: 'CRUDE-PROP', legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', productId: 1, productCode: 'BRENT-CRUDE', marketId: 5, marketCode: 'OTC_NS_CRUDE', pricingRuleId: 1, pricingRuleCode: 'FLT-DTBRT-AVG', quantity: 500000, uomCode: 'BBL', price: 82.45, currencyCode: 'USD', incotermCode: 'FOB', deliveryLocationCode: 'SULLOM-VOE', periodCode: 'M2026-07', settlementType: 'PHYSICAL', status: 'CONFIRMED', notes: 'Forties blend cargo', amendmentNumber: 0, isLatestVersion: true, oilDetail: { crudeGrade: 'FORTIES', apiGravity: 40.7, sulphurPct: 0.26, loadLocationCode: 'SULLOM-VOE', dischargeLocationCode: 'ROTTERDAM', vesselName: 'NORDIC LUNA', laycanStart: '2026-07-10', laycanEnd: '2026-07-12', blDate: null, norsTenderedDate: null, codDate: null, pipelineId: null }, createdAt: '2026-06-01T09:30:00Z', updatedAt: '2026-06-01T09:30:00Z' },
-  { tradeId: 2, tradeReference: 'TRD-2026-00002', tradeDate: '2026-06-03', executionDatetime: '2026-06-03T10:15:00Z', commodityType: 'OIL', tradeType: 'FINANCIAL', direction: 'SELL', counterpartyId: 2, counterpartyName: 'BP Oil Trading', traderId: 4, traderCode: 'MJL', bookId: 2, bookCode: 'CRUDE-HEDGE', legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', productId: 3, productCode: 'BRENT-FUTURES', marketId: 1, marketCode: 'ICE_BRENT', pricingRuleId: 3, pricingRuleCode: 'FLT-WTI-PROMPT', quantity: 100000, uomCode: 'BBL', price: 83.10, currencyCode: 'USD', incotermCode: null, deliveryLocationCode: null, periodCode: 'M2026-07', settlementType: 'FINANCIAL', status: 'CONFIRMED', notes: 'Hedge against physical inventory', amendmentNumber: 0, isLatestVersion: true, oilDetail: null, createdAt: '2026-06-03T10:15:00Z', updatedAt: '2026-06-03T10:15:00Z' },
-  { tradeId: 3, tradeReference: 'TRD-2026-00003', tradeDate: '2026-06-05', executionDatetime: '2026-06-05T08:45:00Z', commodityType: 'GAS', tradeType: 'PHYSICAL', direction: 'BUY', counterpartyId: 3, counterpartyName: 'Equinor Energy AS', traderId: 2, traderCode: 'ASM', bookId: 3, bookCode: 'GAS-EU-TRADE', legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', productId: 4, productCode: 'TTF-GAS', marketId: 4, marketCode: 'ICE_TTF', pricingRuleId: 5, pricingRuleCode: 'FLT-TTF-MONTHLY', quantity: 50000, uomCode: 'MWH', price: 34.55, currencyCode: 'EUR', incotermCode: null, deliveryLocationCode: 'TTF-NL', periodCode: 'M2026-07', settlementType: 'FINANCIAL', status: 'CONFIRMED', notes: null, amendmentNumber: 0, isLatestVersion: true, gasDetail: { deliveryHub: 'TTF-NL', gasDeliveryStart: '2026-07-01', gasDeliveryEnd: '2026-07-31', swingPct: 10, gasDayType: 'STANDARD', nominationType: 'FIRM' }, createdAt: '2026-06-05T08:45:00Z', updatedAt: '2026-06-05T08:45:00Z' },
-  { tradeId: 4, tradeReference: 'TRD-2026-00004', tradeDate: '2026-06-10', executionDatetime: '2026-06-10T11:00:00Z', commodityType: 'METALS', tradeType: 'PHYSICAL', direction: 'BUY', counterpartyId: 4, counterpartyName: 'Glencore Metals', traderId: 3, traderCode: 'RKP', bookId: 4, bookCode: 'LME-CU-ARB', legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', productId: 6, productCode: 'LME-COPPER', marketId: 3, marketCode: 'LME_COPPER', pricingRuleId: 6, pricingRuleCode: 'FLT-LME-CU-CASH', quantity: 250, uomCode: 'MT', price: 9845.00, currencyCode: 'USD', incotermCode: null, deliveryLocationCode: 'LME-WAREHOUSE', periodCode: 'SPOT', settlementType: 'PHYSICAL', status: 'CONFIRMED', notes: 'Grade A cathode, LME approved warehouse', amendmentNumber: 0, isLatestVersion: true, metalsDetail: { metalGrade: 'GRADE_A', shape: 'CATHODE', lmeDate: '2026-06-13', warehouseLocationCode: 'LME-WAREHOUSE', brand: 'AURUBIS' }, createdAt: '2026-06-10T11:00:00Z', updatedAt: '2026-06-10T11:00:00Z' },
-  { tradeId: 5, tradeReference: 'TRD-2026-00005', tradeDate: '2026-06-12', executionDatetime: '2026-06-12T09:00:00Z', commodityType: 'POWER', tradeType: 'FINANCIAL', direction: 'SELL', counterpartyId: 5, counterpartyName: 'RWE Supply & Trading', traderId: 6, traderCode: 'SWN', bookId: 5, bookCode: 'POWER-CLIENT', legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', productId: 8, productCode: 'EEX-DE-POWER', marketId: 6, marketCode: 'EEX_DE_POWER', pricingRuleId: null, pricingRuleCode: null, quantity: 10000, uomCode: 'MWH', price: 68.75, currencyCode: 'EUR', incotermCode: null, deliveryLocationCode: null, periodCode: 'M2026-07', settlementType: 'FINANCIAL', status: 'CONFIRMED', notes: 'Baseload monthly', amendmentNumber: 0, isLatestVersion: true, powerDetail: { loadType: 'BASELOAD', mwCapacity: 50, mwhVolume: 37200, gridNodeCode: null, interconnector: null, deliveryStart: '2026-07-01', deliveryEnd: '2026-07-31' }, createdAt: '2026-06-12T09:00:00Z', updatedAt: '2026-06-12T09:00:00Z' },
-  { tradeId: 6, tradeReference: 'TRD-2026-00006', tradeDate: '2026-06-15', executionDatetime: '2026-06-15T14:30:00Z', commodityType: 'GAS', tradeType: 'PHYSICAL', direction: 'SELL', counterpartyId: 6, counterpartyName: 'Centrica Energy Trading', traderId: 5, traderCode: 'PLN', bookId: 3, bookCode: 'GAS-EU-TRADE', legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', productId: 5, productCode: 'NBP-GAS', marketId: 8, marketCode: 'OTC_NBP', pricingRuleId: null, pricingRuleCode: null, quantity: 75000, uomCode: 'THERM', price: 92.30, currencyCode: 'GBP', incotermCode: null, deliveryLocationCode: 'NBP-UK', periodCode: 'M2026-07', settlementType: 'PHYSICAL', status: 'DRAFT', notes: 'NBP physical day-ahead swing', amendmentNumber: 0, isLatestVersion: true, gasDetail: { deliveryHub: 'NBP-UK', gasDeliveryStart: '2026-07-01', gasDeliveryEnd: '2026-07-31', swingPct: 15, gasDayType: 'STANDARD', nominationType: 'INTERRUPTIBLE' }, createdAt: '2026-06-15T14:30:00Z', updatedAt: '2026-06-15T14:30:00Z' },
-  { tradeId: 7, tradeReference: 'TRD-2026-00007', tradeDate: '2026-06-20', executionDatetime: '2026-06-20T10:00:00Z', commodityType: 'OIL', tradeType: 'PHYSICAL', direction: 'SELL', counterpartyId: 7, counterpartyName: 'Vitol SA', traderId: 1, traderCode: 'JDO', bookId: 1, bookCode: 'CRUDE-PROP', legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', productId: 1, productCode: 'BRENT-CRUDE', marketId: 5, marketCode: 'OTC_NS_CRUDE', pricingRuleId: 2, pricingRuleCode: 'DIFF-URALS-MED', quantity: 750000, uomCode: 'BBL', price: 79.95, currencyCode: 'USD', incotermCode: 'CIF', deliveryLocationCode: 'ROTTERDAM', periodCode: 'M2026-07', settlementType: 'PHYSICAL', status: 'CONFIRMED', notes: 'Urals Med grade, 5-day BWAVE pricing', amendmentNumber: 0, isLatestVersion: true, oilDetail: { crudeGrade: 'URALS', apiGravity: 31.8, sulphurPct: 1.35, loadLocationCode: 'RAS-TANURA', dischargeLocationCode: 'ROTTERDAM', vesselName: 'FRONT ALTAIR', laycanStart: '2026-07-15', laycanEnd: '2026-07-18', blDate: null, norsTenderedDate: null, codDate: null, pipelineId: null }, createdAt: '2026-06-20T10:00:00Z', updatedAt: '2026-06-20T10:00:00Z' },
-  { tradeId: 8, tradeReference: 'TRD-2026-00008', tradeDate: '2026-06-22', executionDatetime: '2026-06-22T11:30:00Z', commodityType: 'AGRICULTURAL', tradeType: 'PHYSICAL', direction: 'BUY', counterpartyId: 8, counterpartyName: 'Cargill International SA', traderId: 2, traderCode: 'ASM', bookId: 3, bookCode: 'GAS-EU-TRADE', legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', productId: null, productCode: 'WHEAT-EU', marketId: null, marketCode: null, pricingRuleId: null, pricingRuleCode: null, quantity: 5000, uomCode: 'MT', price: 225.50, currencyCode: 'EUR', incotermCode: 'FOB', deliveryLocationCode: 'ROTTERDAM', periodCode: 'M2026-08', settlementType: 'PHYSICAL', status: 'DRAFT', notes: 'EU milling wheat, protein min 12%', amendmentNumber: 0, isLatestVersion: true, agriDetail: { cropYear: 2026, gradeQuality: 'EU MILLING WHEAT MIN 12% PROTEIN', originCountry: 'FR', deliveryBasis: 'FOB ROUEN' }, createdAt: '2026-06-22T11:30:00Z', updatedAt: '2026-06-22T11:30:00Z' },
+  { tradeId: 1, tradeReference: 'TRD-2026-00001', contractNumber: 'SHE-2026-OIL-4421',   tradeDate: '2026-06-01', executionDatetime: '2026-06-01T09:30:00Z', commodityType: 'OIL',         tradeType: 'PHYSICAL',  direction: 'BUY',  termType: 'SPOT', dealIndicator: 'EXTERNAL', contractType: 'SPOT',    status: 'CONFIRMED', counterpartyId: 1, counterpartyName: 'Shell Trading International', traderId: 1, traderCode: 'JDO', bookId: 1, bookCode: 'CRUDE-PROP',   legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', rfpMinQty: null, rfpMaxQty: null, rfpStartDate: null, rfpEndDate: null, rfpFrequency: null, brokerId: null, brokerCode: null, brokerName: null, brokerFeeType: null, brokerFee: null, brokerFeeCurrencyCode: null, creditTermCode: 'NET_30', creditApprovalStatus: 'APPROVED', creditLimitUsed: 41225000, gtcReference: 'EFET-OIL-2007',     notes: 'Forties blend cargo',                  parentTradeId: null, amendmentNumber: 0, isLatestVersion: true, orderCount: 1, createdAt: '2026-06-01T09:30:00Z', updatedAt: '2026-06-01T09:30:00Z' },
+  { tradeId: 2, tradeReference: 'TRD-2026-00002', contractNumber: null,                   tradeDate: '2026-06-03', executionDatetime: '2026-06-03T10:15:00Z', commodityType: 'OIL',         tradeType: 'FINANCIAL', direction: 'SELL', termType: 'SPOT', dealIndicator: 'EXTERNAL', contractType: 'MONTHLY', status: 'CONFIRMED', counterpartyId: 2, counterpartyName: 'BP Oil Trading',            traderId: 4, traderCode: 'MJL', bookId: 2, bookCode: 'CRUDE-HEDGE',  legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', rfpMinQty: null, rfpMaxQty: null, rfpStartDate: null, rfpEndDate: null, rfpFrequency: null, brokerId: 1,    brokerCode: 'ICAP',      brokerName: 'ICAP Energy',                  brokerFeeType: 'FIXED', brokerFee: 0.02,  brokerFeeCurrencyCode: 'USD', creditTermCode: 'NET_30', creditApprovalStatus: 'APPROVED', creditLimitUsed: 8310000,  gtcReference: 'ISDA-2002',         notes: 'Hedge against physical inventory',     parentTradeId: null, amendmentNumber: 0, isLatestVersion: true, orderCount: 1, createdAt: '2026-06-03T10:15:00Z', updatedAt: '2026-06-03T10:15:00Z' },
+  { tradeId: 3, tradeReference: 'TRD-2026-00003', contractNumber: 'EQ-TTF-2026-M07-M08',  tradeDate: '2026-06-05', executionDatetime: '2026-06-05T08:45:00Z', commodityType: 'GAS',         tradeType: 'PHYSICAL',  direction: 'BUY',  termType: 'RFP', dealIndicator: 'EXTERNAL', contractType: 'MONTHLY', status: 'CONFIRMED', counterpartyId: 3, counterpartyName: 'Equinor Energy AS',         traderId: 2, traderCode: 'ASM', bookId: 3, bookCode: 'GAS-EU-TRADE', legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', rfpMinQty: 40000, rfpMaxQty: 60000, rfpStartDate: '2026-07-01', rfpEndDate: '2026-08-31', rfpFrequency: 'MONTHLY', brokerId: 5, brokerCode: 'TP-ICAP', brokerName: 'TP ICAP Global Broking', brokerFeeType: 'FIXED', brokerFee: 0.01,  brokerFeeCurrencyCode: 'EUR', creditTermCode: 'NET_30', creditApprovalStatus: 'APPROVED', creditLimitUsed: 1727500,  gtcReference: 'EFET-GAS-2002',     notes: 'TTF Jul-Aug monthly contract',         parentTradeId: null, amendmentNumber: 0, isLatestVersion: true, orderCount: 2, createdAt: '2026-06-05T08:45:00Z', updatedAt: '2026-06-05T08:45:00Z' },
+  { tradeId: 4, tradeReference: 'TRD-2026-00004', contractNumber: 'GLC-LME-CU-2026-06',   tradeDate: '2026-06-10', executionDatetime: '2026-06-10T11:00:00Z', commodityType: 'METALS',      tradeType: 'PHYSICAL',  direction: 'BUY',  termType: 'SPOT', dealIndicator: 'EXTERNAL', contractType: 'SPOT',    status: 'CONFIRMED', counterpartyId: 4, counterpartyName: 'Glencore Metals',           traderId: 3, traderCode: 'RKP', bookId: 4, bookCode: 'LME-CU-ARB',   legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', rfpMinQty: null, rfpMaxQty: null, rfpStartDate: null, rfpEndDate: null, rfpFrequency: null, brokerId: null, brokerCode: null, brokerName: null, brokerFeeType: null, brokerFee: null, brokerFeeCurrencyCode: null, creditTermCode: 'NET_30', creditApprovalStatus: 'APPROVED', creditLimitUsed: 2461250,  gtcReference: 'LME-RULEBOOK-2023', notes: 'Grade A cathode',                      parentTradeId: null, amendmentNumber: 0, isLatestVersion: true, orderCount: 1, createdAt: '2026-06-10T11:00:00Z', updatedAt: '2026-06-10T11:00:00Z' },
+  { tradeId: 5, tradeReference: 'TRD-2026-00005', contractNumber: null,                   tradeDate: '2026-06-12', executionDatetime: '2026-06-12T09:00:00Z', commodityType: 'POWER',       tradeType: 'FINANCIAL', direction: 'SELL', termType: 'SPOT', dealIndicator: 'EXTERNAL', contractType: 'MONTHLY', status: 'CONFIRMED', counterpartyId: 5, counterpartyName: 'RWE Supply & Trading',      traderId: 6, traderCode: 'SWN', bookId: 5, bookCode: 'POWER-CLIENT', legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', rfpMinQty: null, rfpMaxQty: null, rfpStartDate: null, rfpEndDate: null, rfpFrequency: null, brokerId: 2,    brokerCode: 'GFI',       brokerName: 'GFI Group Commodities',        brokerFeeType: 'FIXED', brokerFee: 0.015, brokerFeeCurrencyCode: 'EUR', creditTermCode: 'NET_30', creditApprovalStatus: 'APPROVED', creditLimitUsed: 687500,   gtcReference: 'EFET-POWER-2022',   notes: 'Baseload monthly',                     parentTradeId: null, amendmentNumber: 0, isLatestVersion: true, orderCount: 1, createdAt: '2026-06-12T09:00:00Z', updatedAt: '2026-06-12T09:00:00Z' },
+  { tradeId: 6, tradeReference: 'TRD-2026-00006', contractNumber: 'CEN-NBP-PHYS-07-2026', tradeDate: '2026-06-15', executionDatetime: '2026-06-15T14:30:00Z', commodityType: 'GAS',         tradeType: 'PHYSICAL',  direction: 'SELL', termType: 'SPOT', dealIndicator: 'EXTERNAL', contractType: 'MONTHLY', status: 'DRAFT',     counterpartyId: 6, counterpartyName: 'Centrica Energy Trading',   traderId: 5, traderCode: 'PLN', bookId: 3, bookCode: 'GAS-EU-TRADE', legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', rfpMinQty: null, rfpMaxQty: null, rfpStartDate: null, rfpEndDate: null, rfpFrequency: null, brokerId: null, brokerCode: null, brokerName: null, brokerFeeType: null, brokerFee: null, brokerFeeCurrencyCode: null, creditTermCode: 'NET_14', creditApprovalStatus: 'PENDING',  creditLimitUsed: null,     gtcReference: 'GTMA-2002',         notes: 'NBP physical day-ahead swing',         parentTradeId: null, amendmentNumber: 0, isLatestVersion: true, orderCount: 1, createdAt: '2026-06-15T14:30:00Z', updatedAt: '2026-06-15T14:30:00Z' },
+  { tradeId: 7, tradeReference: 'TRD-2026-00007', contractNumber: 'VIT-2026-URALS-001',   tradeDate: '2026-06-20', executionDatetime: '2026-06-20T10:00:00Z', commodityType: 'OIL',         tradeType: 'PHYSICAL',  direction: 'SELL', termType: 'SPOT', dealIndicator: 'EXTERNAL', contractType: 'SPOT',    status: 'CONFIRMED', counterpartyId: 7, counterpartyName: 'Vitol SA',                  traderId: 1, traderCode: 'JDO', bookId: 1, bookCode: 'CRUDE-PROP',   legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', rfpMinQty: null, rfpMaxQty: null, rfpStartDate: null, rfpEndDate: null, rfpFrequency: null, brokerId: 3,    brokerCode: 'BGC',       brokerName: 'BGC Partners Energy',          brokerFeeType: 'FIXED', brokerFee: 0.03,  brokerFeeCurrencyCode: 'USD', creditTermCode: 'NET_30', creditApprovalStatus: 'APPROVED', creditLimitUsed: 59962500, gtcReference: 'EFET-OIL-2007',     notes: 'Urals Med grade, 5-day BWAVE pricing', parentTradeId: null, amendmentNumber: 0, isLatestVersion: true, orderCount: 1, createdAt: '2026-06-20T10:00:00Z', updatedAt: '2026-06-20T10:00:00Z' },
+  { tradeId: 8, tradeReference: 'TRD-2026-00008', contractNumber: null,                   tradeDate: '2026-06-22', executionDatetime: '2026-06-22T11:30:00Z', commodityType: 'AGRICULTURAL', tradeType: 'PHYSICAL', direction: 'BUY',  termType: 'SPOT', dealIndicator: 'EXTERNAL', contractType: 'SPOT',    status: 'DRAFT',     counterpartyId: 8, counterpartyName: 'Cargill International SA',  traderId: 2, traderCode: 'ASM', bookId: 3, bookCode: 'GAS-EU-TRADE', legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', rfpMinQty: null, rfpMaxQty: null, rfpStartDate: null, rfpEndDate: null, rfpFrequency: null, brokerId: null, brokerCode: null, brokerName: null, brokerFeeType: null, brokerFee: null, brokerFeeCurrencyCode: null, creditTermCode: 'NET_30', creditApprovalStatus: 'PENDING',  creditLimitUsed: null,     gtcReference: null,                notes: 'EU milling wheat, protein min 12%',    parentTradeId: null, amendmentNumber: 0, isLatestVersion: true, orderCount: 1, createdAt: '2026-06-22T11:30:00Z', updatedAt: '2026-06-22T11:30:00Z' },
+  { tradeId: 9, tradeReference: 'TRD-2026-00009', contractNumber: 'BIMCO-TD3C-202607',    tradeDate: '2026-06-25', executionDatetime: '2026-06-25T11:00:00Z', commodityType: 'FREIGHT',     tradeType: 'PHYSICAL',  direction: 'BUY',  termType: 'SPOT', dealIndicator: 'EXTERNAL', contractType: 'SPOT',    status: 'DRAFT',     counterpartyId: 1, counterpartyName: 'Shell Trading International', traderId: 1, traderCode: 'JDO', bookId: 1, bookCode: 'CRUDE-PROP',   legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', rfpMinQty: null, rfpMaxQty: null, rfpStartDate: null, rfpEndDate: null, rfpFrequency: null, brokerId: 4,    brokerCode: 'TRADITION', brokerName: 'Tradition Financial Services', brokerFeeType: 'FIXED', brokerFee: 2500,  brokerFeeCurrencyCode: 'USD', creditTermCode: 'NET_30', creditApprovalStatus: 'PENDING',  creditLimitUsed: null,     gtcReference: 'BIMCO-GENCON-94',   notes: 'TD3C VLCC voyage, Ras Tanura to Chiba Japan', parentTradeId: null, amendmentNumber: 0, isLatestVersion: true, orderCount: 1, createdAt: '2026-06-25T11:00:00Z', updatedAt: '2026-06-25T11:00:00Z' },
+];
+
+// ─── TRADE ORDERS (delivery legs — one per period) ───────────────────────────
+let orderIdSeq = 100;
+const tradeOrdersStore: unknown[] = [
+  // TRD-001: OIL PHYSICAL BUY — 1 leg (spot cargo)
+  { orderId: 1,  tradeId: 1, orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00001-01', status: 'CONFIRMED', periodCode: 'M2026-07', riskStartDate: '2026-07-10', riskEndDate: '2026-07-12', productId: 1, productCode: 'BRENT-CRUDE', productName: 'Brent Crude Oil', marketId: 5, marketCode: 'OTC_NS_CRUDE', pricingRuleId: 1, pricingRuleCode: 'FLT-DTBRT-AVG', quantity: 500000, uomCode: 'BBL', price: 82.45, currencyCode: 'USD', incotermCode: 'FOB', deliveryLocationCode: 'SULLOM-VOE', settlementType: 'PHYSICAL', notes: 'Forties blend cargo', oilDetail: { crudeGrade: 'FORTIES', apiGravity: 40.7, sulphurPct: 0.26, motType: 'TANKER', loadLocationCode: 'SULLOM-VOE', dischargeLocationCode: 'ROTTERDAM', titleTransferLocationCode: 'SULLOM-VOE', vesselName: 'NORDIC LUNA', laycanStart: '2026-07-10', laycanEnd: '2026-07-12', blDate: null, norsTenderedDate: null, codDate: null, pipelineId: null }, createdAt: '2026-06-01T09:30:00Z', updatedAt: '2026-06-01T09:30:00Z' },
+  // TRD-002: OIL FINANCIAL SELL — 1 leg (monthly hedge)
+  { orderId: 2,  tradeId: 2, orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00002-01', status: 'CONFIRMED', periodCode: 'M2026-07', riskStartDate: '2026-07-01', riskEndDate: '2026-07-31', productId: 3, productCode: 'BRENT-FUTURES', productName: 'Brent Crude Futures', marketId: 1, marketCode: 'ICE_BRENT', pricingRuleId: 3, pricingRuleCode: 'FLT-WTI-PROMPT', quantity: 100000, uomCode: 'BBL', price: 83.10, currencyCode: 'USD', incotermCode: null, deliveryLocationCode: null, settlementType: 'FINANCIAL', notes: 'Hedge against physical inventory', createdAt: '2026-06-03T10:15:00Z', updatedAt: '2026-06-03T10:15:00Z' },
+  // TRD-003: GAS PHYSICAL BUY Equinor — 2 legs (Jul template, Aug detail)
+  { orderId: 3,  tradeId: 3, orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00003-01', status: 'CONFIRMED', periodCode: 'M2026-07', riskStartDate: '2026-07-01', riskEndDate: '2026-07-31', productId: 4, productCode: 'TTF-GAS', productName: 'TTF Natural Gas', marketId: 4, marketCode: 'ICE_TTF', pricingRuleId: 5, pricingRuleCode: 'FLT-TTF-MONTHLY', quantity: 50000, uomCode: 'MWH', price: 34.55, currencyCode: 'EUR', incotermCode: null, deliveryLocationCode: 'TTF-NL', settlementType: 'FINANCIAL', notes: null, gasDetail: { deliveryHub: 'TTF-NL', gasDeliveryStart: '2026-07-01', gasDeliveryEnd: '2026-07-31', swingPct: 10, gasDayType: 'STANDARD', nominationType: 'FIRM' }, createdAt: '2026-06-05T08:45:00Z', updatedAt: '2026-06-05T08:45:00Z' },
+  { orderId: 4,  tradeId: 3, orderSequence: 2, isTemplate: false, orderReference: 'TRD-2026-00003-02', status: 'WORKING',   periodCode: 'M2026-08', riskStartDate: '2026-08-01', riskEndDate: '2026-08-31', productId: 4, productCode: 'TTF-GAS', productName: 'TTF Natural Gas', marketId: 4, marketCode: 'ICE_TTF', pricingRuleId: 5, pricingRuleCode: 'FLT-TTF-MONTHLY', quantity: 50000, uomCode: 'MWH', price: null, currencyCode: 'EUR', incotermCode: null, deliveryLocationCode: 'TTF-NL', settlementType: 'FINANCIAL', notes: 'Aug leg — price TBD', gasDetail: { deliveryHub: 'TTF-NL', gasDeliveryStart: '2026-08-01', gasDeliveryEnd: '2026-08-31', swingPct: 10, gasDayType: 'STANDARD', nominationType: 'FIRM' }, createdAt: '2026-06-05T08:45:00Z', updatedAt: '2026-06-05T08:45:00Z' },
+  // TRD-004: METALS PHYSICAL BUY — 1 leg (LME copper spot)
+  { orderId: 5,  tradeId: 4, orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00004-01', status: 'CONFIRMED', periodCode: 'SPOT', riskStartDate: '2026-06-13', riskEndDate: '2026-06-13', productId: 6, productCode: 'LME-COPPER', productName: 'LME Grade A Copper', marketId: 3, marketCode: 'LME_COPPER', pricingRuleId: 6, pricingRuleCode: 'FLT-LME-CU-CASH', quantity: 250, uomCode: 'MT', price: 9845.00, currencyCode: 'USD', incotermCode: null, deliveryLocationCode: 'LME-WAREHOUSE', settlementType: 'PHYSICAL', notes: 'Grade A cathode, LME approved warehouse', metalsDetail: { metalGrade: 'GRADE_A', shape: 'CATHODE', motType: 'TRUCK', lmeDate: '2026-06-13', warehouseLocationCode: 'LME-WAREHOUSE', titleTransferLocationCode: 'LME-WAREHOUSE', brand: 'AURUBIS' }, createdAt: '2026-06-10T11:00:00Z', updatedAt: '2026-06-10T11:00:00Z' },
+  // TRD-005: POWER FINANCIAL SELL — 1 leg (EEX DE baseload Jul)
+  { orderId: 6,  tradeId: 5, orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00005-01', status: 'CONFIRMED', periodCode: 'M2026-07', riskStartDate: '2026-07-01', riskEndDate: '2026-07-31', productId: 8, productCode: 'EEX-DE-POWER', productName: 'EEX German Power Baseload', marketId: 6, marketCode: 'EEX_DE_POWER', pricingRuleId: null, pricingRuleCode: null, quantity: 10000, uomCode: 'MWH', price: 68.75, currencyCode: 'EUR', incotermCode: null, deliveryLocationCode: null, settlementType: 'FINANCIAL', notes: 'Baseload monthly', powerDetail: { loadType: 'BASELOAD', mwCapacity: 50, mwhVolume: 37200, gridNodeCode: 'DE-AT-LU', interconnector: null, deliveryStart: '2026-07-01', deliveryEnd: '2026-07-31' }, createdAt: '2026-06-12T09:00:00Z', updatedAt: '2026-06-12T09:00:00Z' },
+  // TRD-006: GAS PHYSICAL SELL Centrica — 1 leg (NBP Jul)
+  { orderId: 7,  tradeId: 6, orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00006-01', status: 'WORKING',   periodCode: 'M2026-07', riskStartDate: '2026-07-01', riskEndDate: '2026-07-31', productId: 5, productCode: 'NBP-GAS', productName: 'NBP Natural Gas', marketId: 8, marketCode: 'OTC_NBP', pricingRuleId: null, pricingRuleCode: null, quantity: 75000, uomCode: 'THERM', price: 92.30, currencyCode: 'GBP', incotermCode: null, deliveryLocationCode: 'NBP-UK', settlementType: 'PHYSICAL', notes: 'NBP physical day-ahead swing', gasDetail: { deliveryHub: 'NBP-UK', gasDeliveryStart: '2026-07-01', gasDeliveryEnd: '2026-07-31', swingPct: 15, gasDayType: 'STANDARD', nominationType: 'INTERRUPTIBLE' }, createdAt: '2026-06-15T14:30:00Z', updatedAt: '2026-06-15T14:30:00Z' },
+  // TRD-007: OIL PHYSICAL SELL Vitol — 1 leg (Urals spot cargo)
+  { orderId: 8,  tradeId: 7, orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00007-01', status: 'CONFIRMED', periodCode: 'M2026-07', riskStartDate: '2026-07-15', riskEndDate: '2026-07-17', productId: 1, productCode: 'BRENT-CRUDE', productName: 'Brent Crude Oil', marketId: 5, marketCode: 'OTC_NS_CRUDE', pricingRuleId: 2, pricingRuleCode: 'DIFF-URALS-MED', quantity: 750000, uomCode: 'BBL', price: 79.95, currencyCode: 'USD', incotermCode: 'CIF', deliveryLocationCode: 'ROTTERDAM', settlementType: 'PHYSICAL', notes: 'Urals Med grade, 5-day BWAVE pricing', oilDetail: { crudeGrade: 'URALS', apiGravity: 31.8, sulphurPct: 1.35, motType: 'TANKER', loadLocationCode: 'RAS-TANURA', dischargeLocationCode: 'ROTTERDAM', titleTransferLocationCode: 'ROTTERDAM', vesselName: 'FRONT ALTAIR', laycanStart: '2026-07-15', laycanEnd: '2026-07-18', blDate: null, norsTenderedDate: null, codDate: null, pipelineId: null }, createdAt: '2026-06-20T10:00:00Z', updatedAt: '2026-06-20T10:00:00Z' },
+  // TRD-008: AGRI PHYSICAL BUY Cargill — 1 leg (EU wheat Aug)
+  { orderId: 9,  tradeId: 8, orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00008-01', status: 'WORKING',   periodCode: 'M2026-08', riskStartDate: '2026-08-01', riskEndDate: '2026-08-31', productId: 16, productCode: 'WHEAT-EU', productName: 'Euronext Milling Wheat', marketId: null, marketCode: null, pricingRuleId: null, pricingRuleCode: null, quantity: 5000, uomCode: 'MT', price: 225.50, currencyCode: 'EUR', incotermCode: 'FOB', deliveryLocationCode: 'ROTTERDAM', settlementType: 'PHYSICAL', notes: 'EU milling wheat, protein min 12%', agriDetail: { cropYear: 2026, gradeQuality: 'EU MILLING WHEAT MIN 12% PROTEIN', originCountry: 'FR', deliveryBasis: 'FOB ROUEN', motType: 'SHIP' }, createdAt: '2026-06-22T11:30:00Z', updatedAt: '2026-06-22T11:30:00Z' },
+  // TRD-009: FREIGHT BUY Shell — 1 leg (VLCC TD3C)
+  { orderId: 10, tradeId: 9, orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00009-01', status: 'WORKING',   periodCode: null,        riskStartDate: '2026-07-10', riskEndDate: '2026-07-15', productId: null, productCode: null, productName: null, marketId: null, marketCode: null, pricingRuleId: null, pricingRuleCode: null, quantity: 280000, uomCode: 'MT', price: 15.50, currencyCode: 'USD', incotermCode: 'FOB', deliveryLocationCode: 'RAS-TANURA', settlementType: 'FINANCIAL', notes: 'TD3C VLCC voyage, Ras Tanura to Chiba Japan', freightDetail: { vesselType: 'VLCC', routeCode: 'TD3C', loadLocationCode: 'RAS-TANURA', dischargeLocationCode: 'CHIBA-JP', cargoSizeMT: 280000, freightRateType: 'WORLDSCALE', freightRate: 75.00, laycanStart: '2026-07-10', laycanEnd: '2026-07-13', charterType: 'VOYAGE' }, createdAt: '2026-06-25T11:00:00Z', updatedAt: '2026-06-25T11:00:00Z' },
+];
+
+// ─── TRADE ITEMS (line items within orders) ───────────────────────────────────
+let itemIdSeq = 50;
+const tradeItemsStore: unknown[] = [
+  { itemId: 1, orderId: 1, itemSequence: 1, productId: 1, productCode: 'BRENT-CRUDE', description: 'Forties Crude — Main Cargo', quantity: 490000, uomCode: 'BBL', unitPrice: 82.45, currencyCode: 'USD', notes: null, createdAt: '2026-06-01T09:30:00Z' },
+  { itemId: 2, orderId: 1, itemSequence: 2, productId: null, productCode: null, description: 'Operational Tolerance (±2%)',        quantity: 10000,  uomCode: 'BBL', unitPrice: 82.45, currencyCode: 'USD', notes: 'Within ±2% cargo tolerance clause', createdAt: '2026-06-01T09:30:00Z' },
+];
+
+// ─── POSITIONS ────────────────────────────────────────────────────────────────
+// Positions are aggregated from trades by (book, product, period).
+// netQuantityBase is computed from the product's pricing basis fields:
+//   OIL   (BBL): MT  = BBL × 0.158987 m³/BBL × densityEstimateKgM3 / 1000
+//   GAS   (SCM): MWH = SCM × cvGrossMjScm / 3600
+//   ENERGY unit: MWH = qty × fixed energy ratio (THERM→MWH, MMBTU→MWH, GJ→MWH)
+//   MT/MWH already: netQuantityBase = netQuantity, conversionSource = 'SAME_UOM'
+const positionStore: unknown[] = [
+  // Book 1: CRUDE-PROP / BRENT-CRUDE / M2026-07 (BUY 500k - SELL 750k = SHORT 250k BBL)
+  // density 857 kg/m3 → 1 BBL = 0.158987 × 857 / 1000 = 0.136250 MT
+  { positionId: 1, positionType: 'COMMODITY', bookId: 1, bookCode: 'CRUDE-PROP', bookName: 'Crude Proprietary', productId: 1, productCode: 'BRENT-CRUDE', productName: 'Brent Crude Oil', commodityType: 'OIL', periodCode: 'M2026-07', netQuantity: -250000, grossBuyQuantity: 500000, grossSellQuantity: 750000, quantityUomCode: 'BBL', netQuantityBase: -34062.5, baseUomCode: 'MT', conversionSource: 'DENSITY_ESTIMATE', avgPrice: 80.95, currencyCode: 'USD', tradeCount: 2, calculatedAt: '2026-06-28T00:00:00Z' },
+  // Book 2: CRUDE-HEDGE / BRENT-FUTURES / M2026-07 (SELL 100k BBL)
+  // density 857 kg/m3 → -100,000 × 0.136250 = -13,625 MT
+  { positionId: 2, positionType: 'COMMODITY', bookId: 2, bookCode: 'CRUDE-HEDGE', bookName: 'Crude Hedge', productId: 3, productCode: 'BRENT-FUTURES', productName: 'Brent Crude Futures', commodityType: 'OIL', periodCode: 'M2026-07', netQuantity: -100000, grossBuyQuantity: 0, grossSellQuantity: 100000, quantityUomCode: 'BBL', netQuantityBase: -13625.0, baseUomCode: 'MT', conversionSource: 'DENSITY_ESTIMATE', avgPrice: 83.10, currencyCode: 'USD', tradeCount: 1, calculatedAt: '2026-06-28T00:00:00Z' },
+  // Book 3: GAS-EU-TRADE / TTF-GAS / M2026-07 (BUY 50,000 MWH — already in base UoM)
+  { positionId: 3, positionType: 'COMMODITY', bookId: 3, bookCode: 'GAS-EU-TRADE', bookName: 'Gas EU Trading', productId: 4, productCode: 'TTF-GAS', productName: 'TTF Natural Gas', commodityType: 'GAS', periodCode: 'M2026-07', netQuantity: 50000, grossBuyQuantity: 50000, grossSellQuantity: 0, quantityUomCode: 'MWH', netQuantityBase: 50000, baseUomCode: 'MWH', conversionSource: 'SAME_UOM', avgPrice: 34.55, currencyCode: 'EUR', tradeCount: 1, calculatedAt: '2026-06-28T00:00:00Z' },
+  // Book 3: GAS-EU-TRADE / NBP-GAS / M2026-07 (SELL 75,000 THERM)
+  // THERM→MWH: fixed ratio 1 THERM = 0.0293071 MWH → -75,000 × 0.0293071 = -2,198.0 MWH
+  { positionId: 4, positionType: 'COMMODITY', bookId: 3, bookCode: 'GAS-EU-TRADE', bookName: 'Gas EU Trading', productId: 5, productCode: 'NBP-GAS', productName: 'NBP Natural Gas', commodityType: 'GAS', periodCode: 'M2026-07', netQuantity: -75000, grossBuyQuantity: 0, grossSellQuantity: 75000, quantityUomCode: 'THERM', netQuantityBase: -2198.0, baseUomCode: 'MWH', conversionSource: 'ENERGY_CONVERSION', avgPrice: 92.30, currencyCode: 'GBP', tradeCount: 1, calculatedAt: '2026-06-28T00:00:00Z' },
+  // Book 4: LME-CU-ARB / LME-COPPER / SPOT (BUY 250 MT — already in base UoM)
+  { positionId: 5, positionType: 'COMMODITY', bookId: 4, bookCode: 'LME-CU-ARB', bookName: 'LME Copper Arbitrage', productId: 6, productCode: 'LME-COPPER', productName: 'LME Grade A Copper', commodityType: 'METALS', periodCode: 'SPOT', netQuantity: 250, grossBuyQuantity: 250, grossSellQuantity: 0, quantityUomCode: 'MT', netQuantityBase: 250, baseUomCode: 'MT', conversionSource: 'SAME_UOM', avgPrice: 9845.00, currencyCode: 'USD', tradeCount: 1, calculatedAt: '2026-06-28T00:00:00Z' },
+  // Book 5: POWER-CLIENT / EEX-DE-POWER / M2026-07 (SELL 10,000 MWH — already in base UoM)
+  { positionId: 6, positionType: 'COMMODITY', bookId: 5, bookCode: 'POWER-CLIENT', bookName: 'Power Client Desk', productId: 8, productCode: 'EEX-DE-POWER', productName: 'EEX German Power Baseload', commodityType: 'POWER', periodCode: 'M2026-07', netQuantity: -10000, grossBuyQuantity: 0, grossSellQuantity: 10000, quantityUomCode: 'MWH', netQuantityBase: -10000, baseUomCode: 'MWH', conversionSource: 'SAME_UOM', avgPrice: 68.75, currencyCode: 'EUR', tradeCount: 1, calculatedAt: '2026-06-28T00:00:00Z' },
+  // Book 3: GAS-EU-TRADE / WHEAT-EU / M2026-08 (BUY 5,000 MT — already in base UoM)
+  { positionId: 7, positionType: 'COMMODITY', bookId: 3, bookCode: 'GAS-EU-TRADE', bookName: 'Gas EU Trading', productId: 16, productCode: 'WHEAT-EU', productName: 'Euronext Milling Wheat (EU)', commodityType: 'AGRICULTURAL', periodCode: 'M2026-08', netQuantity: 5000, grossBuyQuantity: 5000, grossSellQuantity: 0, quantityUomCode: 'MT', netQuantityBase: 5000, baseUomCode: 'MT', conversionSource: 'SAME_UOM', avgPrice: 225.50, currencyCode: 'EUR', tradeCount: 1, calculatedAt: '2026-06-28T00:00:00Z' },
 ];
 
 // ─── GENERIC CRUD FACTORY ─────────────────────────────────────────────────────
@@ -665,6 +788,142 @@ const priceIndexSourcesStore: unknown[] = [
   { pisId: 6, priceIndexId: 6, priceIndexCode: 'LME-CU-CASH', priceIndexName: 'LME Copper Cash', priceSourceId: 3, sourceCode: 'BLOOMBERG', sourceName: 'Bloomberg', sourceRole: 'BACKUP', sourceFieldCode: null, sourceTicker: 'LMCADY Comdty', priceMultiplier: 1, priceOffset: 0, effectiveFrom: '2020-01-01', effectiveTo: null, isActive: true },
   { pisId: 7, priceIndexId: 9, priceIndexCode: 'ARGUS-URALS', priceIndexName: 'Argus Urals Med', priceSourceId: 2, sourceCode: 'ARGUS', sourceName: 'Argus Media', sourceRole: 'PRIMARY_MTM', sourceFieldCode: 'AP-0001', sourceTicker: null, priceMultiplier: 1, priceOffset: 0, effectiveFrom: '2020-01-01', effectiveTo: null, isActive: true },
 ];
+
+// ─── FIELD PERMISSIONS DATA ────────────────────────────────────────────────────
+
+const fieldRegistryStore: unknown[] = [
+  // Core trade fields
+  { fieldId: 1,  fieldKey: 'tradeDate',            fieldLabel: 'Trade Date',            fieldGroup: 'Trade Header',  isRequiredField: true,  sortOrder: 10 },
+  { fieldId: 2,  fieldKey: 'executionDatetime',     fieldLabel: 'Execution Time',        fieldGroup: 'Trade Header',  isRequiredField: false, sortOrder: 11 },
+  { fieldId: 3,  fieldKey: 'commodityType',         fieldLabel: 'Commodity Type',        fieldGroup: 'Trade Header',  isRequiredField: true,  sortOrder: 12 },
+  { fieldId: 4,  fieldKey: 'tradeType',             fieldLabel: 'Trade Type',            fieldGroup: 'Trade Header',  isRequiredField: true,  sortOrder: 13 },
+  { fieldId: 5,  fieldKey: 'direction',             fieldLabel: 'Direction (Buy/Sell)',  fieldGroup: 'Trade Header',  isRequiredField: true,  sortOrder: 14 },
+  { fieldId: 6,  fieldKey: 'status',                fieldLabel: 'Status',                fieldGroup: 'Trade Header',  isRequiredField: true,  sortOrder: 15 },
+  { fieldId: 7,  fieldKey: 'notes',                 fieldLabel: 'Notes',                 fieldGroup: 'Trade Header',  isRequiredField: false, sortOrder: 19 },
+  // Counterparty / book
+  { fieldId: 10, fieldKey: 'counterpartyId',        fieldLabel: 'Counterparty',          fieldGroup: 'Counterparty',  isRequiredField: true,  sortOrder: 20 },
+  { fieldId: 11, fieldKey: 'traderId',              fieldLabel: 'Trader',                fieldGroup: 'Counterparty',  isRequiredField: true,  sortOrder: 21 },
+  { fieldId: 12, fieldKey: 'bookId',                fieldLabel: 'Book',                  fieldGroup: 'Counterparty',  isRequiredField: true,  sortOrder: 22 },
+  { fieldId: 13, fieldKey: 'legalEntityId',         fieldLabel: 'Legal Entity',          fieldGroup: 'Counterparty',  isRequiredField: true,  sortOrder: 23 },
+  // Product / pricing
+  { fieldId: 20, fieldKey: 'productId',             fieldLabel: 'Product',               fieldGroup: 'Product',       isRequiredField: true,  sortOrder: 30 },
+  { fieldId: 21, fieldKey: 'marketId',              fieldLabel: 'Market',                fieldGroup: 'Product',       isRequiredField: false, sortOrder: 31 },
+  { fieldId: 22, fieldKey: 'pricingRuleId',         fieldLabel: 'Pricing Rule',          fieldGroup: 'Product',       isRequiredField: false, sortOrder: 32 },
+  { fieldId: 23, fieldKey: 'periodCode',            fieldLabel: 'Delivery Period',       fieldGroup: 'Product',       isRequiredField: true,  sortOrder: 33 },
+  // Quantity / price
+  { fieldId: 30, fieldKey: 'quantity',              fieldLabel: 'Quantity',              fieldGroup: 'Quantity & Price', isRequiredField: true, sortOrder: 40 },
+  { fieldId: 31, fieldKey: 'uomCode',               fieldLabel: 'Unit of Measure',       fieldGroup: 'Quantity & Price', isRequiredField: true, sortOrder: 41 },
+  { fieldId: 32, fieldKey: 'price',                 fieldLabel: 'Price',                 fieldGroup: 'Quantity & Price', isRequiredField: true, sortOrder: 42 },
+  { fieldId: 33, fieldKey: 'currencyCode',          fieldLabel: 'Currency',              fieldGroup: 'Quantity & Price', isRequiredField: true, sortOrder: 43 },
+  { fieldId: 34, fieldKey: 'settlementType',        fieldLabel: 'Settlement Type',       fieldGroup: 'Quantity & Price', isRequiredField: true, sortOrder: 44 },
+  // Logistics
+  { fieldId: 40, fieldKey: 'incotermCode',          fieldLabel: 'Incoterms',             fieldGroup: 'Logistics',     isRequiredField: false, sortOrder: 50 },
+  { fieldId: 41, fieldKey: 'deliveryLocationCode',  fieldLabel: 'Delivery Location',     fieldGroup: 'Logistics',     isRequiredField: false, sortOrder: 51 },
+  // V29 — Trade core (contract type, risk, broker, credit)
+  { fieldId: 3,  fieldKey: 'contractType',           fieldLabel: 'Contract Type',         fieldGroup: 'Trade ID',      isRequiredField: false, sortOrder: 5  },
+  { fieldId: 4,  fieldKey: 'riskStartDate',          fieldLabel: 'Risk Start Date',       fieldGroup: 'Risk Period',   isRequiredField: true,  sortOrder: 6  },
+  { fieldId: 5,  fieldKey: 'riskEndDate',            fieldLabel: 'Risk End Date',         fieldGroup: 'Risk Period',   isRequiredField: true,  sortOrder: 7  },
+  { fieldId: 6,  fieldKey: 'brokerId',               fieldLabel: 'Broker',                fieldGroup: 'Broker',        isRequiredField: false, sortOrder: 8  },
+  { fieldId: 7,  fieldKey: 'brokerFeeType',          fieldLabel: 'Broker Fee Type',       fieldGroup: 'Broker',        isRequiredField: false, sortOrder: 9  },
+  { fieldId: 8,  fieldKey: 'brokerFee',              fieldLabel: 'Broker Fee',            fieldGroup: 'Broker',        isRequiredField: false, sortOrder: 10 },
+  { fieldId: 9,  fieldKey: 'brokerFeeCurrencyCode',  fieldLabel: 'Broker Fee Currency',   fieldGroup: 'Broker',        isRequiredField: false, sortOrder: 11 },
+  { fieldId: 42, fieldKey: 'creditTermCode',         fieldLabel: 'Credit Terms',          fieldGroup: 'Credit & Legal', isRequiredField: false, sortOrder: 52 },
+  { fieldId: 43, fieldKey: 'creditApprovalStatus',   fieldLabel: 'Credit Approval',       fieldGroup: 'Credit & Legal', isRequiredField: false, sortOrder: 53 },
+  { fieldId: 44, fieldKey: 'creditLimitUsed',        fieldLabel: 'Credit Limit Used',     fieldGroup: 'Credit & Legal', isRequiredField: false, sortOrder: 54 },
+  { fieldId: 45, fieldKey: 'gtcReference',           fieldLabel: 'GTC Reference',         fieldGroup: 'Credit & Legal', isRequiredField: false, sortOrder: 55 },
+  // OIL detail
+  { fieldId: 50, fieldKey: 'oilDetail.crudeGrade',              fieldLabel: 'Crude Grade',            fieldGroup: 'OIL Detail',    isRequiredField: false, sortOrder: 60 },
+  { fieldId: 51, fieldKey: 'oilDetail.apiGravity',              fieldLabel: 'API Gravity',            fieldGroup: 'OIL Detail',    isRequiredField: false, sortOrder: 61 },
+  { fieldId: 52, fieldKey: 'oilDetail.sulphurPct',              fieldLabel: 'Sulphur (%wt)',          fieldGroup: 'OIL Detail',    isRequiredField: false, sortOrder: 62 },
+  { fieldId: 53, fieldKey: 'oilDetail.motType',                 fieldLabel: 'MOT',                    fieldGroup: 'OIL Detail',    isRequiredField: false, sortOrder: 63 },
+  { fieldId: 54, fieldKey: 'oilDetail.loadLocationCode',        fieldLabel: 'Load Location',          fieldGroup: 'OIL Detail',    isRequiredField: false, sortOrder: 64 },
+  { fieldId: 55, fieldKey: 'oilDetail.dischargeLocationCode',   fieldLabel: 'Discharge Location',     fieldGroup: 'OIL Detail',    isRequiredField: false, sortOrder: 65 },
+  { fieldId: 56, fieldKey: 'oilDetail.titleTransferLocationCode', fieldLabel: 'Title Transfer Point', fieldGroup: 'OIL Detail',    isRequiredField: false, sortOrder: 66 },
+  { fieldId: 57, fieldKey: 'oilDetail.vesselName',              fieldLabel: 'Vessel Name',            fieldGroup: 'OIL Detail',    isRequiredField: false, sortOrder: 67 },
+  { fieldId: 58, fieldKey: 'oilDetail.pipelineId',              fieldLabel: 'Pipeline',               fieldGroup: 'OIL Detail',    isRequiredField: false, sortOrder: 68 },
+  { fieldId: 59, fieldKey: 'oilDetail.laycanStart',             fieldLabel: 'Laycan Start',           fieldGroup: 'OIL Detail',    isRequiredField: false, sortOrder: 69 },
+  { fieldId: 60, fieldKey: 'oilDetail.laycanEnd',               fieldLabel: 'Laycan End',             fieldGroup: 'OIL Detail',    isRequiredField: false, sortOrder: 70 },
+  { fieldId: 61, fieldKey: 'oilDetail.blDate',                  fieldLabel: 'B/L Date',               fieldGroup: 'OIL Detail',    isRequiredField: false, sortOrder: 71 },
+  { fieldId: 62, fieldKey: 'oilDetail.norsTenderedDate',        fieldLabel: 'NOR Tendered Date',      fieldGroup: 'OIL Detail',    isRequiredField: false, sortOrder: 72 },
+  { fieldId: 63, fieldKey: 'oilDetail.codDate',                 fieldLabel: 'COD Date',               fieldGroup: 'OIL Detail',    isRequiredField: false, sortOrder: 73 },
+  // GAS detail
+  { fieldId: 70, fieldKey: 'gasDetail.deliveryHub',       fieldLabel: 'Delivery Hub',          fieldGroup: 'GAS Detail',    isRequiredField: false, sortOrder: 80 },
+  { fieldId: 71, fieldKey: 'gasDetail.nominationType',    fieldLabel: 'Nomination Type',       fieldGroup: 'GAS Detail',    isRequiredField: false, sortOrder: 81 },
+  { fieldId: 72, fieldKey: 'gasDetail.swingPct',          fieldLabel: 'Swing (%)',             fieldGroup: 'GAS Detail',    isRequiredField: false, sortOrder: 82 },
+  { fieldId: 73, fieldKey: 'gasDetail.gasDeliveryStart',  fieldLabel: 'Gas Delivery Start',    fieldGroup: 'GAS Detail',    isRequiredField: false, sortOrder: 83 },
+  { fieldId: 74, fieldKey: 'gasDetail.gasDeliveryEnd',    fieldLabel: 'Gas Delivery End',      fieldGroup: 'GAS Detail',    isRequiredField: false, sortOrder: 84 },
+  { fieldId: 75, fieldKey: 'gasDetail.gasDayType',        fieldLabel: 'Gas Day Type',          fieldGroup: 'GAS Detail',    isRequiredField: false, sortOrder: 85 },
+  // POWER detail
+  { fieldId: 80, fieldKey: 'powerDetail.loadType',        fieldLabel: 'Load Type',             fieldGroup: 'POWER Detail',  isRequiredField: false, sortOrder: 90 },
+  { fieldId: 81, fieldKey: 'powerDetail.mwCapacity',      fieldLabel: 'MW Capacity',           fieldGroup: 'POWER Detail',  isRequiredField: false, sortOrder: 91 },
+  { fieldId: 82, fieldKey: 'powerDetail.mwhVolume',       fieldLabel: 'MWh Volume',            fieldGroup: 'POWER Detail',  isRequiredField: false, sortOrder: 92 },
+  { fieldId: 83, fieldKey: 'powerDetail.deliveryStart',   fieldLabel: 'Delivery Start',        fieldGroup: 'POWER Detail',  isRequiredField: false, sortOrder: 93 },
+  { fieldId: 84, fieldKey: 'powerDetail.deliveryEnd',     fieldLabel: 'Delivery End',          fieldGroup: 'POWER Detail',  isRequiredField: false, sortOrder: 94 },
+  { fieldId: 85, fieldKey: 'powerDetail.gridNodeCode',    fieldLabel: 'Grid Node',             fieldGroup: 'POWER Detail',  isRequiredField: false, sortOrder: 95 },
+  { fieldId: 86, fieldKey: 'powerDetail.interconnector',  fieldLabel: 'Interconnector',        fieldGroup: 'POWER Detail',  isRequiredField: false, sortOrder: 96 },
+  // LNG detail
+  { fieldId: 87, fieldKey: 'lngDetail.loadTerminalCode',          fieldLabel: 'Load Terminal',         fieldGroup: 'LNG Detail',    isRequiredField: false, sortOrder: 97  },
+  { fieldId: 88, fieldKey: 'lngDetail.dischargeTerminalCode',     fieldLabel: 'Discharge Terminal',    fieldGroup: 'LNG Detail',    isRequiredField: false, sortOrder: 98  },
+  { fieldId: 89, fieldKey: 'lngDetail.titleTransferLocationCode', fieldLabel: 'Title Transfer Point',  fieldGroup: 'LNG Detail',    isRequiredField: false, sortOrder: 99  },
+  { fieldId: 90, fieldKey: 'lngDetail.motType',                   fieldLabel: 'MOT',                   fieldGroup: 'LNG Detail',    isRequiredField: false, sortOrder: 100 },
+  { fieldId: 91, fieldKey: 'lngDetail.cargoVolumeMmbtu',          fieldLabel: 'Cargo Volume (MMBtu)',  fieldGroup: 'LNG Detail',    isRequiredField: false, sortOrder: 101 },
+  { fieldId: 92, fieldKey: 'lngDetail.priceBasis',                fieldLabel: 'Price Basis',           fieldGroup: 'LNG Detail',    isRequiredField: false, sortOrder: 102 },
+  // METALS detail
+  { fieldId: 93, fieldKey: 'metalsDetail.metalGrade',              fieldLabel: 'Metal Grade',          fieldGroup: 'METALS Detail', isRequiredField: false, sortOrder: 103 },
+  { fieldId: 94, fieldKey: 'metalsDetail.shape',                   fieldLabel: 'Shape',                fieldGroup: 'METALS Detail', isRequiredField: false, sortOrder: 104 },
+  { fieldId: 95, fieldKey: 'metalsDetail.motType',                 fieldLabel: 'MOT',                  fieldGroup: 'METALS Detail', isRequiredField: false, sortOrder: 105 },
+  { fieldId: 96, fieldKey: 'metalsDetail.lmeDate',                 fieldLabel: 'LME Date',             fieldGroup: 'METALS Detail', isRequiredField: false, sortOrder: 106 },
+  { fieldId: 97, fieldKey: 'metalsDetail.warehouseLocationCode',   fieldLabel: 'Warehouse',            fieldGroup: 'METALS Detail', isRequiredField: false, sortOrder: 107 },
+  { fieldId: 98, fieldKey: 'metalsDetail.titleTransferLocationCode', fieldLabel: 'Title Transfer Point', fieldGroup: 'METALS Detail', isRequiredField: false, sortOrder: 108 },
+  { fieldId: 99, fieldKey: 'metalsDetail.brand',                   fieldLabel: 'Brand',                fieldGroup: 'METALS Detail', isRequiredField: false, sortOrder: 109 },
+  // AGRI detail
+  { fieldId: 110, fieldKey: 'agriDetail.cropYear',        fieldLabel: 'Crop Year',             fieldGroup: 'AGRI Detail',    isRequiredField: false, sortOrder: 110 },
+  { fieldId: 111, fieldKey: 'agriDetail.gradeQuality',    fieldLabel: 'Grade / Quality',       fieldGroup: 'AGRI Detail',    isRequiredField: false, sortOrder: 111 },
+  { fieldId: 112, fieldKey: 'agriDetail.originCountry',   fieldLabel: 'Origin Country',        fieldGroup: 'AGRI Detail',    isRequiredField: false, sortOrder: 112 },
+  { fieldId: 113, fieldKey: 'agriDetail.deliveryBasis',   fieldLabel: 'Delivery Basis',        fieldGroup: 'AGRI Detail',    isRequiredField: false, sortOrder: 113 },
+  { fieldId: 114, fieldKey: 'agriDetail.motType',         fieldLabel: 'MOT',                   fieldGroup: 'AGRI Detail',    isRequiredField: false, sortOrder: 114 },
+  // FREIGHT detail (V30)
+  { fieldId: 120, fieldKey: 'freightDetail.vesselType',          fieldLabel: 'Vessel Type',          fieldGroup: 'FREIGHT Detail', isRequiredField: false, sortOrder: 120 },
+  { fieldId: 121, fieldKey: 'freightDetail.charterType',         fieldLabel: 'Charter Type',         fieldGroup: 'FREIGHT Detail', isRequiredField: false, sortOrder: 121 },
+  { fieldId: 122, fieldKey: 'freightDetail.routeCode',           fieldLabel: 'Route Code',           fieldGroup: 'FREIGHT Detail', isRequiredField: false, sortOrder: 122 },
+  { fieldId: 123, fieldKey: 'freightDetail.loadLocationCode',    fieldLabel: 'Load Port',            fieldGroup: 'FREIGHT Detail', isRequiredField: false, sortOrder: 123 },
+  { fieldId: 124, fieldKey: 'freightDetail.dischargeLocationCode', fieldLabel: 'Discharge Port',     fieldGroup: 'FREIGHT Detail', isRequiredField: false, sortOrder: 124 },
+  { fieldId: 125, fieldKey: 'freightDetail.cargoSizeMT',         fieldLabel: 'Cargo Size (MT)',      fieldGroup: 'FREIGHT Detail', isRequiredField: false, sortOrder: 125 },
+  { fieldId: 126, fieldKey: 'freightDetail.freightRateType',     fieldLabel: 'Rate Type',            fieldGroup: 'FREIGHT Detail', isRequiredField: false, sortOrder: 126 },
+  { fieldId: 127, fieldKey: 'freightDetail.freightRate',         fieldLabel: 'Freight Rate',         fieldGroup: 'FREIGHT Detail', isRequiredField: false, sortOrder: 127 },
+  { fieldId: 128, fieldKey: 'freightDetail.laycanStart',         fieldLabel: 'Laycan Start',         fieldGroup: 'FREIGHT Detail', isRequiredField: false, sortOrder: 128 },
+  { fieldId: 129, fieldKey: 'freightDetail.laycanEnd',           fieldLabel: 'Laycan End',           fieldGroup: 'FREIGHT Detail', isRequiredField: false, sortOrder: 129 },
+];
+
+const profileStore: unknown[] = [
+  { profileId: 1, profileCode: 'TRADE_BLOTTER_TRADER',     profileName: 'Trader — Full Access',    description: 'Full edit access to all commercial and logistics fields.', screenCode: 'TRADE_BLOTTER', isActive: true },
+  { profileId: 2, profileCode: 'TRADE_BLOTTER_CREDIT_MGR', profileName: 'Credit Manager',          description: 'Can view commercial terms; cannot edit price or quantity.', screenCode: 'TRADE_BLOTTER', isActive: true },
+  { profileId: 3, profileCode: 'TRADE_BLOTTER_VIEWER',     profileName: 'Read-Only Viewer',        description: 'View-only access to trade data. Cannot edit any field.', screenCode: 'TRADE_BLOTTER', isActive: true },
+];
+
+// Per-profile field rules: profileId + fieldId → AccessLevel
+// Profile 1 (Trader): full EDIT on everything
+// Profile 2 (Credit Mgr): VIEW on price/quantity, HIDDEN on logistics details, EDIT on rest
+// Profile 3 (Viewer): VIEW on everything
+const profileRulesStore: unknown[] = (() => {
+  const reg = fieldRegistryStore as Array<{ fieldId: number; fieldKey: string }>;
+  const rules: Array<{ profileId: number; fieldId: number; fieldPermission: string }> = [];
+  reg.forEach(({ fieldId, fieldKey }) => {
+    // Profile 1 — Trader: EDIT everything
+    rules.push({ profileId: 1, fieldId, fieldPermission: 'EDIT' });
+    // Profile 2 — Credit Manager
+    let perm2 = 'EDIT';
+    if (['price', 'quantity', 'uomCode', 'currencyCode'].includes(fieldKey)) perm2 = 'VIEW';
+    if (fieldKey.startsWith('oilDetail.') || fieldKey.startsWith('gasDetail.') ||
+        fieldKey.startsWith('powerDetail.') || fieldKey.startsWith('lngDetail.') ||
+        fieldKey.startsWith('metalsDetail.') || fieldKey.startsWith('agriDetail.') ||
+        fieldKey.startsWith('freightDetail.')) perm2 = 'HIDDEN';
+    rules.push({ profileId: 2, fieldId, fieldPermission: perm2 });
+    // Profile 3 — Read-Only Viewer: VIEW everything
+    rules.push({ profileId: 3, fieldId, fieldPermission: 'VIEW' });
+  });
+  return rules;
+})();
 
 export const etrmHandlers = [
   // Markets (trading markets)
@@ -806,6 +1065,15 @@ export const etrmHandlers = [
     (productSpecTemplateStore as Array<Record<string, unknown>>).push(next);
     return HttpResponse.json(next, { status: 201 });
   }),
+  http.put(`${API}/products/:id/spec-templates/:templateId`, async ({ params, request }) => {
+    const templateId = Number(params.templateId);
+    const store = productSpecTemplateStore as Array<Record<string, unknown>>;
+    const idx = store.findIndex((t) => t['templateId'] === templateId);
+    if (idx === -1) return new HttpResponse(null, { status: 404 });
+    const body = await request.json() as Record<string, unknown>;
+    store[idx] = { ...store[idx], ...body };
+    return HttpResponse.json(store[idx]);
+  }),
 
   // ── Spec values ───────────────────────────────────────────────────────────────
   http.get(`${API}/spec-templates/:id/values`, ({ params }) => {
@@ -858,6 +1126,21 @@ export const etrmHandlers = [
     };
     (productBlendComponentStore as Array<Record<string, unknown>>).push(next);
     return HttpResponse.json(next, { status: 201 });
+  }),
+  http.put(`${API}/products/:id/blend-components/:blendComponentId`, async ({ params, request }) => {
+    const blendComponentId = Number(params.blendComponentId);
+    const store = productBlendComponentStore as Array<Record<string, unknown>>;
+    const idx = store.findIndex((c) => c['blendComponentId'] === blendComponentId);
+    if (idx === -1) return new HttpResponse(null, { status: 404 });
+    const body = await request.json() as Record<string, unknown>;
+    const comp = (productsStore as Array<Record<string, unknown>>).find((p) => p['productId'] === body['componentProductId']);
+    store[idx] = {
+      ...store[idx],
+      ...body,
+      componentCode: comp?.['productCode'] ?? store[idx]['componentCode'],
+      componentName: comp?.['productName'] ?? store[idx]['componentName'],
+    };
+    return HttpResponse.json(store[idx]);
   }),
   http.delete(`${API}/products/:id/blend-components/:blendComponentId`, ({ params }) => {
     const blendComponentId = Number(params.blendComponentId);
@@ -930,11 +1213,82 @@ export const etrmHandlers = [
     return HttpResponse.json((tradesStore as Array<Record<string, unknown>>)[idx]);
   }),
 
+  // Trade Orders
+  http.get(`${API}/trade-orders`, ({ request }) => {
+    const tradeId = Number(new URL(request.url).searchParams.get('tradeId'));
+    const rows = (tradeOrdersStore as Array<Record<string, unknown>>).filter((o) => o['tradeId'] === tradeId);
+    return HttpResponse.json(rows);
+  }),
+  http.post(`${API}/trade-orders`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const tradeId = input['tradeId'] as number;
+    const existingOrders = (tradeOrdersStore as Array<Record<string, unknown>>).filter((o) => o['tradeId'] === tradeId);
+    const nextSeq = existingOrders.length + 1;
+    const trade = (tradesStore as Array<Record<string, unknown>>).find((t) => t['tradeId'] === tradeId);
+    const ref = trade ? `${String(trade['tradeReference'])}-${String(nextSeq).padStart(2, '0')}` : `ORD-${orderIdSeq}`;
+    const row = { ...input, orderId: orderIdSeq++, orderSequence: nextSeq, orderReference: ref, createdAt: now(), updatedAt: now() };
+    tradeOrdersStore.push(row);
+    // increment orderCount on parent trade
+    const tIdx = (tradesStore as Array<Record<string, unknown>>).findIndex((t) => t['tradeId'] === tradeId);
+    if (tIdx !== -1) (tradesStore as Array<Record<string, unknown>>)[tIdx]['orderCount'] = nextSeq;
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/trade-orders/:id`, async ({ params, request }) => {
+    const idx = (tradeOrdersStore as Array<Record<string, unknown>>).findIndex((o) => o['orderId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Order ${params.id} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    (tradeOrdersStore as Array<Record<string, unknown>>)[idx] = { ...(tradeOrdersStore as Array<Record<string, unknown>>)[idx], ...input, updatedAt: now() };
+    return HttpResponse.json((tradeOrdersStore as Array<Record<string, unknown>>)[idx]);
+  }),
+  http.patch(`${API}/trade-orders/:id/cancel`, ({ params }) => {
+    const idx = (tradeOrdersStore as Array<Record<string, unknown>>).findIndex((o) => o['orderId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Order ${params.id} not found.`);
+    (tradeOrdersStore as Array<Record<string, unknown>>)[idx]['status'] = 'CANCELLED';
+    (tradeOrdersStore as Array<Record<string, unknown>>)[idx]['updatedAt'] = now();
+    return HttpResponse.json((tradeOrdersStore as Array<Record<string, unknown>>)[idx]);
+  }),
+  http.patch(`${API}/trade-orders/:id/confirm`, ({ params }) => {
+    const idx = (tradeOrdersStore as Array<Record<string, unknown>>).findIndex((o) => o['orderId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Order ${params.id} not found.`);
+    (tradeOrdersStore as Array<Record<string, unknown>>)[idx]['status'] = 'CONFIRMED';
+    (tradeOrdersStore as Array<Record<string, unknown>>)[idx]['updatedAt'] = now();
+    return HttpResponse.json((tradeOrdersStore as Array<Record<string, unknown>>)[idx]);
+  }),
+
+  // Trade Items
+  http.get(`${API}/trade-items`, ({ request }) => {
+    const orderId = Number(new URL(request.url).searchParams.get('orderId'));
+    const rows = (tradeItemsStore as Array<Record<string, unknown>>).filter((i) => i['orderId'] === orderId);
+    return HttpResponse.json(rows);
+  }),
+  http.post(`${API}/trade-items`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const orderId = input['orderId'] as number;
+    const existingItems = (tradeItemsStore as Array<Record<string, unknown>>).filter((i) => i['orderId'] === orderId);
+    const row = { ...input, itemId: itemIdSeq++, itemSequence: existingItems.length + 1, createdAt: now() };
+    tradeItemsStore.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/trade-items/:id`, async ({ params, request }) => {
+    const idx = (tradeItemsStore as Array<Record<string, unknown>>).findIndex((i) => i['itemId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Item ${params.id} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    (tradeItemsStore as Array<Record<string, unknown>>)[idx] = { ...(tradeItemsStore as Array<Record<string, unknown>>)[idx], ...input };
+    return HttpResponse.json((tradeItemsStore as Array<Record<string, unknown>>)[idx]);
+  }),
+  http.delete(`${API}/trade-items/:id`, ({ params }) => {
+    const idx = (tradeItemsStore as Array<Record<string, unknown>>).findIndex((i) => i['itemId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Item ${params.id} not found.`);
+    tradeItemsStore.splice(idx, 1);
+    return new HttpResponse(null, { status: 204 });
+  }),
+
   // New master data domains
   ...crudHandlers('admin/users', systemUsersStore as Array<Record<string, unknown>>, 'userId'),
   ...crudHandlers('payment-terms', paymentTermsStore as Array<Record<string, unknown>>, 'paymentTermId'),
   ...crudHandlers('payment-methods', paymentMethodsStore as Array<Record<string, unknown>>, 'paymentMethodId'),
   ...crudHandlers('gtcs', gtcsStore as Array<Record<string, unknown>>, 'gtcId'),
+  ...crudHandlers('broker-fee-agreements', brokerFeeAgreementsStore as Array<Record<string, unknown>>, 'agreementId'),
   ...crudHandlers('trucks', trucksStore as Array<Record<string, unknown>>, 'vehicleId'),
   ...crudHandlers('storage', storageStore as Array<Record<string, unknown>>, 'storageId'),
   ...crudHandlers('currencies', currenciesStore as Array<Record<string, unknown>>, 'currencyId'),
@@ -991,7 +1345,9 @@ export const etrmHandlers = [
   http.get(`${API}/incoterms-ref`, () => HttpResponse.json(incotermsRefStore)),
   ...crudHandlers('incoterms-ref', incotermsRefStore as Array<Record<string, unknown>>, 'incotermId'),
 
-  // Reference data lookups for trade capture dropdowns
+  // Brokers — full CRUD (also used as reference data dropdown in trade capture)
+  ...crudHandlers('brokers', brokersStore as Array<Record<string, unknown>>, 'brokerId'),
+
   http.get(`${API}/counterparties`, () => HttpResponse.json([
     { counterpartyId: 1, counterpartyCode: 'SHELL-TRD', name: 'Shell Trading International' },
     { counterpartyId: 2, counterpartyCode: 'BP-OIL', name: 'BP Oil Trading' },
@@ -1018,4 +1374,157 @@ export const etrmHandlers = [
     { incotermId: 6, incotermCode: 'FCA', incotermName: 'Free Carrier', applicableModes: 'ALL' },
     { incotermId: 7, incotermCode: 'EXW', incotermName: 'Ex Works', applicableModes: 'ALL' },
   ])),
+
+  // ─── FIELD-LEVEL PERMISSIONS ────────────────────────────────────────────────
+
+  // Field registry — one row per configurable field on TRADE_BLOTTER
+  // Demonstrates all three permission states: EDIT, VIEW (locked), HIDDEN
+  http.get(`${API}/permissions/effective-fields`, ({ request }) => {
+    const url = new URL(request.url);
+    const tradeStatus = url.searchParams.get('tradeStatus');
+    const hasInvoice  = url.searchParams.get('hasInvoice') === 'true';
+
+    // All fields default to EDIT
+    const permissions: Record<string, string> = {
+      tradeDate: 'EDIT', executionDatetime: 'EDIT', commodityType: 'EDIT',
+      tradeType: 'EDIT', direction: 'EDIT', status: 'EDIT', notes: 'EDIT',
+      contractType: 'EDIT', riskStartDate: 'EDIT', riskEndDate: 'EDIT',
+      counterpartyId: 'EDIT', traderId: 'EDIT', bookId: 'EDIT', legalEntityId: 'EDIT',
+      productId: 'EDIT', marketId: 'EDIT', pricingRuleId: 'EDIT', periodCode: 'EDIT',
+      quantity: 'EDIT', uomCode: 'EDIT', price: 'EDIT', currencyCode: 'EDIT', settlementType: 'EDIT',
+      incotermCode: 'EDIT', deliveryLocationCode: 'EDIT',
+      brokerId: 'EDIT', brokerFeeType: 'EDIT', brokerFee: 'EDIT', brokerFeeCurrencyCode: 'EDIT',
+      creditTermCode: 'EDIT', creditApprovalStatus: 'EDIT', creditLimitUsed: 'EDIT', gtcReference: 'EDIT',
+      'oilDetail.crudeGrade': 'EDIT', 'oilDetail.apiGravity': 'EDIT', 'oilDetail.sulphurPct': 'EDIT',
+      'oilDetail.motType': 'EDIT', 'oilDetail.loadLocationCode': 'EDIT', 'oilDetail.dischargeLocationCode': 'EDIT',
+      'oilDetail.titleTransferLocationCode': 'EDIT',
+      'oilDetail.vesselName': 'EDIT', 'oilDetail.laycanStart': 'EDIT', 'oilDetail.laycanEnd': 'EDIT',
+      'oilDetail.blDate': 'EDIT', 'oilDetail.norsTenderedDate': 'EDIT', 'oilDetail.codDate': 'EDIT',
+      'oilDetail.pipelineId': 'EDIT',
+      'gasDetail.deliveryHub': 'EDIT', 'gasDetail.gasDeliveryStart': 'EDIT', 'gasDetail.gasDeliveryEnd': 'EDIT',
+      'gasDetail.swingPct': 'EDIT', 'gasDetail.gasDayType': 'EDIT', 'gasDetail.nominationType': 'EDIT',
+      'powerDetail.loadType': 'EDIT', 'powerDetail.mwCapacity': 'EDIT', 'powerDetail.mwhVolume': 'EDIT',
+      'powerDetail.gridNodeCode': 'EDIT', 'powerDetail.interconnector': 'EDIT',
+      'powerDetail.deliveryStart': 'EDIT', 'powerDetail.deliveryEnd': 'EDIT',
+      'lngDetail.loadTerminalCode': 'EDIT', 'lngDetail.dischargeTerminalCode': 'EDIT',
+      'lngDetail.titleTransferLocationCode': 'EDIT', 'lngDetail.motType': 'EDIT',
+      'lngDetail.cargoVolumeMmbtu': 'EDIT', 'lngDetail.priceBasis': 'EDIT',
+      'metalsDetail.metalGrade': 'EDIT', 'metalsDetail.shape': 'EDIT',
+      'metalsDetail.motType': 'EDIT', 'metalsDetail.lmeDate': 'EDIT',
+      'metalsDetail.warehouseLocationCode': 'EDIT', 'metalsDetail.titleTransferLocationCode': 'EDIT',
+      'metalsDetail.brand': 'EDIT',
+      'agriDetail.cropYear': 'EDIT', 'agriDetail.gradeQuality': 'EDIT',
+      'agriDetail.originCountry': 'EDIT', 'agriDetail.deliveryBasis': 'EDIT', 'agriDetail.motType': 'EDIT',
+      'freightDetail.vesselType': 'EDIT', 'freightDetail.charterType': 'EDIT', 'freightDetail.routeCode': 'EDIT',
+      'freightDetail.loadLocationCode': 'EDIT', 'freightDetail.dischargeLocationCode': 'EDIT',
+      'freightDetail.cargoSizeMT': 'EDIT', 'freightDetail.freightRateType': 'EDIT', 'freightDetail.freightRate': 'EDIT',
+      'freightDetail.laycanStart': 'EDIT', 'freightDetail.laycanEnd': 'EDIT',
+    };
+
+    const lockedFields: Record<string, string> = {};
+
+    // Layer 1: simulate lifecycle locks when trade is confirmed/closed
+    const lockedStatuses = ['CONFIRMED', 'MATURED', 'CLOSED', 'CANCELLED'];
+    if (tradeStatus && lockedStatuses.includes(tradeStatus)) {
+      const commercialFields = [
+        'counterpartyId', 'traderId', 'bookId', 'legalEntityId', 'commodityType',
+        'tradeType', 'direction', 'quantity', 'uomCode', 'price', 'currencyCode',
+        'incotermCode', 'periodCode', 'settlementType',
+        'contractType', 'riskStartDate', 'riskEndDate',
+        'brokerId', 'brokerFeeType', 'brokerFee', 'brokerFeeCurrencyCode',
+        'creditTermCode', 'gtcReference',
+      ];
+      const reason = tradeStatus === 'CANCELLED'
+        ? 'Cancelled trade is read-only'
+        : 'Trade is confirmed — commercial terms are locked';
+      commercialFields.forEach((k) => { permissions[k] = 'VIEW'; lockedFields[k] = reason; });
+      if (['CANCELLED', 'MATURED', 'CLOSED'].includes(tradeStatus)) {
+        Object.keys(permissions).forEach((k) => { permissions[k] = 'VIEW'; lockedFields[k] = reason; });
+      }
+    }
+    if (hasInvoice) {
+      ['quantity', 'price', 'currencyCode'].forEach((k) => {
+        permissions[k] = 'VIEW';
+        lockedFields[k] = 'Invoice issued — pricing fields are locked';
+      });
+    }
+
+    return HttpResponse.json({ screenCode: 'TRADE_BLOTTER', permissions, lockedFields, fieldRegistry: [] });
+  }),
+
+  http.get(`${API}/permissions/profiles`, () => HttpResponse.json(profileStore)),
+
+  // ── Field permission profile detail + rules ───────────────────────────────────
+  http.get(`${API}/permissions/profiles/:id`, ({ params }) => {
+    const profileId = Number(params.id);
+    const profile = (profileStore as Array<Record<string, unknown>>).find((p) => p['profileId'] === profileId);
+    if (!profile) return new HttpResponse(null, { status: 404 });
+    const rules = (profileRulesStore as Array<Record<string, unknown>>)
+      .filter((r) => r['profileId'] === profileId)
+      .map((r) => {
+        const field = (fieldRegistryStore as Array<Record<string, unknown>>).find((f) => f['fieldId'] === r['fieldId']);
+        return { ...field, fieldPermission: r['fieldPermission'] };
+      });
+    return HttpResponse.json({ ...profile, rules });
+  }),
+
+  // Positions
+  http.get(`${API}/positions`, ({ request }) => {
+    const url = new URL(request.url);
+    const commodityType = url.searchParams.get('commodityType');
+    const bookId = url.searchParams.get('bookId');
+    const periodCode = url.searchParams.get('periodCode');
+    let results = (positionStore as Array<Record<string, unknown>>).slice();
+    if (commodityType) results = results.filter((p) => p['commodityType'] === commodityType);
+    if (bookId) results = results.filter((p) => String(p['bookId']) === bookId);
+    if (periodCode) results = results.filter((p) => p['periodCode'] === periodCode);
+    return HttpResponse.json(results);
+  }),
+
+  // ─── CREDIT — Margin Agreements ──────────────────────────────────────────────
+  ...crudHandlers('credit/margin-agreements', marginAgreementsStore as Array<Record<string, unknown>>, 'marginAgreementId'),
+
+  // ─── CREDIT — Credit Limits ───────────────────────────────────────────────────
+  ...crudHandlers('credit/limits', creditLimitsStore as Array<Record<string, unknown>>, 'creditLimitId'),
+  http.patch(`${API}/credit/limits/:id/suspend`, ({ params }) => {
+    const s = creditLimitsStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['creditLimitId'] === Number(params.id));
+    if (idx !== -1) { s[idx] = { ...s[idx], status: 'SUSPENDED' }; }
+    return HttpResponse.json(s[idx]);
+  }),
+  http.patch(`${API}/credit/limits/:id/reinstate`, ({ params }) => {
+    const s = creditLimitsStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['creditLimitId'] === Number(params.id));
+    if (idx !== -1) { s[idx] = { ...s[idx], status: 'ACTIVE' }; }
+    return HttpResponse.json(s[idx]);
+  }),
+
+  // ─── CREDIT — Letters of Credit ──────────────────────────────────────────────
+  ...crudHandlers('credit/letters-of-credit', lettersOfCreditStore as Array<Record<string, unknown>>, 'lcId'),
+  http.patch(`${API}/credit/letters-of-credit/:id/cancel`, ({ params }) => {
+    const s = lettersOfCreditStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['lcId'] === Number(params.id));
+    if (idx !== -1) { s[idx] = { ...s[idx], status: 'CANCELLED' }; }
+    return HttpResponse.json(s[idx]);
+  }),
+
+  http.put(`${API}/permissions/profiles/:id/rules`, async ({ params, request }) => {
+    const profileId = Number(params.id);
+    const updates = await request.json() as Array<{ fieldId: number; fieldPermission: string }>;
+    const store = profileRulesStore as Array<Record<string, unknown>>;
+    updates.forEach(({ fieldId, fieldPermission }) => {
+      const idx = store.findIndex((r) => r['profileId'] === profileId && r['fieldId'] === fieldId);
+      if (idx !== -1) store[idx] = { ...store[idx], fieldPermission };
+      else store.push({ profileId, fieldId, fieldPermission });
+    });
+    // Return updated profile detail
+    const profile = (profileStore as Array<Record<string, unknown>>).find((p) => p['profileId'] === profileId);
+    const rules = store
+      .filter((r) => r['profileId'] === profileId)
+      .map((r) => {
+        const field = (fieldRegistryStore as Array<Record<string, unknown>>).find((f) => f['fieldId'] === r['fieldId']);
+        return { ...field, fieldPermission: r['fieldPermission'] };
+      });
+    return HttpResponse.json({ ...profile, rules });
+  }),
 ];

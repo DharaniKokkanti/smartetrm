@@ -18,10 +18,12 @@ import { hint } from '@components/smart/FieldHint';
 import {
   useProducts, useSaveProduct, useDeactivateProduct,
   useProductPriceIndices, useLinkPriceIndex, useUnlinkPriceIndex,
-  useProductMarkets, useProductSpecTemplates, useSpecValues,
+  useProductMarkets, useProductSpecTemplates, useAddSpecTemplate, useSpecValues,
   useProductBlendComponents, useAddBlendComponent, useRemoveBlendComponent,
   useSpecParameters, useAddSpecValue, useUpdateSpecValue, useDeleteSpecValue,
+  useUomConversions,
 } from './hooks';
+import { usePriceIndices } from '@features/markets/price-indices/hooks';
 import {
   SETTLEMENT_TYPES, PRODUCT_FAMILIES,
   type Product, type ProductInput, type SettlementType,
@@ -50,10 +52,22 @@ const PRICING_TYPE_OPTIONS = ['FLAT', 'INDEX', 'DIFFERENTIAL', 'FORMULA', 'FLOAT
 
 function PriceIndicesTab({ productId }: { productId: number }) {
   const { data = [], isLoading } = useProductPriceIndices(productId);
+  const { data: allIndices = [], isLoading: indicesLoading } = usePriceIndices();
   const link   = useLinkPriceIndex(productId);
   const unlink = useUnlinkPriceIndex(productId);
   const [linkForm] = Form.useForm<{ priceIndexId: number; role: IndexRole; isPrimary: boolean }>();
   const [showLink, setShowLink] = useState(false);
+
+  const indexOptions = useMemo(
+    () => allIndices
+      .filter((i) => i.isActive)
+      .sort((a, b) => a.indexCode.localeCompare(b.indexCode))
+      .map((i) => ({
+        value: i.priceIndexId,
+        label: `${i.indexCode} — ${i.indexName} (${i.publicationSource})`,
+      })),
+    [allIndices],
+  );
 
   async function submitLink() {
     const v = await linkForm.validateFields();
@@ -98,8 +112,15 @@ function PriceIndicesTab({ productId }: { productId: number }) {
       {showLink && (
         <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8, padding: 16, marginBottom: 16 }}>
           <Form form={linkForm} layout="inline" size="small">
-            <Form.Item name="priceIndexId" label="Price Index ID" rules={[{ required: true }]}>
-              <InputNumber placeholder="ID" style={{ width: 90 }} min={1} />
+            <Form.Item name="priceIndexId" label="Price Index" rules={[{ required: true }]}>
+              <Select
+                showSearch
+                placeholder="Search by code or name…"
+                options={indexOptions}
+                optionFilterProp="label"
+                loading={indicesLoading}
+                style={{ width: 300 }}
+              />
             </Form.Item>
             <Form.Item name="role" label="Role" rules={[{ required: true }]}
               initialValue="PRIMARY_MTM">
@@ -230,7 +251,7 @@ function SpecTemplateValues({ templateId, commodityType }: { templateId: number;
   const [modalOpen, setModalOpen] = useState(false);
   const [editingValue, setEditingValue] = useState<ProductSpecValue | null>(null);
   const [valForm] = Form.useForm<SpecValueFormValues>();
-  const boundWatch = Form.useWatch('boundDirection', valForm) as BoundDirection | undefined;
+  const boundWatch = (Form.useWatch('boundDirection', valForm) ?? 'MAX_ONLY') as BoundDirection;
 
   const paramMap = useMemo(() => {
     const m = new Map<number, SpecParameter>();
@@ -350,7 +371,6 @@ function SpecTemplateValues({ templateId, commodityType }: { templateId: number;
         okText={<Space><SaveOutlined />{editingValue ? 'Update' : 'Add'}</Space>}
         confirmLoading={addVal.isPending || updateVal.isPending}
         width={560}
-        destroyOnClose
       >
         <Form form={valForm} layout="vertical" size="small">
           <Form.Item name="parameterId" label="Parameter" rules={[{ required: true }]}>
@@ -433,7 +453,7 @@ function TemplateCollapseHeader({ t }: { t: ProductSpecTemplate }) {
 const BLEND_COMPONENT_COLS = (onRemove: (id: number) => void): ColumnsType<BlendComponent> => [
   { title: '#', dataIndex: 'sequenceNo', width: 40, align: 'center' as const },
   {
-    title: 'Component', dataIndex: 'componentCode', width: 140,
+    title: 'Component', dataIndex: 'componentCode', width: 180,
     render: (v: string, r: BlendComponent) => (
       <div>
         <code style={{ fontSize: 12 }}>{v}</code>
@@ -458,6 +478,12 @@ const BLEND_COMPONENT_COLS = (onRemove: (id: number) => void): ColumnsType<Blend
     render: (v: number) => <span style={{ color: '#6b7280' }}>±{v}%</span>,
   },
   {
+    title: 'Position Gen', dataIndex: 'needsPositionGen', width: 110, align: 'center' as const,
+    render: (v: boolean) => v
+      ? <Tag color="green" style={{ fontSize: 10, margin: 0 }}>Yes — generate</Tag>
+      : <Tag color="default" style={{ fontSize: 10, margin: 0 }}>No — skip</Tag>,
+  },
+  {
     title: '', width: 50, align: 'center' as const,
     render: (_: unknown, r: BlendComponent) => (
       <Popconfirm title="Remove blend component?" onConfirm={() => onRemove(r.blendComponentId)}
@@ -468,15 +494,34 @@ const BLEND_COMPONENT_COLS = (onRemove: (id: number) => void): ColumnsType<Blend
   },
 ];
 
-function SpecsTab({ product }: { product: Product }) {
+type AddTemplateFormValues = {
+  templateCode: string; templateName: string; isDefault: boolean;
+  issuingBody: string | null; standardRef: string | null; version: string | null; notes: string | null;
+};
+
+function SpecsTab({ product, isBlend }: { product: Product; isBlend: boolean }) {
   const { data: templates = [], isLoading: tplLoading } = useProductSpecTemplates(product.productId);
   const { data: components = [], isLoading: blendLoading } = useProductBlendComponents(
-    product.isBlend ? product.productId : null,
+    isBlend ? product.productId : null,
   );
+  const { data: allProducts = [] } = useProducts();
   const addComp    = useAddBlendComponent(product.productId);
   const removeComp = useRemoveBlendComponent(product.productId);
-  const [addCompForm] = Form.useForm<{ componentProductId: number; sequenceNo: number; targetPct: number; minPct: number | null; maxPct: number | null; tolerancePct: number; notes: string | null }>();
+  const addTemplate = useAddSpecTemplate(product.productId);
+  const [addCompForm] = Form.useForm<{ componentProductId: number; sequenceNo: number; targetPct: number; minPct: number | null; maxPct: number | null; tolerancePct: number; notes: string | null; needsPositionGen: boolean }>();
+  const [tplForm] = Form.useForm<AddTemplateFormValues>();
   const [showAddComp, setShowAddComp] = useState(false);
+  const [tplModalOpen, setTplModalOpen] = useState(false);
+
+  const componentProductOptions = useMemo(
+    () => allProducts
+      .filter((p) => p.productId !== product.productId && p.isActive)
+      .map((p) => ({
+        value: p.productId,
+        label: `${p.productCode} — ${p.productName}`,
+      })),
+    [allProducts, product.productId],
+  );
 
   async function submitAddComp() {
     const v = await addCompForm.validateFields();
@@ -485,10 +530,29 @@ function SpecsTab({ product }: { product: Product }) {
     setShowAddComp(false);
   }
 
+  async function submitAddTemplate() {
+    const v = await tplForm.validateFields();
+    await addTemplate.mutateAsync({
+      templateCode:  v.templateCode,
+      templateName:  v.templateName,
+      commodityType: product.commodityType,
+      isDefault:     v.isDefault ?? false,
+      issuingBody:   v.issuingBody ?? null,
+      standardRef:   v.standardRef ?? null,
+      version:       v.version ?? null,
+      effectiveFrom: null,
+      effectiveTo:   null,
+      notes:         v.notes ?? null,
+      isActive:      true,
+    });
+    tplForm.resetFields();
+    setTplModalOpen(false);
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       {/* ── Blend Recipe ────────────────────────────────────────────────── */}
-      {product.isBlend && (
+      {isBlend && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
             <Typography.Text strong><ApartmentOutlined style={{ marginRight: 6 }} />Blend Recipe</Typography.Text>
@@ -496,32 +560,53 @@ function SpecsTab({ product }: { product: Product }) {
               Add Component
             </Button>
           </div>
-          {product.blendNotes && (
+          {(product.blendNotes) && (
             <Alert type="info" showIcon message={product.blendNotes} style={{ marginBottom: 10, fontSize: 12 }} />
           )}
           {showAddComp && (
             <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8, padding: 12, marginBottom: 12 }}>
-              <Form form={addCompForm} layout="inline" size="small">
-                <Form.Item name="componentProductId" label="Component Product ID" rules={[{ required: true }]}>
-                  <InputNumber placeholder="ID" style={{ width: 80 }} min={1} />
-                </Form.Item>
-                <Form.Item name="sequenceNo" label="Seq#" initialValue={components.length + 1} rules={[{ required: true }]}>
-                  <InputNumber style={{ width: 60 }} min={1} />
-                </Form.Item>
-                <Form.Item name="targetPct" label="Target %" rules={[{ required: true }]}>
-                  <InputNumber placeholder="97" style={{ width: 70 }} min={0} max={100} step={0.1} />
-                </Form.Item>
-                <Form.Item name="tolerancePct" label="Tolerance %" initialValue={0.5} rules={[{ required: true }]}>
-                  <InputNumber placeholder="0.5" style={{ width: 70 }} min={0} step={0.1} />
-                </Form.Item>
-                <Form.Item name="minPct" label="Min %">
-                  <InputNumber style={{ width: 70 }} min={0} max={100} step={0.1} />
-                </Form.Item>
-                <Form.Item name="maxPct" label="Max %">
-                  <InputNumber style={{ width: 70 }} min={0} max={100} step={0.1} />
-                </Form.Item>
-                <Button type="primary" size="small" onClick={submitAddComp} loading={addComp.isPending}>Add</Button>
-                <Button size="small" onClick={() => setShowAddComp(false)} style={{ marginLeft: 4 }}>Cancel</Button>
+              <Form form={addCompForm} layout="vertical" size="small">
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'flex-end' }}>
+                  <Form.Item name="componentProductId" label="Component Product" rules={[{ required: true, message: 'Select a product' }]} style={{ flex: '1 1 240px', minWidth: 200, marginBottom: 0 }}>
+                    <Select
+                      showSearch
+                      placeholder="Search by code or name…"
+                      options={componentProductOptions}
+                      optionFilterProp="label"
+                      style={{ width: '100%' }}
+                    />
+                  </Form.Item>
+                  <Form.Item name="sequenceNo" label="Seq #" initialValue={components.length + 1} rules={[{ required: true }]} style={{ width: 64, marginBottom: 0 }}>
+                    <InputNumber style={{ width: '100%' }} min={1} />
+                  </Form.Item>
+                  <Form.Item name="targetPct" label="Target %" rules={[{ required: true }]} style={{ width: 80, marginBottom: 0 }}>
+                    <InputNumber placeholder="97" style={{ width: '100%' }} min={0} max={100} step={0.1} />
+                  </Form.Item>
+                  <Form.Item name="tolerancePct" label="Tolerance %" initialValue={0.5} rules={[{ required: true }]} style={{ width: 86, marginBottom: 0 }}>
+                    <InputNumber placeholder="0.5" style={{ width: '100%' }} min={0} step={0.1} />
+                  </Form.Item>
+                  <Form.Item name="minPct" label="Min %" style={{ width: 70, marginBottom: 0 }}>
+                    <InputNumber style={{ width: '100%' }} min={0} max={100} step={0.1} />
+                  </Form.Item>
+                  <Form.Item name="maxPct" label="Max %" style={{ width: 70, marginBottom: 0 }}>
+                    <InputNumber style={{ width: '100%' }} min={0} max={100} step={0.1} />
+                  </Form.Item>
+                  <Form.Item
+                    name="needsPositionGen"
+                    label={<Tooltip title="When enabled, the position engine will generate individual positions for this component (in addition to the blended product). Disable for minor additives you track at parent level only.">
+                      Position Gen <span style={{ color: '#6b7280', fontSize: 10 }}>(?)</span>
+                    </Tooltip>}
+                    valuePropName="checked"
+                    initialValue={true}
+                    style={{ width: 100, marginBottom: 0 }}
+                  >
+                    <Switch checkedChildren="Yes" unCheckedChildren="No" size="small" />
+                  </Form.Item>
+                  <div style={{ display: 'flex', gap: 4, paddingBottom: 1 }}>
+                    <Button type="primary" size="small" onClick={submitAddComp} loading={addComp.isPending}>Add</Button>
+                    <Button size="small" onClick={() => setShowAddComp(false)}>Cancel</Button>
+                  </div>
+                </div>
               </Form>
             </div>
           )}
@@ -548,16 +633,21 @@ function SpecsTab({ product }: { product: Product }) {
 
       {/* ── Spec Templates ──────────────────────────────────────────────── */}
       <div>
-        <Typography.Text strong style={{ display: 'block', marginBottom: 8 }}>
-          <ExperimentOutlined style={{ marginRight: 6 }} />Quality Specification Templates
-        </Typography.Text>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <Typography.Text strong>
+            <ExperimentOutlined style={{ marginRight: 6 }} />Quality Specification Templates
+          </Typography.Text>
+          <Button size="small" icon={<PlusOutlined />} onClick={() => { tplForm.resetFields(); tplForm.setFieldsValue({ isDefault: templates.length === 0 }); setTplModalOpen(true); }}>
+            Add Template
+          </Button>
+        </div>
         <Typography.Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 12 }}>
-          Industry-standard or internal specifications. Parameters define min/max/typical bounds for quality, physical, chemical, and safety properties.
+          Industry-standard or internal specifications. Each template holds min/max/typical bounds for quality, physical, chemical, and safety parameters.
         </Typography.Text>
         {tplLoading ? (
           <div style={{ textAlign: 'center', padding: 32 }}><Spin /></div>
         ) : !templates.length ? (
-          <Empty description="No spec templates defined for this product." image={Empty.PRESENTED_IMAGE_SIMPLE} />
+          <Empty description="No spec templates yet — click Add Template to create one." image={Empty.PRESENTED_IMAGE_SIMPLE} />
         ) : (
           <Collapse
             size="small"
@@ -593,6 +683,45 @@ function SpecsTab({ product }: { product: Product }) {
           />
         )}
       </div>
+
+      {/* ── Add Template Modal ──────────────────────────────────────────── */}
+      <Modal
+        title="Add Spec Template"
+        open={tplModalOpen}
+        onCancel={() => setTplModalOpen(false)}
+        onOk={submitAddTemplate}
+        okText={<Space><SaveOutlined />Add Template</Space>}
+        confirmLoading={addTemplate.isPending}
+        width={520}
+      >
+        <Form form={tplForm} layout="vertical" size="small" style={{ marginTop: 8 }}>
+          <Space style={{ width: '100%' }} size={12}>
+            <Form.Item name="templateCode" label="Template Code" rules={[{ required: true }]} style={{ flex: 1 }}>
+              <Input placeholder="EN590_2022" style={{ fontFamily: 'monospace' }} />
+            </Form.Item>
+            <Form.Item name="version" label="Version" style={{ width: 80 }}>
+              <Input placeholder="2022" />
+            </Form.Item>
+          </Space>
+          <Form.Item name="templateName" label="Template Name" rules={[{ required: true }]}>
+            <Input placeholder="EN 590 Ultra-Low Sulphur Diesel — European Road Fuel Standard" />
+          </Form.Item>
+          <Space style={{ width: '100%' }} size={12}>
+            <Form.Item name="issuingBody" label="Issuing Body" style={{ flex: 1 }}>
+              <Input placeholder="CEN / LME / ICE / Internal" />
+            </Form.Item>
+            <Form.Item name="standardRef" label="Standard Reference" style={{ flex: 1 }}>
+              <Input placeholder="EN 590:2022+A1" />
+            </Form.Item>
+          </Space>
+          <Form.Item name="notes" label="Notes">
+            <Input.TextArea rows={2} placeholder="Brief description of what this template covers." />
+          </Form.Item>
+          <Form.Item name="isDefault" label="Default Template" valuePropName="checked">
+            <Switch checkedChildren="Yes" unCheckedChildren="No" />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 }
@@ -664,12 +793,35 @@ export function ProductsPage() {
 
   async function submit() {
     const v = await form.validateFields();
-    await save.mutateAsync({ id: editing?.productId ?? null, input: v });
+    const saved = await save.mutateAsync({ id: editing?.productId ?? null, input: v });
+    setEditing(saved);
     setDrawerOpen(false);
   }
 
-  const isBlendWatched       = Form.useWatch('isBlend', form);
-  const commodityTypeWatched = Form.useWatch('commodityType', form) as CommodityType | undefined;
+  const isBlendWatched          = Form.useWatch('isBlend', form);
+  const commodityTypeWatched    = Form.useWatch('commodityType', form) as CommodityType | undefined;
+  const defaultUomWatched       = Form.useWatch('defaultUomCode', form) as string | undefined;
+  const densityEstimateWatched  = Form.useWatch('densityEstimateKgM3', form) as number | undefined;
+  const densityBaseWatched      = Form.useWatch('densityBaseKgM3', form) as number | undefined;
+  const cvGrossWatched          = Form.useWatch('cvGrossMjScm', form) as number | undefined;
+
+  // Warn when position conversion will fail at runtime
+  const OIL_VOLUME_UOMS  = new Set(['BBL', 'CBM', 'GAL', 'LTR', 'M3']);
+  const GAS_VOLUME_UOMS  = new Set(['SCM', 'MMSCM', 'M3', 'SCFD']);
+  const needsDensity = commodityTypeWatched === 'OIL' && defaultUomWatched != null && OIL_VOLUME_UOMS.has(defaultUomWatched) && !densityEstimateWatched;
+  const needsGcv     = commodityTypeWatched === 'GAS' && defaultUomWatched != null && GAS_VOLUME_UOMS.has(defaultUomWatched) && !cvGrossWatched;
+
+  // Global same-type rates to display in Pricing Basis as commodity-level defaults
+  const { data: uomConversions = [] } = useUomConversions();
+  const GAS_ENERGY_UOMS = new Set(['MWH', 'MMBTU', 'GJ', 'THERM', 'BTU']);
+  const oilVolumeRates  = useMemo(
+    () => uomConversions.filter((c) => (c.commodityType === 'OIL' || c.commodityType === null) && OIL_VOLUME_UOMS.has(c.fromUomCode) && OIL_VOLUME_UOMS.has(c.toUomCode)),
+    [uomConversions],
+  );
+  const gasEnergyRates  = useMemo(
+    () => uomConversions.filter((c) => (c.commodityType === 'GAS' || c.commodityType === null) && GAS_ENERGY_UOMS.has(c.fromUomCode) && GAS_ENERGY_UOMS.has(c.toUomCode)),
+    [uomConversions],
+  );
 
   const colDefs = useMemo<ColDef<Product>[]>(() => [
     { field: 'productCode', headerName: 'Code', cellClass: 'cell-mono', width: 160, pinned: 'left' },
@@ -821,39 +973,163 @@ export function ProductsPage() {
               <Divider orientation="left" orientationMargin={0} style={{ fontSize: 12, color: '#6b7280', marginBottom: 12 }}>
                 Pricing Basis
                 <Typography.Text type="secondary" style={{ fontSize: 11, marginLeft: 8 }}>
-                  {commodityTypeWatched === 'OIL' && 'Used for BBL↔MT position conversion. Override per-product; defaults to commodity-level rates.'}
-                  {commodityTypeWatched === 'GAS' && 'GCV used for volume↔energy conversion (e.g. SCM↔MWH). NCV for net-heat invoicing.'}
+                  {commodityTypeWatched === 'OIL' && 'Product-specific density required for BBL/CBM↔MT position conversion. No commodity-level default exists — every OIL product has a different density.'}
+                  {commodityTypeWatched === 'GAS' && 'Product-specific GCV required for SCM↔MWH/MMBTU conversion. No commodity-level default exists — TTF, NBP, and LNG all have different calorific values.'}
                   {commodityTypeWatched === 'METALS' && 'Minimum purity determines grade eligibility and settlement adjustment factors.'}
-                  {commodityTypeWatched === 'AGRICULTURAL' && 'Moisture and protein basis govern quality adjustments at delivery.'}
+                  {commodityTypeWatched === 'AGRICULTURAL' && 'Moisture and protein basis govern quality allowances at delivery.'}
                 </Typography.Text>
               </Divider>
+              {needsDensity && (
+                <Alert
+                  type="warning"
+                  showIcon
+                  style={{ marginBottom: 12, fontSize: 12 }}
+                  message={`Density not set — ${defaultUomWatched ?? ''} → MT position conversion will fail`}
+                  description="Set density below to enable cross-type conversion. Volume↔Volume rates (e.g. BBL↔GAL) are always available from the global table — shown below."
+                />
+              )}
+              {needsGcv && (
+                <Alert
+                  type="warning"
+                  showIcon
+                  style={{ marginBottom: 12, fontSize: 12 }}
+                  message={`GCV not set — ${defaultUomWatched ?? ''} → MWh position conversion will fail`}
+                  description="Set GCV below to enable volume→energy conversion. Energy↔Energy rates (e.g. MWh↔MMBTU) are always available from the global table — shown below."
+                />
+              )}
               {commodityTypeWatched === 'OIL' && (
-                <Space style={{ width: '100%' }} size={12}>
-                  <Form.Item name="densityEstimateKgM3"
-                    label={hint('Density Estimate (kg/m³)', 'Working density used at trade entry to convert BBL↔MT for risk positions. Adjusted at invoice if cargo differs.', '857.0')}
-                    style={{ flex: 1 }}>
-                    <InputNumber style={{ width: '100%' }} placeholder="857.0" min={600} max={1100} step={0.1} addonAfter="kg/m³" />
-                  </Form.Item>
-                  <Form.Item name="densityBaseKgM3"
-                    label={hint('Density Base (kg/m³)', 'Contractual reference density for invoice/settlement BBL↔MT conversion. Often the published EI-CLMS or loading port figure.', '836.0')}
-                    style={{ flex: 1 }}>
-                    <InputNumber style={{ width: '100%' }} placeholder="836.0" min={600} max={1100} step={0.1} addonAfter="kg/m³" />
-                  </Form.Item>
-                </Space>
+                <>
+                  {oilVolumeRates.length > 0 && (
+                    <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 6, padding: '8px 12px', marginBottom: 12 }}>
+                      <Typography.Text type="secondary" style={{ fontSize: 11, fontWeight: 600 }}>
+                        Volume ↔ Volume (exact physical constants, same for every OIL product — stored in UoM Conversions):
+                      </Typography.Text>
+                      <div style={{ display: 'flex', gap: 24, marginTop: 4, flexWrap: 'wrap' }}>
+                        {oilVolumeRates.map((r) => {
+                          const n = Number(r.factor);
+                          const display = n >= 1000
+                            ? n.toLocaleString(undefined, { maximumFractionDigits: 4 })
+                            : n.toPrecision(6).replace(/\.?0+$/, '');
+                          return (
+                            <code key={r.conversionId} style={{ fontSize: 12 }}>
+                              1 {r.fromUomCode} = {display} {r.toUomCode}
+                            </code>
+                          );
+                        })}
+                      </div>
+                      <Typography.Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 4 }}>
+                        Volume ↔ Weight (e.g. BBL → MT) cannot be a universal constant — it depends on this product's density. Set it below.
+                      </Typography.Text>
+                    </div>
+                  )}
+                  <Space style={{ width: '100%' }} size={12}>
+                    <Form.Item name="densityEstimateKgM3"
+                      label={hint('Density Estimate (kg/m³)', 'Working density used at trade entry to convert BBL↔MT for risk positions. Adjusted at invoice if cargo differs.', '857.0')}
+                      style={{ flex: 1 }}>
+                      <InputNumber style={{ width: '100%' }} placeholder="857.0" min={600} max={1100} step={0.1} addonAfter="kg/m³" />
+                    </Form.Item>
+                    <Form.Item name="densityBaseKgM3"
+                      label={hint('Density Base (kg/m³)', 'Contractual reference density for invoice/settlement BBL↔MT conversion. Often the published EI-CLMS or loading port figure.', '836.0')}
+                      style={{ flex: 1 }}>
+                      <InputNumber style={{ width: '100%' }} placeholder="836.0" min={600} max={1100} step={0.1} addonAfter="kg/m³" />
+                    </Form.Item>
+                  </Space>
+                  {/* Product-specific cross-type rates derived from density — shown in real time */}
+                  {(densityEstimateWatched || densityBaseWatched) && (
+                    <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, padding: '8px 12px', marginBottom: 12, fontSize: 12 }}>
+                      <Typography.Text strong style={{ fontSize: 12, color: '#166534' }}>
+                        Product-specific cross-type rates (overrides commodity defaults where applicable):
+                      </Typography.Text>
+                      <div style={{ display: 'flex', gap: 32, marginTop: 4, flexWrap: 'wrap' }}>
+                        {densityEstimateWatched && (
+                          <Space direction="vertical" size={1}>
+                            <Typography.Text type="secondary" style={{ fontSize: 11 }}>Estimate — position / risk</Typography.Text>
+                            <code style={{ fontSize: 12 }}>
+                              1 BBL = {(densityEstimateWatched * 0.000158987).toFixed(6)} MT
+                            </code>
+                            <code style={{ fontSize: 12 }}>
+                              1 MT = {(1 / (densityEstimateWatched * 0.000158987)).toFixed(4)} BBL
+                            </code>
+                          </Space>
+                        )}
+                        {densityBaseWatched && (
+                          <Space direction="vertical" size={1}>
+                            <Typography.Text type="secondary" style={{ fontSize: 11 }}>Base — settlement / invoice</Typography.Text>
+                            <code style={{ fontSize: 12 }}>
+                              1 BBL = {(densityBaseWatched * 0.000158987).toFixed(6)} MT
+                            </code>
+                            <code style={{ fontSize: 12 }}>
+                              1 MT = {(1 / (densityBaseWatched * 0.000158987)).toFixed(4)} BBL
+                            </code>
+                          </Space>
+                        )}
+                      </div>
+                      <Typography.Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 4 }}>
+                        Effective factor = density (kg/m³) × 0.000158987 m³/BBL. Unique per crude grade.
+                      </Typography.Text>
+                    </div>
+                  )}
+                </>
               )}
               {commodityTypeWatched === 'GAS' && (
-                <Space style={{ width: '100%' }} size={12}>
-                  <Form.Item name="cvGrossMjScm"
-                    label={hint('GCV (MJ/scm)', 'Gross Calorific Value used to convert SCM↔MWH and SCM↔MMBTU. H-Gas ≈ 38.0, NBP ≈ 39.5, LNG ≈ 40–43.', '38.0')}
-                    style={{ flex: 1 }}>
-                    <InputNumber style={{ width: '100%' }} placeholder="38.0" min={20} max={60} step={0.01} addonAfter="MJ/scm" />
-                  </Form.Item>
-                  <Form.Item name="cvNetMjScm"
-                    label={hint('NCV (MJ/scm)', 'Net Calorific Value (lower heating value). Used for net-heat efficiency calculations. Typically 90–92% of GCV.', '34.2')}
-                    style={{ flex: 1 }}>
-                    <InputNumber style={{ width: '100%' }} placeholder="34.2" min={20} max={60} step={0.01} addonAfter="MJ/scm" />
-                  </Form.Item>
-                </Space>
+                <>
+                  {gasEnergyRates.length > 0 && (
+                    <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 6, padding: '8px 12px', marginBottom: 12 }}>
+                      <Typography.Text type="secondary" style={{ fontSize: 11, fontWeight: 600 }}>
+                        Energy ↔ Energy (exact physical constants, same for every GAS product — stored in UoM Conversions):
+                      </Typography.Text>
+                      <div style={{ display: 'flex', gap: 24, marginTop: 4, flexWrap: 'wrap' }}>
+                        {gasEnergyRates.map((r) => {
+                          const n = Number(r.factor);
+                          const display = n >= 1000
+                            ? n.toLocaleString(undefined, { maximumFractionDigits: 4 })
+                            : n.toPrecision(6).replace(/\.?0+$/, '');
+                          return (
+                            <code key={r.conversionId} style={{ fontSize: 12 }}>
+                              1 {r.fromUomCode} = {display} {r.toUomCode}
+                            </code>
+                          );
+                        })}
+                      </div>
+                      <Typography.Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 4 }}>
+                        SCM → MWh requires product GCV below (varies per gas stream — TTF ≈ 10.7, NBP ≈ 10.97 MJ/scm).
+                      </Typography.Text>
+                    </div>
+                  )}
+                  <Space style={{ width: '100%' }} size={12}>
+                    <Form.Item name="cvGrossMjScm"
+                      label={hint('GCV (MJ/scm)', 'Gross Calorific Value used to convert SCM↔MWH and SCM↔MMBTU. H-Gas ≈ 38.0, NBP ≈ 39.5, LNG ≈ 40–43.', '38.0')}
+                      style={{ flex: 1 }}>
+                      <InputNumber style={{ width: '100%' }} placeholder="38.0" min={20} max={60} step={0.01} addonAfter="MJ/scm" />
+                    </Form.Item>
+                    <Form.Item name="cvNetMjScm"
+                      label={hint('NCV (MJ/scm)', 'Net Calorific Value (lower heating value). Used for net-heat efficiency calculations. Typically 90–92% of GCV.', '34.2')}
+                      style={{ flex: 1 }}>
+                      <InputNumber style={{ width: '100%' }} placeholder="34.2" min={20} max={60} step={0.01} addonAfter="MJ/scm" />
+                    </Form.Item>
+                  </Space>
+                  {/* Product-specific volume→energy rates from GCV — shown in real time */}
+                  {cvGrossWatched && (
+                    <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, padding: '8px 12px', marginBottom: 12, fontSize: 12 }}>
+                      <Typography.Text strong style={{ fontSize: 12, color: '#166534' }}>
+                        Product-specific cross-type rates (GCV {cvGrossWatched} MJ/scm — SCM ↔ energy):
+                      </Typography.Text>
+                      <div style={{ display: 'flex', gap: 32, marginTop: 4, flexWrap: 'wrap' }}>
+                        <Space direction="vertical" size={1}>
+                          <code style={{ fontSize: 12 }}>1 SCM = {(cvGrossWatched / 3600).toFixed(6)} MWh</code>
+                          <code style={{ fontSize: 12 }}>1 SCM = {(cvGrossWatched / 1055.056).toFixed(6)} MMBTU</code>
+                        </Space>
+                        <Space direction="vertical" size={1}>
+                          <code style={{ fontSize: 12 }}>1 MWh = {(3600 / cvGrossWatched).toFixed(4)} SCM</code>
+                          <code style={{ fontSize: 12 }}>1 MMBTU = {(1055.056 / cvGrossWatched).toFixed(4)} SCM</code>
+                        </Space>
+                      </div>
+                      <Typography.Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 4 }}>
+                        GCV ÷ 3600 = MWh/scm · GCV ÷ 1055.056 = MMBTU/scm. Unique per gas stream.
+                      </Typography.Text>
+                    </div>
+                  )}
+                </>
               )}
               {commodityTypeWatched === 'METALS' && (
                 <Form.Item name="purityBasisPct"
@@ -932,7 +1208,7 @@ export function ProductsPage() {
         </Space>
       ),
       disabled: editing === null,
-      children: editing ? <SpecsTab product={editing} /> : null,
+      children: editing ? <SpecsTab product={editing} isBlend={isBlendWatched ?? editing.isBlend} /> : null,
     },
   ];
 

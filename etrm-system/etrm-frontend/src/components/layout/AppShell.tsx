@@ -3,6 +3,7 @@ import {
   MenuFoldOutlined, MenuUnfoldOutlined, SwapOutlined, FundOutlined,
   SunOutlined, MoonOutlined, CodeOutlined, LogoutOutlined, UserOutlined, HomeOutlined,
   BankOutlined, AppstoreOutlined, TableOutlined, TeamOutlined, SafetyCertificateOutlined,
+  ControlOutlined, AlertOutlined, DollarOutlined,
 } from '@ant-design/icons';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useUiStore } from '@store/uiStore';
@@ -17,14 +18,25 @@ const { Header, Sider, Content } = Layout;
 const NAV_ITEMS = [
   { key: '/',               icon: <HomeOutlined />,       label: 'Dashboard' },
   { key: '/trade/blotter',  icon: <SwapOutlined />,       label: 'Trade Blotter' },
-  { key: '/position',       icon: <FundOutlined />,       label: 'Position & P&L', disabled: true },
+  { key: '/position',       icon: <FundOutlined />,       label: 'Position & P&L' },
   { type: 'divider' as const },
   {
     type: 'group' as const,
     label: <span style={{ fontSize: 10, letterSpacing: 1, fontWeight: 700, color: '#6b7280' }}>MASTER DATA</span>,
     children: [
       { key: '/master-data', icon: <AppstoreOutlined />, label: 'Master Data Hub' },
-      { key: '/static-data',       icon: <TableOutlined />,    label: 'Static Data' },
+      { key: '/static-data', icon: <TableOutlined />,    label: 'Static Data' },
+    ],
+  },
+  { type: 'divider' as const },
+  {
+    type: 'group' as const,
+    label: <span style={{ fontSize: 10, letterSpacing: 1, fontWeight: 700, color: '#6b7280' }}>CREDIT & RISK</span>,
+    children: [
+      { key: '/credit',                     icon: <SafetyCertificateOutlined />, label: 'Credit Hub' },
+      { key: '/credit/margin-agreements',   icon: <DollarOutlined />,            label: 'Margin Agreements' },
+      { key: '/credit/limits',              icon: <AlertOutlined />,             label: 'Credit Limits' },
+      { key: '/credit/letters-of-credit',   icon: <BankOutlined />,              label: 'Letters of Credit' },
     ],
   },
   { type: 'divider' as const },
@@ -32,13 +44,18 @@ const NAV_ITEMS = [
     type: 'group' as const,
     label: <span style={{ fontSize: 10, letterSpacing: 1, fontWeight: 700, color: '#6b7280' }}>ADMIN</span>,
     children: [
-      { key: '/admin/users', icon: <TeamOutlined />,                label: 'Users' },
-      { key: '/admin/roles', icon: <SafetyCertificateOutlined />,   label: 'Roles & Permissions' },
+      { key: '/admin/users',              icon: <TeamOutlined />,                label: 'Users' },
+      { key: '/admin/roles',              icon: <SafetyCertificateOutlined />,   label: 'Roles & Permissions' },
+      { key: '/admin/field-permissions',  icon: <ControlOutlined />,             label: 'Field Permissions' },
     ],
   },
 ];
 
-const ALL_KEYS = ['/', '/trade/blotter', '/position', '/static-data', '/master-data', '/admin/users', '/admin/roles'];
+const ALL_KEYS = [
+  '/', '/trade/blotter', '/position', '/static-data', '/master-data',
+  '/credit/margin-agreements', '/credit/limits', '/credit/letters-of-credit', '/credit',
+  '/admin/users', '/admin/roles', '/admin/field-permissions',
+];
 
 export function AppShell() {
   const { sidebarCollapsed, toggleSidebar } = useUiStore();
