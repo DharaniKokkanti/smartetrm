@@ -12,7 +12,7 @@ import type { AppFunction, AppModule, RoleFunction, RoleStatus, UserRole, UserRo
 import {
   useRoles, useRoleDetail, useModules, useFunctions,
   useCreateRole, useUpdateRole, useSubmitRole, useApproveRole, useRejectRole,
-  useAssignments, useAssignRole, useApproveAssignment, useRejectAssignment, useRevokeAssignment,
+  useAssignments, useApproveAssignment, useRejectAssignment, useRevokeAssignment,
 } from './hooks';
 
 const { Title, Text } = Typography;

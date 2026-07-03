@@ -12,6 +12,7 @@ const { Text } = Typography;
 
 const COMMODITY_COLOR: Record<CommodityType, string> = {
   OIL: 'volcano', GAS: 'blue', POWER: 'gold', METALS: 'purple', AGRICULTURAL: 'green',
+  LNG: 'cyan', FREIGHT: 'orange', RINS: 'lime', ENVIRONMENTAL: 'geekblue', MULTI: 'magenta', OTHER: 'default',
 };
 
 const CONVERSION_LABEL: Record<ConversionSource, string> = {

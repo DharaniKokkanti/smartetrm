@@ -18,6 +18,7 @@ import {
   FEE_TYPE_META, PAY_PERIOD_LABELS,
   type BrokerFeeAgreement, type BrokerFeeAgreementInput, type FeeType, type PayPeriod,
 } from './types';
+import { useFormDraft } from '@components/smart/formDraft';
 
 const { Text } = Typography;
 
@@ -51,6 +52,7 @@ export function BrokerFeeAgreementsPage() {
   const [selectedCommodity, setSelectedCommodity] = useState<string | null>(null);
   const [selectedFeeType, setSelectedFeeType] = useState<FeeType>('PER_LOT');
   const [form] = Form.useForm<BrokerFeeAgreementInput>();
+  useFormDraft('contracts-bfa', { form, open, setOpen, editing, setEditing });
 
   const filteredProducts = useMemo(
     () => products.filter((p) => !selectedCommodity || p.commodityType === selectedCommodity),
@@ -92,10 +94,10 @@ export function BrokerFeeAgreementsPage() {
     setOpen(true);
   }
 
-  async function submit() {
+  async function submit(closeAfter = true) {
     const v = await form.validateFields();
-    await save.mutateAsync({ id: editing?.agreementId ?? null, input: v });
-    setOpen(false);
+    const saved = await save.mutateAsync({ id: editing?.agreementId ?? null, input: v });
+    if (closeAfter) setOpen(false); else setEditing(saved);
   }
 
   const colDefs = useMemo<ColDef<BrokerFeeAgreement>[]>(() => [
@@ -210,7 +212,8 @@ export function BrokerFeeAgreementsPage() {
         footer={
           <Space style={{ justifyContent: 'flex-end', display: 'flex' }}>
             <Button onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="primary" onClick={submit} loading={save.isPending}>Save</Button>
+            <Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button>
+            <Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button>
           </Space>
         }
       >

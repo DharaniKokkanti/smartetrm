@@ -15,6 +15,7 @@ import type {
   PaymentTerm, PaymentTermInput,
   BaseDateEvent, BusinessDayConvention, DaysBasis, PaymentMethod,
 } from './types';
+import { useFormDraft } from '@components/smart/formDraft';
 
 // ── Static option maps for non-lookup fields ──────────────────────────────────
 
@@ -99,6 +100,7 @@ export function PaymentTermsPage() {
   const [open, setOpen]       = useState(false);
   const [editing, setEditing] = useState<PaymentTerm | null>(null);
   const [form]                = Form.useForm<PaymentTermInput>();
+  useFormDraft('contracts-payment-terms', { form, open, setOpen, editing, setEditing });
 
   function openNew() {
     setEditing(null);
@@ -141,14 +143,14 @@ export function PaymentTermsPage() {
     setOpen(true);
   }
 
-  async function submit() {
+  async function submit(closeAfter = true) {
     const values = await form.validateFields();
     // Store discountPct as decimal (2 % → 0.02)
     if (values.discountPct != null) {
       values.discountPct = +(values.discountPct / 100).toFixed(6);
     }
-    await save.mutateAsync({ id: editing?.paymentTermId ?? null, input: values });
-    setOpen(false);
+    const saved = await save.mutateAsync({ id: editing?.paymentTermId ?? null, input: values });
+    if (closeAfter) setOpen(false); else setEditing(saved);
   }
 
   const colDefs = useMemo<ColDef<PaymentTerm>[]>(() => [
@@ -233,8 +235,8 @@ export function PaymentTermsPage() {
         footer={
           <Space style={{ justifyContent: 'flex-end', display: 'flex' }}>
             <Button onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="primary" onClick={submit} loading={save.isPending}
-              disabled={lookupLoading}>Save</Button>
+            <Button onClick={() => { void submit(false); }} loading={save.isPending} disabled={lookupLoading}>Save</Button>
+            <Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending} disabled={lookupLoading}>Save & Close</Button>
           </Space>
         }
       >

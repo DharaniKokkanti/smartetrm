@@ -1,9 +1,14 @@
+import { useState } from 'react';
 import { Layout, Menu, Typography, Space, Avatar, Button, Badge, Tooltip, Dropdown } from 'antd';
 import {
   MenuFoldOutlined, MenuUnfoldOutlined, SwapOutlined, FundOutlined,
   SunOutlined, MoonOutlined, CodeOutlined, LogoutOutlined, UserOutlined, HomeOutlined,
   BankOutlined, AppstoreOutlined, TableOutlined, TeamOutlined, SafetyCertificateOutlined,
-  ControlOutlined, AlertOutlined, DollarOutlined,
+  ControlOutlined, AlertOutlined, DollarOutlined, CloudOutlined, ApartmentOutlined,
+  GlobalOutlined, FileProtectOutlined, AccountBookOutlined,
+  AuditOutlined, TagsOutlined, IdcardOutlined, InboxOutlined,
+  LineChartOutlined, StockOutlined, ScheduleOutlined, ReconciliationOutlined, CalendarOutlined,
+  DatabaseOutlined, SettingOutlined,
 } from '@ant-design/icons';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useUiStore } from '@store/uiStore';
@@ -15,23 +20,23 @@ import { ApiLogDrawer } from './ApiLogDrawer';
 
 const { Header, Sider, Content } = Layout;
 
+// Hub groups render as collapsible submenus — all collapsed by default,
+// accordion behaviour (opening one closes the others).
 const NAV_ITEMS = [
   { key: '/',               icon: <HomeOutlined />,       label: 'Dashboard' },
   { key: '/trade/blotter',  icon: <SwapOutlined />,       label: 'Trade Blotter' },
   { key: '/position',       icon: <FundOutlined />,       label: 'Position & P&L' },
   { type: 'divider' as const },
   {
-    type: 'group' as const,
-    label: <span style={{ fontSize: 10, letterSpacing: 1, fontWeight: 700, color: '#6b7280' }}>MASTER DATA</span>,
+    key: 'g-master-data', icon: <DatabaseOutlined />, label: 'Master Data',
     children: [
-      { key: '/master-data', icon: <AppstoreOutlined />, label: 'Master Data Hub' },
-      { key: '/static-data', icon: <TableOutlined />,    label: 'Static Data' },
+      { key: '/master-data',         icon: <AppstoreOutlined />,    label: 'Master Data Hub' },
+      { key: '/static-data',         icon: <TableOutlined />,       label: 'Static Data' },
+      { key: '/finance/gl-accounts', icon: <AccountBookOutlined />, label: 'GL Accounts' },
     ],
   },
-  { type: 'divider' as const },
   {
-    type: 'group' as const,
-    label: <span style={{ fontSize: 10, letterSpacing: 1, fontWeight: 700, color: '#6b7280' }}>CREDIT & RISK</span>,
+    key: 'g-credit', icon: <SafetyCertificateOutlined />, label: 'Credit & Risk',
     children: [
       { key: '/credit',                     icon: <SafetyCertificateOutlined />, label: 'Credit Hub' },
       { key: '/credit/margin-agreements',   icon: <DollarOutlined />,            label: 'Margin Agreements' },
@@ -39,10 +44,46 @@ const NAV_ITEMS = [
       { key: '/credit/letters-of-credit',   icon: <BankOutlined />,              label: 'Letters of Credit' },
     ],
   },
-  { type: 'divider' as const },
   {
-    type: 'group' as const,
-    label: <span style={{ fontSize: 10, letterSpacing: 1, fontWeight: 700, color: '#6b7280' }}>ADMIN</span>,
+    key: 'g-pricing', icon: <LineChartOutlined />, label: 'Pricing',
+    children: [
+      { key: '/pricing/pricing-rules',     icon: <DollarOutlined />,      label: 'Pricing Rules' },
+      { key: '/pricing/price-sources',    icon: <LineChartOutlined />,   label: 'Price Sources' },
+      { key: '/pricing/settlement-prices',icon: <ScheduleOutlined />,    label: 'Settlement Prices' },
+      { key: '/pricing/tas',              icon: <StockOutlined />,       label: 'TAS Dashboard' },
+      { key: '/pricing/balmo-products',   icon: <CalendarOutlined />,    label: 'BALMO Products' },
+      { key: '/pricing/balmo',            icon: <LineChartOutlined />,   label: 'BALMO Dashboard' },
+    ],
+  },
+  {
+    key: 'g-operations', icon: <ReconciliationOutlined />, label: 'Operations',
+    children: [
+      { key: '/bolmo', icon: <ReconciliationOutlined />, label: 'BOLMO / Book-Outs' },
+    ],
+  },
+  {
+    key: 'g-regulatory', icon: <AuditOutlined />, label: 'Regulatory',
+    children: [
+      { key: '/rins',                  icon: <AuditOutlined />,         label: 'RINs Hub' },
+      { key: '/rins/fuel-categories',  icon: <TagsOutlined />,          label: 'Fuel Categories' },
+      { key: '/rins/accounts',         icon: <IdcardOutlined />,        label: 'RIN Accounts' },
+      { key: '/rins/transactions',     icon: <SwapOutlined />,          label: 'RIN Transactions' },
+      { key: '/rins/inventory',        icon: <InboxOutlined />,         label: 'RIN Inventory' },
+      { key: '/rins/obligations',      icon: <FileProtectOutlined />,   label: 'RVO Obligations' },
+    ],
+  },
+  {
+    key: 'g-environmental', icon: <CloudOutlined />, label: 'Environmental',
+    children: [
+      { key: '/environmental',             icon: <CloudOutlined />,         label: 'Environmental Hub' },
+      { key: '/environmental/schemes',     icon: <ApartmentOutlined />,     label: 'Emission Schemes' },
+      { key: '/environmental/products',    icon: <GlobalOutlined />,        label: 'Env. Products' },
+      { key: '/environmental/registries',  icon: <BankOutlined />,          label: 'Carbon Registries' },
+      { key: '/environmental/obligations', icon: <FileProtectOutlined />,   label: 'Emission Obligations' },
+    ],
+  },
+  {
+    key: 'g-admin', icon: <SettingOutlined />, label: 'Admin',
     children: [
       { key: '/admin/users',              icon: <TeamOutlined />,                label: 'Users' },
       { key: '/admin/roles',              icon: <SafetyCertificateOutlined />,   label: 'Roles & Permissions' },
@@ -54,8 +95,27 @@ const NAV_ITEMS = [
 const ALL_KEYS = [
   '/', '/trade/blotter', '/position', '/static-data', '/master-data',
   '/credit/margin-agreements', '/credit/limits', '/credit/letters-of-credit', '/credit',
+  '/pricing/settlement-prices', '/pricing/tas', '/pricing/pricing-rules', '/pricing/price-sources',
+  '/pricing/balmo-products', '/pricing/balmo',
+  '/bolmo',
+  '/rins/fuel-categories', '/rins/accounts', '/rins/transactions', '/rins/inventory', '/rins/obligations', '/rins',
+  '/environmental/schemes', '/environmental/products', '/environmental/registries', '/environmental/obligations', '/environmental',
+  '/finance/gl-accounts',
   '/admin/users', '/admin/roles', '/admin/field-permissions',
 ];
+
+// route prefix → submenu group key (used to auto-open the group of the current page)
+function groupKeyFor(pathname: string): string[] {
+  if (pathname.startsWith('/master-data') || pathname.startsWith('/static-data') || pathname.startsWith('/finance')) return ['g-master-data'];
+  if (pathname.startsWith('/credit')) return ['g-credit'];
+  if (pathname.startsWith('/pricing')) return ['g-pricing'];
+  if (pathname.startsWith('/bolmo')) return ['g-operations'];
+  if (pathname.startsWith('/rins')) return ['g-regulatory'];
+  if (pathname.startsWith('/environmental')) return ['g-environmental'];
+  if (pathname.startsWith('/finance')) return ['g-finance'];
+  if (pathname.startsWith('/admin')) return ['g-admin'];
+  return [];
+}
 
 export function AppShell() {
   const { sidebarCollapsed, toggleSidebar } = useUiStore();
@@ -65,6 +125,14 @@ export function AppShell() {
   const navigate = useNavigate();
   const location = useLocation();
   const color = paletteFor(mode);
+
+  // All hub groups start collapsed; the group owning the current route opens.
+  // Accordion: opening a group closes the previously open one.
+  const [openKeys, setOpenKeys] = useState<string[]>(() => groupKeyFor(location.pathname));
+  function handleOpenChange(keys: string[]) {
+    const latest = keys.find((k) => !openKeys.includes(k));
+    setOpenKeys(latest ? [latest] : []);
+  }
 
   function handleLogout() { clearAuth(); navigate('/login', { replace: true }); }
 
@@ -123,10 +191,12 @@ export function AppShell() {
         </Header>
 
         <Layout>
-          <Sider collapsible collapsed={sidebarCollapsed} trigger={null} width={210} style={{ borderRight: `1px solid ${color.border}` }}>
+          <Sider collapsible collapsed={sidebarCollapsed} trigger={null} width={210} style={{ borderRight: `1px solid ${color.border}`, overflowY: 'auto', height: 'calc(100vh - 64px)', position: 'sticky', top: 64 }}>
             <Menu
               mode="inline"
               selectedKeys={[activeKey]}
+              // openKeys must not be controlled while the sider is collapsed (antd popup mode)
+              {...(!sidebarCollapsed ? { openKeys, onOpenChange: handleOpenChange } : {})}
               style={{ borderRight: 'none', paddingTop: 4, fontSize: 13 }}
               items={NAV_ITEMS}
               onClick={({ key }) => { void navigate(key); }}

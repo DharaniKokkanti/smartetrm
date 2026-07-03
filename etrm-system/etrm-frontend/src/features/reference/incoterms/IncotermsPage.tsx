@@ -8,6 +8,7 @@ import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import { useIncotermsRef, useSaveIncoterm, useDeactivateIncoterm } from './hooks';
 import { INCOTERM_VERSIONS, TRANSPORT_MODES, type Incoterm, type IncotermInput } from './types';
+import { useFormDraft } from '@components/smart/formDraft';
 
 const TRANSPORT_COLOR: Record<string, string> = { ANY: 'blue', SEA_INLAND: 'cyan', ANY_EXCEPT_SEA: 'orange' };
 
@@ -18,10 +19,15 @@ export function IncotermsPage() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Incoterm | null>(null);
   const [form] = Form.useForm<IncotermInput>();
+  useFormDraft('ref-incoterms', { form, open, setOpen, editing, setEditing });
 
   function openNew() { setEditing(null); form.resetFields(); form.setFieldsValue({ version: 'INCOTERMS_2020', isActive: true }); setOpen(true); }
   function openEdit(r: Incoterm) { setEditing(r); form.setFieldsValue({ ...r }); setOpen(true); }
-  async function submit() { const v = await form.validateFields(); await save.mutateAsync({ id: editing?.incotermId ?? null, input: v }); setOpen(false); }
+  async function submit(closeAfter = true) {
+    const v = await form.validateFields();
+    const saved = await save.mutateAsync({ id: editing?.incotermId ?? null, input: v });
+    if (closeAfter) setOpen(false); else setEditing(saved);
+  }
 
   const colDefs = useMemo<ColDef<Incoterm>[]>(() => [
     { field: 'incotermCode', headerName: 'Code', width: 90, pinned: 'left', cellRenderer: (p: { value: string }) => <Tag color="blue" style={{ fontWeight: 700, fontFamily: 'monospace', fontSize: 13 }}>{p.value}</Tag> },
@@ -48,7 +54,7 @@ export function IncotermsPage() {
       <PageHeader title="Incoterms" description="Incoterms 2020 delivery terms — define risk transfer, cost responsibility, and title transfer points for all physical trades." moduleGroup="reference" />
       <SmartGrid columnDefs={colDefs} rowData={data} loading={isLoading} onAdd={openNew} addLabel="New Incoterm" onRefresh={() => { void refetch(); }} getRowId={(p) => String(p.data.incotermId)} />
       <Drawer title={editing ? `Edit ${editing.incotermCode}` : 'New Incoterm'} open={open} onClose={() => setOpen(false)} width={560}
-        footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button type="primary" onClick={submit} loading={save.isPending}>Save</Button></Space>}>
+        footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
         <Form form={form} layout="vertical">
           <Form.Item name="incotermCode" label={hint('Incoterm Code', 'Standard 3-letter ICC code — FOB, CIF, DAP, EXW etc. Must match ICC Incoterms 2020 publication exactly.', 'FOB')} rules={[{ required: true, max: 3 }]}>
             <Input placeholder="FOB" maxLength={3} style={{ fontFamily: 'monospace', textTransform: 'uppercase', fontWeight: 700 }} />

@@ -2,13 +2,13 @@ import { useMemo, useState } from 'react';
 import {
   Button, Space, Popconfirm, Tag, Drawer, Form, Input, Select,
   InputNumber, Divider, Typography, Row, Col, Segmented, Card,
-  Tooltip, Table, Alert, Badge, Empty,
+  Tooltip, Table, Alert, Badge, Empty, Switch,
 } from 'antd';
 import { useFieldPermissions } from '@permissions/useFieldPermissions';
 import {
   EditOutlined, StopOutlined, CheckCircleOutlined,
   SwapOutlined, PlusOutlined, UnorderedListOutlined, DeleteOutlined,
-  TagOutlined,
+  TagOutlined, MinusCircleOutlined,
 } from '@ant-design/icons';
 import type { ColDef } from 'ag-grid-community';
 import { PageHeader } from '@components/layout/PageHeader';
@@ -29,17 +29,26 @@ import {
   SETTLEMENT_TYPES_TRADE, CONTRACT_TYPES, BROKER_FEE_TYPES, CREDIT_TERM_CODES,
   CREDIT_APPROVAL_STATUSES, FREIGHT_VESSEL_TYPES, FREIGHT_RATE_TYPES, FREIGHT_CHARTER_TYPES,
   TERM_TYPES, DEAL_INDICATORS, RFP_FREQUENCIES,
+  CONTRACT_PERIODICITIES, CONTRACT_DEAL_STATUSES, TOLERANCE_TYPES,
+  INSTRUMENT_TYPES, PRICE_ADJUSTMENT_TYPES, DEMURRAGE_BASIS_TYPES,
+  RIN_ASSIGNMENT_STATUSES, ENV_PRODUCT_TYPES,
 } from './types';
 import { useTraders } from '@features/organization/traders/hooks';
 import { useBooks } from '@features/organization/books/hooks';
 import { useProducts } from '@features/markets/products/hooks';
 import { useMarkets } from '@features/markets/markets/hooks';
 import { usePricingRules } from '@features/pricing/pricing-rules/hooks';
+import type { PricingRule } from '@features/pricing/pricing-rules/types';
+import { useBalmoProducts } from '@features/pricing/balmo-products/hooks';
+import type { BalmoProduct } from '@features/pricing/balmo-products/types';
 import { useLocations } from '@features/logistics/locations/hooks';
 import { useVessels } from '@features/logistics/vessels/hooks';
 import { usePeriods } from '@features/calendar/periods/hooks';
 import { useUom } from '@features/reference/uom/hooks';
+import { useCommodityInstrumentMap } from '@features/reference/commodity-instrument-map/hooks';
 import { useTableRows } from '@features/tier2/hooks';
+import { useUiStore } from '@store/uiStore';
+import { useFormDraft } from '@components/smart/formDraft';
 
 const { Text } = Typography;
 
@@ -47,6 +56,7 @@ const { Text } = Typography;
 const COMMODITY_COLOR: Record<string, string> = {
   OIL: 'volcano', GAS: 'blue', POWER: 'gold', LNG: 'cyan',
   AGRICULTURAL: 'green', METALS: 'purple', FREIGHT: 'orange',
+  RINS: 'lime', ENVIRONMENTAL: 'geekblue',
 };
 const DIRECTION_COLOR: Record<string, string> = { BUY: 'green', SELL: 'red' };
 const STATUS_COLOR: Record<string, string> = {
@@ -302,19 +312,372 @@ function FreightSection({ locations }: { locations: SelectOpt[] }) {
   );
 }
 
+// ─── TAS detail section ────────────────────────────────────────────────────────
+function TasSection() {
+  return (
+    <>
+      {sectionTitle('TAS — Trade at Settlement')}
+      <Row gutter={16}>
+        <Col span={12}>
+          <Form.Item
+            name={['tasDetail', 'tasContractTicker']}
+            label={hint('Contract Ticker', 'Specific futures delivery month — e.g. CLZ26 (WTI Dec 2026), NGF27 (NG Jan 2027), HOF27 (HO Jan 2027). Month codes: F=Jan G=Feb H=Mar J=Apr K=May M=Jun N=Jul Q=Aug U=Sep V=Oct X=Nov Z=Dec.')}
+            rules={[{ required: true, message: 'Required for TAS pricing' }]}
+          >
+            <Input placeholder="CLZ26" style={{ fontFamily: 'monospace', textTransform: 'uppercase' }} maxLength={6} />
+          </Form.Item>
+        </Col>
+        <Col span={12}>
+          <Form.Item
+            name={['tasDetail', 'tasDifferential']}
+            label={hint('Differential (ticks)', 'Signed integer offset from settlement. +2 = settle + 2 ticks. 0 = exactly at settlement. -1 = settle minus 1 tick. CL tick = $0.01/bbl, NG tick = $0.001/mmbtu, HO/RB tick = $0.0001/gal.')}
+            rules={[{ required: true, message: 'Required — use 0 for flat TAS' }]}
+          >
+            <InputNumber placeholder="0" precision={0} style={{ width: '100%' }} />
+          </Form.Item>
+        </Col>
+      </Row>
+      <Row gutter={16}>
+        <Col span={8}>
+          <Form.Item name={['tasDetail', 'tasStatus']} label="TAS Status" rules={[{ required: true }]} initialValue="AWAITING_SETTLEMENT">
+            <Select options={[
+              { value: 'AWAITING_SETTLEMENT', label: 'Awaiting Settlement' },
+              { value: 'PRICE_LOCKED', label: 'Price Locked' },
+            ]} />
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item name={['tasDetail', 'tasLockedPrice']} label={hint('Locked Price', 'Auto-filled via TAS Dashboard when settlement is published. = Settlement price + (differential × tick size).')}>
+            <InputNumber placeholder="Auto-filled on lock" precision={4} style={{ width: '100%' }} />
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item name={['tasDetail', 'tasSettlementDate']} label={hint('Settlement Date', 'Date the exchange daily settlement was confirmed and price locked.')}>
+            <Input placeholder="2026-07-01" />
+          </Form.Item>
+        </Col>
+      </Row>
+    </>
+  );
+}
+
+// ─── BALMO detail section ──────────────────────────────────────────────────────
+function BalmoSection({ balmoProducts }: { balmoProducts: BalmoProduct[] }) {
+  return (
+    <>
+      {sectionTitle('BALMO — Balance of Month Pricing')}
+      <Row gutter={16}>
+        <Col span={12}>
+          <Form.Item
+            name={['balmoDetail', 'balmoProductId']}
+            label={hint('BALMO Contract', 'Select the monthly BALMO contract listing. Each row = one month on CME/ICE. The pricing window (start→end date) is pulled from the product master.')}
+            rules={[{ required: true, message: 'Required for BALMO pricing' }]}
+          >
+            <Select
+              placeholder="Select BALMO contract month"
+              showSearch
+              allowClear
+              options={balmoProducts.map((p) => ({
+                value: p.balmoProductId,
+                label: `${p.productCode} — ${p.productName} [${p.pricingStartDate}→${p.pricingEndDate}]`,
+              }))}
+              filterOption={(input, opt) => (opt?.label ?? '').toLowerCase().includes(input.toLowerCase())}
+            />
+          </Form.Item>
+        </Col>
+        <Col span={12}>
+          <Form.Item
+            name={['balmoDetail', 'contractMonth']}
+            label={hint('Contract Month', 'YYYY-MM format — e.g. 2026-07. The exchange month this BALMO prices against.')}
+            rules={[{ required: true, message: 'Required for BALMO' }]}
+          >
+            <Input placeholder="2026-07" style={{ fontFamily: 'monospace' }} maxLength={7} />
+          </Form.Item>
+        </Col>
+      </Row>
+      <Row gutter={16}>
+        <Col span={8}>
+          <Form.Item
+            name={['balmoDetail', 'pricingStartDate']}
+            label={hint('Pricing Start', 'First day prices accumulate — typically the trade/booking date. BALMO prices from THIS date to end of month, not from month start.')}
+            rules={[{ required: true, message: 'Required' }]}
+          >
+            <Input placeholder="2026-07-14" />
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item
+            name={['balmoDetail', 'pricingEndDate']}
+            label={hint('Pricing End', 'Last business day of the contract month — auto-derived from the BALMO product but can be overridden.')}
+            rules={[{ required: true, message: 'Required' }]}
+          >
+            <Input placeholder="2026-07-31" />
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item
+            name={['balmoDetail', 'balmoStatus']}
+            label="BALMO Status"
+            rules={[{ required: true }]}
+            initialValue="ACTIVE"
+          >
+            <Select options={[
+              { value: 'ACTIVE', label: 'Active — Accumulating' },
+              { value: 'PRICING_COMPLETE', label: 'Pricing Complete' },
+              { value: 'SETTLED', label: 'Settled' },
+            ]} />
+          </Form.Item>
+        </Col>
+      </Row>
+      <Row gutter={16}>
+        <Col span={8}>
+          <Form.Item
+            name={['balmoDetail', 'runningAvgPrice']}
+            label={hint('Running Avg Price', 'Daily-updated arithmetic average of exchange settlements. Refreshed from the BALMO Dashboard via the sync button.')}
+          >
+            <InputNumber placeholder="Auto-updated daily" precision={4} style={{ width: '100%' }} />
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item
+            name={['balmoDetail', 'finalSettledPrice']}
+            label={hint('Final Settled Price', 'The final arithmetic average on the last pricing day. Filled on settlement or manually entered.')}
+          >
+            <InputNumber placeholder="Filled on settlement" precision={4} style={{ width: '100%' }} />
+          </Form.Item>
+        </Col>
+      </Row>
+    </>
+  );
+}
+
+// ─── RIN detail section ───────────────────────────────────────────────────────
+function RinSection() {
+  return (
+    <>
+      {sectionTitle('RIN Certificate Details')}
+      <Row gutter={16}>
+        <Col span={6}>
+          <Form.Item name={['rinDetail', 'dCode']} label={hint('D-Code', 'Renewable fuel category: D3 cellulosic (EV 3.0), D4 biomass-based diesel (EV 1.5), D5 advanced (EV 1.5), D6 conventional ethanol (EV 1.0), D7 cellulosic diesel (EV 1.7).')}>
+            <Select options={['D3', 'D4', 'D5', 'D6', 'D7'].map((d) => ({ value: d, label: d }))} placeholder="D6" allowClear />
+          </Form.Item>
+        </Col>
+        <Col span={6}>
+          <Form.Item name={['rinDetail', 'vintageYear']} label={hint('Vintage Year', 'RIN generation year. Obligated parties may satisfy up to 20% of RVO with prior-year RINs.')}>
+            <InputNumber placeholder="2026" min={2020} max={2030} style={{ width: '100%' }} />
+          </Form.Item>
+        </Col>
+        <Col span={6}>
+          <Form.Item name={['rinDetail', 'assignmentStatus']} label={hint('Assignment', 'ASSIGNED = RIN travels with the physical fuel batch. SEPARATED = standalone certificate after blending.')}>
+            <Select options={RIN_ASSIGNMENT_STATUSES.map((s) => ({ value: s, label: s }))} placeholder="SEPARATED" allowClear />
+          </Form.Item>
+        </Col>
+        <Col span={6}>
+          <Form.Item name={['rinDetail', 'fuelCategoryCode']} label={hint('Fuel Category', 'Links to RIN fuel category master data (D-code, equivalence value, RVO eligibility).')}>
+            <Input placeholder="CORN-ETHANOL" />
+          </Form.Item>
+        </Col>
+      </Row>
+      <Row gutter={16}>
+        <Col span={8}>
+          <Form.Item name={['rinDetail', 'epaBatchNumber']} label={hint('EPA Batch #', 'EMTS batch identifier from the fuel producer.')}>
+            <Input placeholder="EMTS-2026-88121" />
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item name={['rinDetail', 'emtsTransferRef']} label={hint('EMTS Transfer Ref', 'EPA Moderated Transaction System reference once the buy/sell transfer is submitted.')}>
+            <Input placeholder="Populated after EMTS submission" />
+          </Form.Item>
+        </Col>
+      </Row>
+    </>
+  );
+}
+
+// ─── Environmental detail section ────────────────────────────────────────────
+function EnvironmentalSection() {
+  return (
+    <>
+      {sectionTitle('Environmental Certificate Details')}
+      <Row gutter={16}>
+        <Col span={6}>
+          <Form.Item name={['environmentalDetail', 'envProductType']} label={hint('Product Type', 'ALLOWANCE = cap-and-trade permit (EUA, UKA, CCA). CERTIFICATE = renewable proof (REC, GO). OFFSET = project credit (VCU, CER).')}>
+            <Select options={ENV_PRODUCT_TYPES.map((t) => ({ value: t, label: t }))} placeholder="ALLOWANCE" allowClear />
+          </Form.Item>
+        </Col>
+        <Col span={6}>
+          <Form.Item name={['environmentalDetail', 'schemeCode']} label={hint('Scheme', 'EU_ETS, UK_ETS, CA_CAP_TRADE, RGGI for compliance; VERRA, GOLD_STANDARD for voluntary.')}>
+            <Input placeholder="EU_ETS" />
+          </Form.Item>
+        </Col>
+        <Col span={6}>
+          <Form.Item name={['environmentalDetail', 'registryCode']} label={hint('Registry', 'Where certificates are held — EU Union Registry, Verra Registry, I-REC.')}>
+            <Input placeholder="EU-UNION-REG" />
+          </Form.Item>
+        </Col>
+        <Col span={6}>
+          <Form.Item name={['environmentalDetail', 'vintageYear']} label={hint('Vintage', 'Compliance or generation year of the allowance/credit.')}>
+            <InputNumber placeholder="2026" min={2015} max={2035} style={{ width: '100%' }} />
+          </Form.Item>
+        </Col>
+      </Row>
+      <Row gutter={16}>
+        <Col span={8}>
+          <Form.Item name={['environmentalDetail', 'projectCode']} label={hint('Project', 'Offset project identifier for OFFSET type — e.g. VCS-1234 Katingan Peatland.')}>
+            <Input placeholder="VCS-1234 (offsets only)" />
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item name={['environmentalDetail', 'serialNumberRange']} label={hint('Serial Range', 'Certificate serial number range delivered at settlement.')}>
+            <Input placeholder="VCU-100001-105000" />
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item name={['environmentalDetail', 'retirementFlag']} label={hint('Retire on Delivery', 'ON = bought for immediate retirement (own compliance / voluntary claim), not for resale.')} valuePropName="checked">
+            <Switch />
+          </Form.Item>
+        </Col>
+      </Row>
+    </>
+  );
+}
+
+// ─── Price adjustments (physical legs) ───────────────────────────────────────
+function PriceAdjustmentsSection({ currencyOpts, uomOpts }: { currencyOpts: SelectOpt[]; uomOpts: SelectOpt[] }) {
+  return (
+    <>
+      {sectionTitle('Price Adjustments')}
+      <Form.List name="priceAdjustments">
+        {(fields, { add, remove }) => (
+          <>
+            {fields.map(({ key, name }) => (
+              <Row gutter={8} key={key} style={{ marginBottom: 6 }} align="middle">
+                <Col span={5}>
+                  <Form.Item name={[name, 'adjustmentType']} rules={[{ required: true, message: 'Type required' }]} style={{ marginBottom: 0 }}>
+                    <Select
+                      placeholder="Type"
+                      options={PRICE_ADJUSTMENT_TYPES.map((t) => ({ value: t, label: t.replace(/_/g, ' ') }))}
+                      showSearch
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={4}>
+                  <Form.Item name={[name, 'adjustmentValue']} rules={[{ required: true, message: 'Value required' }]} style={{ marginBottom: 0 }}>
+                    <InputNumber
+                      placeholder="+0.50 or −0.25"
+                      precision={6}
+                      style={{ width: '100%' }}
+                      title="Positive = adds to price; negative = subtracts"
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={3}>
+                  <Form.Item name={[name, 'adjustmentCurrency']} style={{ marginBottom: 0 }}>
+                    <Select placeholder="CCY" options={currencyOpts} allowClear showSearch />
+                  </Form.Item>
+                </Col>
+                <Col span={3}>
+                  <Form.Item name={[name, 'adjustmentUomCode']} style={{ marginBottom: 0 }}>
+                    <Select placeholder="per UoM" options={uomOpts} allowClear showSearch />
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item name={[name, 'notes']} style={{ marginBottom: 0 }}>
+                    <Input placeholder="Notes (e.g. API ref 35°, actual 38.5° → +0.175/BBL)" />
+                  </Form.Item>
+                </Col>
+                <Col span={1}>
+                  <MinusCircleOutlined onClick={() => remove(name)} style={{ color: '#ff4d4f', cursor: 'pointer', fontSize: 16 }} />
+                </Col>
+              </Row>
+            ))}
+            <Button
+              type="dashed" onClick={() => add({ adjustmentType: null, adjustmentValue: null, adjustmentCurrency: 'USD', adjustmentUomCode: null, notes: null })}
+              icon={<PlusOutlined />} size="small" style={{ marginTop: 4 }}
+            >
+              Add Adjustment
+            </Button>
+            {fields.length === 0 && (
+              <Typography.Text type="secondary" style={{ fontSize: 11, marginLeft: 8 }}>
+                API gravity, density, heat content, sulfur differential, markup, tax, etc.
+              </Typography.Text>
+            )}
+          </>
+        )}
+      </Form.List>
+    </>
+  );
+}
+
+// ─── Demurrage & laytime (physical vessel cargo) ──────────────────────────────
+function DemurrageSection({ currencyOpts }: { currencyOpts: SelectOpt[] }) {
+  return (
+    <>
+      {sectionTitle('Demurrage & Laytime')}
+      <Row gutter={16}>
+        <Col span={6}>
+          <Form.Item name="demurrageRate" label={hint('Demurrage Rate', 'Daily penalty charged when vessel exceeds allowed laytime at load or discharge port.')}>
+            <InputNumber placeholder="30000" precision={2} style={{ width: '100%' }} />
+          </Form.Item>
+        </Col>
+        <Col span={4}>
+          <Form.Item name="demurrageCurrency" label="Currency">
+            <Select options={currencyOpts} placeholder="USD" allowClear showSearch />
+          </Form.Item>
+        </Col>
+        <Col span={6}>
+          <Form.Item name="demurrageBasis" label={hint('Basis', 'REVERSIBLE: load + discharge laytime pooled. NON_REVERSIBLE: separate allowance per port. AVERAGED: average of two ports.')}>
+            <Select
+              allowClear
+              placeholder="Select basis"
+              options={DEMURRAGE_BASIS_TYPES.map((b) => ({
+                value: b,
+                label: b === 'NON_REVERSIBLE' ? 'Non-Reversible' : b === 'REVERSIBLE' ? 'Reversible' : 'Averaged',
+              }))}
+            />
+          </Form.Item>
+        </Col>
+        <Col span={4}>
+          <Form.Item name="allowedLaytimeHours" label={hint('Allowed Laytime', 'Free time in hours before demurrage starts (e.g. 72 hrs = 3 days).')}>
+            <InputNumber placeholder="72" precision={2} suffix="hrs" style={{ width: '100%' }} />
+          </Form.Item>
+        </Col>
+        <Col span={4}>
+          <Form.Item name="despatchRate" label={hint('Despatch Rate', 'Reward paid when vessel loads/discharges faster than laytime. Typically 50% of demurrage rate.')}>
+            <InputNumber placeholder="15000" precision={2} style={{ width: '100%' }} />
+          </Form.Item>
+        </Col>
+      </Row>
+    </>
+  );
+}
+
 // ─── Delivery fields (legs only) ──────────────────────────────────────────────
 function DeliveryFields({
   commodityType, locationOpts, vesselOpts, uomOpts, currencyOpts, incoterms, products, markets, pricingRules, periods,
-  crudeGradeOpts, metalShapeOpts, gasDayTypeOpts, nominationOpts, lngPriceOpts, powerLoadOpts, pipelineOpts,
+  crudeGradeOpts, metalShapeOpts, gasDayTypeOpts, nominationOpts, lngPriceOpts, powerLoadOpts, pipelineOpts, isTas, isBalmo, balmoProducts,
 }: {
   commodityType: CommodityTypeTrade;
   locationOpts: SelectOpt[]; vesselOpts: SelectOpt[]; uomOpts: SelectOpt[]; currencyOpts: SelectOpt[];
   incoterms: unknown[]; products: unknown[]; markets: unknown[]; pricingRules: unknown[]; periods: unknown[];
   crudeGradeOpts: SelectOpt[]; metalShapeOpts: SelectOpt[]; gasDayTypeOpts: SelectOpt[];
   nominationOpts: SelectOpt[]; lngPriceOpts: SelectOpt[]; powerLoadOpts: SelectOpt[]; pipelineOpts: SelectOpt[];
+  isTas: boolean;
+  isBalmo: boolean;
+  balmoProducts: BalmoProduct[];
 }) {
+  const settlementType = Form.useWatch('settlementType');
+  const isPhysical = settlementType === 'PHYSICAL';
+  // commodities that can have origin country + demurrage (vessel-based physicals)
+  const hasVesselPhysical = isPhysical && ['OIL', 'LNG', 'AGRICULTURAL', 'METALS'].includes(commodityType);
+  // commodities that can have price quality adjustments
+  const hasPriceAdj = isPhysical && ['OIL', 'GAS', 'LNG', 'AGRICULTURAL', 'METALS'].includes(commodityType);
   return (
     <>
+      {/* Two-column layout: product/pricing/delivery left, commodity detail right */}
+      <Row gutter={28}>
+      <Col span={12} style={{ borderRight: '1px solid rgba(125,125,125,0.15)' }}>
+
       {sectionTitle('Product & Market')}
       <Row gutter={16}>
         <Col span={12}>
@@ -414,15 +777,43 @@ function DeliveryFields({
             <Select options={locationOpts} placeholder="Delivery point" showSearch allowClear />
           </Form.Item>
         </Col>
+        {hasVesselPhysical && (
+          <Col span={8}>
+            <Form.Item
+              name="originCountryCode"
+              label={hint('Origin Country', 'ISO 3166-1 alpha-2 country where the commodity was produced. Required for sanctions screening — e.g. GB (Forties), RU (Urals), SA (Arab Light).')}
+            >
+              <Input
+                placeholder="GB / SA / NG / RU"
+                maxLength={2}
+                style={{ textTransform: 'uppercase', fontFamily: 'monospace', width: 90 }}
+                onChange={(e) => e.target.value = e.target.value.toUpperCase()}
+              />
+            </Form.Item>
+          </Col>
+        )}
       </Row>
+
+      </Col>
+      <Col span={12}>
 
       {commodityType === 'OIL'          && <OilSection     locations={locationOpts} vessels={vesselOpts} crudeGrades={crudeGradeOpts} pipelines={pipelineOpts} />}
       {commodityType === 'GAS'          && <GasSection     nominationTypes={nominationOpts} gasDayTypes={gasDayTypeOpts} />}
       {commodityType === 'POWER'        && <PowerSection   powerLoadTypes={powerLoadOpts} />}
       {commodityType === 'LNG'          && <LngSection     locations={locationOpts} lngPriceBases={lngPriceOpts} />}
       {commodityType === 'METALS'       && <MetalsSection  locations={locationOpts} metalShapes={metalShapeOpts} />}
-      {commodityType === 'AGRICULTURAL' && <AgriSection />}
-      {commodityType === 'FREIGHT'      && <FreightSection locations={locationOpts} />}
+      {commodityType === 'AGRICULTURAL'  && <AgriSection />}
+      {commodityType === 'FREIGHT'       && <FreightSection locations={locationOpts} />}
+      {commodityType === 'RINS'          && <RinSection />}
+      {commodityType === 'ENVIRONMENTAL' && <EnvironmentalSection />}
+      {isTas && <TasSection />}
+      {isBalmo && <BalmoSection balmoProducts={balmoProducts} />}
+
+      </Col>
+      </Row>
+
+      {hasPriceAdj  && <PriceAdjustmentsSection currencyOpts={currencyOpts} uomOpts={uomOpts} />}
+      {hasVesselPhysical && <DemurrageSection currencyOpts={currencyOpts} />}
     </>
   );
 }
@@ -440,10 +831,15 @@ export function TradeBlotter() {
   const { data: products = [] } = useProducts();
   const { data: markets = [] } = useMarkets();
   const { data: pricingRules = [] } = usePricingRules();
+  const { data: balmoProducts = [] } = useBalmoProducts();
   const { data: locations = [] } = useLocations();
   const { data: vessels = [] } = useVessels();
   const { data: periods = [] } = usePeriods();
   const { data: uomRows = [] }            = useUom();
+  const { data: commodityInstrumentMap }  = useCommodityInstrumentMap();
+  // Capture drawers span the full content area — flush to the nav sidebar edge
+  const { sidebarCollapsed } = useUiStore();
+  const fullDrawerWidth = `calc(100vw - ${sidebarCollapsed ? 80 : 210}px)`;
   const { data: currencyRows = [] }       = useTableRows('currency');
   const { data: crudeGradeRows = [] }     = useTableRows('crude_grade_type');
   const { data: metalShapeRows = [] }     = useTableRows('metal_shape');
@@ -478,12 +874,23 @@ export function TradeBlotter() {
   const [tradeCommodity, setTradeCommodity] = useState<CommodityTypeTrade>('OIL');
   const [tradeForm] = Form.useForm<TradeInput>();
   const watchedTermType = Form.useWatch('termType', tradeForm);
+  const watchedInstrumentType = Form.useWatch('instrumentType', tradeForm);
 
   // ── Order / leg drawer ──
   const [orderOpen, setOrderOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState<TradeOrder | null>(null);
   const [orderCommodity, setOrderCommodity] = useState<CommodityTypeTrade>('OIL');
   const [orderForm] = Form.useForm<TradeOrderInput>();
+  const watchedOrderPricingRuleId = Form.useWatch('pricingRuleId', orderForm);
+  const watchedToleranceType = Form.useWatch('toleranceType', orderForm);
+  const isTasPricing = useMemo(
+    () => (pricingRules as PricingRule[]).find((r) => r.pricingRuleId === watchedOrderPricingRuleId)?.pricingType === 'TAS',
+    [pricingRules, watchedOrderPricingRuleId],
+  );
+  const isBalmoPricing = useMemo(
+    () => (pricingRules as PricingRule[]).find((r) => r.pricingRuleId === watchedOrderPricingRuleId)?.pricingType === 'BALMO',
+    [pricingRules, watchedOrderPricingRuleId],
+  );
 
   // ── Item drawer ──
   const [itemOpen, setItemOpen] = useState(false);
@@ -514,9 +921,23 @@ export function TradeBlotter() {
     locationOpts, vesselOpts, uomOpts, currencyOpts, incoterms, products, markets,
     pricingRules, periods, crudeGradeOpts, metalShapeOpts, gasDayTypeOpts,
     nominationOpts, lngPriceOpts, powerLoadOpts, pipelineOpts,
+    balmoProducts: balmoProducts as BalmoProduct[],
   };
 
   // ── Trade actions ──
+  // Draft-resume: navigating away mid-entry stashes each open drawer; returning restores it
+  useFormDraft('trade', {
+    form: tradeForm, open: tradeOpen, setOpen: setTradeOpen, editing: editingTrade, setEditing: setEditingTrade,
+    extra: () => ({ commodity: tradeCommodity }),
+    onRestore: (_v, ex) => setTradeCommodity((ex?.['commodity'] as CommodityTypeTrade | undefined) ?? 'OIL'),
+  });
+  useFormDraft('trade-leg', {
+    form: orderForm, open: orderOpen, setOpen: setOrderOpen, editing: editingOrder, setEditing: setEditingOrder,
+    extra: () => ({ commodity: orderCommodity }),
+    onRestore: (_v, ex) => setOrderCommodity((ex?.['commodity'] as CommodityTypeTrade | undefined) ?? 'OIL'),
+  });
+  useFormDraft('trade-item', { form: itemForm, open: itemOpen, setOpen: setItemOpen, editing: editingItem, setEditing: setEditingItem });
+
   function openNewTrade() {
     setEditingTrade(null);
     setTradeCommodity('OIL');
@@ -525,19 +946,22 @@ export function TradeBlotter() {
       commodityType: 'OIL', tradeType: 'PHYSICAL', direction: 'BUY',
       status: 'DRAFT', contractType: 'SPOT',
       termType: 'SPOT', dealIndicator: 'EXTERNAL',
+      hedgeFlag: false, specialReference: null,
+      instrumentType: null,
     });
     setTradeOpen(true);
   }
   function openEditTrade(t: Trade) {
     setEditingTrade(t);
     setTradeCommodity(t.commodityType);
+    tradeForm.resetFields();
     tradeForm.setFieldsValue({ ...t });
     setTradeOpen(true);
   }
-  async function submitTrade() {
+  async function submitTrade(closeAfter = true) {
     const values = await tradeForm.validateFields();
-    await saveTrade.mutateAsync({ id: editingTrade?.tradeId ?? null, input: values as TradeInput });
-    setTradeOpen(false);
+    const saved = await saveTrade.mutateAsync({ id: editingTrade?.tradeId ?? null, input: values as TradeInput });
+    if (closeAfter) setTradeOpen(false); else setEditingTrade(saved);
   }
 
   // ── Order / leg actions ──
@@ -546,7 +970,7 @@ export function TradeBlotter() {
     setEditingOrder(null);
     setOrderCommodity(selectedTrade.commodityType);
     orderForm.resetFields();
-    const defaultUom: Record<string, string> = { OIL: 'BBL', GAS: 'MWH', POWER: 'MWH', LNG: 'MMBTU', METALS: 'MT', AGRICULTURAL: 'MT', FREIGHT: 'MT' };
+    const defaultUom: Record<string, string> = { OIL: 'BBL', GAS: 'MWH', POWER: 'MWH', LNG: 'MMBTU', METALS: 'MT', AGRICULTURAL: 'MT', FREIGHT: 'MT', RINS: 'GAL', ENVIRONMENTAL: 'MT' };
     orderForm.setFieldsValue({
       tradeId: selectedTrade.tradeId,
       isTemplate: false,
@@ -554,12 +978,14 @@ export function TradeBlotter() {
       settlementType: 'PHYSICAL',
       currencyCode: 'USD',
       uomCode: defaultUom[selectedTrade.commodityType] ?? 'BBL',
+      toleranceForScheduling: false,
     });
     setOrderOpen(true);
   }
   function openEditOrder(o: TradeOrder) {
     setEditingOrder(o);
     if (selectedTrade) setOrderCommodity(selectedTrade.commodityType);
+    orderForm.resetFields();
     orderForm.setFieldsValue({
       ...o,
       oilDetail:     o.oilDetail     ?? undefined,
@@ -569,13 +995,15 @@ export function TradeBlotter() {
       metalsDetail:  o.metalsDetail  ?? undefined,
       agriDetail:    o.agriDetail    ?? undefined,
       freightDetail: o.freightDetail ?? undefined,
+      tasDetail:     o.tasDetail     ?? undefined,
+      balmoDetail:   o.balmoDetail   ?? undefined,
     });
     setOrderOpen(true);
   }
-  async function submitOrder() {
+  async function submitOrder(closeAfter = true) {
     const values = await orderForm.validateFields();
-    await saveOrder.mutateAsync({ id: editingOrder?.orderId ?? null, input: values as TradeOrderInput });
-    setOrderOpen(false);
+    const saved = await saveOrder.mutateAsync({ id: editingOrder?.orderId ?? null, input: values as TradeOrderInput });
+    if (closeAfter) setOrderOpen(false); else setEditingOrder(saved);
   }
 
   // ── Item actions ──
@@ -590,10 +1018,10 @@ export function TradeBlotter() {
     itemForm.setFieldsValue({ ...item });
     setItemOpen(true);
   }
-  async function submitItem() {
+  async function submitItem(closeAfter = true) {
     const values = await itemForm.validateFields();
-    await saveItem.mutateAsync({ id: editingItem?.itemId ?? null, input: values as TradeItemInput });
-    setItemOpen(false);
+    const saved = await saveItem.mutateAsync({ id: editingItem?.itemId ?? null, input: values as TradeItemInput });
+    if (closeAfter) setItemOpen(false); else setEditingItem(saved);
   }
 
   // ── Trade grid columns ──
@@ -862,12 +1290,13 @@ export function TradeBlotter() {
         title={<Space><SwapOutlined />{editingTrade ? `Edit Trade — ${editingTrade.tradeReference}` : 'New Trade'}</Space>}
         open={tradeOpen}
         onClose={() => setTradeOpen(false)}
-        width={780}
+        width={fullDrawerWidth}
         footer={
           <Space style={{ justifyContent: 'flex-end', display: 'flex' }}>
             <Button onClick={() => setTradeOpen(false)}>Cancel</Button>
-            <Button type="primary" onClick={submitTrade} loading={saveTrade.isPending}>
-              {editingTrade ? 'Update Trade' : 'Create Trade'}
+            <Button onClick={() => { void submitTrade(false); }} loading={saveTrade.isPending}>Save</Button>
+            <Button type="primary" onClick={() => { void submitTrade(true); }} loading={saveTrade.isPending}>
+              {editingTrade ? 'Update & Close' : 'Create & Close'}
             </Button>
           </Space>
         }
@@ -879,10 +1308,58 @@ export function TradeBlotter() {
             <Form.Item name="commodityType" label="Commodity Type" rules={[{ required: true }]} style={{ marginBottom: 0 }}>
               <Segmented
                 options={COMMODITY_TYPES_TRADE.map((c) => ({ value: c, label: c }))}
-                onChange={(v) => setTradeCommodity(v as CommodityTypeTrade)}
+                onChange={(v) => {
+                  const ct = v as CommodityTypeTrade;
+                  setTradeCommodity(ct);
+                  // clear instrumentType if it's no longer valid for the new commodity
+                  const current = tradeForm.getFieldValue('instrumentType') as string | null;
+                  if (current && !commodityInstrumentMap?.[ct]?.includes(current as never)) {
+                    tradeForm.setFieldValue('instrumentType', null);
+                  }
+                }}
               />
             </Form.Item>
           </Card>
+
+          {/* Two-column layout: identification & classification left, parties & credit right */}
+          <Row gutter={28}>
+          <Col span={12} style={{ borderRight: '1px solid rgba(125,125,125,0.15)' }}>
+
+          {sectionTitle('Trade Identification')}
+          <Row gutter={16}>
+            <Col span={8}>
+              <Form.Item name="tradeDate" label={hint('Trade Date', 'Date the deal was agreed.')} rules={[{ required: true }]}>
+                <Input placeholder="2026-06-30" />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="tradeType" label={hint('Trade Type', 'PHYSICAL = delivery. FINANCIAL = cash-settled. OPTION = right not obligation.')} rules={[{ required: true }]}>
+                <Select options={TRADE_TYPES.map((t) => ({ value: t, label: t }))} />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="direction" label={hint('Direction', 'BUY = long. SELL = short.')} rules={[{ required: true }]}>
+                <Select options={DIRECTIONS.map((d) => ({ value: d, label: d }))} />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={16}>
+            <Col span={8}>
+              <Form.Item name="status" label="Status" rules={[{ required: true }]}>
+                <Select options={TRADE_STATUSES.map((s) => ({ value: s, label: s }))} />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="contractNumber" label={hint('Contract Number', 'External or counterparty contract reference (e.g. CP deal number).')}>
+                <Input placeholder="SHE-2026-OIL-4421" style={{ fontFamily: 'monospace' }} />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="executionDatetime" label="Execution Time">
+                <Input placeholder="2026-06-30T09:30:00Z" />
+              </Form.Item>
+            </Col>
+          </Row>
 
           {sectionTitle('Deal Classification')}
           <Row gutter={16}>
@@ -900,6 +1377,59 @@ export function TradeBlotter() {
               <Form.Item name="contractType" label={hint('Contract Type', 'SPOT = single event. MONTHLY / QUARTERLY = recurring profile.')}>
                 <Select options={CONTRACT_TYPES.map((c) => ({ value: c, label: c }))} placeholder="SPOT" allowClear />
               </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={16}>
+            <Col span={16}>
+              <Form.Item name="instrumentType" label={hint('Instrument Type', 'Financial structure of the deal — PHYSICAL, FUTURES, FORWARD, SWAP (Fixed/Float or Float/Float), OPTION (Listed/OTC American/Asian/European), STORAGE_AGREEMENT, or TRANSPORT_AGREEMENT. Drives which detail panels appear on the leg.')}>
+                <Select
+                  allowClear
+                  placeholder="Select instrument type (optional)"
+                  options={(() => {
+                    const allowed = new Set(commodityInstrumentMap?.[tradeCommodity] ?? INSTRUMENT_TYPES);
+                    const filter = (v: string) => allowed.has(v as never);
+                    const groups = [
+                      { label: 'Physical & Forwards', items: [
+                        { value: 'PHYSICAL',              label: 'Physical Delivery' },
+                        { value: 'CERTIFICATE_TRANSFER',  label: 'Certificate Transfer (Spot)' },
+                        { value: 'FORWARD',               label: 'Forward (OTC)' },
+                        { value: 'FUTURES',               label: 'Futures (Exchange)' },
+                      ]},
+                      { label: 'Swaps', items: [
+                        { value: 'SWAP_FIXED_FLOAT',  label: 'Swap — Fixed / Float' },
+                        { value: 'SWAP_FLOAT_FLOAT',  label: 'Swap — Float / Float (Basis)' },
+                      ]},
+                      { label: 'Options', items: [
+                        { value: 'OPTION_LISTED',       label: 'Option — Listed (Exchange)' },
+                        { value: 'OPTION_OTC_AMERICAN', label: 'Option — OTC American' },
+                        { value: 'OPTION_OTC_ASIAN',    label: 'Option — OTC Asian (APO)' },
+                        { value: 'OPTION_OTC_EUROPEAN', label: 'Option — OTC European' },
+                      ]},
+                      { label: 'Agreement Deals', items: [
+                        { value: 'STORAGE_AGREEMENT',   label: 'Storage Agreement' },
+                        { value: 'TRANSPORT_AGREEMENT', label: 'Transport Agreement' },
+                      ]},
+                    ];
+                    return groups
+                      .map(g => ({ label: g.label, options: g.items.filter(i => filter(i.value)) }))
+                      .filter(g => g.options.length > 0);
+                  })()}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              {(watchedInstrumentType === 'SWAP_FIXED_FLOAT' || watchedInstrumentType === 'SWAP_FLOAT_FLOAT') && (
+                <Alert type="info" showIcon style={{ marginTop: 29, fontSize: 11 }}
+                  message={watchedInstrumentType === 'SWAP_FIXED_FLOAT' ? 'Swap: Fixed vs Floating index' : 'Basis Swap: two floating indices'} />
+              )}
+              {(watchedInstrumentType?.startsWith('OPTION_')) && (
+                <Alert type="warning" showIcon style={{ marginTop: 29, fontSize: 11 }}
+                  message={watchedInstrumentType === 'OPTION_OTC_ASIAN' ? 'APO: payoff = Avg(index) − Strike' : 'Option: strike, expiry, put/call, premium'} />
+              )}
+              {(watchedInstrumentType === 'STORAGE_AGREEMENT' || watchedInstrumentType === 'TRANSPORT_AGREEMENT') && (
+                <Alert type="success" showIcon style={{ marginTop: 29, fontSize: 11 }}
+                  message={watchedInstrumentType === 'STORAGE_AGREEMENT' ? 'Storage: capacity, tariff, in/out dates' : 'Transport: carrier, route, freight rate'} />
+              )}
             </Col>
           </Row>
 
@@ -939,41 +1469,8 @@ export function TradeBlotter() {
             </Card>
           )}
 
-          {sectionTitle('Trade Identification')}
-          <Row gutter={16}>
-            <Col span={8}>
-              <Form.Item name="tradeDate" label={hint('Trade Date', 'Date the deal was agreed.')} rules={[{ required: true }]}>
-                <Input placeholder="2026-06-30" />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item name="tradeType" label={hint('Trade Type', 'PHYSICAL = delivery. FINANCIAL = cash-settled. OPTION = right not obligation.')} rules={[{ required: true }]}>
-                <Select options={TRADE_TYPES.map((t) => ({ value: t, label: t }))} />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item name="direction" label={hint('Direction', 'BUY = long. SELL = short.')} rules={[{ required: true }]}>
-                <Select options={DIRECTIONS.map((d) => ({ value: d, label: d }))} />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={16}>
-            <Col span={8}>
-              <Form.Item name="status" label="Status" rules={[{ required: true }]}>
-                <Select options={TRADE_STATUSES.map((s) => ({ value: s, label: s }))} />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item name="contractNumber" label={hint('Contract Number', 'External or counterparty contract reference (e.g. CP deal number).')}>
-                <Input placeholder="SHE-2026-OIL-4421" style={{ fontFamily: 'monospace' }} />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item name="executionDatetime" label="Execution Time">
-                <Input placeholder="2026-06-30T09:30:00Z" />
-              </Form.Item>
-            </Col>
-          </Row>
+          </Col>
+          <Col span={12}>
 
           {sectionTitle('Counterparty & Book')}
           <Row gutter={16}>
@@ -1065,6 +1562,43 @@ export function TradeBlotter() {
             </Col>
           </Row>
 
+          </Col>
+          </Row>
+
+          {sectionTitle('Contract Controls')}
+          <Row gutter={16}>
+            <Col span={4}>
+              <Form.Item name="cin" label={hint('CIN', 'Contract Identification Number — internal reference used for regulatory reporting and amendment tracking.')}>
+                <Input placeholder="CIN-2026-0001" style={{ fontFamily: 'monospace' }} />
+              </Form.Item>
+            </Col>
+            <Col span={4}>
+              <Form.Item name="contractPeriodicity" label={hint('Periodicity', 'For term contracts — how often delivery legs repeat.')}>
+                <Select options={CONTRACT_PERIODICITIES.map((p) => ({ value: p, label: p }))} allowClear placeholder="MONTHLY" />
+              </Form.Item>
+            </Col>
+            <Col span={4}>
+              <Form.Item name="contractStatus" label={hint('Contract Status', 'ACTIVE = in force. SUSPENDED = temporarily halted. TERMINATED = cancelled with final settlement.')}>
+                <Select options={CONTRACT_DEAL_STATUSES.map((s) => ({ value: s, label: s }))} allowClear placeholder="ACTIVE" />
+              </Form.Item>
+            </Col>
+            <Col span={4}>
+              <Form.Item name="paymentCalendarCode" label={hint('Payment Calendar', 'Holiday calendar code used to calculate payment due dates (e.g. LON-USD, NY-USD).')}>
+                <Input placeholder="LON-USD" style={{ fontFamily: 'monospace' }} />
+              </Form.Item>
+            </Col>
+            <Col span={2}>
+              <Form.Item name="hedgeFlag" label={hint('Hedge', 'Mark as accounting hedge under IAS 39 / IFRS 9. Required for hedge effectiveness testing.')} valuePropName="checked">
+                <Switch />
+              </Form.Item>
+            </Col>
+            <Col span={6}>
+              <Form.Item name="specialReference" label={hint('Special Reference', 'Special contract reference — side letters, bespoke terms, non-standard clauses. Flags the deal for legal review. Max 180 characters.')}>
+                <Input placeholder="e.g. Side letter 2026-04: BWAVE pricing override" maxLength={180} showCount />
+              </Form.Item>
+            </Col>
+          </Row>
+
           {fp.canView('notes') && sectionTitle('Notes')}
           {fp.canView('notes') && (
             <Form.Item name="notes">
@@ -1086,12 +1620,13 @@ export function TradeBlotter() {
         }
         open={orderOpen}
         onClose={() => setOrderOpen(false)}
-        width={780}
+        width={fullDrawerWidth}
         footer={
           <Space style={{ justifyContent: 'flex-end', display: 'flex' }}>
             <Button onClick={() => setOrderOpen(false)}>Cancel</Button>
-            <Button type="primary" onClick={submitOrder} loading={saveOrder.isPending}>
-              {editingOrder ? 'Update Leg' : 'Add Leg'}
+            <Button onClick={() => { void submitOrder(false); }} loading={saveOrder.isPending}>Save</Button>
+            <Button type="primary" onClick={() => { void submitOrder(true); }} loading={saveOrder.isPending}>
+              {editingOrder ? 'Update & Close' : 'Add & Close'}
             </Button>
           </Space>
         }
@@ -1113,7 +1648,51 @@ export function TradeBlotter() {
             </Col>
           </Row>
 
-          <DeliveryFields commodityType={orderCommodity} {...deliveryFieldProps} />
+          <DeliveryFields commodityType={orderCommodity} {...deliveryFieldProps} isTas={isTasPricing} isBalmo={isBalmoPricing} />
+
+          {sectionTitle('Tolerance')}
+          <Row gutter={16}>
+            <Col span={6}>
+              <Form.Item name="toleranceType" label={hint('Tolerance Type', 'RATE = percentage of contracted qty. FLAT = fixed absolute volume above/below contract qty.')}>
+                <Select options={TOLERANCE_TYPES.map((t) => ({ value: t, label: t === 'RATE' ? 'RATE (%)' : 'FLAT (volume)' }))} allowClear placeholder="None" />
+              </Form.Item>
+            </Col>
+            <Col span={6}>
+              <Form.Item name="tolerancePlus" label={hint('+Tolerance', 'Maximum overdelivery — % if RATE, absolute volume if FLAT. e.g. 5% or 25,000 BBL.')}>
+                <InputNumber
+                  placeholder={watchedToleranceType === 'RATE' ? '5' : '25000'}
+                  precision={watchedToleranceType === 'RATE' ? 2 : 0}
+                  suffix={watchedToleranceType === 'RATE' ? '%' : undefined}
+                  style={{ width: '100%' }}
+                  formatter={(v) => watchedToleranceType !== 'RATE' ? `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : String(v ?? '')}
+                  parser={(v) => v?.replace(/,/g, '') as unknown as number}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={6}>
+              <Form.Item name="toleranceMinus" label={hint('−Tolerance', 'Maximum underdelivery — % if RATE, absolute volume if FLAT.')}>
+                <InputNumber
+                  placeholder={watchedToleranceType === 'RATE' ? '5' : '25000'}
+                  precision={watchedToleranceType === 'RATE' ? 2 : 0}
+                  suffix={watchedToleranceType === 'RATE' ? '%' : undefined}
+                  style={{ width: '100%' }}
+                  formatter={(v) => watchedToleranceType !== 'RATE' ? `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : String(v ?? '')}
+                  parser={(v) => v?.replace(/,/g, '') as unknown as number}
+                />
+              </Form.Item>
+            </Col>
+            {watchedToleranceType && (
+              <Col span={6}>
+                <Form.Item
+                  name="toleranceForScheduling"
+                  label={hint('Apply to Scheduling', 'ON = schedulable qty can exceed contract qty by tolerance. Risk position always uses contract qty only — tolerance never affects risk.')}
+                  valuePropName="checked"
+                >
+                  <Switch />
+                </Form.Item>
+              </Col>
+            )}
+          </Row>
 
           {sectionTitle('Notes')}
           <Form.Item name="notes">
@@ -1131,7 +1710,8 @@ export function TradeBlotter() {
         footer={
           <Space style={{ justifyContent: 'flex-end', display: 'flex' }}>
             <Button onClick={() => setItemOpen(false)}>Cancel</Button>
-            <Button type="primary" onClick={submitItem} loading={saveItem.isPending}>
+            <Button onClick={() => { void submitItem(false); }} loading={saveItem.isPending}>Save</Button>
+            <Button type="primary" onClick={() => { void submitItem(true); }} loading={saveItem.isPending}>
               {editingItem ? 'Update Item' : 'Add Item'}
             </Button>
           </Space>

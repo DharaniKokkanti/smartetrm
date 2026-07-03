@@ -5,14 +5,16 @@ import type { ColDef } from 'ag-grid-community';
 import { PageHeader } from '@components/layout/PageHeader';
 import { SmartGrid } from '@components/smart/SmartGrid';
 import { hint } from '@components/smart/FieldHint';
-import { useUomConversions, useSaveUomConversion, useDeleteUomConversion } from '@features/markets/products/hooks';
+import { useUomConversions, useSaveUomConversion, useDeleteUomConversion } from './hooks';
 import { useUom } from '@features/reference/uom/hooks';
 import { COMMODITY_TYPES, type CommodityType } from '@features/organization/desks/types';
-import type { UomConversion, UomConversionInput } from '@features/markets/products/types';
+import type { UomConversion, UomConversionInput } from './types';
 import type { UomType } from '@features/reference/uom/types';
+import { useFormDraft } from '@components/smart/formDraft';
 
 const COMMODITY_COLOR: Record<CommodityType, string> = {
   OIL: 'volcano', GAS: 'blue', POWER: 'gold', METALS: 'purple', AGRICULTURAL: 'green',
+  LNG: 'cyan', FREIGHT: 'orange', RINS: 'lime', ENVIRONMENTAL: 'geekblue', MULTI: 'magenta', OTHER: 'default',
 };
 
 const UOM_TYPE_COLOR: Record<UomType, string> = {
@@ -54,6 +56,7 @@ export function UomConversionPage() {
   const [addReverse, setAddReverse] = useState(false);
   const [filterCommodity, setFilterCommodity] = useState<CommodityType | 'ALL'>('ALL');
   const [form] = Form.useForm<UomConversionInput>();
+  useFormDraft('ref-uom-conversions', { form, open, setOpen, editing, setEditing });
 
   // Dynamic labels in the drawer — update as user picks units
   const fromWatch    = Form.useWatch('fromUomCode', form) as string | undefined;
@@ -107,9 +110,9 @@ export function UomConversionPage() {
     setOpen(true);
   }
 
-  async function submit() {
+  async function submit(closeAfter = true) {
     const v = await form.validateFields();
-    await save.mutateAsync({ id: editing?.conversionId ?? null, input: { ...v, commodityType: v.commodityType ?? null, notes: v.notes ?? null } });
+    const saved = await save.mutateAsync({ id: editing?.conversionId ?? null, input: { ...v, commodityType: v.commodityType ?? null, notes: v.notes ?? null } });
     if (!editing && addReverse && v.factor && v.factor > 0) {
       const reverseNote = v.notes
         ? `Auto-generated reverse of: ${v.notes}`
@@ -126,7 +129,7 @@ export function UomConversionPage() {
       });
     }
     setAddReverse(false);
-    setOpen(false);
+    if (closeAfter) setOpen(false); else setEditing(saved);
   }
 
   const colDefs = useMemo<ColDef<UomConversion>[]>(() => [
@@ -258,7 +261,8 @@ export function UomConversionPage() {
         footer={
           <Space style={{ justifyContent: 'flex-end', display: 'flex' }}>
             <Button onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="primary" onClick={submit} loading={save.isPending}>Save</Button>
+            <Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button>
+            <Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button>
           </Space>
         }
       >

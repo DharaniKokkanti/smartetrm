@@ -17,14 +17,6 @@ interface Props {
   entityType?: PolymorphicEntityType;
 }
 
-const BLANK_ADDRESS: Address = {
-  addressId: null, _localId: '',
-  addressLine1: '', addressLine2: null, addressLine3: null,
-  city: '', stateProvince: null, postalCode: null,
-  countryCode: '', poBox: null, phoneNumber: null,
-  isActive: true, notes: null,
-};
-
 export function AddressesSection({ items, onChange, entityType = 'COUNTERPARTY' }: Props) {
   const { data: typeOptions = [], isLoading: loadingTypes } = useCustomConfigOptions('ADDRESS_TYPE');
   const { data: pool = [] } = useAddressPool();

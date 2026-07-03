@@ -8,6 +8,7 @@ import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import { useCountries, useSaveCountry, useDeactivateCountry } from './hooks';
 import { REGIONS, FATF_STATUSES, SANCTION_STATUSES, type Country, type CountryInput } from './types';
+import { useFormDraft } from '@components/smart/formDraft';
 
 const FATF_COLOR: Record<string, string> = { COMPLIANT: 'success', GREY_LIST: 'warning', BLACK_LIST: 'error' };
 const REGION_COLOR: Record<string, string> = { EUROPE: 'blue', AMERICAS: 'cyan', ASIA_PACIFIC: 'green', MIDDLE_EAST: 'gold', AFRICA: 'orange', CIS: 'purple' };
@@ -19,10 +20,15 @@ export function CountriesPage() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Country | null>(null);
   const [form] = Form.useForm<CountryInput>();
+  useFormDraft('ref-countries', { form, open, setOpen, editing, setEditing });
 
   function openNew() { setEditing(null); form.resetFields(); form.setFieldsValue({ fatfStatus: 'COMPLIANT', sanctionStatus: 'CLEAR', isActive: true }); setOpen(true); }
   function openEdit(r: Country) { setEditing(r); form.setFieldsValue({ ...r }); setOpen(true); }
-  async function submit() { const v = await form.validateFields(); await save.mutateAsync({ code: editing?.countryCode ?? null, input: v }); setOpen(false); }
+  async function submit(closeAfter = true) {
+    const v = await form.validateFields();
+    const saved = await save.mutateAsync({ code: editing?.countryCode ?? null, input: v });
+    if (closeAfter) setOpen(false); else setEditing(saved);
+  }
 
   const colDefs = useMemo<ColDef<Country>[]>(() => [
     { field: 'countryCode', headerName: 'ISO', width: 70, pinned: 'left', cellClass: 'cell-mono', cellRenderer: (p: { value: string }) => <Tag color="geekblue" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{p.value}</Tag> },
@@ -56,7 +62,7 @@ export function CountriesPage() {
       <PageHeader title="Countries" description="Country reference data with FATF and sanctions status — used in counterparty KYC, vessel flags, and trade compliance screening." moduleGroup="reference" />
       <SmartGrid columnDefs={colDefs} rowData={data} loading={isLoading} onAdd={openNew} addLabel="New Country" onRefresh={() => { void refetch(); }} getRowId={(p) => p.data.countryCode} />
       <Drawer title={editing ? `Edit ${editing.countryCode} — ${editing.countryName}` : 'New Country'} open={open} onClose={() => setOpen(false)} width={480}
-        footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button type="primary" onClick={submit} loading={save.isPending}>Save</Button></Space>}>
+        footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
         <Form form={form} layout="vertical">
           <Form.Item name="countryCode" label={hint('ISO Code', 'ISO 3166-1 alpha-2 two-letter country code. GB, US, NL, DE, AE. Cannot change once linked to records.', 'GB')} rules={[{ required: true, len: 2 }]}>
             <Input placeholder="GB" maxLength={2} style={{ fontFamily: 'monospace', textTransform: 'uppercase', fontWeight: 700 }} />

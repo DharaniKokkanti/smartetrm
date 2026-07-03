@@ -1,8 +1,26 @@
-export const COMMODITY_TYPES_TRADE = ['OIL', 'GAS', 'POWER', 'LNG', 'AGRICULTURAL', 'METALS', 'FREIGHT'] as const;
+export const COMMODITY_TYPES_TRADE = ['OIL', 'GAS', 'POWER', 'LNG', 'AGRICULTURAL', 'METALS', 'FREIGHT', 'RINS', 'ENVIRONMENTAL'] as const;
 export type CommodityTypeTrade = (typeof COMMODITY_TYPES_TRADE)[number];
 
 export const TRADE_TYPES = ['PHYSICAL', 'FINANCIAL', 'OPTION', 'FREIGHT'] as const;
 export type TradeType = (typeof TRADE_TYPES)[number];
+
+// Instrument type — more granular than tradeType; describes the financial structure of the deal
+export const INSTRUMENT_TYPES = [
+  'PHYSICAL',              // standard physical commodity delivery (oil, gas, power, metals, agri)
+  'CERTIFICATE_TRANSFER',  // spot electronic certificate transfer (RINs in EPA EMTS, EUAs on ICE/EEX spot, VCUs/RECs on Xpansiv)
+  'FUTURES',               // exchange-traded, daily MTM, cash-settle or deliver
+  'FORWARD',               // OTC bilateral, fixed price, future delivery (no daily MTM)
+  'SWAP_FIXED_FLOAT',      // fixed price leg vs floating index (e.g. fixed vs Platts Brent avg)
+  'SWAP_FLOAT_FLOAT',      // two floating legs on different indices — basis / spread swap
+  'OPTION_LISTED',         // exchange-traded option (CME, ICE, EEX)
+  'OPTION_OTC_AMERICAN',   // OTC — exercisable any time before expiry
+  'OPTION_OTC_ASIAN',      // OTC — payoff based on average price over observation period (APO)
+  'OPTION_OTC_EUROPEAN',   // OTC — exercisable only at expiry date
+  'STORAGE_AGREEMENT',     // capacity lease or throughput deal at a storage facility
+  'TRANSPORT_AGREEMENT',   // ship charter, pipeline capacity, or truck/rail contract
+] as const;
+export type InstrumentType = (typeof INSTRUMENT_TYPES)[number];
+
 
 export const DIRECTIONS = ['BUY', 'SELL'] as const;
 export type Direction = (typeof DIRECTIONS)[number];
@@ -28,6 +46,15 @@ export type DealIndicator = (typeof DEAL_INDICATORS)[number];
 export const RFP_FREQUENCIES = ['DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY'] as const;
 export type RfpFrequency = (typeof RFP_FREQUENCIES)[number];
 
+export const CONTRACT_PERIODICITIES = ['DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY'] as const;
+export type ContractPeriodicity = (typeof CONTRACT_PERIODICITIES)[number];
+
+export const CONTRACT_DEAL_STATUSES = ['DRAFT', 'ACTIVE', 'SUSPENDED', 'TERMINATED'] as const;
+export type ContractDealStatus = (typeof CONTRACT_DEAL_STATUSES)[number];
+
+export const TOLERANCE_TYPES = ['RATE', 'FLAT'] as const;
+export type ToleranceType = (typeof TOLERANCE_TYPES)[number];
+
 export const BROKER_FEE_TYPES = ['FIXED', 'PERCENTAGE'] as const;
 export type BrokerFeeType = (typeof BROKER_FEE_TYPES)[number];
 
@@ -37,7 +64,8 @@ export type CreditTermCode = (typeof CREDIT_TERM_CODES)[number];
 export const CREDIT_APPROVAL_STATUSES = ['PENDING', 'APPROVED', 'REJECTED', 'EXEMPT'] as const;
 export type CreditApprovalStatus = (typeof CREDIT_APPROVAL_STATUSES)[number];
 
-export const MOT_TYPES = ['TANKER', 'PIPELINE', 'BARGE', 'TRUCK', 'RAIL', 'ISO_TANK', 'SHIP'] as const;
+// CERTIFICATE = no physical transport — used for RINs, carbon credits, RECs, and other certificate trades
+export const MOT_TYPES = ['TANKER', 'PIPELINE', 'BARGE', 'TRUCK', 'RAIL', 'ISO_TANK', 'SHIP', 'CERTIFICATE'] as const;
 export type MotType = (typeof MOT_TYPES)[number];
 
 export const FREIGHT_VESSEL_TYPES = ['VLCC', 'SUEZMAX', 'AFRAMAX', 'LR2', 'LR1', 'MR', 'CAPE', 'PANAMAX', 'SUPRAMAX', 'HANDYSIZE'] as const;
@@ -134,6 +162,208 @@ export interface FreightDetail {
   charterType: FreightCharterType | null;
 }
 
+// ─── RIN detail (RINS commodity legs) ─────────────────────────────────────────
+// A RIN is a 38-character electronic certificate in EPA EMTS. ASSIGNED RINs
+// travel with the physical fuel batch; SEPARATED RINs are standalone certificates.
+export const RIN_ASSIGNMENT_STATUSES = ['ASSIGNED', 'SEPARATED'] as const;
+export type RinAssignmentStatus = (typeof RIN_ASSIGNMENT_STATUSES)[number];
+
+export interface RinDetail {
+  dCode: 'D3' | 'D4' | 'D5' | 'D6' | 'D7' | null;  // renewable fuel category
+  vintageYear: number | null;                        // RIN generation year (current or prior)
+  assignmentStatus: RinAssignmentStatus | null;
+  fuelCategoryCode: string | null;                   // FK code to rins/fuel-categories master data
+  epaBatchNumber: string | null;                     // EMTS batch identifier
+  emtsTransferRef: string | null;                    // EMTS transaction reference once transferred
+}
+
+// ─── Environmental detail (ENVIRONMENTAL commodity legs) ──────────────────────
+export const ENV_PRODUCT_TYPES = ['ALLOWANCE', 'CERTIFICATE', 'OFFSET'] as const;
+export type EnvProductType = (typeof ENV_PRODUCT_TYPES)[number];
+
+export interface EnvironmentalDetail {
+  envProductType: EnvProductType | null;   // ALLOWANCE (EUA/UKA/CCA), CERTIFICATE (REC/GO), OFFSET (VCU/CER)
+  schemeCode: string | null;               // EU_ETS, UK_ETS, CA_CAP_TRADE, RGGI, VERRA, GOLD_STANDARD
+  registryCode: string | null;             // FK code to environmental/carbon-registries master data
+  vintageYear: number | null;              // compliance/generation year
+  projectCode: string | null;              // offset project identifier (VCS-1234)
+  serialNumberRange: string | null;        // certificate serial range for delivery
+  retirementFlag: boolean;                 // true = bought for immediate retirement, not resale
+}
+
+// ─── Price adjustments (physical legs only) ───────────────────────────────────
+// Each row modifies the base contract price (positive = premium, negative = discount).
+// OIL:  API_GRAVITY, DENSITY, SULFUR, QUALITY_PREMIUM/DISCOUNT, TAX, MARKUP
+// GAS:  HEAT_CONTENT, TAX, MARKUP
+// LNG:  HEAT_CONTENT, DENSITY, MARKUP
+// AGRI: PROTEIN, MOISTURE, TEST_WEIGHT, QUALITY_PREMIUM/DISCOUNT, TAX
+// METALS: ASSAY, TREATMENT_CHARGE, REFINING_CHARGE, MARKUP
+export const PRICE_ADJUSTMENT_TYPES = [
+  'API_GRAVITY',        // crude: $/BBL per °API vs reference
+  'DENSITY',            // volumetric → mass conversion factor
+  'HEAT_CONTENT',       // gas/LNG: price per actual BTU/MJ vs reference calorific value
+  'SULFUR',             // crude/products: $/BBL premium or discount for sulphur %
+  'PROTEIN',            // agri: premium per % protein above minimum
+  'MOISTURE',           // agri: deduction per % moisture above maximum
+  'TEST_WEIGHT',        // agri: bushel weight premium/discount
+  'ASSAY',              // metals: purity / payable metal adjustment
+  'TREATMENT_CHARGE',   // metals concentrates: TC deducted from proceeds
+  'REFINING_CHARGE',    // metals concentrates: RC deducted from proceeds
+  'QUALITY_PREMIUM',    // general: agreed quality uplift in $/unit
+  'QUALITY_DISCOUNT',   // general: agreed quality markdown in $/unit
+  'TAX',                // applicable commodity or excise tax on price
+  'MARKUP',             // commercial markup applied by trading desk
+  'FX_DIFFERENTIAL',    // cross-currency adjustment embedded in price
+] as const;
+export type PriceAdjustmentType = (typeof PRICE_ADJUSTMENT_TYPES)[number];
+
+export interface PriceAdjustment {
+  adjustmentId?: number;
+  adjustmentType: PriceAdjustmentType;
+  adjustmentValue: number;       // positive = adds to price; negative = subtracts
+  adjustmentCurrency: string | null;
+  adjustmentUomCode: string | null;
+  notes: string | null;
+}
+
+// ─── Demurrage & laytime ──────────────────────────────────────────────────────
+// Applies to physical legs with vessel transport (OIL tanker, LNG carrier, bulk carriers).
+// REVERSIBLE: laytime at load and discharge ports is added together, one pool.
+// NON_REVERSIBLE: each port has its own separate laytime allowance.
+// AVERAGED: an average of the two ports' laytime is used.
+export const DEMURRAGE_BASIS_TYPES = ['REVERSIBLE', 'NON_REVERSIBLE', 'AVERAGED'] as const;
+export type DemurrageBasis = (typeof DEMURRAGE_BASIS_TYPES)[number];
+
+// ─── Swap detail (SWAP_FIXED_FLOAT and SWAP_FLOAT_FLOAT) ─────────────────────
+export const SWAP_RESET_FREQUENCIES = ['DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY', 'ANNUAL'] as const;
+export type SwapResetFrequency = (typeof SWAP_RESET_FREQUENCIES)[number];
+
+export interface SwapDetail {
+  fixedRate: number | null;              // fixed leg rate (for SWAP_FIXED_FLOAT)
+  fixedCurrencyCode: string | null;
+  fixedUomCode: string | null;
+  floatingIndexCode: string | null;      // primary floating leg price index
+  floatingIndex2Code: string | null;     // second floating leg (SWAP_FLOAT_FLOAT only)
+  resetFrequency: SwapResetFrequency | null;
+  paymentFrequency: SwapResetFrequency | null;
+  notionalQuantity: number | null;
+  notionalUomCode: string | null;
+  averagingMethod: 'ARITHMETIC' | 'WEIGHTED' | null;
+}
+
+// ─── Option detail (all OPTION_ instrument types) ─────────────────────────────
+export const OPTION_PUT_CALLS = ['CALL', 'PUT'] as const;
+export type OptionPutCall = (typeof OPTION_PUT_CALLS)[number];
+
+export interface OptionDetail {
+  putCall: OptionPutCall | null;
+  strikePrice: number | null;
+  strikeCurrencyCode: string | null;
+  strikeUomCode: string | null;
+  expiryDate: string | null;
+  exerciseDate: string | null;           // last date exercised (= expiryDate for European)
+  premiumAmount: number | null;
+  premiumCurrencyCode: string | null;
+  premiumPayDate: string | null;
+  underlyingProductCode: string | null;
+  underlyingContractCode: string | null; // e.g. CLZ26 for listed options
+  lotSize: number | null;
+  numberOfLots: number | null;
+  isExercised: boolean;
+  exercisedPrice: number | null;
+}
+
+// ─── Storage agreement detail (STORAGE_AGREEMENT instrument type) ─────────────
+export const STORAGE_AGREEMENT_TYPES = [
+  'TANK_LEASE',       // fixed capacity lease — pay for reserved space regardless of use
+  'THROUGHPUT',       // pay per unit moved into / out of storage
+  'TERMINALLING',     // terminal handling, loading and unloading fees
+  'WORKING_GAS',      // working gas capacity in an underground gas storage field
+  'CUSHION_GAS',      // base / cushion gas — mandatory non-withdrawable volume
+  'LNG_SLOT',         // reserved LNG berth or send-out slot at an LNG terminal
+  'REGASIFICATION',   // FSRU or land-based LNG regasification capacity
+] as const;
+export type StorageAgreementType = (typeof STORAGE_AGREEMENT_TYPES)[number];
+
+export interface StorageAgreementDetail {
+  storageAgreementType: StorageAgreementType | null;
+  storageFacilityCode: string | null;
+  storageCountryCode: string | null;
+  capacityReserved: number | null;
+  capacityUomCode: string | null;
+  injectionRatePerDay: number | null;
+  withdrawalRatePerDay: number | null;
+  storageStartDate: string | null;
+  storageEndDate: string | null;
+  tariffRate: number | null;
+  tariffCurrencyCode: string | null;
+  tariffUomCode: string | null;          // per BBL, per MT, per MWH, or FLAT_MONTHLY
+  minimumThroughput: number | null;      // take-or-pay floor
+}
+
+// ─── Transport agreement detail (TRANSPORT_AGREEMENT instrument type) ──────────
+export const TRANSPORT_AGREEMENT_TYPES = [
+  'VOYAGE_CHARTER',         // specific voyage at worldscale or lumpsum
+  'TIME_CHARTER',           // vessel for a fixed period, charterer pays voyage costs
+  'BAREBOAT_CHARTER',       // vessel hull only — charterer provides crew and operations
+  'COA',                    // Contract of Affreightment — multiple voyages at fixed rate
+  'PIPELINE_FIRM',          // must-take reserved pipeline capacity with take-or-pay
+  'PIPELINE_INTERRUPTIBLE', // interruptible pipeline capacity — no delivery guarantee
+  'TRUCK_SPOT',             // spot road tanker or bulk truck
+  'RAIL_SPOT',              // spot rail tank car
+  'BARGE_SPOT',             // spot river or coastal barge
+  'LNG_SLOT_CHARTER',       // LNG vessel slot within a time-charter or COA structure
+] as const;
+export type TransportAgreementType = (typeof TRANSPORT_AGREEMENT_TYPES)[number];
+
+export interface TransportAgreementDetail {
+  transportAgreementType: TransportAgreementType | null;
+  carrierName: string | null;            // shipping company, TSO, haulier name
+  vesselName: string | null;
+  vesselImoNumber: string | null;
+  pipelineCode: string | null;
+  loadLocationCode: string | null;
+  dischargeLocationCode: string | null;
+  routeCode: string | null;             // e.g. TD3C, TC2, C3 worldscale routes
+  capacityPerLift: number | null;
+  capacityUomCode: string | null;
+  laycanStart: string | null;
+  laycanEnd: string | null;
+  agreementStartDate: string | null;
+  agreementEndDate: string | null;
+  numberOfLifts: number | null;         // total contracted voyages for COA
+  freightRate: number | null;
+  freightRateType: FreightRateType | null;
+  freightCurrencyCode: string | null;
+}
+
+// ─── TAS detail (Trade at Settlement pricing) ────────────────────────────────
+// Attached to a TradeOrder when pricingRule.pricingType === 'TAS'.
+// Price = exchange daily settlement ± (tasDifferential × tickSize).
+export interface TasDetail {
+  tasContractTicker: string;          // CLZ26, NGF27, HOF27 — specific futures month
+  tasDifferential: number;            // signed integer ticks (+2, 0, -1)
+  tasStatus: 'AWAITING_SETTLEMENT' | 'PRICE_LOCKED';
+  tasLockedPrice: number | null;      // computed on lock: settlePrice + diff × tickSize
+  tasSettlementDate: string | null;   // date exchange published the settlement
+}
+
+// ─── BALMO detail (Balance of Month swap pricing) ────────────────────────────
+// Attached to a TradeOrder when pricingRule.pricingType === 'BALMO'.
+// Pricing window = [booking date → last business day of contract month].
+// Floating price = arithmetic average of front-month futures settlements each day.
+export interface BalmoDetail {
+  balmoProductId: number;             // FK to balmo_product (monthly contract listing)
+  pricingStartDate: string;           // trade/booking date — first pricing day
+  pricingEndDate: string;             // last business day of contract month (auto)
+  contractMonth: string;              // YYYY-MM — e.g. '2026-07'
+  balmoStatus: 'ACTIVE' | 'PRICING_COMPLETE' | 'SETTLED';
+  runningAvgPrice: number | null;     // updated daily from settlement_price table
+  elapsedPricingDays: number | null;  // business days elapsed in pricing window
+  totalPricingDays: number | null;    // total business days in pricing window
+  finalSettledPrice: number | null;   // filled on last day / manual settlement
+}
+
 // ─── Trade (contract header — fields that apply to ALL legs) ─────────────────
 
 export interface Trade {
@@ -146,9 +376,10 @@ export interface Trade {
   tradeType: TradeType;
   direction: Direction;
   // Deal classification
-  termType: TermType;          // SPOT or RFP (multi-period)
-  dealIndicator: DealIndicator; // INTERNAL or EXTERNAL (auto from CP type)
+  termType: TermType;               // SPOT or RFP (multi-period)
+  dealIndicator: DealIndicator;     // INTERNAL or EXTERNAL (auto from CP type)
   contractType: ContractType | null;
+  instrumentType: InstrumentType | null; // financial structure — FUTURES, SWAP_*, OPTION_*, AGREEMENT, etc.
   status: TradeStatus;
   // Counterparty & book
   counterpartyId: number;
@@ -177,6 +408,13 @@ export interface Trade {
   creditApprovalStatus: CreditApprovalStatus | null;
   creditLimitUsed: number | null;
   gtcReference: string | null;
+  // Contract controls
+  hedgeFlag: boolean;
+  cin: string | null;
+  paymentCalendarCode: string | null;
+  contractPeriodicity: ContractPeriodicity | null;
+  contractStatus: ContractDealStatus | null;
+  specialReference: string | null;  // special contract reference — side letters, bespoke terms (max 180 chars)
   notes: string | null;
   parentTradeId: number | null;
   amendmentNumber: number;
@@ -220,6 +458,19 @@ export interface TradeOrder {
   incotermCode: string | null;
   deliveryLocationCode: string | null;
   settlementType: SettlementTypeTrade;
+  // Operational tolerance (not used for risk — risk always = contract qty)
+  toleranceType: ToleranceType | null;
+  tolerancePlus: number | null;   // % if RATE, volume if FLAT
+  toleranceMinus: number | null;
+  toleranceForScheduling: boolean; // false = tolerance for actuals only
+  // Physical delivery enrichments (order-level, not commodity-specific)
+  originCountryCode: string | null;    // ISO 3166-1 alpha-2; used for sanctions screening
+  demurrageRate: number | null;        // $/day or currency/day penalty for excess laytime
+  demurrageCurrency: string | null;
+  demurrageBasis: DemurrageBasis | null;
+  allowedLaytimeHours: number | null;  // free laytime before demurrage starts
+  despatchRate: number | null;         // reward for early completion (typically 50% of demurrage)
+  priceAdjustments?: PriceAdjustment[];
   oilDetail?: OilDetail | null;
   gasDetail?: GasDetail | null;
   powerDetail?: PowerDetail | null;
@@ -227,6 +478,14 @@ export interface TradeOrder {
   metalsDetail?: MetalsDetail | null;
   agriDetail?: AgriDetail | null;
   freightDetail?: FreightDetail | null;
+  rinDetail?: RinDetail | null;
+  environmentalDetail?: EnvironmentalDetail | null;
+  tasDetail?: TasDetail | null;
+  balmoDetail?: BalmoDetail | null;
+  swapDetail?: SwapDetail | null;
+  optionDetail?: OptionDetail | null;
+  storageAgreementDetail?: StorageAgreementDetail | null;
+  transportAgreementDetail?: TransportAgreementDetail | null;
   notes: string | null;
   createdAt: string;
   updatedAt: string;

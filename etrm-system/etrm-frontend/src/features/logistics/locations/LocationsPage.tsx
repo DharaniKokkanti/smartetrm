@@ -9,6 +9,7 @@ import { hint } from '@components/smart/FieldHint';
 import { useLocations, useSaveLocation, useDeactivateLocation } from './hooks';
 import { LOCATION_TYPE_CODES, type Location, type LocationInput, type LocationTypeCode } from './types';
 import { COMMODITY_TYPES, type CommodityType } from '@features/organization/desks/types';
+import { useFormDraft } from '@components/smart/formDraft';
 
 const TYPE_COLOR: Record<LocationTypeCode, string> = {
   PORT: 'blue', PIPELINE_HUB: 'purple', GAS_HUB: 'cyan', GRID_NODE: 'gold',
@@ -23,10 +24,15 @@ export function LocationsPage() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Location | null>(null);
   const [form] = Form.useForm<LocationInput>();
+  useFormDraft('logistics-locations', { form, open, setOpen, editing, setEditing });
 
   function openNew() { setEditing(null); form.resetFields(); form.setFieldValue('isActive', true); setOpen(true); }
   function openEdit(l: Location) { setEditing(l); form.setFieldsValue({ locationCode: l.locationCode, locationName: l.locationName, locationTypeCode: l.locationTypeCode, commodityType: l.commodityType, countryCode: l.countryCode, portCode: l.portCode ?? undefined, unlocode: l.unlocode ?? undefined, operator: l.operator ?? undefined, capacity: l.capacity, capacityUomCode: l.capacityUomCode ?? undefined, latitude: l.latitude, longitude: l.longitude, isActive: l.isActive }); setOpen(true); }
-  async function submit() { const v = await form.validateFields(); await save.mutateAsync({ id: editing?.locationId ?? null, input: v }); setOpen(false); }
+  async function submit(closeAfter = true) {
+    const v = await form.validateFields();
+    const saved = await save.mutateAsync({ id: editing?.locationId ?? null, input: v });
+    if (closeAfter) setOpen(false); else setEditing(saved);
+  }
 
   const colDefs = useMemo<ColDef<Location>[]>(() => [
     { field: 'locationCode', headerName: 'Code', cellClass: 'cell-mono', width: 140, pinned: 'left',
@@ -63,7 +69,7 @@ export function LocationsPage() {
       <SmartGrid columnDefs={colDefs} rowData={data} loading={isLoading} onAdd={openNew} addLabel="New Location" onRefresh={() => { void refetch(); }} getRowId={(p) => String(p.data.locationId)} />
 
       <Drawer title={editing ? `Edit Location — ${editing.locationCode}` : 'New Location'} open={open} onClose={() => setOpen(false)} width={540}
-        footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button type="primary" onClick={submit} loading={save.isPending}>Save</Button></Space>}>
+        footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
         <Form form={form} layout="vertical">
           <Form.Item name="locationCode" label={hint('Location Code', 'Internal unique code. For ports, align with UN/LOCODE where possible. For hubs, use market convention (e.g. NBP for UK gas hub, TTF for Dutch gas hub, CUSHING for WTI delivery point).', 'CUSHING-OK, NBP-UK, SULLOM-VOE')} rules={[{ required: true }]}>
             <Input placeholder="SULLOM-VOE" style={{ fontFamily: 'monospace', textTransform: 'uppercase' }} />

@@ -187,16 +187,3 @@ export interface SpecParameter {
   dataType: 'DECIMAL' | 'BOOLEAN' | 'TEXT';
   decimalPlaces: number;
 }
-
-// ── UoM Conversion ────────────────────────────────────────────────────────────
-
-export interface UomConversion {
-  conversionId: number;
-  fromUomCode: string;
-  toUomCode: string;
-  factor: number;
-  commodityType: CommodityType | null;
-  notes: string | null;
-}
-
-export type UomConversionInput = Omit<UomConversion, 'conversionId'>;

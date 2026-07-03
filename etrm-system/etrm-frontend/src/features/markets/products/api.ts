@@ -4,7 +4,7 @@ import type {
   ProductPriceIndex, ProductPriceIndexInput, ProductMarketLink,
   ProductSpecTemplate, ProductSpecValue,
   BlendComponent, BlendComponentInput,
-  SpecParameter, UomConversion, UomConversionInput,
+  SpecParameter,
 } from './types';
 import type { CommodityType } from '@features/organization/desks/types';
 
@@ -53,15 +53,4 @@ export const productBlendApi = {
     apiClient.post<BlendComponent>(`/products/${productId}/blend-components`, input).then((r) => r.data),
   removeComponent: (productId: number, blendComponentId: number) =>
     apiClient.delete(`/products/${productId}/blend-components/${blendComponentId}`),
-};
-
-export const uomConversionApi = {
-  list: (commodityType?: CommodityType | null) =>
-    apiClient.get<UomConversion[]>('/uom-conversions', { params: commodityType ? { commodityType } : {} }).then((r) => r.data),
-  create: (input: UomConversionInput) =>
-    apiClient.post<UomConversion>('/uom-conversions', input).then((r) => r.data),
-  update: (id: number, input: UomConversionInput) =>
-    apiClient.put<UomConversion>(`/uom-conversions/${id}`, input).then((r) => r.data),
-  delete: (id: number) =>
-    apiClient.delete(`/uom-conversions/${id}`),
 };

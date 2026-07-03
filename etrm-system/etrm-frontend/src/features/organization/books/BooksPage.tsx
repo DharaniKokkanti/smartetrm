@@ -8,6 +8,7 @@ import { ActiveTag } from '@components/smart/StatusTag';
 import { useBooks, useDeactivateBook } from './hooks';
 import type { Book, BookType } from './types';
 import { BookFormDrawer } from './BookFormDrawer';
+import { useDraftState } from '@components/smart/formDraft';
 
 const BOOK_TYPE_COLOR: Record<BookType, string> = {
   TRADING: 'blue',
@@ -23,6 +24,7 @@ export function BooksPage() {
   const deactivate = useDeactivateBook();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editing, setEditing] = useState<Book | null>(null);
+  useDraftState('org-books', { open: drawerOpen, setOpen: setDrawerOpen, editing, setEditing });
 
   const colDefs = useMemo<ColDef<Book>[]>(() => [
     { field: 'bookCode', headerName: 'Code', cellClass: 'cell-mono', width: 160, pinned: 'left' },
@@ -95,7 +97,7 @@ export function BooksPage() {
         onRefresh={() => { void refetch(); }}
         getRowId={(p) => String(p.data.bookId)}
       />
-      <BookFormDrawer open={drawerOpen} editing={editing} onClose={() => setDrawerOpen(false)} />
+      <BookFormDrawer open={drawerOpen} editing={editing} onClose={() => setDrawerOpen(false)} onSaved={(b) => setEditing(b)} />
     </>
   );
 }

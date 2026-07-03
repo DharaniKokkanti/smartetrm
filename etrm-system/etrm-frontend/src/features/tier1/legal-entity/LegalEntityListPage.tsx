@@ -18,6 +18,7 @@ import { LegalEntityFormDrawer } from './LegalEntityFormDrawer';
 import { LegalEntityUploadReviewModal } from './LegalEntityUploadReviewModal';
 import { downloadBlob, generateLegalEntityTemplate } from './excelTemplate';
 import { parseLegalEntityUpload } from './excelUpload';
+import { useDraftState } from '@components/smart/formDraft';
 
 export function LegalEntityListPage() {
   const { data: entities, isLoading } = useLegalEntities();
@@ -28,6 +29,7 @@ export function LegalEntityListPage() {
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editing, setEditing] = useState<LegalEntity | null>(null);
+  useDraftState('tier1-legal-entity', { open: drawerOpen, setOpen: setDrawerOpen, editing, setEditing });
   const [uploadRows, setUploadRows] = useState<LegalEntityUploadRow[] | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -163,7 +165,7 @@ export function LegalEntityListPage() {
         </Typography.Text>
       )}
 
-      <LegalEntityFormDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} editing={editing} />
+      <LegalEntityFormDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} editing={editing} onSaved={(e) => setEditing(e)} />
 
       {uploadRows && (
         <LegalEntityUploadReviewModal

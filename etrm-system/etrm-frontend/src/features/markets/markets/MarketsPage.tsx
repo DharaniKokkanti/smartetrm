@@ -18,6 +18,7 @@ import {
 } from './hooks';
 import { MARKET_TYPES, SETTLEMENT_TYPES_MKT, type Market, type MarketInput, type MarketProduct, type MarketType, type SettlementTypeMkt } from './types';
 import { COMMODITY_TYPES } from '@features/organization/desks/types';
+import { useFormDraft } from '@components/smart/formDraft';
 
 const MKT_TYPE_COLOR: Record<MarketType, string> = {
   EXCHANGE: 'blue', OTC_CLEARED: 'cyan', OTC_BILATERAL: 'orange', OTC_PHYSICAL: 'green', BROKER: 'purple', INTERNAL: 'default',
@@ -151,10 +152,10 @@ function MarketProductsDrawer({ market, onClose }: { market: Market; onClose: ()
   const [selectedMp, setSelectedMp] = useState<MarketProduct | null>(null);
   const [form] = Form.useForm();
 
-  async function submit() {
+  async function submit(closeAfter = true) {
     const v = await form.validateFields();
     await save.mutateAsync({ id: null, input: { ...v, marketId: market.marketId } });
-    setAddOpen(false);
+    if (closeAfter) setAddOpen(false);
     form.resetFields();
   }
 
@@ -218,7 +219,8 @@ function MarketProductsDrawer({ market, onClose }: { market: Market; onClose: ()
                 </Form.Item>
               </Space>
               <Space>
-                <Button type="primary" onClick={submit} loading={save.isPending} size="small">Save</Button>
+                <Button onClick={() => { void submit(false); }} loading={save.isPending} size="small">Add & Next</Button>
+                <Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending} size="small">Add & Close</Button>
                 <Button size="small" onClick={() => { setAddOpen(false); form.resetFields(); }}>Cancel</Button>
               </Space>
             </Form>
@@ -240,6 +242,7 @@ export function MarketsPage() {
   const [detailMarket, setDetailMarket] = useState<Market | null>(null);
   const [editing, setEditing] = useState<Market | null>(null);
   const [form] = Form.useForm<MarketInput>();
+  useFormDraft('markets-markets', { form, open: editOpen, setOpen: setEditOpen, editing, setEditing });
 
   function openNew() { setEditing(null); form.resetFields(); form.setFieldsValue({ isActive: true, settlementType: 'FINANCIAL', marketType: 'EXCHANGE' }); setEditOpen(true); }
   function openEdit(m: Market) {
@@ -254,7 +257,11 @@ export function MarketsPage() {
     });
     setEditOpen(true);
   }
-  async function submit() { const v = await form.validateFields(); await save.mutateAsync({ id: editing?.marketId ?? null, input: v }); setEditOpen(false); }
+  async function submit(closeAfter = true) {
+    const v = await form.validateFields();
+    const saved = await save.mutateAsync({ id: editing?.marketId ?? null, input: v });
+    if (closeAfter) setEditOpen(false); else setEditing(saved);
+  }
 
   const colDefs = useMemo<ColDef<Market>[]>(() => [
     { field: 'marketCode', headerName: 'Market Code', cellClass: 'cell-mono', width: 160, pinned: 'left',
@@ -310,7 +317,7 @@ export function MarketsPage() {
       <Drawer
         title={editing ? `Edit Market — ${editing.marketCode}` : 'New Market'}
         open={editOpen} onClose={() => setEditOpen(false)} width={560}
-        footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setEditOpen(false)}>Cancel</Button><Button type="primary" onClick={submit} loading={save.isPending}>Save</Button></Space>}
+        footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setEditOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}
       >
         <Form form={form} layout="vertical">
           <Form.Item name="marketCode" label={hint('Market Code', 'Unique market identifier. Convention: {EXCHANGE}_{PRODUCT} for exchange markets, OTC_{COMMODITY}_{TYPE} for OTC. Examples: ICE_BRENT (ICE Brent Futures), NYMEX_WTI (NYMEX WTI Crude), OTC_NS_CRUDE (North Sea OTC physical crude).', 'ICE_BRENT, NYMEX_WTI, OTC_NS_CRUDE')} rules={[{ required: true }]}>

@@ -9,6 +9,7 @@ import { hint } from '@components/smart/FieldHint';
 import { useTraders, useDeactivateTrader, useSaveTrader } from './hooks';
 import type { Trader, TraderInput } from './types';
 import { COMMODITY_TYPES } from '../desks/types';
+import { useFormDraft } from '@components/smart/formDraft';
 
 const COMMODITY_COLOR: Record<string, string> = {
   OIL: 'volcano', GAS: 'blue', POWER: 'gold', METALS: 'purple', AGRICULTURAL: 'green',
@@ -21,14 +22,20 @@ export function TradersPage() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Trader | null>(null);
   const [form] = Form.useForm<TraderInput>();
+  useFormDraft('org-traders', { form, open, setOpen, editing, setEditing });
 
   function openNew() { setEditing(null); form.resetFields(); form.setFieldValue('isActive', true); setOpen(true); }
   function openEdit(t: Trader) {
     setEditing(t);
-    form.setFieldsValue({ traderCode: t.traderCode, userId: t.userId, deskId: t.deskId, approverTraderId: t.approverTraderId, commodityTypes: t.commodityTypes, goLiveDate: t.goLiveDate ?? undefined, isActive: t.isActive });
+    form.resetFields();
+    form.setFieldsValue({ traderCode: t.traderCode, userId: t.userId, legalEntityId: t.legalEntityId, deskId: t.deskId, approverTraderId: t.approverTraderId, commodityTypes: t.commodityTypes, goLiveDate: t.goLiveDate ?? undefined, isActive: t.isActive });
     setOpen(true);
   }
-  async function submit() { const v = await form.validateFields(); await save.mutateAsync({ id: editing?.traderId ?? null, input: v }); setOpen(false); }
+  async function submit(closeAfter = true) {
+    const v = await form.validateFields();
+    const saved = await save.mutateAsync({ id: editing?.traderId ?? null, input: v });
+    if (closeAfter) setOpen(false); else setEditing(saved);
+  }
 
   const colDefs = useMemo<ColDef<Trader>[]>(() => [
     { field: 'traderCode', headerName: 'Code', cellClass: 'cell-mono', width: 130, pinned: 'left',
@@ -91,13 +98,16 @@ export function TradersPage() {
         getRowId={(p) => String(p.data.traderId)} />
 
       <Drawer title={editing ? `Edit Trader — ${editing.traderCode}` : 'New Trader'} open={open} onClose={() => setOpen(false)} width={520}
-        footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button type="primary" onClick={submit} loading={save.isPending}>Save</Button></Space>}>
+        footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
         <Form form={form} layout="vertical">
           <Form.Item name="traderCode" label={hint('Trader Code', 'Unique alphanumeric identifier used in deal capture, risk reports, and position attribution. Cannot be changed once assigned.', 'JD-OIL-001', 'AAA-NNN-NNN')} rules={[{ required: true }]}>
             <Input placeholder="JD-OIL-001" style={{ fontFamily: 'monospace' }} />
           </Form.Item>
           <Form.Item name="userId" label={hint('User Account (ID)', 'Links this trader profile to the system login account (app_user table). One-to-one relationship — one user can hold only one active trader profile.')} rules={[{ required: true }]}>
             <InputNumber style={{ width: '100%' }} placeholder="User ID from user management" />
+          </Form.Item>
+          <Form.Item name="legalEntityId" label={hint('Legal Entity (ID)', 'Legal entity this trader belongs to — determines regulatory reporting scope and trade booking entity. 1=SETRM-LTD, 2=SETRM-NL, 3=SETRM-SG.')} rules={[{ required: true }]}>
+            <InputNumber style={{ width: '100%' }} placeholder="Legal Entity ID" />
           </Form.Item>
           <Form.Item name="deskId" label={hint('Trading Desk (ID)', 'Desk this trader belongs to. Determines P&L book hierarchy, commodity specialisation, and default approval routing.', '3 (OIL-CRUDE desk)')} rules={[{ required: true }]}>
             <InputNumber style={{ width: '100%' }} placeholder="Desk ID" />

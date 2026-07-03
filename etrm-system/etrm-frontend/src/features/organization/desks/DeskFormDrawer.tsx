@@ -2,18 +2,22 @@ import { useEffect } from 'react';
 import { Drawer, Form, Input, Select, Button, Space, Switch } from 'antd';
 import { useSaveDesk } from './hooks';
 import { COMMODITY_TYPES, type Desk, type DeskInput } from './types';
+import { useDraftValues } from '@components/smart/formDraft';
 
 interface Props {
   open: boolean;
   editing: Desk | null;
   onClose: () => void;
+  onSaved?: (saved: Desk) => void;  // called on Save (stay open) so parent can switch to edit mode
 }
 
-export function DeskFormDrawer({ open, editing, onClose }: Props) {
+export function DeskFormDrawer({ open, editing, onClose, onSaved }: Props) {
   const [form] = Form.useForm<DeskInput>();
   const save = useSaveDesk();
+  const skipDraftReset = useDraftValues('org-desks-v', form, open);
 
   useEffect(() => {
+    if (skipDraftReset.current) { skipDraftReset.current = false; return; }
     if (open) {
       if (editing) {
         form.setFieldsValue({
@@ -31,10 +35,10 @@ export function DeskFormDrawer({ open, editing, onClose }: Props) {
     }
   }, [open, editing, form]);
 
-  async function submit() {
+  async function submit(closeAfter = true) {
     const values = await form.validateFields();
-    await save.mutateAsync({ id: editing?.deskId ?? null, input: values });
-    onClose();
+    const saved = await save.mutateAsync({ id: editing?.deskId ?? null, input: values });
+    if (closeAfter) onClose(); else onSaved?.(saved);
   }
 
   return (
@@ -46,7 +50,8 @@ export function DeskFormDrawer({ open, editing, onClose }: Props) {
       footer={
         <Space style={{ justifyContent: 'flex-end', display: 'flex' }}>
           <Button onClick={onClose}>Cancel</Button>
-          <Button type="primary" onClick={submit} loading={save.isPending}>Save</Button>
+          <Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button>
+          <Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button>
         </Space>
       }
     >

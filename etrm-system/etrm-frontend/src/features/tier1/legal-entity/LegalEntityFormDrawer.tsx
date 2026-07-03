@@ -12,8 +12,10 @@ import { ContactsSection } from '@features/tier1/counterparty/ContactsSection';
 import type { AddressAssignment, ContactAssignment } from '@features/tier1/counterparty/types';
 import { fetchEntityAddresses, fetchEntityContacts, saveAddressAssignment, saveContactAssignment } from '@features/tier1/counterparty/api';
 import { useQueryClient } from '@tanstack/react-query';
+import { useDraftValues } from '@components/smart/formDraft';
 
 interface Props {
+  onSaved?: (saved: LegalEntity) => void;  // called on Save (stay open) so parent can switch to edit mode
   open: boolean;
   onClose: () => void;
   editing: LegalEntity | null;
@@ -23,8 +25,9 @@ const ENTITY_TYPE_OPTIONS = ENTITY_TYPES.map((t) => ({ label: t.replaceAll('_', 
 
 type FormValues = Omit<LegalEntityInput, 'goLiveDate'> & { goLiveDate?: dayjs.Dayjs };
 
-export function LegalEntityFormDrawer({ open, onClose, editing }: Props) {
+export function LegalEntityFormDrawer({ open, onClose, editing, onSaved }: Props) {
   const [form] = Form.useForm<FormValues>();
+  const skipDraftReset = useDraftValues('tier1-legal-entity-v', form, open);
   const { data: entities } = useLegalEntities();
   const createMutation = useCreateLegalEntity();
   const updateMutation = useUpdateLegalEntity();
@@ -36,6 +39,7 @@ export function LegalEntityFormDrawer({ open, onClose, editing }: Props) {
   const [loadingChildren, setLoadingChildren] = useState(false);
 
   useEffect(() => {
+    if (skipDraftReset.current) { skipDraftReset.current = false; return; }
     if (open && editing) {
       form.setFieldsValue({
         ...editing,
@@ -62,7 +66,7 @@ export function LegalEntityFormDrawer({ open, onClose, editing }: Props) {
     .filter((e) => e.legalEntityId !== editing?.legalEntityId)
     .map((e) => ({ label: `${e.entityCode} — ${e.entityName}`, value: e.legalEntityId }));
 
-  async function handleSubmit() {
+  async function handleSubmit(closeAfter = true) {
     const values = await form.validateFields();
     const input: LegalEntityInput = {
       ...values,
@@ -82,7 +86,7 @@ export function LegalEntityFormDrawer({ open, onClose, editing }: Props) {
 
     queryClient.invalidateQueries({ queryKey: ['address-pool'] });
     queryClient.invalidateQueries({ queryKey: ['contact-pool'] });
-    onClose();
+    if (closeAfter) onClose(); else onSaved?.(savedEntity);
   }
 
   return (
@@ -95,7 +99,8 @@ export function LegalEntityFormDrawer({ open, onClose, editing }: Props) {
       extra={
         <Space>
           <Button onClick={onClose}>Cancel</Button>
-          <Button type="primary" onClick={handleSubmit} loading={saving}>Save</Button>
+          <Button onClick={() => { void handleSubmit(false); }} loading={saving}>Save</Button>
+          <Button type="primary" onClick={() => { void handleSubmit(true); }} loading={saving}>Save & Close</Button>
         </Space>
       }
     >

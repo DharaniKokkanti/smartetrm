@@ -11,7 +11,7 @@ import type { ColDef, GetRowIdParams, GridApi, RowClickedEvent, RowStyle, RowCla
 import { buildAgGridTheme } from '@theme/ag-grid-theme';
 import { useThemeStore } from '@store/themeStore';
 
-const COMMODITY_TYPES = ['ALL', 'OIL', 'GAS', 'POWER', 'METALS', 'AGRICULTURAL'] as const;
+const COMMODITY_TYPES = ['ALL', 'OIL', 'GAS', 'POWER', 'LNG', 'METALS', 'AGRICULTURAL', 'FREIGHT', 'RINS', 'ENVIRONMENTAL', 'MULTI', 'OTHER'] as const;
 type CommodityFilter = (typeof COMMODITY_TYPES)[number];
 
 interface SmartGridProps<T> {

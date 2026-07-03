@@ -21,8 +21,8 @@ import {
   useProductMarkets, useProductSpecTemplates, useAddSpecTemplate, useSpecValues,
   useProductBlendComponents, useAddBlendComponent, useRemoveBlendComponent,
   useSpecParameters, useAddSpecValue, useUpdateSpecValue, useDeleteSpecValue,
-  useUomConversions,
 } from './hooks';
+import { useUomConversions } from '@features/reference/uom-conversions/hooks';
 import { usePriceIndices } from '@features/markets/price-indices/hooks';
 import {
   SETTLEMENT_TYPES, PRODUCT_FAMILIES,
@@ -32,6 +32,7 @@ import {
   type BoundDirection, type ParameterCategory, type SpecParameter,
 } from './types';
 import { COMMODITY_TYPES, type CommodityType } from '@features/organization/desks/types';
+import { useFormDraft } from '@components/smart/formDraft';
 
 // ── Static maps ───────────────────────────────────────────────────────────────
 
@@ -40,6 +41,7 @@ const SETTLE_COLOR: Record<SettlementType, string> = {
 };
 const COMMODITY_COLOR: Record<CommodityType, string> = {
   OIL: 'volcano', GAS: 'blue', POWER: 'gold', METALS: 'purple', AGRICULTURAL: 'green',
+  LNG: 'cyan', FREIGHT: 'orange', RINS: 'lime', ENVIRONMENTAL: 'geekblue', MULTI: 'magenta', OTHER: 'default',
 };
 const ROLE_COLOR: Record<IndexRole, string> = {
   PRIMARY_MTM: 'green', SETTLEMENT: 'blue', BACKUP: 'orange', REFERENCE: 'default',
@@ -738,6 +740,7 @@ export function ProductsPage() {
   const [activeTab, setActiveTab]   = useState('details');
   const [activeCommodity, setActiveCommodity] = useState<'ALL' | CommodityType>('ALL');
   const [form] = Form.useForm<ProductInput>();
+  useFormDraft('markets-products', { form, open: drawerOpen, setOpen: setDrawerOpen, editing, setEditing });
 
   const filtered = useMemo(
     () => (data ?? []).filter((p) => activeCommodity === 'ALL' || p.commodityType === activeCommodity),
@@ -791,11 +794,11 @@ export function ProductsPage() {
     setDrawerOpen(true);
   }
 
-  async function submit() {
+  async function submit(closeAfter = true) {
     const v = await form.validateFields();
     const saved = await save.mutateAsync({ id: editing?.productId ?? null, input: v });
     setEditing(saved);
-    setDrawerOpen(false);
+    if (closeAfter) setDrawerOpen(false);
   }
 
   const isBlendWatched          = Form.useWatch('isBlend', form);
@@ -1241,7 +1244,8 @@ export function ProductsPage() {
           activeTab === 'details' ? (
             <Space style={{ justifyContent: 'flex-end', display: 'flex' }}>
               <Button onClick={() => setDrawerOpen(false)}>Cancel</Button>
-              <Button type="primary" onClick={submit} loading={save.isPending}>Save</Button>
+              <Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button>
+              <Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button>
             </Space>
           ) : null
         }

@@ -8,6 +8,7 @@ import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import { usePaymentMethods, useSavePaymentMethod, useDeactivatePaymentMethod } from './hooks';
 import { PAYMENT_METHOD_TYPES, type PaymentMethod, type PaymentMethodInput, type PaymentMethodType } from './types';
+import { useFormDraft } from '@components/smart/formDraft';
 
 const TYPE_COLOR: Record<PaymentMethodType, string> = {
   SWIFT: 'blue',
@@ -26,6 +27,7 @@ export function PaymentMethodsPage() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<PaymentMethod | null>(null);
   const [form] = Form.useForm<PaymentMethodInput>();
+  useFormDraft('contracts-payment-methods', { form, open, setOpen, editing, setEditing });
 
   function openNew() {
     setEditing(null);
@@ -48,10 +50,10 @@ export function PaymentMethodsPage() {
     setOpen(true);
   }
 
-  async function submit() {
+  async function submit(closeAfter = true) {
     const v = await form.validateFields();
-    await save.mutateAsync({ id: editing?.paymentMethodId ?? null, input: v });
-    setOpen(false);
+    const saved = await save.mutateAsync({ id: editing?.paymentMethodId ?? null, input: v });
+    if (closeAfter) setOpen(false); else setEditing(saved);
   }
 
   const colDefs = useMemo<ColDef<PaymentMethod>[]>(() => [
@@ -112,7 +114,8 @@ export function PaymentMethodsPage() {
         footer={
           <Space style={{ justifyContent: 'flex-end', display: 'flex' }}>
             <Button onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="primary" onClick={submit} loading={save.isPending}>Save</Button>
+            <Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button>
+            <Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button>
           </Space>
         }
       >

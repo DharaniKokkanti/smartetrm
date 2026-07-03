@@ -9,6 +9,7 @@ import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import { useHolidayCalendars, useSaveHolidayCalendar, useDeactivateHolidayCalendar, useCalendarHolidays } from './hooks';
 import { CALENDAR_TYPES, type HolidayCalendar, type HolidayCalendarInput, type CalendarType } from './types';
+import { useFormDraft } from '@components/smart/formDraft';
 
 const TYPE_COLOR: Record<CalendarType, string> = {
   BANKING: 'blue', COMMODITY: 'gold', EXCHANGE: 'purple', CUSTOM: 'default',
@@ -52,6 +53,7 @@ export function HolidayCalendarsPage() {
   const [editing, setEditing] = useState<HolidayCalendar | null>(null);
   const [viewingCalId, setViewingCalId] = useState<number | null>(null);
   const [form] = Form.useForm<HolidayCalendarInput>();
+  useFormDraft('calendar-holiday-calendars', { form, open, setOpen, editing, setEditing });
 
   function openNew() { setEditing(null); form.resetFields(); form.setFieldValue('isActive', true); setOpen(true); }
   function openEdit(c: HolidayCalendar) {
@@ -59,7 +61,11 @@ export function HolidayCalendarsPage() {
     form.setFieldsValue({ calendarCode: c.calendarCode, calendarName: c.calendarName, calendarType: c.calendarType, countryCode: c.countryCode ?? undefined, currencyCode: c.currencyCode ?? undefined, description: c.description ?? undefined, isActive: c.isActive });
     setOpen(true);
   }
-  async function submit() { const v = await form.validateFields(); await save.mutateAsync({ id: editing?.calendarId ?? null, input: v }); setOpen(false); }
+  async function submit(closeAfter = true) {
+    const v = await form.validateFields();
+    const saved = await save.mutateAsync({ id: editing?.calendarId ?? null, input: v });
+    if (closeAfter) setOpen(false); else setEditing(saved);
+  }
 
   const colDefs = useMemo<ColDef<HolidayCalendar>[]>(() => [
     { field: 'calendarCode', headerName: 'Code', cellClass: 'cell-mono', width: 120, pinned: 'left',
@@ -97,7 +103,7 @@ export function HolidayCalendarsPage() {
       {viewingCalId != null && <HolidayDrawer calendarId={viewingCalId} onClose={() => setViewingCalId(null)} />}
 
       <Drawer title={editing ? `Edit Calendar — ${editing.calendarCode}` : 'New Calendar'} open={open} onClose={() => setOpen(false)} width={480}
-        footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button type="primary" onClick={submit} loading={save.isPending}>Save</Button></Space>}>
+        footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
         <Form form={form} layout="vertical">
           <Form.Item name="calendarCode" label={hint('Calendar Code', 'Short code used in trade pricing configuration, payment date calculations, and settlement. Industry-standard codes: LON (London banking), NYC (Fed/SIFMA), NYMEX, LME, ECB, TOCOM.', 'LON, NYC, NYMEX, LME')} rules={[{ required: true }]}>
             <Input placeholder="LON" style={{ fontFamily: 'monospace', textTransform: 'uppercase' }} />

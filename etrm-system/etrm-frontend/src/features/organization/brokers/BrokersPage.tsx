@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react';
-import { Button, Space, Popconfirm, Tag, Drawer, Form, Input, Select, Switch, Typography, Alert } from 'antd';
+import { Button, Space, Popconfirm, Tag, Drawer, Form, Input, Select, Switch, Typography, Alert, Divider } from 'antd';
+import { hint } from '@components/smart/FieldHint';
 import { EditOutlined, StopOutlined } from '@ant-design/icons';
 import type { ColDef } from 'ag-grid-community';
 import { PageHeader } from '@components/layout/PageHeader';
 import { SmartGrid } from '@components/smart/SmartGrid';
 import { ActiveTag } from '@components/smart/StatusTag';
-import { hint } from '@components/smart/FieldHint';
 import { useBrokers, useSaveBroker, useDeactivateBroker } from './hooks';
 import { BROKER_TYPES, BROKER_TYPE_META, type Broker, type BrokerInput, type BrokerType } from './types';
+import { useFormDraft } from '@components/smart/formDraft';
 
 const { Text } = Typography;
 
@@ -29,6 +30,7 @@ export function BrokersPage() {
   const [editing, setEditing] = useState<Broker | null>(null);
   const [selectedType, setSelectedType] = useState<BrokerType>('VOICE');
   const [form] = Form.useForm<BrokerInput>();
+  useFormDraft('org-brokers', { form, open, setOpen, editing, setEditing });
 
   function openNew() {
     setEditing(null);
@@ -40,6 +42,7 @@ export function BrokersPage() {
   function openEdit(b: Broker) {
     setEditing(b);
     setSelectedType(b.brokerType);
+    form.resetFields();
     form.setFieldsValue({
       brokerCode: b.brokerCode,
       brokerName: b.brokerName,
@@ -50,14 +53,17 @@ export function BrokersPage() {
       contactPhone: b.contactPhone ?? undefined,
       website: b.website ?? undefined,
       countryCode: b.countryCode ?? undefined,
+      legalDocId: b.legalDocId ?? undefined,
+      commissionUomCode: b.commissionUomCode ?? undefined,
+      commissionNotes: b.commissionNotes ?? undefined,
       isActive: b.isActive,
     });
     setOpen(true);
   }
-  async function submit() {
+  async function submit(closeAfter = true) {
     const v = await form.validateFields();
-    await save.mutateAsync({ id: editing?.brokerId ?? null, input: v });
-    setOpen(false);
+    const saved = await save.mutateAsync({ id: editing?.brokerId ?? null, input: v });
+    if (closeAfter) setOpen(false); else setEditing(saved);
   }
 
   const colDefs = useMemo<ColDef<Broker>[]>(() => [
@@ -130,7 +136,8 @@ export function BrokersPage() {
         footer={
           <Space style={{ justifyContent: 'flex-end', display: 'flex' }}>
             <Button onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="primary" onClick={submit} loading={save.isPending}>Save</Button>
+            <Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button>
+            <Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button>
           </Space>
         }
       >
@@ -222,6 +229,31 @@ export function BrokersPage() {
             label={hint('Website', 'Broker\'s public website — used for reference and KYC documentation.')}
           >
             <Input placeholder="https://www.icap.com" />
+          </Form.Item>
+
+          <Divider orientation="left" style={{ margin: '16px 0 8px', fontSize: 12, color: '#888' }}>
+            <Text type="secondary" style={{ fontSize: 12, fontWeight: 600, letterSpacing: 0.5, textTransform: 'uppercase' }}>Legal & Commission</Text>
+          </Divider>
+
+          <Form.Item
+            name="legalDocId"
+            label={hint('Legal Doc / OBA Ref', 'Master agreement or OBA reference number — e.g. OBA-ICAP-2024-001. Used for audit trail and fee dispute resolution.')}
+          >
+            <Input placeholder="OBA-ICAP-2024-001" style={{ fontFamily: 'monospace' }} />
+          </Form.Item>
+
+          <Form.Item
+            name="commissionUomCode"
+            label={hint('Commission UoM', 'Unit of measure for the commission rate agreed with this broker — e.g. BBL, MT, MWH, MMBTU. Determines the unit used in fee calculations.')}
+          >
+            <Input placeholder="BBL" style={{ fontFamily: 'monospace', textTransform: 'uppercase', width: 100 }} />
+          </Form.Item>
+
+          <Form.Item
+            name="commissionNotes"
+            label={hint('Commission Notes', 'Fee schedule, tiered rate table, or any special commission terms agreed with this broker. This is a free-text field for internal reference.')}
+          >
+            <Input.TextArea rows={3} placeholder="Standard rate: $0.02/BBL. Tiered: >500k BBL/month → $0.015/BBL. Annual volume rebate applies per OBA schedule 2." />
           </Form.Item>
 
           <Form.Item name="isActive" label="Active" valuePropName="checked">

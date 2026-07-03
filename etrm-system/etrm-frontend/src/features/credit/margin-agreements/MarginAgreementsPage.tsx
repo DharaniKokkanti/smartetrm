@@ -3,7 +3,7 @@ import {
   Button, Space, Popconfirm, Tag, Drawer, Form, Input, InputNumber,
   Select, Switch, Row, Col, Divider, Typography, Tooltip,
 } from 'antd';
-import { EditOutlined, StopOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { EditOutlined, StopOutlined } from '@ant-design/icons';
 import type { ColDef } from 'ag-grid-community';
 import { PageHeader } from '@components/layout/PageHeader';
 import { SmartGrid } from '@components/smart/SmartGrid';
@@ -13,6 +13,7 @@ import { useCounterparties } from '@features/trade/hooks';
 import { useTableRows } from '@features/tier2/hooks';
 import { useMarginAgreements, useSaveMarginAgreement, useDeactivateMarginAgreement } from './hooks';
 import type { MarginAgreement, MarginAgreementInput } from './types';
+import { useFormDraft } from '@components/smart/formDraft';
 
 const { Text } = Typography;
 
@@ -53,6 +54,7 @@ export function MarginAgreementsPage() {
   const [open, setOpen]       = useState(false);
   const [editing, setEditing] = useState<MarginAgreement | null>(null);
   const [form]                = Form.useForm<MarginAgreementInput>();
+  useFormDraft('credit-margin', { form, open, setOpen, editing, setEditing });
 
   function openNew() {
     setEditing(null);
@@ -77,10 +79,10 @@ export function MarginAgreementsPage() {
     setOpen(true);
   }
 
-  async function submit() {
+  async function submit(closeAfter = true) {
     const values = await form.validateFields();
-    await save.mutateAsync({ id: editing?.marginAgreementId ?? null, input: values });
-    setOpen(false);
+    const saved = await save.mutateAsync({ id: editing?.marginAgreementId ?? null, input: values });
+    if (closeAfter) setOpen(false); else setEditing(saved);
   }
 
   const cpOpts = useMemo(
@@ -163,7 +165,8 @@ export function MarginAgreementsPage() {
         footer={
           <Space style={{ justifyContent: 'flex-end', display: 'flex' }}>
             <Button onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="primary" onClick={submit} loading={save.isPending}>Save</Button>
+            <Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button>
+            <Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button>
           </Space>
         }
       >

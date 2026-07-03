@@ -9,6 +9,7 @@ import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import { usePeriods, useSavePeriod, useDeactivatePeriod } from './hooks';
 import { PERIOD_TYPES, PERIOD_STATUS_CODES, type Period, type PeriodInput, type PeriodType, type PeriodStatusCode } from './types';
+import { useFormDraft } from '@components/smart/formDraft';
 
 const TYPE_COLOR: Record<PeriodType, string> = {
   DAILY: 'default', WEEKLY: 'lime', MONTHLY: 'green', QUARTERLY: 'blue',
@@ -26,6 +27,7 @@ export function PeriodsPage() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Period | null>(null);
   const [form] = Form.useForm<PeriodInput>();
+  useFormDraft('calendar-periods', { form, open, setOpen, editing, setEditing });
 
   function openNew() { setEditing(null); form.resetFields(); form.setFieldValue('isActive', true); form.setFieldValue('statusCode', 'OPEN'); setOpen(true); }
   function openEdit(p: Period) {
@@ -40,7 +42,7 @@ export function PeriodsPage() {
     });
     setOpen(true);
   }
-  async function submit() {
+  async function submit(closeAfter = true) {
     const v = await form.validateFields();
     const input: PeriodInput = {
       ...v,
@@ -49,8 +51,8 @@ export function PeriodsPage() {
       deliveryStartDate: v.deliveryStartDate ? dayjs(v.deliveryStartDate as unknown as dayjs.Dayjs).format('YYYY-MM-DD') : null,
       deliveryEndDate: v.deliveryEndDate ? dayjs(v.deliveryEndDate as unknown as dayjs.Dayjs).format('YYYY-MM-DD') : null,
     };
-    await save.mutateAsync({ id: editing?.periodId ?? null, input });
-    setOpen(false);
+    const saved = await save.mutateAsync({ id: editing?.periodId ?? null, input });
+    if (closeAfter) setOpen(false); else setEditing(saved);
   }
 
   const colDefs = useMemo<ColDef<Period>[]>(() => [
@@ -88,7 +90,7 @@ export function PeriodsPage() {
       <SmartGrid columnDefs={colDefs} rowData={data} loading={isLoading} onAdd={openNew} addLabel="New Period" onRefresh={() => { void refetch(); }} getRowId={(p) => String(p.data.periodId)} />
 
       <Drawer title={editing ? `Edit Period — ${editing.periodCode}` : 'New Period'} open={open} onClose={() => setOpen(false)} width={520}
-        footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button type="primary" onClick={submit} loading={save.isPending}>Save</Button></Space>}>
+        footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
         <Form form={form} layout="vertical">
           <Form.Item name="periodCode" label={hint('Period Code', 'Standardized code used in trade capture. Convention: monthly M2026-01 (Jan 2026), quarterly Q2026-Q1, annual Y2026. Spot/prompt: SPOT, M+1, Q+1.', 'M2026-01, Q2026-Q1, Y2026, SPOT')} rules={[{ required: true }]}>
             <Input placeholder="M2026-01" style={{ fontFamily: 'monospace' }} />

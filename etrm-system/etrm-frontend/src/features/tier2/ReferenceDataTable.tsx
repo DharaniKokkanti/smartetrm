@@ -127,7 +127,7 @@ export function ReferenceDataTable({ table }: Props) {
     setModalOpen(true);
   }
 
-  async function handleSave() {
+  async function handleSave(closeAfter = true) {
     const values = await form.validateFields();
     const payload: ReferenceDataRow = { ...values };
     for (const col of editableColumns) {
@@ -137,7 +137,7 @@ export function ReferenceDataTable({ table }: Props) {
       }
     }
     await saveRow.mutateAsync({ id: editingId, row: payload });
-    setModalOpen(false);
+    if (closeAfter) { setModalOpen(false); } else { form.resetFields(); setEditingId(null); }
   }
 
   const columns: ColumnsType<ReferenceDataRow> = [
@@ -201,8 +201,12 @@ export function ReferenceDataTable({ table }: Props) {
         title={editingId === null ? `New ${table.displayName.replace(/s$/, '')}` : `Edit row`}
         open={modalOpen}
         onCancel={() => setModalOpen(false)}
-        onOk={handleSave}
+        onOk={() => { void handleSave(true); }}
+        okText="Save & Close"
         confirmLoading={saveRow.isPending}
+        footer={(_, { OkBtn, CancelBtn }) => (
+          <><CancelBtn /><Button loading={saveRow.isPending} onClick={() => { void handleSave(false); }}>Save & Next</Button><OkBtn /></>
+        )}
         destroyOnHidden
       >
         <Form form={form} layout="vertical">

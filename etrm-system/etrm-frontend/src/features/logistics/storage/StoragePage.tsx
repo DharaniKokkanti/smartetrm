@@ -8,6 +8,7 @@ import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import { useStorageFacilities, useSaveStorageFacility, useDeactivateStorageFacility } from './hooks';
 import { STORAGE_TYPES, STORAGE_STATUS_CODES, type StorageFacility, type StorageFacilityInput, type StorageType, type StorageStatusCode } from './types';
+import { useFormDraft } from '@components/smart/formDraft';
 
 const TYPE_COLOR: Record<StorageType, string> = {
   TANK_FARM: 'blue',
@@ -18,6 +19,12 @@ const TYPE_COLOR: Record<StorageType, string> = {
   WAREHOUSE: 'default',
   PIPELINE_LINEFILL: 'volcano',
   SILO: 'lime',
+  REFRIGERATED_STORAGE: 'blue',
+  CHEMICAL_TANK: 'orange',
+  FSRU: 'geekblue',
+  REFINERY: 'volcano',
+  VAULT: 'magenta',
+  OTHER: 'default',
 };
 
 const STATUS_COLOR: Record<StorageStatusCode, string> = {
@@ -33,6 +40,7 @@ export function StoragePage() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<StorageFacility | null>(null);
   const [form] = Form.useForm<StorageFacilityInput>();
+  useFormDraft('logistics-storage', { form, open, setOpen, editing, setEditing });
 
   function openNew() {
     setEditing(null);
@@ -64,7 +72,7 @@ export function StoragePage() {
     setOpen(true);
   }
 
-  async function submit() {
+  async function submit(closeAfter = true) {
     const v = await form.validateFields();
     const input: StorageFacilityInput = {
       ...v,
@@ -75,8 +83,8 @@ export function StoragePage() {
       injectionRate: v.injectionRate ?? null,
       withdrawalRate: v.withdrawalRate ?? null,
     };
-    await save.mutateAsync({ id: editing?.storageId ?? null, input });
-    setOpen(false);
+    const saved = await save.mutateAsync({ id: editing?.storageId ?? null, input });
+    if (closeAfter) setOpen(false); else setEditing(saved);
   }
 
   const colDefs = useMemo<ColDef<StorageFacility>[]>(() => [
@@ -145,7 +153,8 @@ export function StoragePage() {
         footer={
           <Space style={{ justifyContent: 'flex-end', display: 'flex' }}>
             <Button onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="primary" onClick={submit} loading={save.isPending}>Save</Button>
+            <Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button>
+            <Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button>
           </Space>
         }
       >

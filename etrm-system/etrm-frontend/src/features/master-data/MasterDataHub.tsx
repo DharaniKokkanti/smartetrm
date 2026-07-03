@@ -1,10 +1,11 @@
 import { useState, useMemo } from 'react';
-import { Input, Card, Row, Col, Tag, Typography, Divider, Tooltip } from 'antd';
+import { Input, Card, Tag, Typography, Divider, Tooltip } from 'antd';
 import {
   SearchOutlined, ApartmentOutlined, TeamOutlined, ShopOutlined,
   GlobalOutlined, CalendarOutlined, DollarOutlined,
   FileTextOutlined, SafetyCertificateOutlined, BankOutlined,
-  ThunderboltOutlined, CarOutlined, WarningOutlined,
+  ThunderboltOutlined, CarOutlined, WarningOutlined, CloudOutlined, AuditOutlined,
+  ReconciliationOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '@components/layout/PageHeader';
@@ -27,6 +28,7 @@ const GROUPS = [
   { key: 'Counterparties & Agreements', label: 'Counterparties & Agreements', icon: <TeamOutlined />, color: '#0891b2', bg: '#ecfeff' },
   { key: 'Credit & Collateral', label: 'Credit & Collateral', icon: <SafetyCertificateOutlined />, color: '#c2410c', bg: '#fff7ed' },
   { key: 'Products & Markets', label: 'Products & Markets', icon: <ShopOutlined />, color: '#0369a1', bg: '#eff6ff' },
+  { key: 'Trade Operations', label: 'Trade Operations', icon: <ReconciliationOutlined />, color: '#0f766e', bg: '#f0fdfa' },
   { key: 'Contract & Legal', label: 'Contract & Legal', icon: <FileTextOutlined />, color: '#b45309', bg: '#fffbeb' },
   { key: 'Logistics & Delivery', label: 'Logistics & Delivery', icon: <GlobalOutlined />, color: '#15803d', bg: '#f0fdf4' },
   { key: 'Freight & Shipping', label: 'Freight & Shipping', icon: <CarOutlined />, color: '#0f766e', bg: '#f0fdfa' },
@@ -35,6 +37,8 @@ const GROUPS = [
   { key: 'Pricing & Rates', label: 'Pricing & Rates', icon: <DollarOutlined />, color: '#b91c1c', bg: '#fff1f2' },
   { key: 'Finance & Settlement', label: 'Finance & Settlement', icon: <BankOutlined />, color: '#065f46', bg: '#ecfdf5' },
   { key: 'Risk & Compliance', label: 'Risk & Compliance', icon: <SafetyCertificateOutlined />, color: '#92400e', bg: '#fef3c7' },
+  { key: 'Regulatory Compliance', label: 'Regulatory Compliance', icon: <AuditOutlined />, color: '#1d4ed8', bg: '#eff6ff' },
+  { key: 'Carbon & Environmental', label: 'Carbon & Environmental', icon: <CloudOutlined />, color: '#166534', bg: '#f0fdf4' },
 ] as const;
 
 type GroupKey = (typeof GROUPS)[number]['key'];
@@ -89,6 +93,11 @@ const ALL_ENTRIES: Entry[] = [
   { live: true,  db: 'price_index',           group: 'Products & Markets', label: 'Price Indices',         path: '/markets/price-indices',  description: 'Benchmark price indices — Dated Brent, JKM, TTF, LME Official Settlement — from Platts, Argus, ICE.', tags: ['index', 'platts', 'argus', 'dated brent', 'ttf', 'jkm', 'lme official'] },
   { live: true,  db: 'exchange',              group: 'Products & Markets', label: 'Exchanges',             path: '/markets/exchanges',      description: 'Licensed exchanges — ICE, NYMEX, LME, EEX, TOCOM — with MIC codes, regulators, and clearing houses.', tags: ['exchange', 'ice', 'nymex', 'lme', 'eex', 'tocom', 'cme', 'mic'] },
 
+  // ── Trade Operations ──────────────────────────────────────────
+  { live: true, db: 'bolmo_agreement', group: 'Trade Operations', label: 'BOLMO Agreements', path: '/bolmo', description: 'Book Out / Let Me Out — bilateral agreements to net offsetting physical delivery obligations with a counterparty via cash settlement, eliminating logistics.', tags: ['bolmo', 'book out', 'let me out', 'netting', 'physical', 'delivery', 'offsetting', 'bilateral', 'cash settlement'], kind: 'entity' },
+  { live: false, db: 'nomination', group: 'Trade Operations', label: 'Nominations', path: '/operations/nominations', description: 'Delivery scheduling and pipeline/terminal nominations — quantity, timing, vessel assignment, and nomination deadlines per trade order.', tags: ['nomination', 'scheduling', 'pipeline', 'terminal', 'vessel', 'timing', 'delivery'] },
+  { live: false, db: 'delivery_instruction', group: 'Trade Operations', label: 'Delivery Instructions', path: '/operations/delivery-instructions', description: 'Formal delivery instructions to counterparties — tank, berth, terminal, agent, and quantity per cargo or tranche.', tags: ['delivery', 'instruction', 'cargo', 'tranche', 'tank', 'berth', 'terminal', 'agent'] },
+
   // ── Contract & Legal ──────────────────────────────────────────
   { live: true,  db: 'gtc',                     group: 'Contract & Legal', label: 'General T&Cs',           path: '/contracts/gtcs',                    description: 'Master contract templates — EFET 2019, BP Oil T&Cs, GAFTA 100, ISDA 2002 MA, NAESB Gas. Versioned per commodity.', tags: ['gtc', 'efet', 'isda', 'gafta', 'naesb', 'bp', 'master agreement', 'terms'] },
   { live: true,  db: 'broker_fee_agreement',    group: 'Contract & Legal', label: 'Broker Fee Agreements',  path: '/contracts/broker-fee-agreements',   description: 'Standing rate cards per IDB broker — fee type (per-lot, % notional, flat), rate, currency, pay period, and validity. Drives automatic fee population when a broker is selected on a trade.', tags: ['broker', 'fee', 'rate card', 'idb', 'icap', 'brokerage', 'per lot', 'monthly', 'auto-generate'] },
@@ -136,12 +145,14 @@ const ALL_ENTRIES: Entry[] = [
   { live: false, db: 'settlement_calendar', group: 'Calendar & Periods', label: 'Settlement Calendars', path: '/calendar/settlement',      description: 'Settlement date calendars per commodity and currency pair — T+2, T+5, LME prompt date rules.', tags: ['settlement', 'calendar', 'value date', 'lme', 't+2', 'prompt', 'cash'] },
 
   // ── Pricing & Rates ───────────────────────────────────────────
-  { live: true,  db: 'price_source',       group: 'Pricing & Rates', label: 'Price Sources',        path: '/pricing/price-sources',   description: 'Data vendor connections — Platts eWindow, Argus Direct, Bloomberg API, ICE Data Services, LME live feed.', tags: ['price source', 'platts', 'argus', 'bloomberg', 'ice', 'lme', 'vendor', 'api', 'feed'] },
-  { live: true,  db: 'pricing_rule',       group: 'Pricing & Rates', label: 'Pricing Rules',        path: '/pricing/pricing-rules',   description: 'Fixed, floating, differential, and Asian average pricing formulas referenced in trade capture.', tags: ['pricing', 'fixed', 'floating', 'differential', 'asian', 'average', 'formula', 'swap'] },
-  { live: true,  db: 'pricing_type',       group: 'Pricing & Rates', label: 'Pricing Types',        path: '/static-data/pricing_type',      description: 'Pricing mechanism classifications — Fixed, Floating, Formula, Differential, Average. Parent table for product.pricing_type FK.', tags: ['pricing type', 'fixed', 'floating', 'formula', 'differential', 'average'] },
-  { live: false, db: 'formula_template',   group: 'Pricing & Rates', label: 'Formula Templates',    path: '/pricing/formulas',        description: 'Reusable price formula templates — Dated Brent ± differential, JCC ×0.1485, average of front-month TTF.', tags: ['formula', 'template', 'dated brent', 'jcc', 'ttf', 'differential', 'asian'] },
-  { live: false, db: 'interest_rate_index', group: 'Pricing & Rates', label: 'Interest Rate Indices', path: '/pricing/interest-rates',  description: 'SOFR, EURIBOR, SONIA — used for financing costs, late payment interest, and commodity-linked structures.', tags: ['interest rate', 'sofr', 'euribor', 'sonia', 'libor', 'rfr', 'financing'] },
-  { live: false, db: 'fx_rate',            group: 'Pricing & Rates', label: 'FX Rates',             path: '/pricing/fx-rates',        description: 'Historical and live FX rates per currency pair. Used for P&L revaluation and cross-currency settlement.', tags: ['fx', 'exchange rate', 'usd', 'eur', 'gbp', 'jpy', 'currency pair', 'revaluation'] },
+  { live: true,  db: 'price_source',        group: 'Pricing & Rates', label: 'Price Sources',          path: '/pricing/price-sources',        description: 'Data vendor connections — Platts eWindow, Argus Direct, Bloomberg API, ICE Data Services, LME live feed.', tags: ['price source', 'platts', 'argus', 'bloomberg', 'ice', 'lme', 'vendor', 'api', 'feed'] },
+  { live: true,  db: 'pricing_rule',        group: 'Pricing & Rates', label: 'Pricing Rules',          path: '/pricing/pricing-rules',        description: 'Fixed, floating, differential, and Asian average pricing formulas — including TAS (Trade at Settlement) rules.', tags: ['pricing', 'fixed', 'floating', 'differential', 'asian', 'average', 'formula', 'tas', 'swap'] },
+  { live: true,  db: 'pricing_type',        group: 'Pricing & Rates', label: 'Pricing Types',          path: '/static-data/pricing_type',     description: 'Pricing mechanism classifications — Fixed, Floating, Formula, Differential, Average, TAS, Option Strike, Platts Window.', tags: ['pricing type', 'fixed', 'floating', 'formula', 'differential', 'average', 'tas'] },
+  { live: true,  db: 'settlement_price',    group: 'Pricing & Rates', label: 'Settlement Prices',      path: '/pricing/settlement-prices',    description: 'Daily exchange settlement prices — CME NYMEX (CL, NG, HO, RB) and ICE (Brent BZ). Used to lock TAS trade positions and calculate BALMO running averages.', tags: ['settlement price', 'cme', 'nymex', 'ice', 'tas', 'wti', 'crude', 'gas', 'heating oil', 'daily', 'close'] },
+  { live: true,  db: 'balmo_product',      group: 'Pricing & Rates', label: 'BALMO Products',          path: '/pricing/balmo-products',       description: 'Balance of Month contract listings — one row per monthly BALMO contract on CME NYMEX (J42 WTI) or ICE. Pricing window = booking date → last business day of month. New row added each month as contracts are listed.', tags: ['balmo', 'balance of month', 'cme', 'nymex', 'ice', 'brent', 'wti', 'swap', 'partial month', 'average', 'settlement'] },
+  { live: false, db: 'formula_template',    group: 'Pricing & Rates', label: 'Formula Templates',      path: '/pricing/formulas',             description: 'Reusable price formula templates — Dated Brent ± differential, JCC ×0.1485, average of front-month TTF.', tags: ['formula', 'template', 'dated brent', 'jcc', 'ttf', 'differential', 'asian'] },
+  { live: false, db: 'interest_rate_index', group: 'Pricing & Rates', label: 'Interest Rate Indices',  path: '/pricing/interest-rates',       description: 'SOFR, EURIBOR, SONIA — used for financing costs, late payment interest, and commodity-linked structures.', tags: ['interest rate', 'sofr', 'euribor', 'sonia', 'libor', 'rfr', 'financing'] },
+  { live: false, db: 'fx_rate',             group: 'Pricing & Rates', label: 'FX Rates',               path: '/pricing/fx-rates',             description: 'Historical and live FX rates per currency pair. Used for P&L revaluation and cross-currency settlement.', tags: ['fx', 'exchange rate', 'usd', 'eur', 'gbp', 'jpy', 'currency pair', 'revaluation'] },
 
   // ── Finance & Settlement ──────────────────────────────────────
   { live: true,  db: 'currency',         group: 'Finance & Settlement', label: 'Currencies',       path: '/reference/currencies',   description: 'ISO 4217 currency codes with decimal places and base currency flag. USD is the system base currency.', tags: ['currency', 'usd', 'eur', 'gbp', 'jpy', 'iso4217', 'fx', 'base currency'] },
@@ -154,6 +165,20 @@ const ALL_ENTRIES: Entry[] = [
   { live: false, db: 'regulatory_obligation',  group: 'Risk & Compliance', label: 'Regulatory Obligations',  path: '/compliance/obligations',   description: 'REMIT, EMIR, CFTC, MiFID II reporting obligations — which trades require reporting, to which regime, by when.', tags: ['remit', 'emir', 'cftc', 'mifid', 'regulatory', 'reporting', 'obligation'] },
   { live: false, db: 'regulatory_report_type', group: 'Risk & Compliance', label: 'Report Types',            path: '/compliance/report-types',  description: 'Regulatory report type definitions — REMIT Table 1, EMIR REFIT, CFTC Part 43/45 — with field mapping rules.', tags: ['report type', 'remit', 'emir refit', 'cftc', 'part 43', 'part 45', 'field mapping'] },
   { live: false, db: 'trade_repository',       group: 'Risk & Compliance', label: 'Trade Repositories',      path: '/compliance/trade-repos',   description: 'DTCC, REGIS-TR, ICE TVEL — registered trade repositories by regime with connection credentials and status.', tags: ['trade repository', 'dtcc', 'regis-tr', 'ice tvel', 'regulatory', 'reporting'], kind: 'entity' },
+
+  // ── Regulatory Compliance — RINs ─────────────────────────────
+  { live: true, db: 'rin_fuel_category', group: 'Regulatory Compliance', label: 'RIN Fuel Categories (D-Codes)', path: '/rins/fuel-categories', description: 'EPA D-code master: D3 Cellulosic (3.0 RINs/gal), D4 Biomass-Based Diesel (1.5), D5 Advanced (1.5), D6 Conventional Ethanol (1.0), D7 Cellulosic Diesel (1.7). Equivalence values mandated by 40 CFR Part 80.1415.', tags: ['rin', 'd3', 'd4', 'd5', 'd6', 'd7', 'rfs', 'rfs2', 'renewable fuel', 'equivalence value', 'biofuel', 'ethanol', 'biodiesel'] },
+  { live: true, db: 'rin_account',       group: 'Regulatory Compliance', label: 'RIN Accounts',                  path: '/rins/accounts',         description: 'EPA EMTS company and facility accounts for holding, transferring, and retiring RINs. Obligated parties register company-level accounts; renewable fuel producers also register facility-level accounts for RIN generation.', tags: ['rin', 'epa', 'emts', 'account', 'company', 'facility', 'obligated party', 'producer'], kind: 'entity' },
+  { live: true, db: 'rin_obligation',    group: 'Regulatory Compliance', label: 'RVO Obligations',               path: '/rins/obligations',      description: 'Annual Renewable Volume Obligations per legal entity and D-code. Tracks required vs. retired RINs, shortfall, and EPA compliance deadline (typically March 31). Integrates with transaction retirement events.', tags: ['rvo', 'obligation', 'compliance', 'rfs', 'rin', 'retire', 'deadline', 'annual'] },
+
+  // ── Finance & Settlement (back-office) ────────────────────────
+  { live: true, db: 'gl_account',     group: 'Finance & Settlement', label: 'GL Accounts',      path: '/finance/gl-accounts',    description: 'Chart of accounts entries for trade P&L, fees, and settlement postings — account code, type (REVENUE/COST/BALANCE_SHEET), and cost centre mapping.', tags: ['gl', 'general ledger', 'chart of accounts', 'cost centre', 'pnl', 'revenue', 'accounting'] },
+
+  // ── Carbon & Environmental ────────────────────────────────────
+  { live: true, db: 'emission_scheme',        group: 'Carbon & Environmental', label: 'Emission Schemes',       path: '/environmental/schemes',        description: 'Cap-and-trade and voluntary carbon schemes — EU ETS, UK ETS, California Cap-and-Trade, RGGI, VCS (Verra), Gold Standard. Parent table for allowance and offset products.', tags: ['eu ets', 'uk ets', 'california', 'rggi', 'vcs', 'gold standard', 'cap and trade', 'carbon scheme'] },
+  { live: true, db: 'environmental_product',  group: 'Carbon & Environmental', label: 'Environmental Products', path: '/environmental/products',       description: 'Tradeable environmental instruments — EUA (EU Allowance), EUAA (Aviation), UKA (UK Allowance), CCA (California), REC (Renewable Energy Certificate), GO (Guarantee of Origin), VCU (Verra Carbon Unit).', tags: ['eua', 'euaa', 'uka', 'cca', 'rec', 'go', 'vcu', 'cer', 'carbon', 'allowance', 'certificate'], kind: 'entity' },
+  { live: true, db: 'carbon_registry',        group: 'Carbon & Environmental', label: 'Carbon Registries',      path: '/environmental/registries',     description: 'Registries where environmental instruments are issued, held, and cancelled — EU Union Registry, UK Registry, Verra, Gold Standard, American Carbon Registry, APX.', tags: ['registry', 'union registry', 'verra', 'gold standard', 'acr', 'apx', 'issuance', 'cancellation'], kind: 'entity' },
+  { live: true, db: 'emission_obligation',    group: 'Carbon & Environmental', label: 'Emission Obligations',   path: '/environmental/obligations',    description: 'Surrender obligations per legal entity per scheme year — how many allowances must be surrendered, due date, and compliance status under each scheme.', tags: ['surrender', 'obligation', 'compliance', 'scheme year', 'mrvscheme', 'emissions', 'reporting period'] },
 
 ];
 
@@ -248,8 +273,8 @@ export function MasterDataHub() {
               )}
             </div>
 
-            {/* Cards */}
-            <Row gutter={[10, 10]}>
+            {/* Cards — auto-fill grid: column count adapts to viewport width */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))', gap: 10 }}>
               {entries.map((entry) => {
                 const gDef = GROUP_MAP[entry.group as GroupKey];
                 const card = (
@@ -263,8 +288,10 @@ export function MasterDataHub() {
                       cursor: entry.live ? 'pointer' : 'default',
                       opacity: entry.live ? 1 : 0.6,
                       height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
                     }}
-                    styles={{ body: { padding: '9px 11px' } }}
+                    styles={{ body: { padding: '9px 11px', display: 'flex', flexDirection: 'column', flex: 1 } }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 6, marginBottom: 4 }}>
                       <Text strong style={{ fontSize: 12.5, lineHeight: 1.3, color: entry.live ? undefined : '#9ca3af' }}>
@@ -280,7 +307,7 @@ export function MasterDataHub() {
                         }
                       </div>
                     </div>
-                    <Text style={{ fontSize: 10.5, display: 'block', lineHeight: 1.45, color: '#6b7280' }}>
+                    <Text style={{ fontSize: 10.5, display: 'block', lineHeight: 1.45, color: '#6b7280', flex: 1 }}>
                       {entry.description}
                     </Text>
                     <Text style={{ fontSize: 10, color: '#d1d5db', display: 'block', marginTop: 5, fontFamily: 'monospace' }}>
@@ -289,13 +316,11 @@ export function MasterDataHub() {
                   </Card>
                 );
 
-                return (
-                  <Col key={entry.path} xs={24} sm={12} md={8} lg={6}>
-                    {entry.live ? card : <Tooltip title="Coming soon — not yet implemented">{card}</Tooltip>}
-                  </Col>
-                );
+                return entry.live
+                  ? <div key={entry.path}>{card}</div>
+                  : <Tooltip key={entry.path} title="Coming soon — not yet implemented"><div>{card}</div></Tooltip>;
               })}
-            </Row>
+            </div>
           </div>
         );
       })}

@@ -25,21 +25,21 @@ const desksStore: unknown[] = [
 
 // ─── BOOKS ────────────────────────────────────────────────────────────────────
 const booksStore: unknown[] = [
-  { bookId: 1, bookCode: 'CRUDE-PROP', bookName: 'Crude Proprietary', deskId: 1, bookType: 'TRADING', positionLimit: 5000000, pnlLimit: 500000, varLimit: 250000, currencyCode: 'USD', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { bookId: 2, bookCode: 'CRUDE-HEDGE', bookName: 'Crude Hedge Book', deskId: 1, bookType: 'HEDGING', positionLimit: 10000000, pnlLimit: null, varLimit: 100000, currencyCode: 'USD', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { bookId: 3, bookCode: 'GAS-EU-TRADE', bookName: 'EU Gas Trading', deskId: 2, bookType: 'TRADING', positionLimit: 2000000, pnlLimit: 200000, varLimit: 50000, currencyCode: 'EUR', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { bookId: 4, bookCode: 'LME-CU-ARB', bookName: 'Copper Arbitrage', deskId: 3, bookType: 'ARBITRAGE', positionLimit: 1000, pnlLimit: 100000, varLimit: 25000, currencyCode: 'USD', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { bookId: 5, bookCode: 'POWER-CLIENT', bookName: 'Power Client Book', deskId: 4, bookType: 'CLIENT', positionLimit: 500000, pnlLimit: null, varLimit: null, currencyCode: 'EUR', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { bookId: 1, bookCode: 'CRUDE-PROP',   bookName: 'Crude Proprietary',    bookType: 'TRADING',   deskId: 1, deskCode: 'OIL-CRUDE',   legalEntityId: 1, legalEntityCode: 'SETRM-LTD', responsibleTraderId: 1,    responsibleTraderName: 'John Doe',         commodityType: 'OIL',         currencyCode: 'USD', positionLimit: 5000000,  pnlLimit: 500000,  varLimit: 250000, goLiveDate: '2020-01-01', description: 'Primary crude proprietary trading book — Brent and WTI physical OTC.', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { bookId: 2, bookCode: 'CRUDE-HEDGE',  bookName: 'Crude Hedge Book',     bookType: 'HEDGING',   deskId: 1, deskCode: 'OIL-CRUDE',   legalEntityId: 1, legalEntityCode: 'SETRM-LTD', responsibleTraderId: null, responsibleTraderName: null,               commodityType: 'OIL',         currencyCode: 'USD', positionLimit: 10000000, pnlLimit: null,    varLimit: 100000, goLiveDate: '2020-01-01', description: 'Hedge book for crude oil futures offsetting physical exposure.',          isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { bookId: 3, bookCode: 'GAS-EU-TRADE', bookName: 'EU Gas Trading',       bookType: 'TRADING',   deskId: 2, deskCode: 'GAS-EU',      legalEntityId: 2, legalEntityCode: 'SETRM-NL',  responsibleTraderId: 2,    responsibleTraderName: 'Alice Smith',       commodityType: 'GAS',         currencyCode: 'EUR', positionLimit: 2000000,  pnlLimit: 200000,  varLimit: 50000,  goLiveDate: '2020-01-01', description: 'European natural gas physical and financial book — TTF and NBP.',         isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { bookId: 4, bookCode: 'LME-CU-ARB',  bookName: 'Copper Arbitrage',     bookType: 'ARBITRAGE', deskId: 3, deskCode: 'METALS-BASE', legalEntityId: 1, legalEntityCode: 'SETRM-LTD', responsibleTraderId: 3,    responsibleTraderName: 'Raj Kumar Patel',  commodityType: 'METALS',      currencyCode: 'USD', positionLimit: 1000,     pnlLimit: 100000,  varLimit: 25000,  goLiveDate: '2022-01-10', description: 'LME copper cash/3M arbitrage and spread trading book.',                 isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { bookId: 5, bookCode: 'POWER-CLIENT', bookName: 'Power Client Book',    bookType: 'CLIENT',    deskId: 4, deskCode: 'POWER-EU',    legalEntityId: 2, legalEntityCode: 'SETRM-NL',  responsibleTraderId: 6,    responsibleTraderName: 'Sarah Wong',        commodityType: 'POWER',       currencyCode: 'EUR', positionLimit: 500000,   pnlLimit: null,    varLimit: null,   goLiveDate: '2024-02-01', description: 'European power client back-to-back book — EEX German and French baseload.', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
 ];
 
 // ─── TRADERS ──────────────────────────────────────────────────────────────────
 const tradersStore: unknown[] = [
-  { traderId: 1, traderCode: 'JDO', fullName: 'John Doe', email: 'john.doe@smartetrm.com', userId: 101, deskId: 1, deskCode: 'OIL-CRUDE', deskName: 'Crude Oil Trading', commodityTypes: ['OIL'], commodityLimits: [{ commodityType: 'OIL', singleTradeLimit: 25000000, dailyTradeLimit: 100000000, positionLimit: 250000000 }], approverTraderId: null, approverName: null, goLiveDate: '2020-03-01', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
-  { traderId: 2, traderCode: 'ASM', fullName: 'Alice Smith', email: 'alice.smith@smartetrm.com', userId: 102, deskId: 2, deskCode: 'GAS-EU', deskName: 'European Gas', commodityTypes: ['GAS', 'POWER'], commodityLimits: [{ commodityType: 'GAS', singleTradeLimit: 10000000, dailyTradeLimit: 40000000, positionLimit: 100000000 }, { commodityType: 'POWER', singleTradeLimit: 5000000, dailyTradeLimit: 20000000, positionLimit: 50000000 }], approverTraderId: null, approverName: null, goLiveDate: '2019-06-15', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
-  { traderId: 3, traderCode: 'RKP', fullName: 'Raj Kumar Patel', email: 'raj.patel@smartetrm.com', userId: 103, deskId: 3, deskCode: 'METALS-BASE', deskName: 'Base Metals', commodityTypes: ['METALS'], commodityLimits: [{ commodityType: 'METALS', singleTradeLimit: 5000000, dailyTradeLimit: 20000000, positionLimit: 50000000 }], approverTraderId: 1, approverName: 'John Doe', goLiveDate: '2022-01-10', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
-  { traderId: 4, traderCode: 'MJL', fullName: 'Maria Jensen', email: 'maria.jensen@smartetrm.com', userId: 104, deskId: 1, deskCode: 'OIL-CRUDE', deskName: 'Crude Oil Trading', commodityTypes: ['OIL'], commodityLimits: [{ commodityType: 'OIL', singleTradeLimit: 12500000, dailyTradeLimit: 50000000, positionLimit: 100000000 }], approverTraderId: 1, approverName: 'John Doe', goLiveDate: '2023-09-01', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
-  { traderId: 5, traderCode: 'PLN', fullName: 'Pierre Lefebvre', email: 'pierre.lefebvre@smartetrm.com', userId: 105, deskId: 2, deskCode: 'GAS-EU', deskName: 'European Gas', commodityTypes: ['GAS', 'LNG'], commodityLimits: [{ commodityType: 'GAS', singleTradeLimit: 8000000, dailyTradeLimit: 30000000, positionLimit: 80000000 }], approverTraderId: 2, approverName: 'Alice Smith', goLiveDate: '2021-04-01', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
-  { traderId: 6, traderCode: 'SWN', fullName: 'Sarah Wong', email: 'sarah.wong@smartetrm.com', userId: 106, deskId: 4, deskCode: 'POWER-EU', deskName: 'European Power', commodityTypes: ['POWER'], commodityLimits: [{ commodityType: 'POWER', singleTradeLimit: 3000000, dailyTradeLimit: 15000000, positionLimit: 30000000 }], approverTraderId: 2, approverName: 'Alice Smith', goLiveDate: '2024-02-01', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { traderId: 1, traderCode: 'JDO', fullName: 'John Doe',        email: 'john.doe@smartetrm.com',       userId: 101, legalEntityId: 1, legalEntityCode: 'SETRM-LTD', deskId: 1, deskCode: 'OIL-CRUDE',   deskName: 'Crude Oil Trading',  commodityTypes: ['OIL'],        commodityLimits: [{ commodityType: 'OIL',    singleTradeLimit: 25000000, dailyTradeLimit: 100000000, positionLimit: 250000000 }],                                                                                                                                       approverTraderId: null, approverName: null,          goLiveDate: '2020-03-01', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { traderId: 2, traderCode: 'ASM', fullName: 'Alice Smith',     email: 'alice.smith@smartetrm.com',    userId: 102, legalEntityId: 2, legalEntityCode: 'SETRM-NL',  deskId: 2, deskCode: 'GAS-EU',      deskName: 'European Gas',       commodityTypes: ['GAS', 'POWER'], commodityLimits: [{ commodityType: 'GAS',   singleTradeLimit: 10000000, dailyTradeLimit: 40000000,  positionLimit: 100000000 }, { commodityType: 'POWER',  singleTradeLimit: 5000000,  dailyTradeLimit: 20000000, positionLimit: 50000000 }], approverTraderId: null, approverName: null,          goLiveDate: '2019-06-15', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { traderId: 3, traderCode: 'RKP', fullName: 'Raj Kumar Patel', email: 'raj.patel@smartetrm.com',     userId: 103, legalEntityId: 1, legalEntityCode: 'SETRM-LTD', deskId: 3, deskCode: 'METALS-BASE', deskName: 'Base Metals',        commodityTypes: ['METALS'],     commodityLimits: [{ commodityType: 'METALS', singleTradeLimit: 5000000,  dailyTradeLimit: 20000000,  positionLimit: 50000000 }],                                                                                                                                        approverTraderId: 1,    approverName: 'John Doe',    goLiveDate: '2022-01-10', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { traderId: 4, traderCode: 'MJL', fullName: 'Maria Jensen',    email: 'maria.jensen@smartetrm.com',  userId: 104, legalEntityId: 1, legalEntityCode: 'SETRM-LTD', deskId: 1, deskCode: 'OIL-CRUDE',   deskName: 'Crude Oil Trading',  commodityTypes: ['OIL'],        commodityLimits: [{ commodityType: 'OIL',    singleTradeLimit: 12500000, dailyTradeLimit: 50000000,  positionLimit: 100000000 }],                                                                                                                                       approverTraderId: 1,    approverName: 'John Doe',    goLiveDate: '2023-09-01', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { traderId: 5, traderCode: 'PLN', fullName: 'Pierre Lefebvre', email: 'pierre.lefebvre@smartetrm.com', userId: 105, legalEntityId: 2, legalEntityCode: 'SETRM-NL', deskId: 2, deskCode: 'GAS-EU',      deskName: 'European Gas',       commodityTypes: ['GAS', 'LNG'], commodityLimits: [{ commodityType: 'GAS',   singleTradeLimit: 8000000,  dailyTradeLimit: 30000000,  positionLimit: 80000000 }],                                                                                                                                        approverTraderId: 2,    approverName: 'Alice Smith', goLiveDate: '2021-04-01', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { traderId: 6, traderCode: 'SWN', fullName: 'Sarah Wong',      email: 'sarah.wong@smartetrm.com',    userId: 106, legalEntityId: 2, legalEntityCode: 'SETRM-NL',  deskId: 4, deskCode: 'POWER-EU',    deskName: 'European Power',     commodityTypes: ['POWER'],      commodityLimits: [{ commodityType: 'POWER',  singleTradeLimit: 3000000,  dailyTradeLimit: 15000000,  positionLimit: 30000000 }],                                                                                                                                        approverTraderId: 2,    approverName: 'Alice Smith', goLiveDate: '2024-02-01', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
 ];
 
 // ─── PRODUCTS ─────────────────────────────────────────────────────────────────
@@ -266,14 +266,59 @@ const periodsStore: unknown[] = [
 
 // ─── PRICING RULES ────────────────────────────────────────────────────────────
 const pricingRulesStore: unknown[] = [
-  { pricingRuleId: 1, ruleCode: 'FLT-DTBRT-AVG', ruleName: 'Dated Brent Monthly Average', pricingType: 'AVERAGE', priceIndexCode: 'DTBRT', differentialAmount: null, differentialCurrencyCode: null, differentialUomCode: null, formulaExpression: null, averagingMethod: 'ARITHMETIC', pricingCalendarCode: 'LON', publicationSource: 'PLATTS', rounding: 'ROUND_4DP', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { pricingRuleId: 2, ruleCode: 'DIFF-URALS-MED', ruleName: 'Urals Med vs Dated Brent', pricingType: 'DIFFERENTIAL', priceIndexCode: 'DTBRT', differentialAmount: -2.5, differentialCurrencyCode: 'USD', differentialUomCode: 'BBL', formulaExpression: null, averagingMethod: 'ARITHMETIC', pricingCalendarCode: 'LON', publicationSource: 'ARGUS', rounding: 'ROUND_4DP', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { pricingRuleId: 3, ruleCode: 'FLT-WTI-PROMPT', ruleName: 'WTI NYMEX Prompt Month', pricingType: 'FLOATING', priceIndexCode: 'WTI-NYMEX', differentialAmount: null, differentialCurrencyCode: null, differentialUomCode: null, formulaExpression: null, averagingMethod: null, pricingCalendarCode: 'NYC', publicationSource: 'NYMEX', rounding: 'ROUND_2DP', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { pricingRuleId: 4, ruleCode: 'FORMULA-JCC-LNG', ruleName: 'JCC-Linked LNG Formula', pricingType: 'FORMULA', priceIndexCode: 'JCC', differentialAmount: null, differentialCurrencyCode: null, differentialUomCode: null, formulaExpression: 'JCC * 0.1485 + 0.50', averagingMethod: 'ARITHMETIC', pricingCalendarCode: 'NYC', publicationSource: 'REUTERS', rounding: 'ROUND_4DP', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { pricingRuleId: 5, ruleCode: 'FLT-TTF-MONTHLY', ruleName: 'TTF Gas Monthly Average', pricingType: 'AVERAGE', priceIndexCode: 'TTF-ICE', differentialAmount: null, differentialCurrencyCode: null, differentialUomCode: null, formulaExpression: null, averagingMethod: 'ARITHMETIC', pricingCalendarCode: 'LON', publicationSource: 'ICE', rounding: 'ROUND_4DP', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { pricingRuleId: 6, ruleCode: 'FLT-LME-CU-CASH', ruleName: 'LME Copper Cash Settlement', pricingType: 'FLOATING', priceIndexCode: 'LME-CU-CASH', differentialAmount: null, differentialCurrencyCode: null, differentialUomCode: null, formulaExpression: null, averagingMethod: null, pricingCalendarCode: 'LME', publicationSource: 'LME', rounding: 'ROUND_2DP', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { pricingRuleId: 7, ruleCode: 'PLT-BRENT-MOC', ruleName: 'Platts Brent MOC Window', pricingType: 'PLATTS_WINDOW', priceIndexCode: 'DTBRT', differentialAmount: null, differentialCurrencyCode: null, differentialUomCode: null, formulaExpression: null, averagingMethod: null, pricingCalendarCode: 'LON', publicationSource: 'PLATTS', rounding: 'ROUND_4DP', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { pricingRuleId: 8, ruleCode: 'FIXED-75.00-USD', ruleName: 'Fixed Price USD 75.00/BBL', pricingType: 'FIXED', priceIndexCode: null, differentialAmount: 75.0, differentialCurrencyCode: 'USD', differentialUomCode: 'BBL', formulaExpression: null, averagingMethod: null, pricingCalendarCode: null, publicationSource: null, rounding: 'ROUND_2DP', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { pricingRuleId: 1,  ruleCode: 'FLT-DTBRT-AVG',   ruleName: 'Dated Brent Monthly Average',         pricingType: 'AVERAGE',       priceIndexCode: 'DTBRT',       differentialAmount: null, differentialCurrencyCode: null, differentialUomCode: null, formulaExpression: null,              averagingMethod: 'ARITHMETIC', pricingCalendarCode: 'LON', publicationSource: 'PLATTS', rounding: 'ROUND_4DP', tasExchange: null, tasContractSeries: null, tasTickSize: null, balmoExchange: null, balmoSeries: null, balmoTickSize: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { pricingRuleId: 2,  ruleCode: 'DIFF-URALS-MED',   ruleName: 'Urals Med vs Dated Brent',            pricingType: 'DIFFERENTIAL',  priceIndexCode: 'DTBRT',       differentialAmount: -2.5, differentialCurrencyCode: 'USD', differentialUomCode: 'BBL', formulaExpression: null,              averagingMethod: 'ARITHMETIC', pricingCalendarCode: 'LON', publicationSource: 'ARGUS',  rounding: 'ROUND_4DP', tasExchange: null, tasContractSeries: null, tasTickSize: null, balmoExchange: null, balmoSeries: null, balmoTickSize: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { pricingRuleId: 3,  ruleCode: 'FLT-WTI-PROMPT',   ruleName: 'WTI NYMEX Prompt Month',              pricingType: 'FLOATING',      priceIndexCode: 'WTI-NYMEX',   differentialAmount: null, differentialCurrencyCode: null, differentialUomCode: null, formulaExpression: null,              averagingMethod: null,         pricingCalendarCode: 'NYC', publicationSource: 'NYMEX',  rounding: 'ROUND_2DP', tasExchange: null, tasContractSeries: null, tasTickSize: null, balmoExchange: null, balmoSeries: null, balmoTickSize: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { pricingRuleId: 4,  ruleCode: 'FORMULA-JCC-LNG',  ruleName: 'JCC-Linked LNG Formula',              pricingType: 'FORMULA',       priceIndexCode: 'JCC',         differentialAmount: null, differentialCurrencyCode: null, differentialUomCode: null, formulaExpression: 'JCC * 0.1485 + 0.50', averagingMethod: 'ARITHMETIC', pricingCalendarCode: 'NYC', publicationSource: 'REUTERS', rounding: 'ROUND_4DP', tasExchange: null, tasContractSeries: null, tasTickSize: null, balmoExchange: null, balmoSeries: null, balmoTickSize: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { pricingRuleId: 5,  ruleCode: 'FLT-TTF-MONTHLY',  ruleName: 'TTF Gas Monthly Average',             pricingType: 'AVERAGE',       priceIndexCode: 'TTF-ICE',     differentialAmount: null, differentialCurrencyCode: null, differentialUomCode: null, formulaExpression: null,              averagingMethod: 'ARITHMETIC', pricingCalendarCode: 'LON', publicationSource: 'ICE',    rounding: 'ROUND_4DP', tasExchange: null, tasContractSeries: null, tasTickSize: null, balmoExchange: null, balmoSeries: null, balmoTickSize: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { pricingRuleId: 6,  ruleCode: 'FLT-LME-CU-CASH',  ruleName: 'LME Copper Cash Settlement',         pricingType: 'FLOATING',      priceIndexCode: 'LME-CU-CASH', differentialAmount: null, differentialCurrencyCode: null, differentialUomCode: null, formulaExpression: null,              averagingMethod: null,         pricingCalendarCode: 'LME', publicationSource: 'LME',    rounding: 'ROUND_2DP', tasExchange: null, tasContractSeries: null, tasTickSize: null, balmoExchange: null, balmoSeries: null, balmoTickSize: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { pricingRuleId: 7,  ruleCode: 'PLT-BRENT-MOC',    ruleName: 'Platts Brent MOC Window',             pricingType: 'PLATTS_WINDOW', priceIndexCode: 'DTBRT',       differentialAmount: null, differentialCurrencyCode: null, differentialUomCode: null, formulaExpression: null,              averagingMethod: null,         pricingCalendarCode: 'LON', publicationSource: 'PLATTS', rounding: 'ROUND_4DP', tasExchange: null, tasContractSeries: null, tasTickSize: null, balmoExchange: null, balmoSeries: null, balmoTickSize: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { pricingRuleId: 8,  ruleCode: 'FIXED-75.00-USD',  ruleName: 'Fixed Price USD 75.00/BBL',           pricingType: 'FIXED',         priceIndexCode: null,          differentialAmount: 75.0, differentialCurrencyCode: 'USD', differentialUomCode: 'BBL', formulaExpression: null,              averagingMethod: null,         pricingCalendarCode: null,  publicationSource: null,     rounding: 'ROUND_2DP', tasExchange: null, tasContractSeries: null, tasTickSize: null, balmoExchange: null, balmoSeries: null, balmoTickSize: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  // TAS rules — price = CME/ICE settlement ± tasDifferential × tasTickSize
+  { pricingRuleId: 9,  ruleCode: 'TAS-NYMEX-CL',     ruleName: 'WTI Crude CL Trade at Settlement',   pricingType: 'TAS',           priceIndexCode: 'WTI-NYMEX',   differentialAmount: null, differentialCurrencyCode: null, differentialUomCode: null, formulaExpression: null,              averagingMethod: null,         pricingCalendarCode: 'NYC', publicationSource: 'CME',    rounding: 'ROUND_2DP', tasExchange: 'CME_NYMEX', tasContractSeries: 'CL', tasTickSize: 0.01,   balmoExchange: null, balmoSeries: null, balmoTickSize: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { pricingRuleId: 10, ruleCode: 'TAS-NYMEX-NG',     ruleName: 'Henry Hub NG Trade at Settlement',   pricingType: 'TAS',           priceIndexCode: 'HH-HENRY-HUB',differentialAmount: null, differentialCurrencyCode: null, differentialUomCode: null, formulaExpression: null,              averagingMethod: null,         pricingCalendarCode: 'NYC', publicationSource: 'CME',    rounding: 'ROUND_3DP', tasExchange: 'CME_NYMEX', tasContractSeries: 'NG', tasTickSize: 0.001,  balmoExchange: null, balmoSeries: null, balmoTickSize: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { pricingRuleId: 11, ruleCode: 'TAS-NYMEX-HO',     ruleName: 'Heating Oil HO Trade at Settlement', pricingType: 'TAS',           priceIndexCode: 'HO-NYMEX',    differentialAmount: null, differentialCurrencyCode: null, differentialUomCode: null, formulaExpression: null,              averagingMethod: null,         pricingCalendarCode: 'NYC', publicationSource: 'CME',    rounding: 'ROUND_4DP', tasExchange: 'CME_NYMEX', tasContractSeries: 'HO', tasTickSize: 0.0001, balmoExchange: null, balmoSeries: null, balmoTickSize: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { pricingRuleId: 12, ruleCode: 'TAS-ICE-BZ',       ruleName: 'ICE Brent BZ Trade at Settlement',   pricingType: 'TAS',           priceIndexCode: 'DTBRT',       differentialAmount: null, differentialCurrencyCode: null, differentialUomCode: null, formulaExpression: null,              averagingMethod: null,         pricingCalendarCode: 'LON', publicationSource: 'ICE',    rounding: 'ROUND_2DP', tasExchange: 'ICE_EUROPE', tasContractSeries: 'BZ', tasTickSize: 0.01, balmoExchange: null, balmoSeries: null, balmoTickSize: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  // BALMO rules — price = arithmetic average of daily CME/ICE front-month settlements over pricing window
+  { pricingRuleId: 13, ruleCode: 'BALMO-CME-CL',     ruleName: 'WTI Crude CL Balance of Month',      pricingType: 'BALMO',         priceIndexCode: 'WTI-NYMEX',   differentialAmount: null, differentialCurrencyCode: null, differentialUomCode: null, formulaExpression: null,              averagingMethod: 'ARITHMETIC', pricingCalendarCode: 'NYC', publicationSource: 'CME',    rounding: 'ROUND_4DP', tasExchange: null, tasContractSeries: null, tasTickSize: null, balmoExchange: 'CME_NYMEX', balmoSeries: 'CL', balmoTickSize: 0.01,   isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { pricingRuleId: 14, ruleCode: 'BALMO-ICE-BZ',     ruleName: 'ICE Brent Crude Balance of Month',   pricingType: 'BALMO',         priceIndexCode: 'DTBRT',       differentialAmount: null, differentialCurrencyCode: null, differentialUomCode: null, formulaExpression: null,              averagingMethod: 'ARITHMETIC', pricingCalendarCode: 'LON', publicationSource: 'ICE',    rounding: 'ROUND_4DP', tasExchange: null, tasContractSeries: null, tasTickSize: null, balmoExchange: 'ICE_EUROPE', balmoSeries: 'BZ', balmoTickSize: 0.01, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { pricingRuleId: 15, ruleCode: 'BALMO-CME-HO',     ruleName: 'Heating Oil HO Balance of Month',    pricingType: 'BALMO',         priceIndexCode: 'HO-NYMEX',    differentialAmount: null, differentialCurrencyCode: null, differentialUomCode: null, formulaExpression: null,              averagingMethod: 'ARITHMETIC', pricingCalendarCode: 'NYC', publicationSource: 'CME',    rounding: 'ROUND_4DP', tasExchange: null, tasContractSeries: null, tasTickSize: null, balmoExchange: 'CME_NYMEX', balmoSeries: 'HO', balmoTickSize: 0.0001, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+];
+
+// ─── SETTLEMENT PRICES ────────────────────────────────────────────────────────
+const settlementPricesStore: unknown[] = [
+  { settlementPriceId: 1,  exchange: 'CME_NYMEX',  contractTicker: 'CLZ26', settleDate: '2026-07-01', settlePrice: 72.45,  tickSize: 0.01,   tickCurrency: 'USD', uomCode: 'BBL',   isConfirmed: true,  source: 'CME',    notes: null, createdAt: '2026-07-01T21:30:00Z', updatedAt: '2026-07-01T21:30:00Z' },
+  { settlementPriceId: 2,  exchange: 'CME_NYMEX',  contractTicker: 'CLF27', settleDate: '2026-07-01', settlePrice: 71.80,  tickSize: 0.01,   tickCurrency: 'USD', uomCode: 'BBL',   isConfirmed: true,  source: 'CME',    notes: null, createdAt: '2026-07-01T21:30:00Z', updatedAt: '2026-07-01T21:30:00Z' },
+  { settlementPriceId: 3,  exchange: 'CME_NYMEX',  contractTicker: 'NGF27', settleDate: '2026-07-01', settlePrice: 3.456,  tickSize: 0.001,  tickCurrency: 'USD', uomCode: 'MMBTU', isConfirmed: true,  source: 'CME',    notes: null, createdAt: '2026-07-01T21:30:00Z', updatedAt: '2026-07-01T21:30:00Z' },
+  { settlementPriceId: 4,  exchange: 'CME_NYMEX',  contractTicker: 'HOF27', settleDate: '2026-07-01', settlePrice: 2.3421, tickSize: 0.0001, tickCurrency: 'USD', uomCode: 'GAL',   isConfirmed: true,  source: 'CME',    notes: null, createdAt: '2026-07-01T21:30:00Z', updatedAt: '2026-07-01T21:30:00Z' },
+  { settlementPriceId: 5,  exchange: 'ICE_EUROPE',  contractTicker: 'BZF27', settleDate: '2026-07-01', settlePrice: 76.23,  tickSize: 0.01,   tickCurrency: 'USD', uomCode: 'BBL',   isConfirmed: true,  source: 'ICE',    notes: null, createdAt: '2026-07-01T21:30:00Z', updatedAt: '2026-07-01T21:30:00Z' },
+  { settlementPriceId: 6,  exchange: 'CME_NYMEX',  contractTicker: 'CLZ26', settleDate: '2026-06-30', settlePrice: 72.18,  tickSize: 0.01,   tickCurrency: 'USD', uomCode: 'BBL',   isConfirmed: true,  source: 'CME',    notes: null, createdAt: '2026-06-30T21:30:00Z', updatedAt: '2026-06-30T21:30:00Z' },
+  { settlementPriceId: 7,  exchange: 'CME_NYMEX',  contractTicker: 'NGF27', settleDate: '2026-06-30', settlePrice: 3.456,  tickSize: 0.001,  tickCurrency: 'USD', uomCode: 'MMBTU', isConfirmed: true,  source: 'CME',    notes: null, createdAt: '2026-06-30T21:30:00Z', updatedAt: '2026-06-30T21:30:00Z' },
+  { settlementPriceId: 8,  exchange: 'CME_NYMEX',  contractTicker: 'NGZ26', settleDate: '2026-07-01', settlePrice: 3.892,  tickSize: 0.001,  tickCurrency: 'USD', uomCode: 'MMBTU', isConfirmed: false, source: 'MANUAL', notes: 'Awaiting CME official', createdAt: '2026-07-01T14:00:00Z', updatedAt: '2026-07-01T14:00:00Z' },
+];
+
+// ─── BOLMO AGREEMENTS ─────────────────────────────────────────────────────────
+const bolmoAgreementsStore: unknown[] = [
+  { bolmoId: 1, bolmoReference: 'BKO-2026-00001', counterpartyId: 7, counterpartyName: 'Vitol SA', legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', agreementDate: '2026-06-28', settlementDate: '2026-07-10', commodityType: 'OIL', deliveryLocationCode: 'SULLOM-VOE', deliveryPeriodCode: 'M2026-07', netQuantity: 250000, uomCode: 'BBL', nettingPrice: 82.00, currencyCode: 'USD', status: 'AGREED',    notes: 'Forties blend offsetting obligations — physical delivery avoided via book-out.',    createdAt: '2026-06-28T10:00:00Z', updatedAt: '2026-06-28T10:30:00Z' },
+  { bolmoId: 2, bolmoReference: 'BKO-2026-00002', counterpartyId: 3, counterpartyName: 'Equinor Energy AS', legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', agreementDate: '2026-06-29', settlementDate: null,           commodityType: 'GAS', deliveryLocationCode: 'TTF-NL',      deliveryPeriodCode: 'M2026-08', netQuantity: 50000,  uomCode: 'MWH', nettingPrice: 34.00, currencyCode: 'EUR', status: 'PENDING',   notes: 'TTF Aug-26 balancing position — counterparty confirmation pending.',                createdAt: '2026-06-29T09:00:00Z', updatedAt: '2026-06-29T09:00:00Z' },
+  { bolmoId: 3, bolmoReference: 'BKO-2026-00003', counterpartyId: 1, counterpartyName: 'Shell Trading International', legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', agreementDate: '2026-06-15', settlementDate: '2026-06-25', commodityType: 'OIL', deliveryLocationCode: 'ROTTERDAM',   deliveryPeriodCode: 'M2026-07', netQuantity: 100000, uomCode: 'BBL', nettingPrice: 80.50, currencyCode: 'USD', status: 'COMPLETED', notes: 'ARA ULSD book-out — completed and cash-settled. Net receivable USD 50,000.',         createdAt: '2026-06-15T14:00:00Z', updatedAt: '2026-06-25T16:00:00Z' },
+];
+
+const bolmoLegsStore: unknown[] = [
+  { legId: 1, bolmoId: 1, orderId: null, orderReference: null, direction: 'BUY',  quantity: 250000, uomCode: 'BBL', price: 81.50, notes: 'Vitol Forties parcel BUY — TRD-2026-00003',  createdAt: '2026-06-28T10:05:00Z' },
+  { legId: 2, bolmoId: 1, orderId: null, orderReference: null, direction: 'SELL', quantity: 250000, uomCode: 'BBL', price: 82.50, notes: 'Vitol Forties parcel SELL — TRD-2026-00004', createdAt: '2026-06-28T10:05:00Z' },
+  { legId: 3, bolmoId: 2, orderId: null, orderReference: null, direction: 'BUY',  quantity: 50000,  uomCode: 'MWH', price: 33.80, notes: 'Equinor TTF Aug BUY',  createdAt: '2026-06-29T09:05:00Z' },
+  { legId: 4, bolmoId: 2, orderId: null, orderReference: null, direction: 'SELL', quantity: 50000,  uomCode: 'MWH', price: 34.20, notes: 'Equinor TTF Aug SELL', createdAt: '2026-06-29T09:05:00Z' },
+  { legId: 5, bolmoId: 3, orderId: null, orderReference: null, direction: 'BUY',  quantity: 100000, uomCode: 'BBL', price: 80.00, notes: 'Shell ULSD Rotterdam BUY',  createdAt: '2026-06-15T14:05:00Z' },
+  { legId: 6, bolmoId: 3, orderId: null, orderReference: null, direction: 'SELL', quantity: 100000, uomCode: 'BBL', price: 81.00, notes: 'Shell ULSD Rotterdam SELL', createdAt: '2026-06-15T14:05:00Z' },
+];
+
+// ─── BALMO PRODUCTS ───────────────────────────────────────────────────────────
+const balmoProductsStore: unknown[] = [
+  { balmoProductId: 1, productCode: 'BALMO-CL-2026-07', productName: 'WTI Crude CL Balance of Month July 2026',   exchange: 'CME_NYMEX',  contractSeries: 'CL', contractMonth: '2026-07', pricingStartDate: '2026-07-01', pricingEndDate: '2026-07-31', lastTradingDate: '2026-07-01', settlementPriceTicker: 'CLN26', tickSize: 0.01,   tickCurrency: 'USD', uomCode: 'BBL',   priceSource: 'CME', status: 'ACTIVE',  notes: 'CME NYMEX WTI BALMO Jul26 — front month CLN26 settlements', createdAt: '2026-06-01T00:00:00Z', updatedAt: '2026-07-01T00:00:00Z' },
+  { balmoProductId: 2, productCode: 'BALMO-CL-2026-08', productName: 'WTI Crude CL Balance of Month August 2026', exchange: 'CME_NYMEX',  contractSeries: 'CL', contractMonth: '2026-08', pricingStartDate: '2026-08-01', pricingEndDate: '2026-08-31', lastTradingDate: '2026-08-01', settlementPriceTicker: 'CLQ26', tickSize: 0.01,   tickCurrency: 'USD', uomCode: 'BBL',   priceSource: 'CME', status: 'ACTIVE',  notes: 'CME NYMEX WTI BALMO Aug26 — front month CLQ26 settlements', createdAt: '2026-06-01T00:00:00Z', updatedAt: '2026-07-01T00:00:00Z' },
+  { balmoProductId: 3, productCode: 'BALMO-BZ-2026-07', productName: 'ICE Brent BZ Balance of Month July 2026',   exchange: 'ICE_EUROPE', contractSeries: 'BZ', contractMonth: '2026-07', pricingStartDate: '2026-07-01', pricingEndDate: '2026-07-31', lastTradingDate: '2026-07-01', settlementPriceTicker: 'BZN26', tickSize: 0.01,   tickCurrency: 'USD', uomCode: 'BBL',   priceSource: 'ICE', status: 'ACTIVE',  notes: 'ICE Brent BALMO Jul26 — front month BZN26 settlements', createdAt: '2026-06-01T00:00:00Z', updatedAt: '2026-07-01T00:00:00Z' },
+  { balmoProductId: 4, productCode: 'BALMO-HO-2026-07', productName: 'Heating Oil HO Balance of Month July 2026', exchange: 'CME_NYMEX',  contractSeries: 'HO', contractMonth: '2026-07', pricingStartDate: '2026-07-01', pricingEndDate: '2026-07-31', lastTradingDate: '2026-07-01', settlementPriceTicker: 'HON26', tickSize: 0.0001, tickCurrency: 'USD', uomCode: 'GAL',   priceSource: 'CME', status: 'ACTIVE',  notes: 'CME Heating Oil BALMO Jul26 — front month HON26 settlements', createdAt: '2026-06-01T00:00:00Z', updatedAt: '2026-07-01T00:00:00Z' },
 ];
 
 // ─── SYSTEM USERS ─────────────────────────────────────────────────────────────
@@ -285,6 +330,8 @@ const systemUsersStore: unknown[] = [
   { userId: 5, username: 'compliance', email: 'compliance@smartetrm.com', fullName: 'Compliance Officer', role: 'COMPLIANCE', traderId: null, department: 'Legal & Compliance', phone: null, preferredLocale: 'fr-FR', officeLocation: 'Paris', isActive: true, lastLogin: '2026-06-25T14:00:00Z', createdAt: '2024-01-01T00:00:00Z' },
   { userId: 6, username: 'ops.team', email: 'operations@smartetrm.com', fullName: 'Operations Team', role: 'OPERATIONS', traderId: null, department: 'Operations', phone: '+44 20 7123 0006', preferredLocale: 'en-GB', officeLocation: 'London', isActive: true, lastLogin: '2026-06-27T08:30:00Z', createdAt: '2024-01-01T00:00:00Z' },
   { userId: 7, username: 'viewer1', email: 'viewer@smartetrm.com', fullName: 'Board Viewer', role: 'VIEWER', traderId: null, department: 'Executive', phone: null, preferredLocale: null, officeLocation: null, isActive: false, lastLogin: '2026-05-01T10:00:00Z', createdAt: '2024-01-01T00:00:00Z' },
+  { userId: 8, username: 's.chen', email: 'sarah.chen@smartetrm.com', fullName: 'Sarah Chen', role: 'CREDIT_ANALYST', traderId: null, department: 'Credit Risk', phone: '+44 20 7123 0008', preferredLocale: 'en-GB', officeLocation: 'London', isActive: true, lastLogin: '2026-07-02T09:15:00Z', createdAt: '2024-06-01T00:00:00Z' },
+  { userId: 9, username: 'm.webb', email: 'marcus.webb@smartetrm.com', fullName: 'Marcus Webb', role: 'CREDIT_ANALYST', traderId: null, department: 'Credit Risk', phone: '+65 6123 0009', preferredLocale: 'en-SG', officeLocation: 'Singapore', isActive: true, lastLogin: '2026-07-02T03:40:00Z', createdAt: '2025-01-15T00:00:00Z' },
 ];
 
 // ─── PAYMENT TERMS ─────────────────────────────────────────────────────────────
@@ -339,7 +386,6 @@ const brokerFeeAgreementsStore: unknown[] = [
 ];
 
 // ─── CREDIT — MARGIN AGREEMENTS ──────────────────────────────────────────────
-let marginAgreementIdSeq = 10;
 const marginAgreementsStore: unknown[] = [
   { marginAgreementId: 1, agreementCode: 'CSA-SHELL-2024',    agreementType: 'CSA_BILATERAL',   counterpartyId: 1, counterpartyName: 'Shell Trading International', thresholdAmount: 5000000,   thresholdCurrency: 'USD', cpThresholdAmount: 5000000,   cpThresholdCurrency: 'USD', mtaAmount: 250000,  mtaCurrency: 'USD', independentAmount: null, independentAmountCurrency: null, roundingAmount: 1000,  valuationFrequency: 'DAILY',  eligibleCollateral: 'Cash (USD, EUR, GBP); G7 Government Bonds (AAA–AA, <10yr); Gold', eligibleCurrencies: 'USD, EUR, GBP', govLaw: 'ENGLISH',   effectiveDate: '2024-01-01', expiryDate: null,         isActive: true, notes: 'ISDA 2002 Master Agreement + 2013 CSA', createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
   { marginAgreementId: 2, agreementCode: 'CSA-BP-2024',       agreementType: 'CSA_BILATERAL',   counterpartyId: 2, counterpartyName: 'BP Oil Trading',            thresholdAmount: 10000000,  thresholdCurrency: 'USD', cpThresholdAmount: 10000000,  cpThresholdCurrency: 'USD', mtaAmount: 500000,  mtaCurrency: 'USD', independentAmount: null, independentAmountCurrency: null, roundingAmount: 1000,  valuationFrequency: 'DAILY',  eligibleCollateral: 'Cash (USD, EUR); US Treasuries; UK Gilts',                        eligibleCurrencies: 'USD, EUR',      govLaw: 'ENGLISH',   effectiveDate: '2024-03-01', expiryDate: null,         isActive: true, notes: 'Bilateral threshold — both AA rated',  createdAt: '2024-03-01T00:00:00Z', updatedAt: '2024-03-01T00:00:00Z' },
@@ -348,23 +394,273 @@ const marginAgreementsStore: unknown[] = [
 ];
 
 // ─── CREDIT — CREDIT LIMITS ───────────────────────────────────────────────────
-let creditLimitIdSeq = 20;
+// Denormalize + compute derived fields for a credit limit row.
+function computeCreditLimit(input: Record<string, unknown>): Record<string, unknown> {
+  const cp = counterpartiesRef.find((x) => x.counterpartyId === (input['counterpartyId'] as number));
+  const analyst = (systemUsersStore as Array<Record<string, unknown>>).find((u) => u['userId'] === input['creditAnalystUserId']);
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const limitAmount = Number(input['limitAmount'] ?? 0);
+  const usedAmount = Number(input['usedAmount'] ?? 0);
+  const collateralOffset = Number(input['collateralOffset'] ?? 0);
+  const upliftActive = input['tempUpliftAmount'] != null && (input['tempUpliftExpiry'] == null || String(input['tempUpliftExpiry']) >= todayIso);
+  const capacity = limitAmount + (upliftActive ? Number(input['tempUpliftAmount']) : 0) + collateralOffset;
+  const available = capacity - usedAmount;
+  const pct = capacity > 0 ? Math.round((usedAmount / capacity) * 1000) / 10 : 0;
+  const warn = Number(input['warningThresholdPct'] ?? 80);
+  const crit = Number(input['criticalThresholdPct'] ?? 95);
+  const indicator = pct >= 100 ? 'BREACHED' : pct >= crit ? 'CRITICAL' : pct >= warn ? 'WARNING' : 'OK';
+  // next review = last review + frequency, unless explicitly provided
+  let nextReview = input['nextReviewDate'] as string | null;
+  if (!nextReview && input['lastReviewDate'] && input['reviewFrequencyDays']) {
+    const d = new Date(String(input['lastReviewDate']));
+    d.setDate(d.getDate() + Number(input['reviewFrequencyDays']));
+    nextReview = d.toISOString().slice(0, 10);
+  }
+  return {
+    ...input,
+    counterpartyName: cp?.name ?? (input['counterpartyName'] as string | null) ?? null,
+    cpCountryCode: (input['cpCountryCode'] as string | null) ?? cp?.countryCode ?? null,
+    creditAnalystName: analyst ? String(analyst['fullName']) : (input['creditAnalystName'] as string | null) ?? null,
+    availableAmount: available,
+    utilisationPct: pct,
+    limitIndicator: indicator,
+    nextReviewDate: nextReview ?? null,
+    lineItems: input['lineItems'] ?? [],
+  };
+}
+
 const creditLimitsStore: unknown[] = [
-  { creditLimitId: 1, counterpartyId: 1, counterpartyName: 'Shell Trading International', limitType: 'PRE_SETTLEMENT', limitAmount: 100000000, limitCurrency: 'USD', usedAmount: 41225000,  availableAmount: 58775000,  utilisationPct: 41.2, effectiveDate: '2026-01-01', expiryDate: '2026-12-31', approvedBy: 'Credit Committee', approvalDate: '2025-12-10', status: 'ACTIVE',    nettingAgreementRef: 'ISDA-2002-SHELL-001', isActive: true, notes: 'Annual renewal. AA− rated. Netting set includes OTC & physical.', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-06-15T00:00:00Z' },
-  { creditLimitId: 2, counterpartyId: 1, counterpartyName: 'Shell Trading International', limitType: 'SETTLEMENT',     limitAmount: 50000000,  limitCurrency: 'USD', usedAmount: 0,         availableAmount: 50000000,  utilisationPct: 0,    effectiveDate: '2026-01-01', expiryDate: '2026-12-31', approvedBy: 'Credit Committee', approvalDate: '2025-12-10', status: 'ACTIVE',    nettingAgreementRef: 'ISDA-2002-SHELL-001', isActive: true, notes: 'Settlement limit — T+2 wire payments.',                          createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
-  { creditLimitId: 3, counterpartyId: 2, counterpartyName: 'BP Oil Trading',            limitType: 'PRE_SETTLEMENT', limitAmount: 75000000,  limitCurrency: 'USD', usedAmount: 8310000,   availableAmount: 66690000,  utilisationPct: 11.1, effectiveDate: '2026-01-01', expiryDate: '2026-12-31', approvedBy: 'Mary Andrews',     approvalDate: '2025-11-20', status: 'ACTIVE',    nettingAgreementRef: 'ISDA-2002-BP-002',    isActive: true, notes: 'Reduced from $100M following Q3 2025 review.',                  createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
-  { creditLimitId: 4, counterpartyId: 4, counterpartyName: 'Glencore Metals',           limitType: 'MARK_TO_MARKET', limitAmount: 20000000,  limitCurrency: 'USD', usedAmount: 2461250,   availableAmount: 17538750,  utilisationPct: 12.3, effectiveDate: '2026-01-01', expiryDate: null,         approvedBy: 'Risk Director',    approvalDate: '2026-01-05', status: 'ACTIVE',    nettingAgreementRef: null,                  isActive: true, notes: 'MTM limit for LME metals positions.',                           createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
-  { creditLimitId: 5, counterpartyId: 7, counterpartyName: 'Vitol SA',                  limitType: 'PRE_SETTLEMENT', limitAmount: 120000000, limitCurrency: 'USD', usedAmount: 59962500,  availableAmount: 60037500,  utilisationPct: 49.9, effectiveDate: '2026-01-01', expiryDate: '2026-12-31', approvedBy: 'Credit Committee', approvalDate: '2025-12-15', status: 'ACTIVE',    nettingAgreementRef: 'ISDA-2002-VITOL-007', isActive: true, notes: 'Near 50% — monitor Urals cargo exposure.', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-06-20T00:00:00Z' },
-  { creditLimitId: 6, counterpartyId: 6, counterpartyName: 'Centrica Energy Trading',   limitType: 'PRE_SETTLEMENT', limitAmount: 15000000,  limitCurrency: 'USD', usedAmount: 0,         availableAmount: 15000000,  utilisationPct: 0,    effectiveDate: '2026-01-01', expiryDate: '2026-06-30', approvedBy: 'John Davies',      approvalDate: '2026-01-10', status: 'EXPIRED',   nettingAgreementRef: null,                  isActive: false, notes: 'Expired — pending renewal.',             createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-06-30T00:00:00Z' },
+  // Shell — group PSR umbrella (DIRECT), with instrument-class sub-limits
+  { creditLimitId: 1, counterpartyId: 1, counterpartyName: 'Shell Trading International', cpCountryCode: 'GB', countryRiskRating: 'LOW',
+    limitType: 'PRE_SETTLEMENT', limitBasis: 'DIRECT', parentLimitId: null, commodityType: 'ALL',
+    limitAmount: 100000000, limitCurrency: 'USD', usedAmount: 41225000, availableAmount: 63775000, utilisationPct: 39.3,
+    collateralOffset: 5000000, collateralRef: 'PCG-SHELL-PLC-2025', tempUpliftAmount: null, tempUpliftExpiry: null, tenorCapMonths: 24,
+    effectiveDate: '2026-01-01', expiryDate: '2026-12-31',
+    creditAnalystUserId: 8, creditAnalystName: 'Sarah Chen', approvedBy: 'Credit Committee', approvalDate: '2025-12-10',
+    reviewFrequencyDays: 365, lastReviewDate: '2025-12-10', nextReviewDate: '2026-12-10', lastReviewOutcome: 'MAINTAIN',
+    internalRating: 'IR-2', externalRating: 'AA-',
+    warningThresholdPct: 80, criticalThresholdPct: 95, breachAction: 'BLOCK_NEW_TRADES', alertInternal: true, alertCounterparty: false, cpAlertEmail: null,
+    limitIndicator: 'OK',
+    lineItems: [
+      { lineItemId: 1, instrumentClass: 'PHYSICAL', subLimitAmount: 60000000, usedAmount: 35000000, tenorCapMonths: 12, notes: 'Cargo exposure incl. Forties programme' },
+      { lineItemId: 2, instrumentClass: 'SWAPS',    subLimitAmount: 25000000, usedAmount: 6225000,  tenorCapMonths: 24, notes: null },
+      { lineItemId: 3, instrumentClass: 'OPTIONS',  subLimitAmount: 10000000, usedAmount: 0,        tenorCapMonths: 12, notes: 'OTC options only — listed margined at exchange' },
+    ],
+    alerts: [],
+    status: 'ACTIVE', nettingAgreementRef: 'ISDA-2002-SHELL-001', isActive: true,
+    notes: 'Annual renewal. AA− rated. Netting set includes OTC & physical. PCG from Shell plc offsets $5M.',
+    createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-06-15T00:00:00Z' },
+  // Shell — settlement limit (separate risk type, same CP)
+  { creditLimitId: 2, counterpartyId: 1, counterpartyName: 'Shell Trading International', cpCountryCode: 'GB', countryRiskRating: 'LOW',
+    limitType: 'SETTLEMENT', limitBasis: 'DIRECT', parentLimitId: null, commodityType: 'ALL',
+    limitAmount: 50000000, limitCurrency: 'USD', usedAmount: 0, availableAmount: 50000000, utilisationPct: 0,
+    collateralOffset: 0, collateralRef: null, tempUpliftAmount: null, tempUpliftExpiry: null, tenorCapMonths: null,
+    effectiveDate: '2026-01-01', expiryDate: '2026-12-31',
+    creditAnalystUserId: 8, creditAnalystName: 'Sarah Chen', approvedBy: 'Credit Committee', approvalDate: '2025-12-10',
+    reviewFrequencyDays: 365, lastReviewDate: '2025-12-10', nextReviewDate: '2026-12-10', lastReviewOutcome: 'MAINTAIN',
+    internalRating: 'IR-2', externalRating: 'AA-',
+    warningThresholdPct: 80, criticalThresholdPct: 95, breachAction: 'ALERT_ONLY', alertInternal: true, alertCounterparty: false, cpAlertEmail: null,
+    limitIndicator: 'OK', lineItems: [], alerts: [],
+    status: 'ACTIVE', nettingAgreementRef: 'ISDA-2002-SHELL-001', isActive: true,
+    notes: 'Settlement limit — T+2 wire payments.', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
+  // BP — OIL-scoped PSR, reduced at last review
+  { creditLimitId: 3, counterpartyId: 2, counterpartyName: 'BP Oil Trading', cpCountryCode: 'GB', countryRiskRating: 'LOW',
+    limitType: 'PRE_SETTLEMENT', limitBasis: 'DIRECT', parentLimitId: null, commodityType: 'OIL',
+    limitAmount: 75000000, limitCurrency: 'USD', usedAmount: 8310000, availableAmount: 66690000, utilisationPct: 11.1,
+    collateralOffset: 0, collateralRef: null, tempUpliftAmount: null, tempUpliftExpiry: null, tenorCapMonths: 18,
+    effectiveDate: '2026-01-01', expiryDate: '2026-12-31',
+    creditAnalystUserId: 8, creditAnalystName: 'Sarah Chen', approvedBy: 'Mary Andrews', approvalDate: '2025-11-20',
+    reviewFrequencyDays: 180, lastReviewDate: '2025-11-20', nextReviewDate: '2026-05-19', lastReviewOutcome: 'DECREASE',
+    internalRating: 'IR-3', externalRating: 'A-',
+    warningThresholdPct: 80, criticalThresholdPct: 95, breachAction: 'ALERT_ONLY', alertInternal: true, alertCounterparty: false, cpAlertEmail: null,
+    limitIndicator: 'OK', lineItems: [], alerts: [
+      { alertId: 1, alertType: 'REVIEW_DUE', recipients: 'INTERNAL', message: 'Semi-annual review due 2026-05-19 — overdue, escalated to analyst.', sentAt: '2026-05-19T08:00:00Z', acknowledgedBy: 'Sarah Chen', acknowledgedAt: '2026-05-20T09:12:00Z' },
+    ],
+    status: 'UNDER_REVIEW', nettingAgreementRef: 'ISDA-2002-BP-002', isActive: true,
+    notes: 'Reduced from $100M following Q3 2025 review. Review overdue — reassessment in progress.',
+    createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-05-20T00:00:00Z' },
+  // Glencore — METALS MTM limit
+  { creditLimitId: 4, counterpartyId: 4, counterpartyName: 'Glencore Metals', cpCountryCode: 'CH', countryRiskRating: 'LOW',
+    limitType: 'MARK_TO_MARKET', limitBasis: 'DIRECT', parentLimitId: null, commodityType: 'METALS',
+    limitAmount: 20000000, limitCurrency: 'USD', usedAmount: 2461250, availableAmount: 17538750, utilisationPct: 12.3,
+    collateralOffset: 0, collateralRef: null, tempUpliftAmount: null, tempUpliftExpiry: null, tenorCapMonths: 12,
+    effectiveDate: '2026-01-01', expiryDate: null,
+    creditAnalystUserId: 9, creditAnalystName: 'Marcus Webb', approvedBy: 'Risk Director', approvalDate: '2026-01-05',
+    reviewFrequencyDays: 180, lastReviewDate: '2026-01-05', nextReviewDate: '2026-07-04', lastReviewOutcome: 'MAINTAIN',
+    internalRating: 'IR-3', externalRating: 'BBB+',
+    warningThresholdPct: 80, criticalThresholdPct: 95, breachAction: 'ALERT_ONLY', alertInternal: true, alertCounterparty: false, cpAlertEmail: null,
+    limitIndicator: 'OK', lineItems: [], alerts: [
+      { alertId: 2, alertType: 'REVIEW_DUE', recipients: 'INTERNAL', message: 'Semi-annual review due 2026-07-04.', sentAt: '2026-07-01T08:00:00Z', acknowledgedBy: null, acknowledgedAt: null },
+    ],
+    status: 'ACTIVE', nettingAgreementRef: null, isActive: true,
+    notes: 'MTM limit for LME metals positions.', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-07-01T00:00:00Z' },
+  // Vitol — PSR near 50%, temp uplift for summer cargo programme
+  { creditLimitId: 5, counterpartyId: 7, counterpartyName: 'Vitol SA', cpCountryCode: 'CH', countryRiskRating: 'LOW',
+    limitType: 'PRE_SETTLEMENT', limitBasis: 'DIRECT', parentLimitId: null, commodityType: 'OIL',
+    limitAmount: 120000000, limitCurrency: 'USD', usedAmount: 59962500, availableAmount: 80037500, utilisationPct: 42.8,
+    collateralOffset: 0, collateralRef: null, tempUpliftAmount: 20000000, tempUpliftExpiry: '2026-09-30', tenorCapMonths: 12,
+    effectiveDate: '2026-01-01', expiryDate: '2026-12-31',
+    creditAnalystUserId: 8, creditAnalystName: 'Sarah Chen', approvedBy: 'Credit Committee', approvalDate: '2025-12-15',
+    reviewFrequencyDays: 365, lastReviewDate: '2025-12-15', nextReviewDate: '2026-12-15', lastReviewOutcome: 'INCREASE',
+    internalRating: 'IR-2', externalRating: 'BBB',
+    warningThresholdPct: 75, criticalThresholdPct: 90, breachAction: 'BLOCK_NEW_TRADES', alertInternal: true, alertCounterparty: true, cpAlertEmail: 'credit.desk@vitol.com',
+    limitIndicator: 'OK',
+    lineItems: [
+      { lineItemId: 4, instrumentClass: 'PHYSICAL', subLimitAmount: 100000000, usedAmount: 59962500, tenorCapMonths: 6, notes: 'Urals + Med cargo programme' },
+      { lineItemId: 5, instrumentClass: 'FUTURES',  subLimitAmount: 40000000,  usedAmount: 0,        tenorCapMonths: 12, notes: 'Exchange-margined — lower weight' },
+    ],
+    alerts: [],
+    status: 'ACTIVE', nettingAgreementRef: 'ISDA-2002-VITOL-007', isActive: true,
+    notes: 'Temp uplift $20M for summer cargo programme, expires 30-Sep. CP receives status notices.',
+    createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-06-20T00:00:00Z' },
+  // Centrica — expired, pending renewal
+  { creditLimitId: 6, counterpartyId: 6, counterpartyName: 'Centrica Energy Trading', cpCountryCode: 'GB', countryRiskRating: 'LOW',
+    limitType: 'PRE_SETTLEMENT', limitBasis: 'DIRECT', parentLimitId: null, commodityType: 'GAS',
+    limitAmount: 15000000, limitCurrency: 'USD', usedAmount: 0, availableAmount: 15000000, utilisationPct: 0,
+    collateralOffset: 0, collateralRef: null, tempUpliftAmount: null, tempUpliftExpiry: null, tenorCapMonths: 12,
+    effectiveDate: '2026-01-01', expiryDate: '2026-06-30',
+    creditAnalystUserId: 9, creditAnalystName: 'Marcus Webb', approvedBy: 'John Davies', approvalDate: '2026-01-10',
+    reviewFrequencyDays: 180, lastReviewDate: '2026-01-10', nextReviewDate: '2026-07-09', lastReviewOutcome: 'MAINTAIN',
+    internalRating: 'IR-4', externalRating: 'BBB-',
+    warningThresholdPct: 80, criticalThresholdPct: 95, breachAction: 'ALERT_ONLY', alertInternal: true, alertCounterparty: false, cpAlertEmail: null,
+    limitIndicator: 'OK', lineItems: [], alerts: [
+      { alertId: 3, alertType: 'EXPIRY_APPROACHING', recipients: 'INTERNAL', message: 'Limit expires 2026-06-30 — renewal not yet approved.', sentAt: '2026-06-16T08:00:00Z', acknowledgedBy: 'Marcus Webb', acknowledgedAt: '2026-06-16T10:30:00Z' },
+      { alertId: 4, alertType: 'STATUS_CHANGE', recipients: 'INTERNAL', message: 'Limit expired without renewal — new trades blocked.', sentAt: '2026-07-01T00:05:00Z', acknowledgedBy: null, acknowledgedAt: null },
+    ],
+    status: 'EXPIRED', nettingAgreementRef: null, isActive: false,
+    notes: 'Expired — pending renewal.', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-06-30T00:00:00Z' },
+  // Trafigura — ALLOCATED child under Trafigura Group umbrella, running hot (CRITICAL demo)
+  { creditLimitId: 7, counterpartyId: 9, counterpartyName: 'Trafigura PTE Ltd', cpCountryCode: 'SG', countryRiskRating: 'MEDIUM',
+    limitType: 'PRE_SETTLEMENT', limitBasis: 'ALLOCATED', parentLimitId: 8, commodityType: 'OIL',
+    limitAmount: 40000000, limitCurrency: 'USD', usedAmount: 38800000, availableAmount: 1200000, utilisationPct: 97,
+    collateralOffset: 0, collateralRef: null, tempUpliftAmount: null, tempUpliftExpiry: null, tenorCapMonths: 6,
+    effectiveDate: '2026-01-01', expiryDate: '2026-12-31',
+    creditAnalystUserId: 9, creditAnalystName: 'Marcus Webb', approvedBy: 'Credit Committee', approvalDate: '2025-12-20',
+    reviewFrequencyDays: 90, lastReviewDate: '2026-04-15', nextReviewDate: '2026-07-14', lastReviewOutcome: 'MAINTAIN',
+    internalRating: 'IR-4', externalRating: 'BB+',
+    warningThresholdPct: 80, criticalThresholdPct: 95, breachAction: 'BLOCK_NEW_TRADES', alertInternal: true, alertCounterparty: true, cpAlertEmail: 'credit@trafigura.com',
+    limitIndicator: 'CRITICAL',
+    lineItems: [
+      { lineItemId: 6, instrumentClass: 'PHYSICAL', subLimitAmount: 35000000, usedAmount: 34500000, tenorCapMonths: 3, notes: 'TAS strip + physical cargoes' },
+      { lineItemId: 7, instrumentClass: 'SWAPS',    subLimitAmount: 10000000, usedAmount: 4300000,  tenorCapMonths: 6, notes: null },
+    ],
+    alerts: [
+      { alertId: 5, alertType: 'WARNING_THRESHOLD',  recipients: 'INTERNAL',     message: 'Utilisation crossed 80% (now 84.2%).', sentAt: '2026-06-24T14:02:00Z', acknowledgedBy: 'Marcus Webb', acknowledgedAt: '2026-06-24T15:00:00Z' },
+      { alertId: 6, alertType: 'CRITICAL_THRESHOLD', recipients: 'BOTH',         message: 'Utilisation crossed 95% (now 97.0%) — new trades will be blocked at 100%. Counterparty credit desk notified.', sentAt: '2026-07-01T11:45:00Z', acknowledgedBy: null, acknowledgedAt: null },
+    ],
+    status: 'ACTIVE', nettingAgreementRef: 'ISDA-2002-TRAFI-004', isActive: true,
+    notes: 'Allocated from Trafigura Group umbrella. 90-day review cycle due to MEDIUM country risk + BB+ rating.',
+    createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-07-01T11:45:00Z' },
+  // Trafigura Group — parent umbrella limit (TOTAL_AGGREGATE)
+  { creditLimitId: 8, counterpartyId: 9, counterpartyName: 'Trafigura PTE Ltd', cpCountryCode: 'SG', countryRiskRating: 'MEDIUM',
+    limitType: 'TOTAL_AGGREGATE', limitBasis: 'DIRECT', parentLimitId: null, commodityType: 'ALL',
+    limitAmount: 60000000, limitCurrency: 'USD', usedAmount: 38800000, availableAmount: 21200000, utilisationPct: 64.7,
+    collateralOffset: 0, collateralRef: null, tempUpliftAmount: null, tempUpliftExpiry: null, tenorCapMonths: 12,
+    effectiveDate: '2026-01-01', expiryDate: '2026-12-31',
+    creditAnalystUserId: 9, creditAnalystName: 'Marcus Webb', approvedBy: 'Credit Committee', approvalDate: '2025-12-20',
+    reviewFrequencyDays: 90, lastReviewDate: '2026-04-15', nextReviewDate: '2026-07-14', lastReviewOutcome: 'MAINTAIN',
+    internalRating: 'IR-4', externalRating: 'BB+',
+    warningThresholdPct: 80, criticalThresholdPct: 95, breachAction: 'BLOCK_NEW_TRADES', alertInternal: true, alertCounterparty: false, cpAlertEmail: null,
+    limitIndicator: 'OK', lineItems: [], alerts: [],
+    status: 'ACTIVE', nettingAgreementRef: 'ISDA-2002-TRAFI-004', isActive: true,
+    notes: 'Group umbrella — child allocations must not exceed this cap.',
+    createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-04-15T00:00:00Z' },
 ];
 
 // ─── CREDIT — LETTERS OF CREDIT ───────────────────────────────────────────────
-let lcIdSeq = 10;
 const lettersOfCreditStore: unknown[] = [
   { lcId: 1, lcReference: 'LC/2026/HSBC/001234', lcType: 'STANDBY',     status: 'ACTIVE',           counterpartyId: 8, counterpartyName: 'Cargill International SA',  beneficiaryEntityId: 1, beneficiaryEntityName: 'SmartETRM Trading Ltd', issuingBankName: 'HSBC Bank plc',         issuingBankBic: 'HBUKGB4B', confirmingBankName: null,         lcAmount: 5000000,  lcCurrency: 'USD', issuedAmount: 5000000,  drawdownAmount: 0,       availableAmount: 5000000,  issueDate: '2026-02-01', expiryDate: '2027-01-31', presentationDeadlineDays: 21, isEvergreen: true,  autoRenewalDays: 60, placeOfExpiry: 'London',    applicableLaw: 'ISP98',   notes: 'Evergreen standby LC. 60-day cancellation notice required.', createdAt: '2026-02-01T00:00:00Z', updatedAt: '2026-02-01T00:00:00Z' },
   { lcId: 2, lcReference: 'LC/2026/CITI/005521', lcType: 'DOCUMENTARY', status: 'PARTIALLY_DRAWN',  counterpartyId: 3, counterpartyName: 'Equinor Energy AS',          beneficiaryEntityId: 1, beneficiaryEntityName: 'SmartETRM Trading Ltd', issuingBankName: 'Citibank N.A.',         issuingBankBic: 'CITIUS33',  confirmingBankName: 'Barclays Bank', lcAmount: 3500000,  lcCurrency: 'USD', issuedAmount: 3500000,  drawdownAmount: 1750000, availableAmount: 1750000,  issueDate: '2026-03-15', expiryDate: '2026-09-14', presentationDeadlineDays: 14, isEvergreen: false, autoRenewalDays: null, placeOfExpiry: 'Houston',   applicableLaw: 'UCP 600', notes: 'TTF gas delivery LC. 50% drawn on Jul cargo.', createdAt: '2026-03-15T00:00:00Z', updatedAt: '2026-07-05T00:00:00Z' },
   { lcId: 3, lcReference: 'LC/2026/BNP/009871', lcType: 'REVOLVING',   status: 'ACTIVE',           counterpartyId: 4, counterpartyName: 'Glencore Metals',           beneficiaryEntityId: 1, beneficiaryEntityName: 'SmartETRM Trading Ltd', issuingBankName: 'BNP Paribas SA',        issuingBankBic: 'BNPAFRPP',  confirmingBankName: null,         lcAmount: 10000000, lcCurrency: 'USD', issuedAmount: 15000000, drawdownAmount: 3200000, availableAmount: 6800000,  issueDate: '2026-01-10', expiryDate: '2026-12-31', presentationDeadlineDays: 21, isEvergreen: false, autoRenewalDays: null, placeOfExpiry: 'Paris',     applicableLaw: 'UCP 600', notes: 'Revolving LC — reinstates after each draw.',  createdAt: '2026-01-10T00:00:00Z', updatedAt: '2026-06-01T00:00:00Z' },
   { lcId: 4, lcReference: 'LC/2025/DBS/778821',  lcType: 'STANDBY',     status: 'EXPIRED',          counterpartyId: 5, counterpartyName: 'RWE Supply & Trading',      beneficiaryEntityId: 1, beneficiaryEntityName: 'SmartETRM Trading Ltd', issuingBankName: 'DBS Bank Ltd',          issuingBankBic: 'DBSSSGSG',  confirmingBankName: null,         lcAmount: 2000000,  lcCurrency: 'EUR', issuedAmount: 2000000,  drawdownAmount: 0,       availableAmount: 0,        issueDate: '2025-01-01', expiryDate: '2025-12-31', presentationDeadlineDays: 30, isEvergreen: false, autoRenewalDays: null, placeOfExpiry: 'Singapore', applicableLaw: 'ISP98',   notes: 'Expired. Renewal under discussion.',          createdAt: '2025-01-01T00:00:00Z', updatedAt: '2025-12-31T00:00:00Z' },
+];
+
+// ─── CARBON & ENVIRONMENTAL ───────────────────────────────────────────────────
+const emissionSchemesStore: unknown[] = [
+  { schemeId: 1, schemeCode: 'EU_ETS',  schemeName: 'EU Emissions Trading System',                schemeType: 'COMPLIANCE', regulator: 'European Commission',       jurisdiction: 'European Union',    description: 'Phase IV (2021-2030) covers power, industry, and aviation within the EU. Annual surrender by 30 April.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { schemeId: 2, schemeCode: 'UK_ETS',  schemeName: 'UK Emissions Trading Scheme',                schemeType: 'COMPLIANCE', regulator: 'UK DESNZ / EA',             jurisdiction: 'United Kingdom',    description: 'UK successor to EU ETS post-Brexit. Launched January 2021. Auction-based with free allocation for industry.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { schemeId: 3, schemeCode: 'CA_CAP',  schemeName: 'California Cap-and-Trade Program',           schemeType: 'COMPLIANCE', regulator: 'California Air Resources Board', jurisdiction: 'California, USA', description: 'AB 32 compliance market. Linked with Quebec. Covers ~85% of California GHG emissions.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { schemeId: 4, schemeCode: 'RGGI',    schemeName: 'Regional Greenhouse Gas Initiative',         schemeType: 'COMPLIANCE', regulator: 'RGGI Inc.',                  jurisdiction: 'US Northeast',      description: 'Multi-state US cap-and-invest programme covering power sector CO2 in 12 northeastern states.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { schemeId: 5, schemeCode: 'VCS',     schemeName: 'Verified Carbon Standard (Verra)',           schemeType: 'VOLUNTARY',  regulator: 'Verra',                      jurisdiction: 'Global',            description: 'World\'s largest voluntary carbon market. Issues VCUs for REDD+, cookstove, and other project types.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { schemeId: 6, schemeCode: 'GS',      schemeName: 'Gold Standard for the Global Goals',        schemeType: 'VOLUNTARY',  regulator: 'Gold Standard Foundation',   jurisdiction: 'Global',            description: 'Premium voluntary carbon and SDG standard. Issues Gold Standard Verified Emission Reductions (GSVERs).', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+];
+
+const carbonRegistriesStore: unknown[] = [
+  { registryId: 1, registryCode: 'EU_UNION', registryName: 'EU Union Registry',             registryType: 'COMPLIANCE', operator: 'European Commission / SRD', website: 'registry.ets.europa.eu', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { registryId: 2, registryCode: 'UK_REG',   registryName: 'UK Emissions Trading Registry', registryType: 'COMPLIANCE', operator: 'Environment Agency (UK)',    website: 'etregistration.net',     isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { registryId: 3, registryCode: 'VERRA',    registryName: 'Verra Registry',                registryType: 'VOLUNTARY',  operator: 'Verra',                    website: 'registry.verra.org',     isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { registryId: 4, registryCode: 'GOLD_STD', registryName: 'Gold Standard Impact Registry', registryType: 'VOLUNTARY',  operator: 'Gold Standard Foundation', website: 'registry.goldstandard.org', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { registryId: 5, registryCode: 'APX',      registryName: 'APX / Evident Environmental Registry', registryType: 'VOLUNTARY', operator: 'Xpansiv (APX / Evident)', website: 'apx.com/evident', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+];
+
+const environmentalProductsStore: unknown[] = [
+  { productId: 1, productCode: 'EUA',  productName: 'EU Emission Allowance',           productType: 'ALLOWANCE',   schemeId: 1, schemeName: 'EU Emissions Trading System', registryId: 1, registryName: 'EU Union Registry', unitOfMeasure: 'tCO2e', description: 'One allowance = right to emit 1 tonne CO2e under EU ETS Phase IV.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { productId: 2, productCode: 'EUAA', productName: 'EU Aviation Allowance',           productType: 'ALLOWANCE',   schemeId: 1, schemeName: 'EU Emissions Trading System', registryId: 1, registryName: 'EU Union Registry', unitOfMeasure: 'tCO2e', description: 'Aviation-specific EUA. Airlines use EUAAs to cover intra-EU flight emissions.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { productId: 3, productCode: 'UKA',  productName: 'UK Allowance',                   productType: 'ALLOWANCE',   schemeId: 2, schemeName: 'UK Emissions Trading Scheme', registryId: 2, registryName: 'UK Emissions Trading Registry', unitOfMeasure: 'tCO2e', description: 'UK ETS allowance. Non-fungible with EUAs post-Brexit.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { productId: 4, productCode: 'CCA',  productName: 'California Carbon Allowance',    productType: 'ALLOWANCE',   schemeId: 3, schemeName: 'California Cap-and-Trade Program', registryId: null, registryName: null, unitOfMeasure: 'short tCO2e', description: 'California Cap-and-Trade allowance. Can be used in Quebec WCI market.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { productId: 5, productCode: 'VCU',  productName: 'Verra Carbon Unit',              productType: 'OFFSET',      schemeId: 5, schemeName: 'Verified Carbon Standard (Verra)', registryId: 3, registryName: 'Verra Registry', unitOfMeasure: 'tCO2e', description: 'Voluntary carbon offset issued by Verra under VCS standard. Includes REDD+, ARR, and IFM project types.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { productId: 6, productCode: 'REC',  productName: 'Renewable Energy Certificate',   productType: 'CERTIFICATE', schemeId: null, schemeName: null, registryId: 5, registryName: 'APX / Evident Environmental Registry', unitOfMeasure: 'MWh', description: 'US renewable energy certificate. 1 REC = 1 MWh of electricity from a certified renewable source.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { productId: 7, productCode: 'GO',   productName: 'Guarantee of Origin',            productType: 'CERTIFICATE', schemeId: null, schemeName: null, registryId: 1, registryName: 'EU Union Registry', unitOfMeasure: 'MWh', description: 'EU/UK certificate for renewable electricity generation. 1 GO = 1 MWh. Used for corporate PPA disclosure.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+];
+
+const emissionObligationsStore: unknown[] = [
+  { obligationId: 1, legalEntityId: 1, entityName: 'SmartETRM Trading Ltd', schemeId: 1, schemeName: 'EU Emissions Trading System', obligationYear: 2025, verifiedEmissions: 125000, allowancesHeld: 118000, shortfallUnits: 7000, surrenderDeadline: '2026-04-30', status: 'OPEN', notes: 'Verified by Bureau Veritas. 7,000 EUA shortfall — sourcing in Q1 2026.', createdAt: '2025-06-01T00:00:00Z' },
+  { obligationId: 2, legalEntityId: 1, entityName: 'SmartETRM Trading Ltd', schemeId: 2, schemeName: 'UK Emissions Trading Scheme', obligationYear: 2025, verifiedEmissions: 42000,  allowancesHeld: 45000,  shortfallUnits: -3000, surrenderDeadline: '2026-04-30', status: 'OPEN', notes: 'Surplus of 3,000 UKAs. Will carry forward or sell.', createdAt: '2025-06-01T00:00:00Z' },
+];
+
+// ─── FINANCE — GL ACCOUNTS ────────────────────────────────────────────────────
+const glAccountsStore: unknown[] = [
+  { accountId: 1, accountCode: '4100', accountName: 'Trade Revenue — Physical Oil',         accountType: 'REVENUE',   commodityType: 'OIL',          costCenter: 'TRADING',     description: 'Revenue from physical oil sale contracts — crude and products.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { accountId: 2, accountCode: '4200', accountName: 'Trade Revenue — Physical Gas',         accountType: 'REVENUE',   commodityType: 'GAS',          costCenter: 'TRADING',     description: 'Revenue from physical natural gas and LNG sale contracts.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { accountId: 3, accountCode: '4300', accountName: 'Trade Revenue — Power',               accountType: 'REVENUE',   commodityType: 'POWER',        costCenter: 'TRADING',     description: 'Revenue from power sale contracts and ancillary services.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { accountId: 4, accountCode: '5100', accountName: 'Cost of Goods Sold — Physical Oil',   accountType: 'COST',      commodityType: 'OIL',          costCenter: 'TRADING',     description: 'Purchase cost of physical oil — crude and products.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { accountId: 5, accountCode: '6100', accountName: 'Unrealised MTM — Open Positions',     accountType: 'PNL',       commodityType: null,           costCenter: 'RISK',        description: 'Mark-to-market fair value of all open physical and financial positions.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { accountId: 6, accountCode: '1200', accountName: 'Trade Receivables',                   accountType: 'ASSET',     commodityType: null,           costCenter: 'OPERATIONS',  description: 'Amounts owed by counterparties for settled trades.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { accountId: 7, accountCode: '2100', accountName: 'Trade Payables',                      accountType: 'LIABILITY', commodityType: null,           costCenter: 'OPERATIONS',  description: 'Amounts owed to counterparties for settled purchases.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+];
+
+// ─── RINS — RENEWABLE FUEL STANDARD ──────────────────────────────────────────
+const rinFuelCategoriesStore: unknown[] = [
+  { categoryId: 1, dCode: 'D3', fuelName: 'Cellulosic Biofuel',   fuelType: 'CELLULOSIC',        equivalenceValue: 3.0, energySources: 'Corn Stover, Switchgrass, Woody Biomass, Municipal Solid Waste', description: 'Highest-value RIN category. Produced from cellulosic feedstocks not from food crops. Very limited supply — attracts a significant premium over D6.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { categoryId: 2, dCode: 'D4', fuelName: 'Biomass-Based Diesel', fuelType: 'BIOMASS_DIESEL',    equivalenceValue: 1.5, energySources: 'Soybean Oil, Animal Fats, Used Cooking Oil, Distillers Corn Oil', description: 'Includes biodiesel (B100) and renewable diesel. Also satisfies the Advanced Biofuel (D5) nested volume. Widely produced with a deep liquid market.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { categoryId: 3, dCode: 'D5', fuelName: 'Advanced Biofuel',     fuelType: 'ADVANCED',          equivalenceValue: 1.5, energySources: 'Sugarcane Ethanol, Naphtha from Biomass, Biobutanol', description: 'Lifecycle GHG reduction of at least 50% vs. petroleum. Includes sugarcane ethanol (Brazil). Can be satisfied by D4 RINs as D4 is a subset of the Advanced category.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { categoryId: 4, dCode: 'D6', fuelName: 'Conventional Biofuel', fuelType: 'CONVENTIONAL',      equivalenceValue: 1.0, energySources: 'Corn Ethanol, Grain Sorghum Ethanol', description: 'Largest RIN category by volume. Corn ethanol produced at US facilities. Only satisfies the total renewable fuel nested volume — cannot be used to meet Advanced, BBD, or Cellulosic requirements.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { categoryId: 5, dCode: 'D7', fuelName: 'Cellulosic Diesel',    fuelType: 'CELLULOSIC_DIESEL', equivalenceValue: 1.7, energySources: 'Cellulosic feedstocks (wood, agricultural residues) via thermochemical or biochemical conversion', description: 'Cellulosic biofuel that also qualifies as biomass-based diesel. Satisfies both cellulosic and BBD nested volumes simultaneously.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+];
+
+const rinAccountsStore: unknown[] = [
+  { accountId: 1, legalEntityId: 1, entityName: 'SmartETRM Trading Ltd', epaCompanyId: 'CO0012345', epaFacilityId: null,       accountCode: 'RIN-OBL-001', accountName: 'SmartETRM — Obligated Party Account',    accountType: 'OBLIGATED_PARTY',         isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { accountId: 2, legalEntityId: 1, entityName: 'SmartETRM Trading Ltd', epaCompanyId: 'CO0012345', epaFacilityId: 'FAC-B001', accountCode: 'RIN-PRD-001', accountName: 'SmartETRM Biofuels — Producer Account', accountType: 'RENEWABLE_FUEL_PRODUCER', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { accountId: 3, legalEntityId: 1, entityName: 'SmartETRM Trading Ltd', epaCompanyId: 'CO0012345', epaFacilityId: null,       accountCode: 'RIN-TRD-001', accountName: 'SmartETRM — Trading / Separated RINs',    accountType: 'TRADING',                 isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+];
+
+const rinTransactionsStore: unknown[] = [
+  { transactionId: 1,  transactionType: 'GENERATE',      transactionDate: '2025-01-10', accountId: 2, accountName: 'SmartETRM Biofuels — Producer Account', dCode: 'D4', fuelName: 'Biomass-Based Diesel', vintageYear: 2025, quantity: 125000,   pricePerRin: null,   totalValue: null,      counterpartyId: null, counterpartyName: null,                 tradeReference: 'CARGO-2025-001', batchNumber: '202501-12345-00001', epaTransactionId: 'EMTS-2025-G00123', obligationId: null, notes: 'Soybean oil biodiesel batch — January run', status: 'CONFIRMED', createdAt: '2025-01-10T09:00:00Z' },
+  { transactionId: 2,  transactionType: 'SEPARATE',      transactionDate: '2025-01-12', accountId: 2, accountName: 'SmartETRM Biofuels — Producer Account', dCode: 'D4', fuelName: 'Biomass-Based Diesel', vintageYear: 2025, quantity: 125000,   pricePerRin: null,   totalValue: null,      counterpartyId: null, counterpartyName: null,                 tradeReference: null,             batchNumber: '202501-12345-00001', epaTransactionId: 'EMTS-2025-S00124', obligationId: null, notes: 'Separating D4 RINs from Jan biodiesel batch for trading', status: 'CONFIRMED', createdAt: '2025-01-12T10:00:00Z' },
+  { transactionId: 3,  transactionType: 'TRANSFER_BUY',  transactionDate: '2025-01-20', accountId: 3, accountName: 'SmartETRM — Trading / Separated RINs',  dCode: 'D6', fuelName: 'Conventional Biofuel',  vintageYear: 2025, quantity: 1500000,  pricePerRin: 0.7250, totalValue: 1087500,   counterpartyId: 7,    counterpartyName: 'Vitol SA',          tradeReference: 'TRD-20250120-001', batchNumber: null,                 epaTransactionId: null,               obligationId: null, notes: 'Block purchase via broker', status: 'CONFIRMED', createdAt: '2025-01-20T14:30:00Z' },
+  { transactionId: 4,  transactionType: 'TRANSFER_BUY',  transactionDate: '2025-02-05', accountId: 3, accountName: 'SmartETRM — Trading / Separated RINs',  dCode: 'D6', fuelName: 'Conventional Biofuel',  vintageYear: 2025, quantity: 800000,   pricePerRin: 0.7400, totalValue: 592000,    counterpartyId: 2,    counterpartyName: 'BP Oil Trading',    tradeReference: 'TRD-20250205-002', batchNumber: null,                 epaTransactionId: null,               obligationId: null, notes: 'Feb top-up purchase', status: 'CONFIRMED', createdAt: '2025-02-05T11:00:00Z' },
+  { transactionId: 5,  transactionType: 'TRANSFER_BUY',  transactionDate: '2025-03-15', accountId: 3, accountName: 'SmartETRM — Trading / Separated RINs',  dCode: 'D6', fuelName: 'Conventional Biofuel',  vintageYear: 2024, quantity: 500000,   pricePerRin: 0.6800, totalValue: 340000,    counterpartyId: 1,    counterpartyName: 'Shell Trading International', tradeReference: 'TRD-20250315-003', batchNumber: null, epaTransactionId: null,               obligationId: null, notes: 'Prior-year vintage at discount — applies up to 20% of 2025 RVO', status: 'CONFIRMED', createdAt: '2025-03-15T09:45:00Z' },
+  { transactionId: 6,  transactionType: 'TRANSFER_BUY',  transactionDate: '2025-04-10', accountId: 3, accountName: 'SmartETRM — Trading / Separated RINs',  dCode: 'D3', fuelName: 'Cellulosic Biofuel',    vintageYear: 2025, quantity: 15000,    pricePerRin: 3.2000, totalValue: 48000,     counterpartyId: 8,    counterpartyName: 'Cargill International SA', tradeReference: 'TRD-20250410-004', batchNumber: null, epaTransactionId: null,               obligationId: null, notes: 'Small D3 purchase to partially satisfy cellulosic obligation', status: 'CONFIRMED', createdAt: '2025-04-10T16:00:00Z' },
+  { transactionId: 7,  transactionType: 'RETIRE',        transactionDate: '2025-05-01', accountId: 1, accountName: 'SmartETRM — Obligated Party Account',   dCode: 'D6', fuelName: 'Conventional Biofuel',  vintageYear: 2025, quantity: 1200000,  pricePerRin: null,   totalValue: null,      counterpartyId: null, counterpartyName: null,                 tradeReference: null,             batchNumber: null,                 epaTransactionId: 'EMTS-2025-R00441', obligationId: 1,    notes: 'Q1 2025 RVO partial retirement — D6', status: 'CONFIRMED', createdAt: '2025-05-01T08:00:00Z' },
+  { transactionId: 8,  transactionType: 'RETIRE',        transactionDate: '2025-05-01', accountId: 1, accountName: 'SmartETRM — Obligated Party Account',   dCode: 'D4', fuelName: 'Biomass-Based Diesel', vintageYear: 2025, quantity: 500000,   pricePerRin: null,   totalValue: null,      counterpartyId: null, counterpartyName: null,                 tradeReference: null,             batchNumber: null,                 epaTransactionId: 'EMTS-2025-R00442', obligationId: 2,    notes: 'Full D4 BBD obligation satisfied', status: 'CONFIRMED', createdAt: '2025-05-01T08:15:00Z' },
+  { transactionId: 9,  transactionType: 'TRANSFER_BUY',  transactionDate: '2025-06-20', accountId: 3, accountName: 'SmartETRM — Trading / Separated RINs',  dCode: 'D6', fuelName: 'Conventional Biofuel',  vintageYear: 2025, quantity: 600000,   pricePerRin: 0.7600, totalValue: 456000,    counterpartyId: 3,    counterpartyName: 'Equinor Energy AS', tradeReference: 'TRD-20250620-005', batchNumber: null, epaTransactionId: null,               obligationId: null, notes: 'H2 procurement — staggered to reduce market impact', status: 'CONFIRMED', createdAt: '2025-06-20T13:00:00Z' },
+  { transactionId: 10, transactionType: 'TRANSFER_SELL', transactionDate: '2025-06-25', accountId: 3, accountName: 'SmartETRM — Trading / Separated RINs',  dCode: 'D4', fuelName: 'Biomass-Based Diesel', vintageYear: 2025, quantity: 50000,    pricePerRin: 1.5500, totalValue: 77500,     counterpartyId: 4,    counterpartyName: 'Glencore Metals',   tradeReference: 'TRD-20250625-006', batchNumber: null, epaTransactionId: null,               obligationId: null, notes: 'Selling surplus D4 — above RVO requirement', status: 'CONFIRMED', createdAt: '2025-06-25T10:30:00Z' },
+];
+
+const rinInventoryStore: unknown[] = [
+  { inventoryId: 1, accountId: 3, accountName: 'SmartETRM — Trading / Separated RINs',  dCode: 'D6', fuelName: 'Conventional Biofuel',  vintageYear: 2025, quantity: 1700000, avgCostPerRin: 0.7334, totalValue: 1246780, asOfDate: '2026-07-01' },
+  { inventoryId: 2, accountId: 3, accountName: 'SmartETRM — Trading / Separated RINs',  dCode: 'D6', fuelName: 'Conventional Biofuel',  vintageYear: 2024, quantity: 500000,  avgCostPerRin: 0.6800, totalValue: 340000,  asOfDate: '2026-07-01' },
+  { inventoryId: 3, accountId: 3, accountName: 'SmartETRM — Trading / Separated RINs',  dCode: 'D4', fuelName: 'Biomass-Based Diesel', vintageYear: 2025, quantity: 75000,   avgCostPerRin: null,   totalValue: null,    asOfDate: '2026-07-01' },
+  { inventoryId: 4, accountId: 3, accountName: 'SmartETRM — Trading / Separated RINs',  dCode: 'D3', fuelName: 'Cellulosic Biofuel',   vintageYear: 2025, quantity: 15000,   avgCostPerRin: 3.2000, totalValue: 48000,   asOfDate: '2026-07-01' },
+];
+
+const rinObligationsStore: unknown[] = [
+  { obligationId: 1, legalEntityId: 1, entityName: 'SmartETRM Trading Ltd', complianceYear: 2025, dCode: 'D6', fuelName: 'Conventional Biofuel',  requiredQuantity: 5000000, retiredQuantity: 1200000, shortfallQuantity: 3800000, deadline: '2026-03-31', status: 'PARTIALLY_SATISFIED', notes: 'Q1 partial retirement complete. H2 procurement underway.', createdAt: '2025-01-01T00:00:00Z', updatedAt: '2025-05-01T00:00:00Z' },
+  { obligationId: 2, legalEntityId: 1, entityName: 'SmartETRM Trading Ltd', complianceYear: 2025, dCode: 'D4', fuelName: 'Biomass-Based Diesel', requiredQuantity: 500000,  retiredQuantity: 500000,  shortfallQuantity: 0,       deadline: '2026-03-31', status: 'SATISFIED',           notes: 'Fully satisfied via company biodiesel production.', createdAt: '2025-01-01T00:00:00Z', updatedAt: '2025-05-01T00:00:00Z' },
+  { obligationId: 3, legalEntityId: 1, entityName: 'SmartETRM Trading Ltd', complianceYear: 2025, dCode: 'D5', fuelName: 'Advanced Biofuel',     requiredQuantity: 250000,  retiredQuantity: 0,       shortfallQuantity: 250000,  deadline: '2026-03-31', status: 'OPEN',                notes: 'D4 RINs can satisfy D5 obligation as BBD is a subset of Advanced.', createdAt: '2025-01-01T00:00:00Z', updatedAt: '2025-01-01T00:00:00Z' },
+  { obligationId: 4, legalEntityId: 1, entityName: 'SmartETRM Trading Ltd', complianceYear: 2025, dCode: 'D3', fuelName: 'Cellulosic Biofuel',   requiredQuantity: 100000,  retiredQuantity: 0,       shortfallQuantity: 100000,  deadline: '2026-03-31', status: 'OPEN',                notes: 'Limited D3 supply. ALC (cellulosic waiver credit) purchase being evaluated.', createdAt: '2025-01-01T00:00:00Z', updatedAt: '2025-01-01T00:00:00Z' },
+  { obligationId: 5, legalEntityId: 1, entityName: 'SmartETRM Trading Ltd', complianceYear: 2024, dCode: 'D6', fuelName: 'Conventional Biofuel',  requiredQuantity: 4500000, retiredQuantity: 4500000, shortfallQuantity: 0,       deadline: '2025-03-31', status: 'SATISFIED',           notes: '2024 D6 obligation fully satisfied March 2025.', createdAt: '2024-01-01T00:00:00Z', updatedAt: '2025-03-28T00:00:00Z' },
+  { obligationId: 6, legalEntityId: 1, entityName: 'SmartETRM Trading Ltd', complianceYear: 2024, dCode: 'D4', fuelName: 'Biomass-Based Diesel', requiredQuantity: 450000,  retiredQuantity: 450000,  shortfallQuantity: 0,       deadline: '2025-03-31', status: 'SATISFIED',           notes: '2024 D4 obligation fully satisfied.', createdAt: '2024-01-01T00:00:00Z', updatedAt: '2025-03-28T00:00:00Z' },
 ];
 
 // ─── GENERAL TERMS & CONDITIONS ────────────────────────────────────────────────
@@ -602,53 +898,123 @@ const incotermsRefStore: unknown[] = [
   { incotermId: 11, incotermCode: 'CIF', incotermName: 'Cost Insurance and Freight', version: 'INCOTERMS_2020', transportMode: 'SEA_INLAND', riskTransferPoint: 'On board vessel at load port', costResponsibility: 'Seller pays freight + min insurance (ICC-C); risk at load port', titleTransfer: 'Ship\'s rail at load port', isActive: true },
 ];
 
+// ─── REFERENCE LOOKUP TABLES (used to denormalize names on trade create/update)
+const counterpartiesRef = [
+  { counterpartyId: 1,  counterpartyCode: 'SHELL-TRD', name: 'Shell Trading International', countryCode: 'GB' },
+  { counterpartyId: 2,  counterpartyCode: 'BP-OIL',    name: 'BP Oil Trading',              countryCode: 'GB' },
+  { counterpartyId: 3,  counterpartyCode: 'EQUINOR',   name: 'Equinor Energy AS',           countryCode: 'NO' },
+  { counterpartyId: 4,  counterpartyCode: 'GLENCORE',  name: 'Glencore Metals',             countryCode: 'CH' },
+  { counterpartyId: 5,  counterpartyCode: 'RWE-ST',    name: 'RWE Supply & Trading',        countryCode: 'DE' },
+  { counterpartyId: 6,  counterpartyCode: 'CENTRICA',  name: 'Centrica Energy Trading',     countryCode: 'GB' },
+  { counterpartyId: 7,  counterpartyCode: 'VITOL',     name: 'Vitol SA',                    countryCode: 'CH' },
+  { counterpartyId: 8,  counterpartyCode: 'CARGILL',   name: 'Cargill International SA',    countryCode: 'CH' },
+  { counterpartyId: 9,  counterpartyCode: 'TRAFIGURA', name: 'Trafigura PTE Ltd',           countryCode: 'SG' },
+  { counterpartyId: 10, counterpartyCode: 'MERCURIA',  name: 'Mercuria Energy Trading SA',  countryCode: 'CH' },
+];
+const legalEntitiesRef = [
+  { legalEntityId: 1, entityCode: 'SETRM-LTD', name: 'SmartETRM Trading Ltd' },
+  { legalEntityId: 2, entityCode: 'SETRM-NL',  name: 'SmartETRM BV Netherlands' },
+  { legalEntityId: 3, entityCode: 'SETRM-SG',  name: 'SmartETRM Pte Ltd Singapore' },
+];
+
+function denormalizeTrade(input: Record<string, unknown>): Record<string, unknown> {
+  const cpId = input['counterpartyId'] as number | null;
+  const traderId = input['traderId'] as number | null;
+  const bookId = input['bookId'] as number | null;
+  const leId = input['legalEntityId'] as number | null;
+  const brokerId = input['brokerId'] as number | null;
+
+  const cp = counterpartiesRef.find((c) => c.counterpartyId === cpId);
+  const trader = (tradersStore as Array<Record<string, unknown>>).find((t) => t['traderId'] === traderId);
+  const book = (booksStore as Array<Record<string, unknown>>).find((b) => b['bookId'] === bookId);
+  const le = legalEntitiesRef.find((e) => e.legalEntityId === leId);
+  const broker = brokerId != null
+    ? (brokersStore as Array<Record<string, unknown>>).find((b) => b['brokerId'] === brokerId)
+    : null;
+
+  return {
+    ...input,
+    counterpartyName:  cp?.name       ?? (input['counterpartyName'] as string | null)  ?? null,
+    traderCode:        String(trader?.['traderCode']  ?? input['traderCode']  ?? ''),
+    bookCode:          String(book?.['bookCode']      ?? input['bookCode']    ?? ''),
+    legalEntityName:   le?.name       ?? (input['legalEntityName'] as string | null) ?? null,
+    brokerCode:        broker ? String(broker['brokerCode']) : (input['brokerCode'] as string | null) ?? null,
+    brokerName:        broker ? String(broker['brokerName']) : (input['brokerName'] as string | null) ?? null,
+  };
+}
+
 // ─── BROKERS (IDB only — FCM/PRIME firms are Counterparties) ─────────────────
 const brokersStore: unknown[] = [
-  { brokerId: 1, brokerCode: 'ICAP',      brokerName: 'ICAP Energy',                  brokerType: 'VOICE',    description: 'Leading OTC voice IDB for crude oil, products, and natural gas. FCA authorised. Covers North Sea, Mediterranean, and US physical markets. Standard OBA in place.',                                    countryCode: 'GB', contactName: 'David Clarke',   contactEmail: 'dclarke@icap.com',        contactPhone: '+44 20 7000 1000', website: 'https://www.icap.com',          isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { brokerId: 2, brokerCode: 'GFI',       brokerName: 'GFI Group Commodities',        brokerType: 'HYBRID',   description: 'OTC IDB for power, gas, and emissions. Strong European gas and power coverage including TTF, NBP, and EEX. Voice desk alongside Trayport-connected electronic platform.',                             countryCode: 'US', contactName: 'Sarah Miller',   contactEmail: 'smiller@gfi.com',         contactPhone: '+1 212 968 4100',  website: 'https://www.gfigroup.com',      isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { brokerId: 3, brokerCode: 'BGC',       brokerName: 'BGC Partners Energy',          brokerType: 'VOICE',    description: 'OTC voice IDB for crude oil, refined products, and freight. Strong tanker freight and Mediterranean crude coverage. FCA/CFTC dual regulated.',                                                       countryCode: 'GB', contactName: 'James Walker',   contactEmail: 'jwalker@bgcpartners.com', contactPhone: '+44 20 7894 7000', website: 'https://www.bgcpartners.com',   isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { brokerId: 4, brokerCode: 'TRADITION', brokerName: 'Tradition Financial Services', brokerType: 'VOICE',    description: 'Voice IDB specialising in tanker freight, crude oil, and LNG. Primary contact for TD3C, TC2, and Baltic Dirty Tanker routes. BIMCO proforma preferred.',                                             countryCode: 'GB', contactName: 'Emma Thompson',  contactEmail: 'ethompson@tradition.com', contactPhone: '+44 20 7621 5555', website: 'https://www.tradition.com',     isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { brokerId: 5, brokerCode: 'TP-ICAP',   brokerName: 'TP ICAP Global Broking',       brokerType: 'HYBRID',   description: 'Largest OTC IDB globally. Covers all energy commodities. Operates Parameta Solutions electronic platform alongside traditional voice brokerage across oil, gas, power, and freight.',               countryCode: 'GB', contactName: 'Richard Haines', contactEmail: 'rhaines@tpicap.com',      contactPhone: '+44 20 7200 7000', website: 'https://www.tpicap.com',        isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { brokerId: 6, brokerCode: 'TULLETT',   brokerName: 'Tullett Prebon',               brokerType: 'VOICE',    description: 'Voice IDB for metals and base commodities. Covers LME copper, aluminium, zinc, and nickel. Retained brand within TP ICAP group for metals brokerage.',                                              countryCode: 'GB', contactName: 'Susan Park',     contactEmail: 'spark@tullettprebon.com', contactPhone: '+44 20 7200 7000', website: 'https://www.tullettprebon.com', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { brokerId: 7, brokerCode: 'SPARK',     brokerName: 'Spark Commodities',            brokerType: 'ELECTRONIC', description: 'Pure electronic LNG and freight platform. Digital order book for JKM spot, FOB Atlantic, and Pacific freight. No voice desk — fully algorithmic matching.',                                       countryCode: 'SG', contactName: 'Wei Chen',       contactEmail: 'wchen@sparkcommodities.com', contactPhone: '+65 6511 0000', website: 'https://www.sparkcommodities.com', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { brokerId: 1, brokerCode: 'ICAP',      brokerName: 'ICAP Energy',                  brokerType: 'VOICE',      description: 'Leading OTC voice IDB for crude oil, products, and natural gas. FCA authorised. Covers North Sea, Mediterranean, and US physical markets. Standard OBA in place.',                              countryCode: 'GB', contactName: 'David Clarke',   contactEmail: 'dclarke@icap.com',           contactPhone: '+44 20 7000 1000', website: 'https://www.icap.com',             legalDocId: 'OBA-ICAP-2024-001',      commissionUomCode: 'BBL', commissionNotes: 'Standard rate $0.02/BBL crude oil, $0.015/BBL products. Vol rebate >1M BBL/month.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { brokerId: 2, brokerCode: 'GFI',       brokerName: 'GFI Group Commodities',        brokerType: 'HYBRID',     description: 'OTC IDB for power, gas, and emissions. Strong European gas and power coverage including TTF, NBP, and EEX. Voice desk alongside Trayport-connected electronic platform.',                          countryCode: 'US', contactName: 'Sarah Miller',   contactEmail: 'smiller@gfi.com',            contactPhone: '+1 212 968 4100',  website: 'https://www.gfigroup.com',         legalDocId: 'OBA-GFI-2023-007',       commissionUomCode: 'MWH', commissionNotes: '$0.015/MWH gas, EUR 0.01/MWH power. Emissions: 0.02 EUR/EUA.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { brokerId: 3, brokerCode: 'BGC',       brokerName: 'BGC Partners Energy',          brokerType: 'VOICE',      description: 'OTC voice IDB for crude oil, refined products, and freight. Strong tanker freight and Mediterranean crude coverage. FCA/CFTC dual regulated.',                                                   countryCode: 'GB', contactName: 'James Walker',   contactEmail: 'jwalker@bgcpartners.com',    contactPhone: '+44 20 7894 7000', website: 'https://www.bgcpartners.com',      legalDocId: 'OBA-BGC-2024-003',       commissionUomCode: 'BBL', commissionNotes: '$0.03/BBL crude, $0.025/BBL distillates. Freight: $2,500 flat per VLCC voyage.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { brokerId: 4, brokerCode: 'TRADITION', brokerName: 'Tradition Financial Services', brokerType: 'VOICE',      description: 'Voice IDB specialising in tanker freight, crude oil, and LNG. Primary contact for TD3C, TC2, and Baltic Dirty Tanker routes. BIMCO proforma preferred.',                                         countryCode: 'GB', contactName: 'Emma Thompson',  contactEmail: 'ethompson@tradition.com',    contactPhone: '+44 20 7621 5555', website: 'https://www.tradition.com',        legalDocId: 'OBA-TRAD-2023-012',      commissionUomCode: null,  commissionNotes: 'Freight: $2,000–$3,500 per voyage depending on route and vessel size. LNG: $1,500 per cargo.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { brokerId: 5, brokerCode: 'TP-ICAP',   brokerName: 'TP ICAP Global Broking',       brokerType: 'HYBRID',     description: 'Largest OTC IDB globally. Covers all energy commodities. Operates Parameta Solutions electronic platform alongside traditional voice brokerage across oil, gas, power, and freight.',           countryCode: 'GB', contactName: 'Richard Haines', contactEmail: 'rhaines@tpicap.com',         contactPhone: '+44 20 7200 7000', website: 'https://www.tpicap.com',           legalDocId: 'OBA-TPICAP-2024-002',    commissionUomCode: 'MWH', commissionNotes: 'Gas: EUR 0.01/MWH. Power: EUR 0.008/MWH electronic, EUR 0.012/MWH voice.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { brokerId: 6, brokerCode: 'TULLETT',   brokerName: 'Tullett Prebon',               brokerType: 'VOICE',      description: 'Voice IDB for metals and base commodities. Covers LME copper, aluminium, zinc, and nickel. Retained brand within TP ICAP group for metals brokerage.',                                          countryCode: 'GB', contactName: 'Susan Park',     contactEmail: 'spark@tullettprebon.com',    contactPhone: '+44 20 7200 7000', website: 'https://www.tullettprebon.com',    legalDocId: 'OBA-TULLETT-2023-008',   commissionUomCode: 'MT',  commissionNotes: 'LME base metals: $1.50/MT. Precious metals: 0.02% of notional.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { brokerId: 7, brokerCode: 'SPARK',     brokerName: 'Spark Commodities',            brokerType: 'ELECTRONIC', description: 'Pure electronic LNG and freight platform. Digital order book for JKM spot, FOB Atlantic, and Pacific freight. No voice desk — fully algorithmic matching.',                                     countryCode: 'SG', contactName: 'Wei Chen',       contactEmail: 'wchen@sparkcommodities.com', contactPhone: '+65 6511 0000',    website: 'https://www.sparkcommodities.com', legalDocId: 'SPARK-AGREE-2024-001',   commissionUomCode: null,  commissionNotes: 'LNG: $0.50/MMBTU per cargo. Freight: 0.10% of worldscale notional.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
 ];
 
 // ─── TRADES (master deal headers — no delivery-level fields) ─────────────────
 // Delivery fields (qty, price, period, product, commodity detail) live on TradeOrder.
 const tradesStore: unknown[] = [
-  { tradeId: 1, tradeReference: 'TRD-2026-00001', contractNumber: 'SHE-2026-OIL-4421',   tradeDate: '2026-06-01', executionDatetime: '2026-06-01T09:30:00Z', commodityType: 'OIL',         tradeType: 'PHYSICAL',  direction: 'BUY',  termType: 'SPOT', dealIndicator: 'EXTERNAL', contractType: 'SPOT',    status: 'CONFIRMED', counterpartyId: 1, counterpartyName: 'Shell Trading International', traderId: 1, traderCode: 'JDO', bookId: 1, bookCode: 'CRUDE-PROP',   legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', rfpMinQty: null, rfpMaxQty: null, rfpStartDate: null, rfpEndDate: null, rfpFrequency: null, brokerId: null, brokerCode: null, brokerName: null, brokerFeeType: null, brokerFee: null, brokerFeeCurrencyCode: null, creditTermCode: 'NET_30', creditApprovalStatus: 'APPROVED', creditLimitUsed: 41225000, gtcReference: 'EFET-OIL-2007',     notes: 'Forties blend cargo',                  parentTradeId: null, amendmentNumber: 0, isLatestVersion: true, orderCount: 1, createdAt: '2026-06-01T09:30:00Z', updatedAt: '2026-06-01T09:30:00Z' },
-  { tradeId: 2, tradeReference: 'TRD-2026-00002', contractNumber: null,                   tradeDate: '2026-06-03', executionDatetime: '2026-06-03T10:15:00Z', commodityType: 'OIL',         tradeType: 'FINANCIAL', direction: 'SELL', termType: 'SPOT', dealIndicator: 'EXTERNAL', contractType: 'MONTHLY', status: 'CONFIRMED', counterpartyId: 2, counterpartyName: 'BP Oil Trading',            traderId: 4, traderCode: 'MJL', bookId: 2, bookCode: 'CRUDE-HEDGE',  legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', rfpMinQty: null, rfpMaxQty: null, rfpStartDate: null, rfpEndDate: null, rfpFrequency: null, brokerId: 1,    brokerCode: 'ICAP',      brokerName: 'ICAP Energy',                  brokerFeeType: 'FIXED', brokerFee: 0.02,  brokerFeeCurrencyCode: 'USD', creditTermCode: 'NET_30', creditApprovalStatus: 'APPROVED', creditLimitUsed: 8310000,  gtcReference: 'ISDA-2002',         notes: 'Hedge against physical inventory',     parentTradeId: null, amendmentNumber: 0, isLatestVersion: true, orderCount: 1, createdAt: '2026-06-03T10:15:00Z', updatedAt: '2026-06-03T10:15:00Z' },
-  { tradeId: 3, tradeReference: 'TRD-2026-00003', contractNumber: 'EQ-TTF-2026-M07-M08',  tradeDate: '2026-06-05', executionDatetime: '2026-06-05T08:45:00Z', commodityType: 'GAS',         tradeType: 'PHYSICAL',  direction: 'BUY',  termType: 'RFP', dealIndicator: 'EXTERNAL', contractType: 'MONTHLY', status: 'CONFIRMED', counterpartyId: 3, counterpartyName: 'Equinor Energy AS',         traderId: 2, traderCode: 'ASM', bookId: 3, bookCode: 'GAS-EU-TRADE', legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', rfpMinQty: 40000, rfpMaxQty: 60000, rfpStartDate: '2026-07-01', rfpEndDate: '2026-08-31', rfpFrequency: 'MONTHLY', brokerId: 5, brokerCode: 'TP-ICAP', brokerName: 'TP ICAP Global Broking', brokerFeeType: 'FIXED', brokerFee: 0.01,  brokerFeeCurrencyCode: 'EUR', creditTermCode: 'NET_30', creditApprovalStatus: 'APPROVED', creditLimitUsed: 1727500,  gtcReference: 'EFET-GAS-2002',     notes: 'TTF Jul-Aug monthly contract',         parentTradeId: null, amendmentNumber: 0, isLatestVersion: true, orderCount: 2, createdAt: '2026-06-05T08:45:00Z', updatedAt: '2026-06-05T08:45:00Z' },
-  { tradeId: 4, tradeReference: 'TRD-2026-00004', contractNumber: 'GLC-LME-CU-2026-06',   tradeDate: '2026-06-10', executionDatetime: '2026-06-10T11:00:00Z', commodityType: 'METALS',      tradeType: 'PHYSICAL',  direction: 'BUY',  termType: 'SPOT', dealIndicator: 'EXTERNAL', contractType: 'SPOT',    status: 'CONFIRMED', counterpartyId: 4, counterpartyName: 'Glencore Metals',           traderId: 3, traderCode: 'RKP', bookId: 4, bookCode: 'LME-CU-ARB',   legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', rfpMinQty: null, rfpMaxQty: null, rfpStartDate: null, rfpEndDate: null, rfpFrequency: null, brokerId: null, brokerCode: null, brokerName: null, brokerFeeType: null, brokerFee: null, brokerFeeCurrencyCode: null, creditTermCode: 'NET_30', creditApprovalStatus: 'APPROVED', creditLimitUsed: 2461250,  gtcReference: 'LME-RULEBOOK-2023', notes: 'Grade A cathode',                      parentTradeId: null, amendmentNumber: 0, isLatestVersion: true, orderCount: 1, createdAt: '2026-06-10T11:00:00Z', updatedAt: '2026-06-10T11:00:00Z' },
-  { tradeId: 5, tradeReference: 'TRD-2026-00005', contractNumber: null,                   tradeDate: '2026-06-12', executionDatetime: '2026-06-12T09:00:00Z', commodityType: 'POWER',       tradeType: 'FINANCIAL', direction: 'SELL', termType: 'SPOT', dealIndicator: 'EXTERNAL', contractType: 'MONTHLY', status: 'CONFIRMED', counterpartyId: 5, counterpartyName: 'RWE Supply & Trading',      traderId: 6, traderCode: 'SWN', bookId: 5, bookCode: 'POWER-CLIENT', legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', rfpMinQty: null, rfpMaxQty: null, rfpStartDate: null, rfpEndDate: null, rfpFrequency: null, brokerId: 2,    brokerCode: 'GFI',       brokerName: 'GFI Group Commodities',        brokerFeeType: 'FIXED', brokerFee: 0.015, brokerFeeCurrencyCode: 'EUR', creditTermCode: 'NET_30', creditApprovalStatus: 'APPROVED', creditLimitUsed: 687500,   gtcReference: 'EFET-POWER-2022',   notes: 'Baseload monthly',                     parentTradeId: null, amendmentNumber: 0, isLatestVersion: true, orderCount: 1, createdAt: '2026-06-12T09:00:00Z', updatedAt: '2026-06-12T09:00:00Z' },
-  { tradeId: 6, tradeReference: 'TRD-2026-00006', contractNumber: 'CEN-NBP-PHYS-07-2026', tradeDate: '2026-06-15', executionDatetime: '2026-06-15T14:30:00Z', commodityType: 'GAS',         tradeType: 'PHYSICAL',  direction: 'SELL', termType: 'SPOT', dealIndicator: 'EXTERNAL', contractType: 'MONTHLY', status: 'DRAFT',     counterpartyId: 6, counterpartyName: 'Centrica Energy Trading',   traderId: 5, traderCode: 'PLN', bookId: 3, bookCode: 'GAS-EU-TRADE', legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', rfpMinQty: null, rfpMaxQty: null, rfpStartDate: null, rfpEndDate: null, rfpFrequency: null, brokerId: null, brokerCode: null, brokerName: null, brokerFeeType: null, brokerFee: null, brokerFeeCurrencyCode: null, creditTermCode: 'NET_14', creditApprovalStatus: 'PENDING',  creditLimitUsed: null,     gtcReference: 'GTMA-2002',         notes: 'NBP physical day-ahead swing',         parentTradeId: null, amendmentNumber: 0, isLatestVersion: true, orderCount: 1, createdAt: '2026-06-15T14:30:00Z', updatedAt: '2026-06-15T14:30:00Z' },
-  { tradeId: 7, tradeReference: 'TRD-2026-00007', contractNumber: 'VIT-2026-URALS-001',   tradeDate: '2026-06-20', executionDatetime: '2026-06-20T10:00:00Z', commodityType: 'OIL',         tradeType: 'PHYSICAL',  direction: 'SELL', termType: 'SPOT', dealIndicator: 'EXTERNAL', contractType: 'SPOT',    status: 'CONFIRMED', counterpartyId: 7, counterpartyName: 'Vitol SA',                  traderId: 1, traderCode: 'JDO', bookId: 1, bookCode: 'CRUDE-PROP',   legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', rfpMinQty: null, rfpMaxQty: null, rfpStartDate: null, rfpEndDate: null, rfpFrequency: null, brokerId: 3,    brokerCode: 'BGC',       brokerName: 'BGC Partners Energy',          brokerFeeType: 'FIXED', brokerFee: 0.03,  brokerFeeCurrencyCode: 'USD', creditTermCode: 'NET_30', creditApprovalStatus: 'APPROVED', creditLimitUsed: 59962500, gtcReference: 'EFET-OIL-2007',     notes: 'Urals Med grade, 5-day BWAVE pricing', parentTradeId: null, amendmentNumber: 0, isLatestVersion: true, orderCount: 1, createdAt: '2026-06-20T10:00:00Z', updatedAt: '2026-06-20T10:00:00Z' },
-  { tradeId: 8, tradeReference: 'TRD-2026-00008', contractNumber: null,                   tradeDate: '2026-06-22', executionDatetime: '2026-06-22T11:30:00Z', commodityType: 'AGRICULTURAL', tradeType: 'PHYSICAL', direction: 'BUY',  termType: 'SPOT', dealIndicator: 'EXTERNAL', contractType: 'SPOT',    status: 'DRAFT',     counterpartyId: 8, counterpartyName: 'Cargill International SA',  traderId: 2, traderCode: 'ASM', bookId: 3, bookCode: 'GAS-EU-TRADE', legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', rfpMinQty: null, rfpMaxQty: null, rfpStartDate: null, rfpEndDate: null, rfpFrequency: null, brokerId: null, brokerCode: null, brokerName: null, brokerFeeType: null, brokerFee: null, brokerFeeCurrencyCode: null, creditTermCode: 'NET_30', creditApprovalStatus: 'PENDING',  creditLimitUsed: null,     gtcReference: null,                notes: 'EU milling wheat, protein min 12%',    parentTradeId: null, amendmentNumber: 0, isLatestVersion: true, orderCount: 1, createdAt: '2026-06-22T11:30:00Z', updatedAt: '2026-06-22T11:30:00Z' },
-  { tradeId: 9, tradeReference: 'TRD-2026-00009', contractNumber: 'BIMCO-TD3C-202607',    tradeDate: '2026-06-25', executionDatetime: '2026-06-25T11:00:00Z', commodityType: 'FREIGHT',     tradeType: 'PHYSICAL',  direction: 'BUY',  termType: 'SPOT', dealIndicator: 'EXTERNAL', contractType: 'SPOT',    status: 'DRAFT',     counterpartyId: 1, counterpartyName: 'Shell Trading International', traderId: 1, traderCode: 'JDO', bookId: 1, bookCode: 'CRUDE-PROP',   legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', rfpMinQty: null, rfpMaxQty: null, rfpStartDate: null, rfpEndDate: null, rfpFrequency: null, brokerId: 4,    brokerCode: 'TRADITION', brokerName: 'Tradition Financial Services', brokerFeeType: 'FIXED', brokerFee: 2500,  brokerFeeCurrencyCode: 'USD', creditTermCode: 'NET_30', creditApprovalStatus: 'PENDING',  creditLimitUsed: null,     gtcReference: 'BIMCO-GENCON-94',   notes: 'TD3C VLCC voyage, Ras Tanura to Chiba Japan', parentTradeId: null, amendmentNumber: 0, isLatestVersion: true, orderCount: 1, createdAt: '2026-06-25T11:00:00Z', updatedAt: '2026-06-25T11:00:00Z' },
+  { tradeId: 1,  tradeReference: 'TRD-2026-00001', contractNumber: 'SHE-2026-OIL-4421',      tradeDate: '2026-06-01', executionDatetime: '2026-06-01T09:30:00Z', commodityType: 'OIL',          tradeType: 'PHYSICAL',  direction: 'BUY',  termType: 'SPOT', dealIndicator: 'EXTERNAL', contractType: 'SPOT',    status: 'CONFIRMED', counterpartyId: 1, counterpartyName: 'Shell Trading International', traderId: 1, traderCode: 'JDO', bookId: 1, bookCode: 'CRUDE-PROP',   legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', rfpMinQty: null, rfpMaxQty: null, rfpStartDate: null, rfpEndDate: null, rfpFrequency: null, brokerId: null, brokerCode: null, brokerName: null, brokerFeeType: null, brokerFee: null, brokerFeeCurrencyCode: null, creditTermCode: 'NET_30', creditApprovalStatus: 'APPROVED', creditLimitUsed: 41225000, gtcReference: 'EFET-OIL-2007',     hedgeFlag: false, cin: 'CIN-2026-00001', paymentCalendarCode: 'LON-USD', contractPeriodicity: null,      contractStatus: 'ACTIVE', specialReference: null, notes: 'Forties blend cargo',                  parentTradeId: null, amendmentNumber: 0, isLatestVersion: true, orderCount: 1, instrumentType: 'PHYSICAL', createdAt: '2026-06-01T09:30:00Z', updatedAt: '2026-06-01T09:30:00Z' },
+  { tradeId: 2,  tradeReference: 'TRD-2026-00002', contractNumber: null,                      tradeDate: '2026-06-03', executionDatetime: '2026-06-03T10:15:00Z', commodityType: 'OIL',          tradeType: 'FINANCIAL', direction: 'SELL', termType: 'SPOT', dealIndicator: 'EXTERNAL', contractType: 'MONTHLY', status: 'CONFIRMED', counterpartyId: 2, counterpartyName: 'BP Oil Trading',            traderId: 4, traderCode: 'MJL', bookId: 2, bookCode: 'CRUDE-HEDGE',  legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', rfpMinQty: null, rfpMaxQty: null, rfpStartDate: null, rfpEndDate: null, rfpFrequency: null, brokerId: 1,    brokerCode: 'ICAP',      brokerName: 'ICAP Energy',                  brokerFeeType: 'FIXED', brokerFee: 0.02,  brokerFeeCurrencyCode: 'USD', creditTermCode: 'NET_30', creditApprovalStatus: 'APPROVED', creditLimitUsed: 8310000,  gtcReference: 'ISDA-2002',         hedgeFlag: true,  cin: 'CIN-2026-00002', paymentCalendarCode: 'LON-USD', contractPeriodicity: 'MONTHLY', contractStatus: 'ACTIVE', specialReference: null, notes: 'Hedge against physical inventory',     parentTradeId: null, amendmentNumber: 0, isLatestVersion: true, orderCount: 1, instrumentType: 'SWAP_FIXED_FLOAT', createdAt: '2026-06-03T10:15:00Z', updatedAt: '2026-06-03T10:15:00Z' },
+  { tradeId: 3,  tradeReference: 'TRD-2026-00003', contractNumber: 'EQ-TTF-2026-M07-M08',    tradeDate: '2026-06-05', executionDatetime: '2026-06-05T08:45:00Z', commodityType: 'GAS',          tradeType: 'PHYSICAL',  direction: 'BUY',  termType: 'RFP',  dealIndicator: 'EXTERNAL', contractType: 'MONTHLY', status: 'CONFIRMED', counterpartyId: 3, counterpartyName: 'Equinor Energy AS',         traderId: 2, traderCode: 'ASM', bookId: 3, bookCode: 'GAS-EU-TRADE', legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', rfpMinQty: 40000, rfpMaxQty: 60000, rfpStartDate: '2026-07-01', rfpEndDate: '2026-08-31', rfpFrequency: 'MONTHLY', brokerId: 5, brokerCode: 'TP-ICAP', brokerName: 'TP ICAP Global Broking', brokerFeeType: 'FIXED', brokerFee: 0.01, brokerFeeCurrencyCode: 'EUR', creditTermCode: 'NET_30', creditApprovalStatus: 'APPROVED', creditLimitUsed: 1727500, gtcReference: 'EFET-GAS-2002', hedgeFlag: false, cin: 'CIN-2026-00003', paymentCalendarCode: 'FRA-EUR', contractPeriodicity: 'MONTHLY', contractStatus: 'ACTIVE', specialReference: null, notes: 'TTF Jul-Aug monthly contract',         parentTradeId: null, amendmentNumber: 0, isLatestVersion: true, orderCount: 2, instrumentType: 'PHYSICAL', createdAt: '2026-06-05T08:45:00Z', updatedAt: '2026-06-05T08:45:00Z' },
+  { tradeId: 4,  tradeReference: 'TRD-2026-00004', contractNumber: 'GLC-LME-CU-2026-06',     tradeDate: '2026-06-10', executionDatetime: '2026-06-10T11:00:00Z', commodityType: 'METALS',       tradeType: 'PHYSICAL',  direction: 'BUY',  termType: 'SPOT', dealIndicator: 'EXTERNAL', contractType: 'SPOT',    status: 'CONFIRMED', counterpartyId: 4, counterpartyName: 'Glencore Metals',           traderId: 3, traderCode: 'RKP', bookId: 4, bookCode: 'LME-CU-ARB',   legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', rfpMinQty: null, rfpMaxQty: null, rfpStartDate: null, rfpEndDate: null, rfpFrequency: null, brokerId: null, brokerCode: null, brokerName: null, brokerFeeType: null, brokerFee: null, brokerFeeCurrencyCode: null, creditTermCode: 'NET_30', creditApprovalStatus: 'APPROVED', creditLimitUsed: 2461250,  gtcReference: 'LME-RULEBOOK-2023', hedgeFlag: false, cin: 'CIN-2026-00004', paymentCalendarCode: 'LON-USD', contractPeriodicity: null,      contractStatus: 'ACTIVE', specialReference: null, notes: 'Grade A cathode',                      parentTradeId: null, amendmentNumber: 0, isLatestVersion: true, orderCount: 1, instrumentType: 'PHYSICAL', createdAt: '2026-06-10T11:00:00Z', updatedAt: '2026-06-10T11:00:00Z' },
+  { tradeId: 5,  tradeReference: 'TRD-2026-00005', contractNumber: null,                      tradeDate: '2026-06-12', executionDatetime: '2026-06-12T09:00:00Z', commodityType: 'POWER',        tradeType: 'FINANCIAL', direction: 'SELL', termType: 'SPOT', dealIndicator: 'EXTERNAL', contractType: 'MONTHLY', status: 'CONFIRMED', counterpartyId: 5, counterpartyName: 'RWE Supply & Trading',      traderId: 6, traderCode: 'SWN', bookId: 5, bookCode: 'POWER-CLIENT', legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', rfpMinQty: null, rfpMaxQty: null, rfpStartDate: null, rfpEndDate: null, rfpFrequency: null, brokerId: 2,    brokerCode: 'GFI',       brokerName: 'GFI Group Commodities',        brokerFeeType: 'FIXED', brokerFee: 0.015, brokerFeeCurrencyCode: 'EUR', creditTermCode: 'NET_30', creditApprovalStatus: 'APPROVED', creditLimitUsed: 687500,   gtcReference: 'EFET-POWER-2022',   hedgeFlag: true,  cin: null,             paymentCalendarCode: 'FRA-EUR', contractPeriodicity: 'MONTHLY', contractStatus: 'ACTIVE', specialReference: null, notes: 'Baseload monthly',                     parentTradeId: null, amendmentNumber: 0, isLatestVersion: true, orderCount: 1, instrumentType: 'SWAP_FIXED_FLOAT', createdAt: '2026-06-12T09:00:00Z', updatedAt: '2026-06-12T09:00:00Z' },
+  { tradeId: 6,  tradeReference: 'TRD-2026-00006', contractNumber: 'CEN-NBP-PHYS-07-2026',   tradeDate: '2026-06-15', executionDatetime: '2026-06-15T14:30:00Z', commodityType: 'GAS',          tradeType: 'PHYSICAL',  direction: 'SELL', termType: 'SPOT', dealIndicator: 'EXTERNAL', contractType: 'MONTHLY', status: 'DRAFT',     counterpartyId: 6, counterpartyName: 'Centrica Energy Trading',   traderId: 5, traderCode: 'PLN', bookId: 3, bookCode: 'GAS-EU-TRADE', legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', rfpMinQty: null, rfpMaxQty: null, rfpStartDate: null, rfpEndDate: null, rfpFrequency: null, brokerId: null, brokerCode: null, brokerName: null, brokerFeeType: null, brokerFee: null, brokerFeeCurrencyCode: null, creditTermCode: 'NET_14', creditApprovalStatus: 'PENDING',  creditLimitUsed: null,     gtcReference: 'GTMA-2002',         hedgeFlag: false, cin: null,             paymentCalendarCode: 'LON-GBP', contractPeriodicity: null,      contractStatus: 'DRAFT',  specialReference: null, notes: 'NBP physical day-ahead swing',         parentTradeId: null, amendmentNumber: 0, isLatestVersion: true, orderCount: 1, instrumentType: 'PHYSICAL', createdAt: '2026-06-15T14:30:00Z', updatedAt: '2026-06-15T14:30:00Z' },
+  { tradeId: 7,  tradeReference: 'TRD-2026-00007', contractNumber: 'VIT-2026-URALS-001',     tradeDate: '2026-06-20', executionDatetime: '2026-06-20T10:00:00Z', commodityType: 'OIL',          tradeType: 'PHYSICAL',  direction: 'SELL', termType: 'SPOT', dealIndicator: 'EXTERNAL', contractType: 'SPOT',    status: 'CONFIRMED', counterpartyId: 7, counterpartyName: 'Vitol SA',                  traderId: 1, traderCode: 'JDO', bookId: 1, bookCode: 'CRUDE-PROP',   legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', rfpMinQty: null, rfpMaxQty: null, rfpStartDate: null, rfpEndDate: null, rfpFrequency: null, brokerId: 3,    brokerCode: 'BGC',       brokerName: 'BGC Partners Energy',          brokerFeeType: 'FIXED', brokerFee: 0.03,  brokerFeeCurrencyCode: 'USD', creditTermCode: 'NET_30', creditApprovalStatus: 'APPROVED', creditLimitUsed: 59962500, gtcReference: 'EFET-OIL-2007',     hedgeFlag: false, cin: 'CIN-2026-00007', paymentCalendarCode: 'LON-USD', contractPeriodicity: null,      contractStatus: 'ACTIVE', specialReference: 'Side letter 2026-06: 5-day BWAVE pricing override, Med grade', notes: 'Urals Med grade, 5-day BWAVE pricing', parentTradeId: null, amendmentNumber: 0, isLatestVersion: true, orderCount: 1, instrumentType: 'PHYSICAL', createdAt: '2026-06-20T10:00:00Z', updatedAt: '2026-06-20T10:00:00Z' },
+  { tradeId: 8,  tradeReference: 'TRD-2026-00008', contractNumber: null,                      tradeDate: '2026-06-22', executionDatetime: '2026-06-22T11:30:00Z', commodityType: 'AGRICULTURAL', tradeType: 'PHYSICAL',  direction: 'BUY',  termType: 'SPOT', dealIndicator: 'EXTERNAL', contractType: 'SPOT',    status: 'DRAFT',     counterpartyId: 8, counterpartyName: 'Cargill International SA',  traderId: 2, traderCode: 'ASM', bookId: 3, bookCode: 'GAS-EU-TRADE', legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', rfpMinQty: null, rfpMaxQty: null, rfpStartDate: null, rfpEndDate: null, rfpFrequency: null, brokerId: null, brokerCode: null, brokerName: null, brokerFeeType: null, brokerFee: null, brokerFeeCurrencyCode: null, creditTermCode: 'NET_30', creditApprovalStatus: 'PENDING',  creditLimitUsed: null,     gtcReference: null,                hedgeFlag: false, cin: null,             paymentCalendarCode: null,      contractPeriodicity: null,      contractStatus: 'DRAFT',  specialReference: null, notes: 'EU milling wheat, protein min 12%',    parentTradeId: null, amendmentNumber: 0, isLatestVersion: true, orderCount: 1, instrumentType: 'PHYSICAL', createdAt: '2026-06-22T11:30:00Z', updatedAt: '2026-06-22T11:30:00Z' },
+  { tradeId: 9,  tradeReference: 'TRD-2026-00009', contractNumber: 'BIMCO-TD3C-202607',      tradeDate: '2026-06-25', executionDatetime: '2026-06-25T11:00:00Z', commodityType: 'FREIGHT',      tradeType: 'PHYSICAL',  direction: 'BUY',  termType: 'SPOT', dealIndicator: 'EXTERNAL', contractType: 'SPOT',    status: 'DRAFT',     counterpartyId: 1, counterpartyName: 'Shell Trading International', traderId: 1, traderCode: 'JDO', bookId: 1, bookCode: 'CRUDE-PROP',   legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', rfpMinQty: null, rfpMaxQty: null, rfpStartDate: null, rfpEndDate: null, rfpFrequency: null, brokerId: 4,    brokerCode: 'TRADITION', brokerName: 'Tradition Financial Services', brokerFeeType: 'FIXED', brokerFee: 2500,  brokerFeeCurrencyCode: 'USD', creditTermCode: 'NET_30', creditApprovalStatus: 'PENDING',  creditLimitUsed: null,     gtcReference: 'BIMCO-GENCON-94',   hedgeFlag: false, cin: null,             paymentCalendarCode: 'LON-USD', contractPeriodicity: null,      contractStatus: 'DRAFT',  specialReference: null, notes: 'TD3C VLCC voyage, Ras Tanura to Chiba Japan', parentTradeId: null, amendmentNumber: 0, isLatestVersion: true, orderCount: 1, instrumentType: 'TRANSPORT_AGREEMENT', createdAt: '2026-06-25T11:00:00Z', updatedAt: '2026-06-25T11:00:00Z' },
+  // TRD-010: OIL FINANCIAL BUY — WTI TAS (2 legs — CLZ26 and CLF27)
+  { tradeId: 10, tradeReference: 'TRD-2026-00010', contractNumber: 'CME-TAS-WTI-2026-001',   tradeDate: '2026-06-28', executionDatetime: '2026-06-28T14:05:00Z', commodityType: 'OIL',          tradeType: 'FINANCIAL', direction: 'BUY',  termType: 'SPOT', dealIndicator: 'EXTERNAL', contractType: 'MONTHLY', status: 'CONFIRMED', counterpartyId: 3, counterpartyName: 'Trafigura Group',            traderId: 1, traderCode: 'JDO', bookId: 2, bookCode: 'CRUDE-HEDGE', legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', rfpMinQty: null, rfpMaxQty: null, rfpStartDate: null, rfpEndDate: null, rfpFrequency: null, brokerId: 1,    brokerCode: 'ICAP',      brokerName: 'ICAP Energy',                  brokerFeeType: 'FIXED', brokerFee: 0.01,  brokerFeeCurrencyCode: 'USD', creditTermCode: 'NET_30', creditApprovalStatus: 'APPROVED', creditLimitUsed: 7245000,  gtcReference: 'ISDA-2002',         hedgeFlag: true,  cin: 'CIN-2026-00010', paymentCalendarCode: 'NY-USD',  contractPeriodicity: 'MONTHLY', contractStatus: 'ACTIVE', specialReference: null, notes: 'WTI CL TAS +2 ticks for Dec/Jan strip',       parentTradeId: null, amendmentNumber: 0, isLatestVersion: true, orderCount: 2, instrumentType: 'FUTURES', createdAt: '2026-06-28T14:05:00Z', updatedAt: '2026-06-28T14:05:00Z' },
+  // TRD-011: GAS FINANCIAL SELL — NG TAS (1 leg — NGF27 locked)
+  { tradeId: 11, tradeReference: 'TRD-2026-00011', contractNumber: 'CME-TAS-NG-2026-001',    tradeDate: '2026-06-27', executionDatetime: '2026-06-27T13:55:00Z', commodityType: 'GAS',          tradeType: 'FINANCIAL', direction: 'SELL', termType: 'SPOT', dealIndicator: 'EXTERNAL', contractType: 'MONTHLY', status: 'CONFIRMED', counterpartyId: 5, counterpartyName: 'ExxonMobil Global Trading',  traderId: 4, traderCode: 'MJL', bookId: 3, bookCode: 'GAS-EU-TRADE', legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', rfpMinQty: null, rfpMaxQty: null, rfpStartDate: null, rfpEndDate: null, rfpFrequency: null, brokerId: 2,    brokerCode: 'MAREX',     brokerName: 'Marex Spectron',               brokerFeeType: 'FIXED', brokerFee: 0.005, brokerFeeCurrencyCode: 'USD', creditTermCode: 'NET_30', creditApprovalStatus: 'APPROVED', creditLimitUsed: 345500,   gtcReference: 'ISDA-2002',         hedgeFlag: true,  cin: 'CIN-2026-00011', paymentCalendarCode: 'NY-USD',  contractPeriodicity: null,      contractStatus: 'ACTIVE', specialReference: null, notes: 'NG TAS -1 tick Jan 27 — price locked',        parentTradeId: null, amendmentNumber: 0, isLatestVersion: true, orderCount: 1, instrumentType: 'FUTURES', createdAt: '2026-06-27T13:55:00Z', updatedAt: '2026-06-27T13:55:00Z' },
+  // TRD-012: OIL FINANCIAL BUY — WTI BALMO Jul 2026 (booked mid-month, prices from Jul 14)
+  { tradeId: 12, tradeReference: 'TRD-2026-00012', contractNumber: 'CME-BALMO-WTI-2026-001', tradeDate: '2026-07-01', executionDatetime: '2026-07-01T10:30:00Z', commodityType: 'OIL',          tradeType: 'FINANCIAL', direction: 'BUY',  termType: 'SPOT', dealIndicator: 'EXTERNAL', contractType: 'MONTHLY', status: 'CONFIRMED', counterpartyId: 2, counterpartyName: 'BP Energy Europe',           traderId: 1, traderCode: 'JDO', bookId: 2, bookCode: 'CRUDE-HEDGE', legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', rfpMinQty: null, rfpMaxQty: null, rfpStartDate: null, rfpEndDate: null, rfpFrequency: null, brokerId: 1,    brokerCode: 'ICAP',      brokerName: 'ICAP Energy',                  brokerFeeType: 'FIXED', brokerFee: 0.005, brokerFeeCurrencyCode: 'USD', creditTermCode: 'NET_30', creditApprovalStatus: 'APPROVED', creditLimitUsed: 7200000,  gtcReference: 'ISDA-2002',         hedgeFlag: true,  cin: 'CIN-2026-00012', paymentCalendarCode: 'NY-USD',  contractPeriodicity: null,      contractStatus: 'ACTIVE', specialReference: null, notes: 'WTI BALMO Jul26 — booked Jul 1, prices from Jul 1 to Jul 31', parentTradeId: null, amendmentNumber: 0, isLatestVersion: true, orderCount: 1, instrumentType: 'FUTURES', createdAt: '2026-07-01T10:30:00Z', updatedAt: '2026-07-01T10:30:00Z' },
+  // TRD-013: OIL FINANCIAL SELL — ICE Brent BALMO Jul 2026
+  { tradeId: 13, tradeReference: 'TRD-2026-00013', contractNumber: 'ICE-BALMO-BZ-2026-001',  tradeDate: '2026-07-01', executionDatetime: '2026-07-01T14:10:00Z', commodityType: 'OIL',          tradeType: 'FINANCIAL', direction: 'SELL', termType: 'SPOT', dealIndicator: 'EXTERNAL', contractType: 'MONTHLY', status: 'CONFIRMED', counterpartyId: 6, counterpartyName: 'Glencore Energy UK',         traderId: 1, traderCode: 'JDO', bookId: 2, bookCode: 'CRUDE-HEDGE', legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', rfpMinQty: null, rfpMaxQty: null, rfpStartDate: null, rfpEndDate: null, rfpFrequency: null, brokerId: 2,    brokerCode: 'MAREX',     brokerName: 'Marex Spectron',               brokerFeeType: 'FIXED', brokerFee: 0.005, brokerFeeCurrencyCode: 'USD', creditTermCode: 'NET_30', creditApprovalStatus: 'APPROVED', creditLimitUsed: 5000000,  gtcReference: 'ISDA-2002',         hedgeFlag: true,  cin: 'CIN-2026-00013', paymentCalendarCode: 'LON-USD', contractPeriodicity: null,      contractStatus: 'ACTIVE', specialReference: null, notes: 'Brent BALMO Jul26 — sell side hedge', parentTradeId: null, amendmentNumber: 0, isLatestVersion: true, orderCount: 1, instrumentType: 'FUTURES', createdAt: '2026-07-01T14:10:00Z', updatedAt: '2026-07-01T14:10:00Z' },
+  // RINS — D6 conventional ethanol RINs, separated, spot certificate transfer via EPA EMTS
+  { tradeId: 14, tradeReference: 'TRD-2026-00014', contractNumber: 'EMTS-2026-D6-0455',      tradeDate: '2026-07-02', executionDatetime: '2026-07-02T15:20:00Z', commodityType: 'RINS',         tradeType: 'PHYSICAL',  direction: 'BUY',  termType: 'SPOT', dealIndicator: 'EXTERNAL', contractType: 'SPOT',    status: 'CONFIRMED', counterpartyId: 8, counterpartyName: 'Cargill International SA',  traderId: 2, traderCode: 'ASM', bookId: 2, bookCode: 'CRUDE-HEDGE',  legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', rfpMinQty: null, rfpMaxQty: null, rfpStartDate: null, rfpEndDate: null, rfpFrequency: null, brokerId: null, brokerCode: null, brokerName: null, brokerFeeType: null, brokerFee: null, brokerFeeCurrencyCode: null, creditTermCode: 'NET_14', creditApprovalStatus: 'APPROVED', creditLimitUsed: 4250000,  gtcReference: 'RFS2-MSA-2024',     hedgeFlag: false, cin: 'CIN-2026-00014', paymentCalendarCode: 'NY-USD',  contractPeriodicity: null,      contractStatus: 'ACTIVE', specialReference: null, notes: 'D6 2026 vintage separated RINs for RVO compliance', parentTradeId: null, amendmentNumber: 0, isLatestVersion: true, orderCount: 1, instrumentType: 'CERTIFICATE_TRANSFER', createdAt: '2026-07-02T15:20:00Z', updatedAt: '2026-07-02T15:20:00Z' },
+  // ENVIRONMENTAL — EUA Dec-26 futures on ICE, physical delivery of allowances at expiry
+  { tradeId: 15, tradeReference: 'TRD-2026-00015', contractNumber: 'ICE-EUA-Z26-7731',        tradeDate: '2026-07-02', executionDatetime: '2026-07-02T09:45:00Z', commodityType: 'ENVIRONMENTAL', tradeType: 'FINANCIAL', direction: 'BUY',  termType: 'SPOT', dealIndicator: 'EXTERNAL', contractType: 'MONTHLY', status: 'CONFIRMED', counterpartyId: 5, counterpartyName: 'RWE Supply & Trading',      traderId: 6, traderCode: 'SWN', bookId: 5, bookCode: 'POWER-CLIENT', legalEntityId: 1, legalEntityName: 'SmartETRM Trading Ltd', rfpMinQty: null, rfpMaxQty: null, rfpStartDate: null, rfpEndDate: null, rfpFrequency: null, brokerId: 2,    brokerCode: 'GFI',       brokerName: 'GFI Group Commodities',        brokerFeeType: 'FIXED', brokerFee: 0.01,  brokerFeeCurrencyCode: 'EUR', creditTermCode: 'NET_30', creditApprovalStatus: 'APPROVED', creditLimitUsed: 3625000,  gtcReference: 'ICE-ENDEX-RULES',   hedgeFlag: true,  cin: 'CIN-2026-00015', paymentCalendarCode: 'FRA-EUR', contractPeriodicity: null,      contractStatus: 'ACTIVE', specialReference: null, notes: 'EUA Dec26 futures — hedge for power book carbon exposure', parentTradeId: null, amendmentNumber: 0, isLatestVersion: true, orderCount: 1, instrumentType: 'FUTURES', createdAt: '2026-07-02T09:45:00Z', updatedAt: '2026-07-02T09:45:00Z' },
 ];
 
 // ─── TRADE ORDERS (delivery legs — one per period) ───────────────────────────
 let orderIdSeq = 100;
 const tradeOrdersStore: unknown[] = [
   // TRD-001: OIL PHYSICAL BUY — 1 leg (spot cargo)
-  { orderId: 1,  tradeId: 1, orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00001-01', status: 'CONFIRMED', periodCode: 'M2026-07', riskStartDate: '2026-07-10', riskEndDate: '2026-07-12', productId: 1, productCode: 'BRENT-CRUDE', productName: 'Brent Crude Oil', marketId: 5, marketCode: 'OTC_NS_CRUDE', pricingRuleId: 1, pricingRuleCode: 'FLT-DTBRT-AVG', quantity: 500000, uomCode: 'BBL', price: 82.45, currencyCode: 'USD', incotermCode: 'FOB', deliveryLocationCode: 'SULLOM-VOE', settlementType: 'PHYSICAL', notes: 'Forties blend cargo', oilDetail: { crudeGrade: 'FORTIES', apiGravity: 40.7, sulphurPct: 0.26, motType: 'TANKER', loadLocationCode: 'SULLOM-VOE', dischargeLocationCode: 'ROTTERDAM', titleTransferLocationCode: 'SULLOM-VOE', vesselName: 'NORDIC LUNA', laycanStart: '2026-07-10', laycanEnd: '2026-07-12', blDate: null, norsTenderedDate: null, codDate: null, pipelineId: null }, createdAt: '2026-06-01T09:30:00Z', updatedAt: '2026-06-01T09:30:00Z' },
+  { orderId: 1,  tradeId: 1,  orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00001-01', status: 'CONFIRMED', periodCode: 'M2026-07', riskStartDate: '2026-07-10', riskEndDate: '2026-07-12', productId: 1,    productCode: 'BRENT-CRUDE',   productName: 'Brent Crude Oil',          marketId: 5, marketCode: 'OTC_NS_CRUDE', pricingRuleId: 1,    pricingRuleCode: 'FLT-DTBRT-AVG',  quantity: 500000, uomCode: 'BBL',   price: 82.45, currencyCode: 'USD', incotermCode: 'FOB',  deliveryLocationCode: 'SULLOM-VOE',  settlementType: 'PHYSICAL',   toleranceType: 'RATE', tolerancePlus: 2, toleranceMinus: 2, toleranceForScheduling: false, notes: 'Forties blend cargo', oilDetail: { crudeGrade: 'FORTIES', apiGravity: 40.7, sulphurPct: 0.26, motType: 'TANKER', loadLocationCode: 'SULLOM-VOE', dischargeLocationCode: 'ROTTERDAM', titleTransferLocationCode: 'SULLOM-VOE', vesselName: 'NORDIC LUNA', laycanStart: '2026-07-10', laycanEnd: '2026-07-12', blDate: null, norsTenderedDate: null, codDate: null, pipelineId: null }, originCountryCode: 'GB', demurrageRate: 32500, demurrageCurrency: 'USD', demurrageBasis: 'NON_REVERSIBLE', allowedLaytimeHours: 72, despatchRate: 16250, priceAdjustments: [{ adjustmentType: 'API_GRAVITY', adjustmentValue: 0.176, adjustmentCurrency: 'USD', adjustmentUomCode: 'BBL', notes: 'API 40.7° vs ref 38.5°: +2.2° × $0.08/°' }, { adjustmentType: 'SULFUR', adjustmentValue: 0.02, adjustmentCurrency: 'USD', adjustmentUomCode: 'BBL', notes: 'Sweet crude 0.26%wt vs ref 0.30%wt: small sweet premium' }], createdAt: '2026-06-01T09:30:00Z', updatedAt: '2026-06-01T09:30:00Z' },
   // TRD-002: OIL FINANCIAL SELL — 1 leg (monthly hedge)
-  { orderId: 2,  tradeId: 2, orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00002-01', status: 'CONFIRMED', periodCode: 'M2026-07', riskStartDate: '2026-07-01', riskEndDate: '2026-07-31', productId: 3, productCode: 'BRENT-FUTURES', productName: 'Brent Crude Futures', marketId: 1, marketCode: 'ICE_BRENT', pricingRuleId: 3, pricingRuleCode: 'FLT-WTI-PROMPT', quantity: 100000, uomCode: 'BBL', price: 83.10, currencyCode: 'USD', incotermCode: null, deliveryLocationCode: null, settlementType: 'FINANCIAL', notes: 'Hedge against physical inventory', createdAt: '2026-06-03T10:15:00Z', updatedAt: '2026-06-03T10:15:00Z' },
+  { orderId: 2,  tradeId: 2,  orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00002-01', status: 'CONFIRMED', periodCode: 'M2026-07', riskStartDate: '2026-07-01', riskEndDate: '2026-07-31', productId: 3,    productCode: 'BRENT-FUTURES', productName: 'Brent Crude Futures',      marketId: 1, marketCode: 'ICE_BRENT',    pricingRuleId: 3,    pricingRuleCode: 'FLT-WTI-PROMPT',  quantity: 100000, uomCode: 'BBL',   price: 83.10, currencyCode: 'USD', incotermCode: null,   deliveryLocationCode: null,          settlementType: 'FINANCIAL',  toleranceType: null,   tolerancePlus: null, toleranceMinus: null, toleranceForScheduling: false, notes: 'Hedge against physical inventory', originCountryCode: null, demurrageRate: null, demurrageCurrency: null, demurrageBasis: null, allowedLaytimeHours: null, despatchRate: null, priceAdjustments: [], createdAt: '2026-06-03T10:15:00Z', updatedAt: '2026-06-03T10:15:00Z' },
   // TRD-003: GAS PHYSICAL BUY Equinor — 2 legs (Jul template, Aug detail)
-  { orderId: 3,  tradeId: 3, orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00003-01', status: 'CONFIRMED', periodCode: 'M2026-07', riskStartDate: '2026-07-01', riskEndDate: '2026-07-31', productId: 4, productCode: 'TTF-GAS', productName: 'TTF Natural Gas', marketId: 4, marketCode: 'ICE_TTF', pricingRuleId: 5, pricingRuleCode: 'FLT-TTF-MONTHLY', quantity: 50000, uomCode: 'MWH', price: 34.55, currencyCode: 'EUR', incotermCode: null, deliveryLocationCode: 'TTF-NL', settlementType: 'FINANCIAL', notes: null, gasDetail: { deliveryHub: 'TTF-NL', gasDeliveryStart: '2026-07-01', gasDeliveryEnd: '2026-07-31', swingPct: 10, gasDayType: 'STANDARD', nominationType: 'FIRM' }, createdAt: '2026-06-05T08:45:00Z', updatedAt: '2026-06-05T08:45:00Z' },
-  { orderId: 4,  tradeId: 3, orderSequence: 2, isTemplate: false, orderReference: 'TRD-2026-00003-02', status: 'WORKING',   periodCode: 'M2026-08', riskStartDate: '2026-08-01', riskEndDate: '2026-08-31', productId: 4, productCode: 'TTF-GAS', productName: 'TTF Natural Gas', marketId: 4, marketCode: 'ICE_TTF', pricingRuleId: 5, pricingRuleCode: 'FLT-TTF-MONTHLY', quantity: 50000, uomCode: 'MWH', price: null, currencyCode: 'EUR', incotermCode: null, deliveryLocationCode: 'TTF-NL', settlementType: 'FINANCIAL', notes: 'Aug leg — price TBD', gasDetail: { deliveryHub: 'TTF-NL', gasDeliveryStart: '2026-08-01', gasDeliveryEnd: '2026-08-31', swingPct: 10, gasDayType: 'STANDARD', nominationType: 'FIRM' }, createdAt: '2026-06-05T08:45:00Z', updatedAt: '2026-06-05T08:45:00Z' },
+  { orderId: 3,  tradeId: 3,  orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00003-01', status: 'CONFIRMED', periodCode: 'M2026-07', riskStartDate: '2026-07-01', riskEndDate: '2026-07-31', productId: 4,    productCode: 'TTF-GAS',       productName: 'TTF Natural Gas',          marketId: 4, marketCode: 'ICE_TTF',      pricingRuleId: 5,    pricingRuleCode: 'FLT-TTF-MONTHLY', quantity: 50000,  uomCode: 'MWH',   price: 34.55, currencyCode: 'EUR', incotermCode: null,   deliveryLocationCode: 'TTF-NL',      settlementType: 'FINANCIAL',  toleranceType: 'RATE', tolerancePlus: 5, toleranceMinus: 5, toleranceForScheduling: true,  notes: null, gasDetail: { deliveryHub: 'TTF-NL', gasDeliveryStart: '2026-07-01', gasDeliveryEnd: '2026-07-31', swingPct: 10, gasDayType: 'STANDARD', nominationType: 'FIRM' }, originCountryCode: null, demurrageRate: null, demurrageCurrency: null, demurrageBasis: null, allowedLaytimeHours: null, despatchRate: null, priceAdjustments: [], createdAt: '2026-06-05T08:45:00Z', updatedAt: '2026-06-05T08:45:00Z' },
+  { orderId: 4,  tradeId: 3,  orderSequence: 2, isTemplate: false, orderReference: 'TRD-2026-00003-02', status: 'WORKING',   periodCode: 'M2026-08', riskStartDate: '2026-08-01', riskEndDate: '2026-08-31', productId: 4,    productCode: 'TTF-GAS',       productName: 'TTF Natural Gas',          marketId: 4, marketCode: 'ICE_TTF',      pricingRuleId: 5,    pricingRuleCode: 'FLT-TTF-MONTHLY', quantity: 50000,  uomCode: 'MWH',   price: null,  currencyCode: 'EUR', incotermCode: null,   deliveryLocationCode: 'TTF-NL',      settlementType: 'FINANCIAL',  toleranceType: 'RATE', tolerancePlus: 5, toleranceMinus: 5, toleranceForScheduling: true,  notes: 'Aug leg — price TBD', gasDetail: { deliveryHub: 'TTF-NL', gasDeliveryStart: '2026-08-01', gasDeliveryEnd: '2026-08-31', swingPct: 10, gasDayType: 'STANDARD', nominationType: 'FIRM' }, originCountryCode: null, demurrageRate: null, demurrageCurrency: null, demurrageBasis: null, allowedLaytimeHours: null, despatchRate: null, priceAdjustments: [], createdAt: '2026-06-05T08:45:00Z', updatedAt: '2026-06-05T08:45:00Z' },
   // TRD-004: METALS PHYSICAL BUY — 1 leg (LME copper spot)
-  { orderId: 5,  tradeId: 4, orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00004-01', status: 'CONFIRMED', periodCode: 'SPOT', riskStartDate: '2026-06-13', riskEndDate: '2026-06-13', productId: 6, productCode: 'LME-COPPER', productName: 'LME Grade A Copper', marketId: 3, marketCode: 'LME_COPPER', pricingRuleId: 6, pricingRuleCode: 'FLT-LME-CU-CASH', quantity: 250, uomCode: 'MT', price: 9845.00, currencyCode: 'USD', incotermCode: null, deliveryLocationCode: 'LME-WAREHOUSE', settlementType: 'PHYSICAL', notes: 'Grade A cathode, LME approved warehouse', metalsDetail: { metalGrade: 'GRADE_A', shape: 'CATHODE', motType: 'TRUCK', lmeDate: '2026-06-13', warehouseLocationCode: 'LME-WAREHOUSE', titleTransferLocationCode: 'LME-WAREHOUSE', brand: 'AURUBIS' }, createdAt: '2026-06-10T11:00:00Z', updatedAt: '2026-06-10T11:00:00Z' },
+  { orderId: 5,  tradeId: 4,  orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00004-01', status: 'CONFIRMED', periodCode: 'SPOT',     riskStartDate: '2026-06-13', riskEndDate: '2026-06-13', productId: 6,    productCode: 'LME-COPPER',    productName: 'LME Grade A Copper',       marketId: 3, marketCode: 'LME_COPPER',   pricingRuleId: 6,    pricingRuleCode: 'FLT-LME-CU-CASH', quantity: 250,    uomCode: 'MT',    price: 9845, currencyCode: 'USD', incotermCode: null,   deliveryLocationCode: 'LME-WAREHOUSE', settlementType: 'PHYSICAL', toleranceType: 'FLAT', tolerancePlus: 5, toleranceMinus: 5, toleranceForScheduling: false, notes: 'Grade A cathode, LME approved warehouse', metalsDetail: { metalGrade: 'GRADE_A', shape: 'CATHODE', motType: 'TRUCK', lmeDate: '2026-06-13', warehouseLocationCode: 'LME-WAREHOUSE', titleTransferLocationCode: 'LME-WAREHOUSE', brand: 'AURUBIS' }, originCountryCode: 'CL', demurrageRate: null, demurrageCurrency: null, demurrageBasis: null, allowedLaytimeHours: null, despatchRate: null, priceAdjustments: [{ adjustmentType: 'ASSAY', adjustmentValue: -12.5, adjustmentCurrency: 'USD', adjustmentUomCode: 'MT', notes: 'Payable copper 99.99% — assay deduction vs LME ref' }], createdAt: '2026-06-10T11:00:00Z', updatedAt: '2026-06-10T11:00:00Z' },
   // TRD-005: POWER FINANCIAL SELL — 1 leg (EEX DE baseload Jul)
-  { orderId: 6,  tradeId: 5, orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00005-01', status: 'CONFIRMED', periodCode: 'M2026-07', riskStartDate: '2026-07-01', riskEndDate: '2026-07-31', productId: 8, productCode: 'EEX-DE-POWER', productName: 'EEX German Power Baseload', marketId: 6, marketCode: 'EEX_DE_POWER', pricingRuleId: null, pricingRuleCode: null, quantity: 10000, uomCode: 'MWH', price: 68.75, currencyCode: 'EUR', incotermCode: null, deliveryLocationCode: null, settlementType: 'FINANCIAL', notes: 'Baseload monthly', powerDetail: { loadType: 'BASELOAD', mwCapacity: 50, mwhVolume: 37200, gridNodeCode: 'DE-AT-LU', interconnector: null, deliveryStart: '2026-07-01', deliveryEnd: '2026-07-31' }, createdAt: '2026-06-12T09:00:00Z', updatedAt: '2026-06-12T09:00:00Z' },
+  { orderId: 6,  tradeId: 5,  orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00005-01', status: 'CONFIRMED', periodCode: 'M2026-07', riskStartDate: '2026-07-01', riskEndDate: '2026-07-31', productId: 8,    productCode: 'EEX-DE-POWER',  productName: 'EEX German Power Baseload', marketId: 6, marketCode: 'EEX_DE_POWER', pricingRuleId: null, pricingRuleCode: null,               quantity: 10000,  uomCode: 'MWH',   price: 68.75, currencyCode: 'EUR', incotermCode: null,   deliveryLocationCode: null,          settlementType: 'FINANCIAL',  toleranceType: null,   tolerancePlus: null, toleranceMinus: null, toleranceForScheduling: false, notes: 'Baseload monthly', powerDetail: { loadType: 'BASELOAD', mwCapacity: 50, mwhVolume: 37200, gridNodeCode: 'DE-AT-LU', interconnector: null, deliveryStart: '2026-07-01', deliveryEnd: '2026-07-31' }, originCountryCode: null, demurrageRate: null, demurrageCurrency: null, demurrageBasis: null, allowedLaytimeHours: null, despatchRate: null, priceAdjustments: [], createdAt: '2026-06-12T09:00:00Z', updatedAt: '2026-06-12T09:00:00Z' },
   // TRD-006: GAS PHYSICAL SELL Centrica — 1 leg (NBP Jul)
-  { orderId: 7,  tradeId: 6, orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00006-01', status: 'WORKING',   periodCode: 'M2026-07', riskStartDate: '2026-07-01', riskEndDate: '2026-07-31', productId: 5, productCode: 'NBP-GAS', productName: 'NBP Natural Gas', marketId: 8, marketCode: 'OTC_NBP', pricingRuleId: null, pricingRuleCode: null, quantity: 75000, uomCode: 'THERM', price: 92.30, currencyCode: 'GBP', incotermCode: null, deliveryLocationCode: 'NBP-UK', settlementType: 'PHYSICAL', notes: 'NBP physical day-ahead swing', gasDetail: { deliveryHub: 'NBP-UK', gasDeliveryStart: '2026-07-01', gasDeliveryEnd: '2026-07-31', swingPct: 15, gasDayType: 'STANDARD', nominationType: 'INTERRUPTIBLE' }, createdAt: '2026-06-15T14:30:00Z', updatedAt: '2026-06-15T14:30:00Z' },
+  { orderId: 7,  tradeId: 6,  orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00006-01', status: 'WORKING',   periodCode: 'M2026-07', riskStartDate: '2026-07-01', riskEndDate: '2026-07-31', productId: 5,    productCode: 'NBP-GAS',       productName: 'NBP Natural Gas',          marketId: 8, marketCode: 'OTC_NBP',      pricingRuleId: null, pricingRuleCode: null,               quantity: 75000,  uomCode: 'THERM', price: 92.30, currencyCode: 'GBP', incotermCode: null,   deliveryLocationCode: 'NBP-UK',      settlementType: 'PHYSICAL',   toleranceType: null,   tolerancePlus: null, toleranceMinus: null, toleranceForScheduling: false, notes: 'NBP physical day-ahead swing', gasDetail: { deliveryHub: 'NBP-UK', gasDeliveryStart: '2026-07-01', gasDeliveryEnd: '2026-07-31', swingPct: 15, gasDayType: 'STANDARD', nominationType: 'INTERRUPTIBLE' }, originCountryCode: 'GB', demurrageRate: null, demurrageCurrency: null, demurrageBasis: null, allowedLaytimeHours: null, despatchRate: null, priceAdjustments: [{ adjustmentType: 'HEAT_CONTENT', adjustmentValue: -0.015, adjustmentCurrency: 'GBP', adjustmentUomCode: 'THERM', notes: 'Calorific value 38.2 MJ/m³ vs ref 39.0 MJ/m³' }], createdAt: '2026-06-15T14:30:00Z', updatedAt: '2026-06-15T14:30:00Z' },
   // TRD-007: OIL PHYSICAL SELL Vitol — 1 leg (Urals spot cargo)
-  { orderId: 8,  tradeId: 7, orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00007-01', status: 'CONFIRMED', periodCode: 'M2026-07', riskStartDate: '2026-07-15', riskEndDate: '2026-07-17', productId: 1, productCode: 'BRENT-CRUDE', productName: 'Brent Crude Oil', marketId: 5, marketCode: 'OTC_NS_CRUDE', pricingRuleId: 2, pricingRuleCode: 'DIFF-URALS-MED', quantity: 750000, uomCode: 'BBL', price: 79.95, currencyCode: 'USD', incotermCode: 'CIF', deliveryLocationCode: 'ROTTERDAM', settlementType: 'PHYSICAL', notes: 'Urals Med grade, 5-day BWAVE pricing', oilDetail: { crudeGrade: 'URALS', apiGravity: 31.8, sulphurPct: 1.35, motType: 'TANKER', loadLocationCode: 'RAS-TANURA', dischargeLocationCode: 'ROTTERDAM', titleTransferLocationCode: 'ROTTERDAM', vesselName: 'FRONT ALTAIR', laycanStart: '2026-07-15', laycanEnd: '2026-07-18', blDate: null, norsTenderedDate: null, codDate: null, pipelineId: null }, createdAt: '2026-06-20T10:00:00Z', updatedAt: '2026-06-20T10:00:00Z' },
+  { orderId: 8,  tradeId: 7,  orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00007-01', status: 'CONFIRMED', periodCode: 'M2026-07', riskStartDate: '2026-07-15', riskEndDate: '2026-07-17', productId: 1,    productCode: 'BRENT-CRUDE',   productName: 'Brent Crude Oil',          marketId: 5, marketCode: 'OTC_NS_CRUDE', pricingRuleId: 2,    pricingRuleCode: 'DIFF-URALS-MED',  quantity: 750000, uomCode: 'BBL',   price: 79.95, currencyCode: 'USD', incotermCode: 'CIF',  deliveryLocationCode: 'ROTTERDAM',   settlementType: 'PHYSICAL',   toleranceType: 'RATE', tolerancePlus: 3, toleranceMinus: 3, toleranceForScheduling: false, notes: 'Urals Med grade, 5-day BWAVE pricing', oilDetail: { crudeGrade: 'URALS', apiGravity: 31.8, sulphurPct: 1.35, motType: 'TANKER', loadLocationCode: 'RAS-TANURA', dischargeLocationCode: 'ROTTERDAM', titleTransferLocationCode: 'ROTTERDAM', vesselName: 'FRONT ALTAIR', laycanStart: '2026-07-15', laycanEnd: '2026-07-18', blDate: null, norsTenderedDate: null, codDate: null, pipelineId: null }, originCountryCode: 'RU', demurrageRate: 32500, demurrageCurrency: 'USD', demurrageBasis: 'NON_REVERSIBLE', allowedLaytimeHours: 72, despatchRate: 16250, priceAdjustments: [{ adjustmentType: 'API_GRAVITY', adjustmentValue: -0.536, adjustmentCurrency: 'USD', adjustmentUomCode: 'BBL', notes: 'API 31.8° vs ref 38.5°: -6.7° × $0.08/°' }, { adjustmentType: 'SULFUR', adjustmentValue: -0.85, adjustmentCurrency: 'USD', adjustmentUomCode: 'BBL', notes: 'Sour crude 1.35%wt sulfur content — sour discount' }], createdAt: '2026-06-20T10:00:00Z', updatedAt: '2026-06-20T10:00:00Z' },
   // TRD-008: AGRI PHYSICAL BUY Cargill — 1 leg (EU wheat Aug)
-  { orderId: 9,  tradeId: 8, orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00008-01', status: 'WORKING',   periodCode: 'M2026-08', riskStartDate: '2026-08-01', riskEndDate: '2026-08-31', productId: 16, productCode: 'WHEAT-EU', productName: 'Euronext Milling Wheat', marketId: null, marketCode: null, pricingRuleId: null, pricingRuleCode: null, quantity: 5000, uomCode: 'MT', price: 225.50, currencyCode: 'EUR', incotermCode: 'FOB', deliveryLocationCode: 'ROTTERDAM', settlementType: 'PHYSICAL', notes: 'EU milling wheat, protein min 12%', agriDetail: { cropYear: 2026, gradeQuality: 'EU MILLING WHEAT MIN 12% PROTEIN', originCountry: 'FR', deliveryBasis: 'FOB ROUEN', motType: 'SHIP' }, createdAt: '2026-06-22T11:30:00Z', updatedAt: '2026-06-22T11:30:00Z' },
+  { orderId: 9,  tradeId: 8,  orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00008-01', status: 'WORKING',   periodCode: 'M2026-08', riskStartDate: '2026-08-01', riskEndDate: '2026-08-31', productId: 16,   productCode: 'WHEAT-EU',      productName: 'Euronext Milling Wheat',   marketId: null, marketCode: null,          pricingRuleId: null, pricingRuleCode: null,               quantity: 5000,   uomCode: 'MT',    price: 225.50, currencyCode: 'EUR', incotermCode: 'FOB',  deliveryLocationCode: 'ROTTERDAM',   settlementType: 'PHYSICAL',   toleranceType: 'RATE', tolerancePlus: 5, toleranceMinus: 5, toleranceForScheduling: true,  notes: 'EU milling wheat, protein min 12%', agriDetail: { cropYear: 2026, gradeQuality: 'EU MILLING WHEAT MIN 12% PROTEIN', originCountry: 'FR', deliveryBasis: 'FOB ROUEN', motType: 'SHIP' }, originCountryCode: 'FR', demurrageRate: 9500, demurrageCurrency: 'USD', demurrageBasis: 'REVERSIBLE', allowedLaytimeHours: 96, despatchRate: 4750, priceAdjustments: [{ adjustmentType: 'PROTEIN', adjustmentValue: 1.5, adjustmentCurrency: 'EUR', adjustmentUomCode: 'MT', notes: 'Protein 13.2% vs min 12%: +1.2% × €1.25/0.1%' }, { adjustmentType: 'MOISTURE', adjustmentValue: -0.8, adjustmentCurrency: 'EUR', adjustmentUomCode: 'MT', notes: 'Moisture 14.5% vs max 14%: -0.5% over limit' }], createdAt: '2026-06-22T11:30:00Z', updatedAt: '2026-06-22T11:30:00Z' },
   // TRD-009: FREIGHT BUY Shell — 1 leg (VLCC TD3C)
-  { orderId: 10, tradeId: 9, orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00009-01', status: 'WORKING',   periodCode: null,        riskStartDate: '2026-07-10', riskEndDate: '2026-07-15', productId: null, productCode: null, productName: null, marketId: null, marketCode: null, pricingRuleId: null, pricingRuleCode: null, quantity: 280000, uomCode: 'MT', price: 15.50, currencyCode: 'USD', incotermCode: 'FOB', deliveryLocationCode: 'RAS-TANURA', settlementType: 'FINANCIAL', notes: 'TD3C VLCC voyage, Ras Tanura to Chiba Japan', freightDetail: { vesselType: 'VLCC', routeCode: 'TD3C', loadLocationCode: 'RAS-TANURA', dischargeLocationCode: 'CHIBA-JP', cargoSizeMT: 280000, freightRateType: 'WORLDSCALE', freightRate: 75.00, laycanStart: '2026-07-10', laycanEnd: '2026-07-13', charterType: 'VOYAGE' }, createdAt: '2026-06-25T11:00:00Z', updatedAt: '2026-06-25T11:00:00Z' },
+  { orderId: 10, tradeId: 9,  orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00009-01', status: 'WORKING',   periodCode: null,        riskStartDate: '2026-07-10', riskEndDate: '2026-07-15', productId: null, productCode: null,            productName: null,                        marketId: null, marketCode: null,          pricingRuleId: null, pricingRuleCode: null,               quantity: 280000, uomCode: 'MT',    price: 15.50, currencyCode: 'USD', incotermCode: 'FOB',  deliveryLocationCode: 'RAS-TANURA',  settlementType: 'FINANCIAL',  toleranceType: null,   tolerancePlus: null, toleranceMinus: null, toleranceForScheduling: false, notes: 'TD3C VLCC voyage, Ras Tanura to Chiba Japan', freightDetail: { vesselType: 'VLCC', routeCode: 'TD3C', loadLocationCode: 'RAS-TANURA', dischargeLocationCode: 'CHIBA-JP', cargoSizeMT: 280000, freightRateType: 'WORLDSCALE', freightRate: 75.00, laycanStart: '2026-07-10', laycanEnd: '2026-07-13', charterType: 'VOYAGE' }, originCountryCode: null, demurrageRate: null, demurrageCurrency: null, demurrageBasis: null, allowedLaytimeHours: null, despatchRate: null, priceAdjustments: [], createdAt: '2026-06-25T11:00:00Z', updatedAt: '2026-06-25T11:00:00Z' },
+  // TRD-010: OIL TAS BUY Trafigura — 2 legs (CLZ26 +2 ticks AWAITING; CLF27 0 ticks AWAITING)
+  { orderId: 11, tradeId: 10, orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00010-01', status: 'WORKING',   periodCode: 'M2026-12',  riskStartDate: '2026-12-01', riskEndDate: '2026-12-31', productId: 3,    productCode: 'BRENT-FUTURES', productName: 'Brent Crude Futures',      marketId: 2, marketCode: 'NYMEX_WTI',    pricingRuleId: 9,    pricingRuleCode: 'TAS-NYMEX-CL',    quantity: 100000, uomCode: 'BBL',   price: null,  currencyCode: 'USD', incotermCode: null,   deliveryLocationCode: null,          settlementType: 'FINANCIAL',  toleranceType: null,   tolerancePlus: null, toleranceMinus: null, toleranceForScheduling: false, notes: 'TAS +2 ticks vs Dec26 settlement', tasDetail: { tasContractTicker: 'CLZ26', tasDifferential: 2, tasStatus: 'AWAITING_SETTLEMENT', tasLockedPrice: null, tasSettlementDate: null }, originCountryCode: null, demurrageRate: null, demurrageCurrency: null, demurrageBasis: null, allowedLaytimeHours: null, despatchRate: null, priceAdjustments: [], createdAt: '2026-06-28T14:05:00Z', updatedAt: '2026-06-28T14:05:00Z' },
+  { orderId: 12, tradeId: 10, orderSequence: 2, isTemplate: false, orderReference: 'TRD-2026-00010-02', status: 'WORKING',   periodCode: 'M2027-01',  riskStartDate: '2027-01-01', riskEndDate: '2027-01-31', productId: 3,    productCode: 'BRENT-FUTURES', productName: 'Brent Crude Futures',      marketId: 2, marketCode: 'NYMEX_WTI',    pricingRuleId: 9,    pricingRuleCode: 'TAS-NYMEX-CL',    quantity: 100000, uomCode: 'BBL',   price: null,  currencyCode: 'USD', incotermCode: null,   deliveryLocationCode: null,          settlementType: 'FINANCIAL',  toleranceType: null,   tolerancePlus: null, toleranceMinus: null, toleranceForScheduling: false, notes: 'TAS flat (0 ticks) vs Jan27 settlement', tasDetail: { tasContractTicker: 'CLF27', tasDifferential: 0, tasStatus: 'AWAITING_SETTLEMENT', tasLockedPrice: null, tasSettlementDate: null }, originCountryCode: null, demurrageRate: null, demurrageCurrency: null, demurrageBasis: null, allowedLaytimeHours: null, despatchRate: null, priceAdjustments: [], createdAt: '2026-06-28T14:05:00Z', updatedAt: '2026-06-28T14:05:00Z' },
+  // TRD-011: GAS TAS SELL ExxonMobil — 1 leg (NGF27 -1 tick PRICE_LOCKED at 3.455)
+  { orderId: 13, tradeId: 11, orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00011-01', status: 'CONFIRMED', periodCode: 'M2027-01',  riskStartDate: '2027-01-01', riskEndDate: '2027-01-31', productId: 4,    productCode: 'TTF-GAS',       productName: 'TTF Natural Gas',          marketId: 4, marketCode: 'ICE_TTF',      pricingRuleId: 10,   pricingRuleCode: 'TAS-NYMEX-NG',    quantity: 25000,  uomCode: 'MMBTU', price: 3.455, currencyCode: 'USD', incotermCode: null,   deliveryLocationCode: null,          settlementType: 'FINANCIAL',  toleranceType: null,   tolerancePlus: null, toleranceMinus: null, toleranceForScheduling: false, notes: 'NGF27 TAS -1 tick, locked on 30-Jun settle', tasDetail: { tasContractTicker: 'NGF27', tasDifferential: -1, tasStatus: 'PRICE_LOCKED', tasLockedPrice: 3.455, tasSettlementDate: '2026-06-30' }, originCountryCode: null, demurrageRate: null, demurrageCurrency: null, demurrageBasis: null, allowedLaytimeHours: null, despatchRate: null, priceAdjustments: [], createdAt: '2026-06-27T13:55:00Z', updatedAt: '2026-06-30T21:35:00Z' },
+  // TRD-012: OIL BALMO BUY BP — 1 leg (WTI BALMO Jul26, booked Jul 1, pricing Jul 1→31)
+  { orderId: 14, tradeId: 12, orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00012-01', status: 'WORKING',   periodCode: 'M2026-07',  riskStartDate: '2026-07-01', riskEndDate: '2026-07-31', productId: 3,    productCode: 'BRENT-FUTURES', productName: 'Brent Crude Futures',      marketId: 2, marketCode: 'NYMEX_WTI',    pricingRuleId: 13,   pricingRuleCode: 'BALMO-CME-CL',    quantity: 200000, uomCode: 'BBL',   price: null,  currencyCode: 'USD', incotermCode: null,   deliveryLocationCode: null,          settlementType: 'FINANCIAL',  toleranceType: null,   tolerancePlus: null, toleranceMinus: null, toleranceForScheduling: false, notes: 'WTI BALMO Jul26 — 200k BBL buy, full month pricing CLN26', balmoDetail: { balmoProductId: 1, pricingStartDate: '2026-07-01', pricingEndDate: '2026-07-31', contractMonth: '2026-07', balmoStatus: 'ACTIVE', runningAvgPrice: 72.31, elapsedPricingDays: 1, totalPricingDays: 23, finalSettledPrice: null }, originCountryCode: null, demurrageRate: null, demurrageCurrency: null, demurrageBasis: null, allowedLaytimeHours: null, despatchRate: null, priceAdjustments: [], createdAt: '2026-07-01T10:30:00Z', updatedAt: '2026-07-01T21:30:00Z' },
+  // TRD-013: OIL BALMO SELL Glencore — 1 leg (ICE Brent BALMO Jul26)
+  { orderId: 15, tradeId: 13, orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00013-01', status: 'WORKING',   periodCode: 'M2026-07',  riskStartDate: '2026-07-01', riskEndDate: '2026-07-31', productId: 3,    productCode: 'BRENT-FUTURES', productName: 'Brent Crude Futures',      marketId: 1, marketCode: 'ICE_BRENT',    pricingRuleId: 14,   pricingRuleCode: 'BALMO-ICE-BZ',    quantity: 150000, uomCode: 'BBL',   price: null,  currencyCode: 'USD', incotermCode: null,   deliveryLocationCode: null,          settlementType: 'FINANCIAL',  toleranceType: null,   tolerancePlus: null, toleranceMinus: null, toleranceForScheduling: false, notes: 'Brent BALMO Jul26 — 150k BBL sell, full month BZN26', balmoDetail: { balmoProductId: 3, pricingStartDate: '2026-07-01', pricingEndDate: '2026-07-31', contractMonth: '2026-07', balmoStatus: 'ACTIVE', runningAvgPrice: 76.23, elapsedPricingDays: 1, totalPricingDays: 23, finalSettledPrice: null }, originCountryCode: null, demurrageRate: null, demurrageCurrency: null, demurrageBasis: null, allowedLaytimeHours: null, despatchRate: null, priceAdjustments: [], createdAt: '2026-07-01T14:10:00Z', updatedAt: '2026-07-01T21:30:00Z' },
+  // RINS leg — 5M D6 RINs, separated, MOT = CERTIFICATE (no physical transport)
+  { orderId: 16, tradeId: 14, orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00014-01', status: 'CONFIRMED', periodCode: 'SPOT',      riskStartDate: '2026-07-02', riskEndDate: '2026-07-02', productId: null, productCode: null,            productName: null,                        marketId: null, marketCode: null,          pricingRuleId: null, pricingRuleCode: null,               quantity: 5000000, uomCode: 'GAL',  price: 0.85,  currencyCode: 'USD', incotermCode: null,   deliveryLocationCode: null,          settlementType: 'PHYSICAL',   toleranceType: null,   tolerancePlus: null, toleranceMinus: null, toleranceForScheduling: false, originCountryCode: 'US', demurrageRate: null, demurrageCurrency: null, demurrageBasis: null, allowedLaytimeHours: null, despatchRate: null, priceAdjustments: [], notes: 'D6 2026 separated RINs @ $0.85/RIN via EMTS', rinDetail: { dCode: 'D6', vintageYear: 2026, assignmentStatus: 'SEPARATED', fuelCategoryCode: 'CORN-ETHANOL', epaBatchNumber: 'EMTS-2026-88121', emtsTransferRef: null }, createdAt: '2026-07-02T15:20:00Z', updatedAt: '2026-07-02T15:20:00Z' },
+  // ENVIRONMENTAL leg — 50,000 EUAs (50 lots x 1000) Dec26 futures
+  { orderId: 17, tradeId: 15, orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00015-01', status: 'CONFIRMED', periodCode: 'M2026-12',  riskStartDate: '2026-12-01', riskEndDate: '2026-12-31', productId: null, productCode: null,            productName: null,                        marketId: null, marketCode: null,          pricingRuleId: null, pricingRuleCode: null,               quantity: 50000,   uomCode: 'MT',   price: 72.50, currencyCode: 'EUR', incotermCode: null,   deliveryLocationCode: null,          settlementType: 'PHYSICAL',   toleranceType: null,   tolerancePlus: null, toleranceMinus: null, toleranceForScheduling: false, originCountryCode: null, demurrageRate: null, demurrageCurrency: null, demurrageBasis: null, allowedLaytimeHours: null, despatchRate: null, priceAdjustments: [], notes: 'EUA Dec26 @ EUR72.50/t — delivery to Union Registry at expiry', environmentalDetail: { envProductType: 'ALLOWANCE', schemeCode: 'EU_ETS', registryCode: 'EU-UNION-REG', vintageYear: 2026, projectCode: null, serialNumberRange: null, retirementFlag: false }, createdAt: '2026-07-02T09:45:00Z', updatedAt: '2026-07-02T09:45:00Z' },
 ];
 
 // ─── TRADE ITEMS (line items within orders) ───────────────────────────────────
@@ -1187,7 +1553,17 @@ export const etrmHandlers = [
     const input = (await request.json()) as Record<string, unknown>;
     const year = new Date().getFullYear();
     const seq = String(tradesStore.length + 1).padStart(5, '0');
-    const row = { ...input, tradeId: nextId(), tradeReference: `TRD-${year}-${seq}`, amendmentNumber: 0, isLatestVersion: true, createdAt: now(), updatedAt: now() };
+    const row = {
+      ...denormalizeTrade(input),
+      tradeId: nextId(),
+      tradeReference: `TRD-${year}-${seq}`,
+      amendmentNumber: 0,
+      isLatestVersion: true,
+      orderCount: 0,
+      parentTradeId: null,
+      createdAt: now(),
+      updatedAt: now(),
+    };
     tradesStore.push(row);
     return HttpResponse.json(row, { status: 201 });
   }),
@@ -1195,7 +1571,11 @@ export const etrmHandlers = [
     const idx = (tradesStore as Array<Record<string, unknown>>).findIndex((t) => t.tradeId === Number(params.id));
     if (idx === -1) return problem(404, 'Not Found', `Trade ${params.id} not found.`);
     const input = (await request.json()) as Record<string, unknown>;
-    (tradesStore as Array<Record<string, unknown>>)[idx] = { ...(tradesStore as Array<Record<string, unknown>>)[idx], ...input, updatedAt: now() };
+    (tradesStore as Array<Record<string, unknown>>)[idx] = {
+      ...(tradesStore as Array<Record<string, unknown>>)[idx],
+      ...denormalizeTrade(input),
+      updatedAt: now(),
+    };
     return HttpResponse.json((tradesStore as Array<Record<string, unknown>>)[idx]);
   }),
   http.patch(`${API}/trades/:id/cancel`, ({ params }) => {
@@ -1348,23 +1728,21 @@ export const etrmHandlers = [
   // Brokers — full CRUD (also used as reference data dropdown in trade capture)
   ...crudHandlers('brokers', brokersStore as Array<Record<string, unknown>>, 'brokerId'),
 
-  http.get(`${API}/counterparties`, () => HttpResponse.json([
-    { counterpartyId: 1, counterpartyCode: 'SHELL-TRD', name: 'Shell Trading International' },
-    { counterpartyId: 2, counterpartyCode: 'BP-OIL', name: 'BP Oil Trading' },
-    { counterpartyId: 3, counterpartyCode: 'EQUINOR', name: 'Equinor Energy AS' },
-    { counterpartyId: 4, counterpartyCode: 'GLENCORE', name: 'Glencore Metals' },
-    { counterpartyId: 5, counterpartyCode: 'RWE-ST', name: 'RWE Supply & Trading' },
-    { counterpartyId: 6, counterpartyCode: 'CENTRICA', name: 'Centrica Energy Trading' },
-    { counterpartyId: 7, counterpartyCode: 'VITOL', name: 'Vitol SA' },
-    { counterpartyId: 8, counterpartyCode: 'CARGILL', name: 'Cargill International SA' },
-    { counterpartyId: 9, counterpartyCode: 'TRAFIGURA', name: 'Trafigura PTE Ltd' },
-    { counterpartyId: 10, counterpartyCode: 'MERCURIA', name: 'Mercuria Energy Trading SA' },
-  ])),
-  http.get(`${API}/legal-entities`, () => HttpResponse.json([
-    { legalEntityId: 1, entityCode: 'SETRM-LTD', name: 'SmartETRM Trading Ltd', countryCode: 'GB' },
-    { legalEntityId: 2, entityCode: 'SETRM-NL', name: 'SmartETRM BV Netherlands', countryCode: 'NL' },
-    { legalEntityId: 3, entityCode: 'SETRM-SG', name: 'SmartETRM Pte Ltd Singapore', countryCode: 'SG' },
-  ])),
+  http.get(`${API}/counterparties`, () => HttpResponse.json(counterpartiesRef)),
+  http.get(`${API}/legal-entities`, () => HttpResponse.json(legalEntitiesRef)),
+
+  // Commodity → allowed instrument types config (read-only; only changed via DB migration)
+  http.get(`${API}/commodity-instrument-map`, () => HttpResponse.json({
+    OIL:           ['PHYSICAL','FUTURES','FORWARD','SWAP_FIXED_FLOAT','SWAP_FLOAT_FLOAT','OPTION_LISTED','OPTION_OTC_AMERICAN','OPTION_OTC_ASIAN','OPTION_OTC_EUROPEAN','STORAGE_AGREEMENT','TRANSPORT_AGREEMENT'],
+    GAS:           ['PHYSICAL','FUTURES','FORWARD','SWAP_FIXED_FLOAT','SWAP_FLOAT_FLOAT','OPTION_LISTED','OPTION_OTC_AMERICAN','OPTION_OTC_ASIAN','OPTION_OTC_EUROPEAN','STORAGE_AGREEMENT','TRANSPORT_AGREEMENT'],
+    POWER:         ['PHYSICAL','FUTURES','FORWARD','SWAP_FIXED_FLOAT','SWAP_FLOAT_FLOAT','OPTION_LISTED','OPTION_OTC_AMERICAN','OPTION_OTC_EUROPEAN','STORAGE_AGREEMENT'],
+    LNG:           ['PHYSICAL','FUTURES','FORWARD','SWAP_FIXED_FLOAT','SWAP_FLOAT_FLOAT','OPTION_LISTED','OPTION_OTC_AMERICAN','OPTION_OTC_ASIAN','OPTION_OTC_EUROPEAN','STORAGE_AGREEMENT','TRANSPORT_AGREEMENT'],
+    AGRICULTURAL:  ['PHYSICAL','FUTURES','FORWARD','SWAP_FIXED_FLOAT','OPTION_LISTED','OPTION_OTC_AMERICAN','OPTION_OTC_EUROPEAN','STORAGE_AGREEMENT','TRANSPORT_AGREEMENT'],
+    METALS:        ['PHYSICAL','FUTURES','FORWARD','SWAP_FIXED_FLOAT','SWAP_FLOAT_FLOAT','OPTION_LISTED','OPTION_OTC_AMERICAN','OPTION_OTC_ASIAN','OPTION_OTC_EUROPEAN','STORAGE_AGREEMENT','TRANSPORT_AGREEMENT'],
+    FREIGHT:       ['PHYSICAL','FORWARD','SWAP_FIXED_FLOAT','TRANSPORT_AGREEMENT','OPTION_OTC_EUROPEAN'],
+    RINS:          ['CERTIFICATE_TRANSFER','FUTURES','FORWARD','OPTION_LISTED','OPTION_OTC_EUROPEAN'],
+    ENVIRONMENTAL: ['CERTIFICATE_TRANSFER','FUTURES','FORWARD','OPTION_LISTED','OPTION_OTC_EUROPEAN'],
+  })),
   http.get(`${API}/incoterms`, () => HttpResponse.json([
     { incotermId: 1, incotermCode: 'FOB', incotermName: 'Free On Board', applicableModes: 'SEA' },
     { incotermId: 2, incotermCode: 'CIF', incotermName: 'Cost Insurance Freight', applicableModes: 'SEA' },
@@ -1485,6 +1863,24 @@ export const etrmHandlers = [
   ...crudHandlers('credit/margin-agreements', marginAgreementsStore as Array<Record<string, unknown>>, 'marginAgreementId'),
 
   // ─── CREDIT — Credit Limits ───────────────────────────────────────────────────
+  // Custom POST/PUT (registered before crudHandlers so they win): denormalize
+  // counterparty name/country + analyst name, compute availability/utilisation/
+  // traffic light, and auto-derive next review date.
+  http.post(`${API}/credit/limits`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const maxId = (creditLimitsStore as Array<Record<string, unknown>>).reduce((m, r) => Math.max(m, Number(r['creditLimitId'])), 0);
+    const row = { ...computeCreditLimit(input), creditLimitId: maxId + 1, alerts: [], createdAt: now(), updatedAt: now() };
+    creditLimitsStore.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/credit/limits/:id`, async ({ params, request }) => {
+    const s = creditLimitsStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['creditLimitId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Credit limit ${String(params.id)} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    s[idx] = { ...s[idx], ...computeCreditLimit({ ...s[idx], ...input }), updatedAt: now() };
+    return HttpResponse.json(s[idx]);
+  }),
   ...crudHandlers('credit/limits', creditLimitsStore as Array<Record<string, unknown>>, 'creditLimitId'),
   http.patch(`${API}/credit/limits/:id/suspend`, ({ params }) => {
     const s = creditLimitsStore as Array<Record<string, unknown>>;
@@ -1526,5 +1922,268 @@ export const etrmHandlers = [
         return { ...field, fieldPermission: r['fieldPermission'] };
       });
     return HttpResponse.json({ ...profile, rules });
+  }),
+
+  // ─── CARBON & ENVIRONMENTAL ─────────────────────────────────────────────────
+  ...crudHandlers('emission-schemes',       emissionSchemesStore       as Array<Record<string, unknown>>, 'schemeId'),
+  ...crudHandlers('environmental-products', environmentalProductsStore  as Array<Record<string, unknown>>, 'productId'),
+  ...crudHandlers('carbon-registries',      carbonRegistriesStore       as Array<Record<string, unknown>>, 'registryId'),
+  ...crudHandlers('emission-obligations',   emissionObligationsStore    as Array<Record<string, unknown>>, 'obligationId'),
+
+  // ─── FINANCE — GL ACCOUNTS ──────────────────────────────────────────────────
+  ...crudHandlers('gl-accounts', glAccountsStore as Array<Record<string, unknown>>, 'accountId'),
+
+  // ─── RINS — RENEWABLE FUEL STANDARD ─────────────────────────────────────────
+  ...crudHandlers('rin-fuel-categories', rinFuelCategoriesStore as Array<Record<string, unknown>>, 'categoryId'),
+  ...crudHandlers('rin-accounts',        rinAccountsStore       as Array<Record<string, unknown>>, 'accountId'),
+
+  // RIN transactions: POST + GET + PATCH void (no PUT — immutable ledger)
+  http.get(`${API}/rin-transactions`, () => HttpResponse.json(rinTransactionsStore)),
+  http.post(`${API}/rin-transactions`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const row = { ...input, transactionId: nextId(), createdAt: now() };
+    rinTransactionsStore.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.patch(`${API}/rin-transactions/:id/void`, ({ params }) => {
+    const id = Number(params.id);
+    const idx = (rinTransactionsStore as Array<Record<string, unknown>>).findIndex((t) => t['transactionId'] === id);
+    if (idx === -1) return problem(404, 'Not Found', `Transaction ${id} not found.`);
+    if ((rinTransactionsStore as Array<Record<string, unknown>>)[idx]['status'] !== 'PENDING')
+      return problem(400, 'Invalid State', 'Only PENDING transactions can be voided.');
+    (rinTransactionsStore as Array<Record<string, unknown>>)[idx] = { ...(rinTransactionsStore as Array<Record<string, unknown>>)[idx], status: 'VOID' };
+    return HttpResponse.json((rinTransactionsStore as Array<Record<string, unknown>>)[idx]);
+  }),
+
+  // RIN inventory: read-only
+  http.get(`${API}/rin-inventory`, () => HttpResponse.json(rinInventoryStore)),
+
+  // Settlement prices — CRUD
+  ...crudHandlers('settlement-prices', settlementPricesStore as Array<Record<string, unknown>>, 'settlementPriceId'),
+  http.patch(`${API}/settlement-prices/:id/confirm`, ({ params }) => {
+    const id = Number(params.id);
+    const idx = (settlementPricesStore as Array<Record<string, unknown>>).findIndex((s) => s['settlementPriceId'] === id);
+    if (idx === -1) return problem(404, 'Not Found', `Settlement price ${id} not found.`);
+    (settlementPricesStore as Array<Record<string, unknown>>)[idx] = { ...(settlementPricesStore as Array<Record<string, unknown>>)[idx], isConfirmed: true, updatedAt: now() };
+    return HttpResponse.json((settlementPricesStore as Array<Record<string, unknown>>)[idx]);
+  }),
+
+  // TAS positions — filtered view of orders with tasDetail
+  http.get(`${API}/pricing/tas-positions`, () => {
+    const orders = (tradeOrdersStore as Array<Record<string, unknown>>).filter((o) => o['tasDetail'] != null);
+    const positions = orders.map((o) => {
+      const trade = (tradesStore as Array<Record<string, unknown>>).find((t) => t['tradeId'] === o['tradeId']);
+      const rule  = (pricingRulesStore as Array<Record<string, unknown>>).find((r) => r['pricingRuleId'] === o['pricingRuleId']);
+      return {
+        ...o,
+        tradeReference:   trade?.['tradeReference']   ?? null,
+        counterpartyName: trade?.['counterpartyName'] ?? null,
+        direction:        trade?.['direction']        ?? null,
+        ruleCode:         rule?.['ruleCode']          ?? null,
+        tasExchange:      rule?.['tasExchange']       ?? null,
+        tasContractSeries:rule?.['tasContractSeries'] ?? null,
+        tasTickSize:      rule?.['tasTickSize']       ?? null,
+      };
+    });
+    return HttpResponse.json(positions);
+  }),
+
+  // TAS lock price — find settlement and apply
+  http.patch(`${API}/pricing/tas-positions/:orderId/lock-price`, ({ params }) => {
+    const orderId = Number(params.orderId);
+    const orderIdx = (tradeOrdersStore as Array<Record<string, unknown>>).findIndex((o) => o['orderId'] === orderId);
+    if (orderIdx === -1) return problem(404, 'Not Found', `Order ${orderId} not found.`);
+    const order = (tradeOrdersStore as Array<Record<string, unknown>>)[orderIdx];
+    const tasDetail = order['tasDetail'] as Record<string, unknown>;
+    if (!tasDetail) return problem(400, 'Not a TAS order', 'This order has no TAS detail.');
+    if (tasDetail['tasStatus'] === 'PRICE_LOCKED') return problem(400, 'Already locked', 'Price already locked for this TAS order.');
+    const ticker = String(tasDetail['tasContractTicker']);
+    const diff   = Number(tasDetail['tasDifferential']);
+    const rule   = (pricingRulesStore as Array<Record<string, unknown>>).find((r) => r['pricingRuleId'] === order['pricingRuleId']);
+    const tickSz = Number(rule?.['tasTickSize'] ?? 0.01);
+    const settlement = (settlementPricesStore as Array<Record<string, unknown>>)
+      .filter((s) => s['contractTicker'] === ticker && s['isConfirmed'] === true)
+      .sort((a, b) => String(b['settleDate']).localeCompare(String(a['settleDate'])))[0];
+    if (!settlement) return problem(422, 'No settlement price', `No confirmed settlement price found for ${ticker}.`);
+    const lockedPrice = Math.round((Number(settlement['settlePrice']) + diff * tickSz) * 10000) / 10000;
+    const updatedDetail = { ...tasDetail, tasStatus: 'PRICE_LOCKED', tasLockedPrice: lockedPrice, tasSettlementDate: String(settlement['settleDate']) };
+    (tradeOrdersStore as Array<Record<string, unknown>>)[orderIdx] = { ...order, price: lockedPrice, tasDetail: updatedDetail, updatedAt: now() };
+    const updated = (tradeOrdersStore as Array<Record<string, unknown>>)[orderIdx];
+    const trade = (tradesStore as Array<Record<string, unknown>>).find((t) => t['tradeId'] === updated['tradeId']);
+    return HttpResponse.json({ ...updated, tradeReference: trade?.['tradeReference'] ?? null, counterpartyName: trade?.['counterpartyName'] ?? null, direction: trade?.['direction'] ?? null, ruleCode: rule?.['ruleCode'] ?? null, tasExchange: rule?.['tasExchange'] ?? null, tasContractSeries: rule?.['tasContractSeries'] ?? null, tasTickSize: rule?.['tasTickSize'] ?? null });
+  }),
+
+  // ── BOLMO agreements ────────────────────────────────────────────────────────
+  http.get(`${API}/bolmo-agreements`, () => {
+    const result = (bolmoAgreementsStore as Array<Record<string, unknown>>).map((a) => ({
+      ...a,
+      legs: (bolmoLegsStore as Array<Record<string, unknown>>).filter((l) => l['bolmoId'] === a['bolmoId']),
+      legCount: (bolmoLegsStore as Array<Record<string, unknown>>).filter((l) => l['bolmoId'] === a['bolmoId']).length,
+    }));
+    return HttpResponse.json(result);
+  }),
+
+  http.post(`${API}/bolmo-agreements`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const id = nextId();
+    const year = new Date().getFullYear();
+    const seq = String(id).padStart(5, '0');
+    const row = {
+      ...input,
+      bolmoId: id,
+      bolmoReference: `BKO-${year}-${seq}`,
+      counterpartyName: null,
+      legalEntityName: 'SmartETRM Trading Ltd',
+      createdAt: now(), updatedAt: now(),
+      legs: [], legCount: 0,
+    };
+    bolmoAgreementsStore.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+
+  http.put(`${API}/bolmo-agreements/:id`, async ({ params, request }) => {
+    const id = Number(params.id);
+    const idx = (bolmoAgreementsStore as Array<Record<string, unknown>>).findIndex((a) => a['bolmoId'] === id);
+    if (idx === -1) return problem(404, 'Not Found', `BOLMO ${id} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    (bolmoAgreementsStore as Array<Record<string, unknown>>)[idx] = {
+      ...(bolmoAgreementsStore as Array<Record<string, unknown>>)[idx],
+      ...input, updatedAt: now(),
+    };
+    const a = (bolmoAgreementsStore as Array<Record<string, unknown>>)[idx];
+    return HttpResponse.json({
+      ...a,
+      legs: (bolmoLegsStore as Array<Record<string, unknown>>).filter((l) => l['bolmoId'] === id),
+      legCount: (bolmoLegsStore as Array<Record<string, unknown>>).filter((l) => l['bolmoId'] === id).length,
+    });
+  }),
+
+  ...(['agree', 'complete', 'dispute', 'cancel'] as const).map((action) =>
+    http.patch(`${API}/bolmo-agreements/:id/${action}`, ({ params }) => {
+      const id = Number(params.id);
+      const idx = (bolmoAgreementsStore as Array<Record<string, unknown>>).findIndex((a) => a['bolmoId'] === id);
+      if (idx === -1) return problem(404, 'Not Found', `BOLMO ${id} not found.`);
+      const statusMap = { agree: 'AGREED', complete: 'COMPLETED', dispute: 'DISPUTED', cancel: 'CANCELLED' } as const;
+      (bolmoAgreementsStore as Array<Record<string, unknown>>)[idx] = {
+        ...(bolmoAgreementsStore as Array<Record<string, unknown>>)[idx],
+        status: statusMap[action], updatedAt: now(),
+      };
+      const a = (bolmoAgreementsStore as Array<Record<string, unknown>>)[idx];
+      return HttpResponse.json({
+        ...a,
+        legs: (bolmoLegsStore as Array<Record<string, unknown>>).filter((l) => l['bolmoId'] === id),
+        legCount: (bolmoLegsStore as Array<Record<string, unknown>>).filter((l) => l['bolmoId'] === id).length,
+      });
+    }),
+  ),
+
+  http.get(`${API}/bolmo-agreements/:id/legs`, ({ params }) => {
+    const id = Number(params.id);
+    return HttpResponse.json((bolmoLegsStore as Array<Record<string, unknown>>).filter((l) => l['bolmoId'] === id));
+  }),
+
+  http.post(`${API}/bolmo-agreements/:id/legs`, async ({ params, request }) => {
+    const bolmoId = Number(params.id);
+    const input = (await request.json()) as Record<string, unknown>;
+    const leg = { ...input, legId: nextId(), bolmoId, orderReference: null, createdAt: now() };
+    bolmoLegsStore.push(leg);
+    // Update legCount on parent
+    const pidx = (bolmoAgreementsStore as Array<Record<string, unknown>>).findIndex((a) => a['bolmoId'] === bolmoId);
+    if (pidx !== -1) {
+      const legCount = (bolmoLegsStore as Array<Record<string, unknown>>).filter((l) => l['bolmoId'] === bolmoId).length;
+      (bolmoAgreementsStore as Array<Record<string, unknown>>)[pidx] = { ...(bolmoAgreementsStore as Array<Record<string, unknown>>)[pidx], legCount, updatedAt: now() };
+    }
+    return HttpResponse.json(leg, { status: 201 });
+  }),
+
+  http.delete(`${API}/bolmo-legs/:legId`, ({ params }) => {
+    const legId = Number(params.legId);
+    const idx = (bolmoLegsStore as Array<Record<string, unknown>>).findIndex((l) => l['legId'] === legId);
+    if (idx === -1) return problem(404, 'Not Found', `Leg ${legId} not found.`);
+    const bolmoId = (bolmoLegsStore as Array<Record<string, unknown>>)[idx]['bolmoId'] as number;
+    bolmoLegsStore.splice(idx, 1);
+    // Update legCount on parent
+    const pidx = (bolmoAgreementsStore as Array<Record<string, unknown>>).findIndex((a) => a['bolmoId'] === bolmoId);
+    if (pidx !== -1) {
+      const legCount = (bolmoLegsStore as Array<Record<string, unknown>>).filter((l) => l['bolmoId'] === bolmoId).length;
+      (bolmoAgreementsStore as Array<Record<string, unknown>>)[pidx] = { ...(bolmoAgreementsStore as Array<Record<string, unknown>>)[pidx], legCount, updatedAt: now() };
+    }
+    return new HttpResponse(null, { status: 204 });
+  }),
+
+  // BALMO products CRUD
+  ...crudHandlers('balmo-products', balmoProductsStore as Array<Record<string, unknown>>, 'balmoProductId'),
+
+  // BALMO positions — orders where balmoDetail is populated
+  http.get(`${API}/pricing/balmo-positions`, () => {
+    const orders = tradeOrdersStore as Array<Record<string, unknown>>;
+    const trades = tradesStore as Array<Record<string, unknown>>;
+    const positions = orders
+      .filter((o) => o['balmoDetail'] != null)
+      .map((o) => {
+        const trade = trades.find((t) => t['tradeId'] === o['tradeId']);
+        const bd = o['balmoDetail'] as Record<string, unknown>;
+        return {
+          orderId: o['orderId'],
+          orderReference: o['orderReference'],
+          tradeReference: trade?.['tradeReference'] ?? null,
+          counterpartyName: trade?.['counterpartyName'] ?? null,
+          direction: trade?.['direction'] ?? null,
+          quantity: o['quantity'],
+          uomCode: o['uomCode'],
+          currencyCode: o['currencyCode'],
+          contractMonth: bd['contractMonth'],
+          contractSeries: (pricingRulesStore as Array<Record<string, unknown>>).find((r) => r['pricingRuleId'] === o['pricingRuleId'])?.['balmoSeries'] ?? null,
+          exchange: (pricingRulesStore as Array<Record<string, unknown>>).find((r) => r['pricingRuleId'] === o['pricingRuleId'])?.['balmoExchange'] ?? null,
+          settlementPriceTicker: (balmoProductsStore as Array<Record<string, unknown>>).find((p) => p['balmoProductId'] === bd['balmoProductId'])?.['settlementPriceTicker'] ?? null,
+          pricingStartDate: bd['pricingStartDate'],
+          pricingEndDate: bd['pricingEndDate'],
+          balmoStatus: bd['balmoStatus'],
+          elapsedPricingDays: bd['elapsedPricingDays'],
+          totalPricingDays: bd['totalPricingDays'],
+          runningAvgPrice: bd['runningAvgPrice'],
+          finalSettledPrice: bd['finalSettledPrice'],
+          bookCode: trade?.['bookCode'] ?? null,
+          commodityType: trade?.['commodityType'] ?? null,
+        };
+      });
+    return HttpResponse.json(positions);
+  }),
+
+  // BALMO running average update (recomputes from settlement_price table — simplified mock)
+  http.patch(`${API}/pricing/balmo-positions/:orderId/update-avg`, ({ params }) => {
+    const orderId = Number(params.orderId);
+    const orders = tradeOrdersStore as Array<Record<string, unknown>>;
+    const idx = orders.findIndex((o) => o['orderId'] === orderId);
+    if (idx === -1) return problem(404, 'Not Found', `Order ${orderId} not found.`);
+    const bd = orders[idx]['balmoDetail'] as Record<string, unknown> | null;
+    if (!bd) return problem(400, 'Bad Request', 'Order does not have a BALMO detail.');
+    // Simple mock: average the settlement_price rows matching the ticker
+    const ticker = (balmoProductsStore as Array<Record<string, unknown>>).find((p) => p['balmoProductId'] === bd['balmoProductId'])?.['settlementPriceTicker'];
+    const settles = (settlementPricesStore as Array<Record<string, unknown>>).filter((s) => s['contractTicker'] === ticker);
+    const avg = settles.length ? settles.reduce((sum, s) => sum + (s['settlePrice'] as number), 0) / settles.length : null;
+    orders[idx] = { ...orders[idx], balmoDetail: { ...bd, runningAvgPrice: avg ? Math.round(avg * 10000) / 10000 : bd['runningAvgPrice'], elapsedPricingDays: (bd['elapsedPricingDays'] as number ?? 0) + 1 }, updatedAt: now() };
+    return HttpResponse.json(orders[idx]);
+  }),
+
+  // RIN obligations: GET + POST + PUT (no deactivate)
+  http.get(`${API}/rin-obligations`, () => HttpResponse.json(rinObligationsStore)),
+  http.post(`${API}/rin-obligations`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const req = Number(input['requiredQuantity'] ?? 0);
+    const ret = Number(input['retiredQuantity'] ?? 0);
+    const row = { ...input, obligationId: nextId(), shortfallQuantity: req - ret, createdAt: now(), updatedAt: now() };
+    rinObligationsStore.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/rin-obligations/:id`, async ({ params, request }) => {
+    const id = Number(params.id);
+    const idx = (rinObligationsStore as Array<Record<string, unknown>>).findIndex((o) => o['obligationId'] === id);
+    if (idx === -1) return problem(404, 'Not Found', `Obligation ${id} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    const req = Number(input['requiredQuantity'] ?? 0);
+    const ret = Number(input['retiredQuantity'] ?? 0);
+    (rinObligationsStore as Array<Record<string, unknown>>)[idx] = { ...(rinObligationsStore as Array<Record<string, unknown>>)[idx], ...input, shortfallQuantity: req - ret, updatedAt: now() };
+    return HttpResponse.json((rinObligationsStore as Array<Record<string, unknown>>)[idx]);
   }),
 ];

@@ -15,16 +15,16 @@ export interface Book {
   responsibleTraderId: number | null;
   responsibleTraderName: string | null;
   commodityType: CommodityType | null;
-  baseCurrencyId: number;
-  baseCurrencyCode: string;
+  currencyCode: string;
   positionLimit: number | null;
   pnlLimit: number | null;
   varLimit: number | null;
+  goLiveDate: string | null;
+  description: string | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
-export type BookInput = Omit<Book,
-  'bookId' | 'deskCode' | 'legalEntityCode' | 'legalEntityId' |
-  'responsibleTraderName' | 'baseCurrencyCode' | 'createdAt' | 'updatedAt'>;
+// deskCode, legalEntityCode, responsibleTraderName are denormalized — not sent on save
+export type BookInput = Omit<Book, 'bookId' | 'deskCode' | 'legalEntityCode' | 'responsibleTraderName' | 'createdAt' | 'updatedAt'>;

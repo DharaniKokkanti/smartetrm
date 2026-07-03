@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Space, Popconfirm, Tag, Drawer, Form, Input, Select, Switch, InputNumber } from 'antd';
+import { Button, Space, Popconfirm, Tag, Drawer, Form, Input, Select, Switch, InputNumber, Divider, Typography } from 'antd';
 import { EditOutlined, StopOutlined } from '@ant-design/icons';
 import type { ColDef } from 'ag-grid-community';
 import { PageHeader } from '@components/layout/PageHeader';
@@ -7,11 +7,13 @@ import { SmartGrid } from '@components/smart/SmartGrid';
 import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import { usePricingRules, useSavePricingRule, useDeactivatePricingRule } from './hooks';
-import { PRICING_TYPES, AVERAGING_METHODS, ROUNDING_RULES, type PricingRule, type PricingRuleInput, type PricingType } from './types';
+import { PRICING_TYPES, AVERAGING_METHODS, ROUNDING_RULES, TAS_EXCHANGES, TAS_CONTRACT_SERIES, BALMO_EXCHANGES, BALMO_CONTRACT_SERIES, type PricingRule, type PricingRuleInput, type PricingType } from './types';
+import { useFormDraft } from '@components/smart/formDraft';
 
 const TYPE_COLOR: Record<PricingType, string> = {
   FIXED: 'default', FLOATING: 'blue', FORMULA: 'purple', DIFFERENTIAL: 'cyan',
   AVERAGE: 'green', OPTION_STRIKE: 'orange', TAS: 'gold', PLATTS_WINDOW: 'magenta',
+  BALMO: 'lime',
 };
 
 export function PricingRulesPage() {
@@ -22,19 +24,27 @@ export function PricingRulesPage() {
   const [editing, setEditing] = useState<PricingRule | null>(null);
   const [pricingType, setPricingType] = useState<PricingType>('FLOATING');
   const [form] = Form.useForm<PricingRuleInput>();
+  useFormDraft('pricing-rules', { form, open, setOpen, editing, setEditing });
 
   function openNew() { setEditing(null); form.resetFields(); form.setFieldsValue({ isActive: true, pricingType: 'FLOATING', rounding: 'ROUND_4DP' }); setPricingType('FLOATING'); setOpen(true); }
   function openEdit(r: PricingRule) {
     setEditing(r);
-    form.setFieldsValue({ ruleCode: r.ruleCode, ruleName: r.ruleName, pricingType: r.pricingType, priceIndexCode: r.priceIndexCode ?? undefined, differentialAmount: r.differentialAmount, differentialCurrencyCode: r.differentialCurrencyCode ?? undefined, differentialUomCode: r.differentialUomCode ?? undefined, formulaExpression: r.formulaExpression ?? undefined, averagingMethod: r.averagingMethod ?? undefined, pricingCalendarCode: r.pricingCalendarCode ?? undefined, publicationSource: r.publicationSource ?? undefined, rounding: r.rounding, isActive: r.isActive });
+    form.resetFields();
+    form.setFieldsValue({ ruleCode: r.ruleCode, ruleName: r.ruleName, pricingType: r.pricingType, priceIndexCode: r.priceIndexCode ?? undefined, differentialAmount: r.differentialAmount, differentialCurrencyCode: r.differentialCurrencyCode ?? undefined, differentialUomCode: r.differentialUomCode ?? undefined, formulaExpression: r.formulaExpression ?? undefined, averagingMethod: r.averagingMethod ?? undefined, pricingCalendarCode: r.pricingCalendarCode ?? undefined, publicationSource: r.publicationSource ?? undefined, rounding: r.rounding, tasExchange: r.tasExchange ?? undefined, tasContractSeries: r.tasContractSeries ?? undefined, tasTickSize: r.tasTickSize ?? undefined, balmoExchange: r.balmoExchange ?? undefined, balmoSeries: r.balmoSeries ?? undefined, balmoTickSize: r.balmoTickSize ?? undefined, isActive: r.isActive });
     setPricingType(r.pricingType);
     setOpen(true);
   }
-  async function submit() { const v = await form.validateFields(); await save.mutateAsync({ id: editing?.pricingRuleId ?? null, input: v }); setOpen(false); }
+  async function submit(closeAfter = true) {
+    const v = await form.validateFields();
+    const saved = await save.mutateAsync({ id: editing?.pricingRuleId ?? null, input: v });
+    if (closeAfter) setOpen(false); else setEditing(saved);
+  }
 
   const showIndex = ['FLOATING', 'DIFFERENTIAL', 'AVERAGE', 'PLATTS_WINDOW'].includes(pricingType);
   const showDiff = pricingType === 'DIFFERENTIAL';
   const showFormula = pricingType === 'FORMULA';
+  const showTas = pricingType === 'TAS';
+  const showBalmo = pricingType === 'BALMO';
 
   const colDefs = useMemo<ColDef<PricingRule>[]>(() => [
     { field: 'ruleCode', headerName: 'Rule Code', cellClass: 'cell-mono', width: 150, pinned: 'left' },
@@ -49,6 +59,16 @@ export function PricingRulesPage() {
       tooltipValueGetter: () => 'Mathematical formula for complex pricing — e.g. (DTBRT + BFOE_DIFF) * 7.45 + FREIGHT - 1.50' },
     { field: 'averagingMethod', headerName: 'Averaging', width: 110, valueFormatter: (p) => p.value ?? '—' },
     { field: 'pricingCalendarCode', headerName: 'Calendar', width: 100, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },
+    {
+      headerName: 'TAS Config', width: 140, cellClass: 'cell-mono',
+      valueGetter: (p) =>
+        p.data?.pricingType === 'TAS' && p.data.tasContractSeries
+          ? `${p.data.tasContractSeries} / tick ${p.data.tasTickSize}`
+          : null,
+      valueFormatter: (p) => p.value ?? '—',
+      tooltipValueGetter: (p) =>
+        p.data?.pricingType === 'TAS' ? `Exchange: ${p.data.tasExchange ?? '—'}  Series: ${p.data.tasContractSeries ?? '—'}  Tick: ${p.data.tasTickSize ?? '—'}` : '',
+    },
     { field: 'isActive', headerName: 'Status', width: 100, cellRenderer: (p: { value: boolean }) => <ActiveTag active={p.value} /> },
     {
       headerName: '', width: 90, sortable: false, filter: false, pinned: 'right',
@@ -71,7 +91,7 @@ export function PricingRulesPage() {
       <SmartGrid columnDefs={colDefs} rowData={data} loading={isLoading} onAdd={openNew} addLabel="New Pricing Rule" onRefresh={() => { void refetch(); }} getRowId={(p) => String(p.data.pricingRuleId)} />
 
       <Drawer title={editing ? `Edit Pricing Rule — ${editing.ruleCode}` : 'New Pricing Rule'} open={open} onClose={() => setOpen(false)} width={560}
-        footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button type="primary" onClick={submit} loading={save.isPending}>Save</Button></Space>}>
+        footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
         <Form form={form} layout="vertical" onValuesChange={(c) => { if (c.pricingType) setPricingType(c.pricingType as PricingType); }}>
           <Form.Item name="ruleCode" label={hint('Rule Code', 'Unique identifier for this pricing rule. Referenced in contracts and deal capture. Recommendation: prefix by type — FX-DTBRT-M1 (floating Dated Brent monthly), DIFF-WTI-CUSHING (WTI differential).', 'FX-DTBRT-M1, DIFF-WTI-CUSHING')} rules={[{ required: true }]}>
             <Input placeholder="FX-DTBRT-M1" style={{ fontFamily: 'monospace' }} />
@@ -107,6 +127,44 @@ export function PricingRulesPage() {
             <Form.Item name="formulaExpression" label={hint('Formula Expression', 'Mathematical formula using index codes as variables. Operators: +, -, *, /, (, ). Index codes must match Price Indices master data. Example: (DTBRT + BFOE_DIFF) * 7.45 + FREIGHT - 1.50. For conditional pricing use IF() syntax.', '(DTBRT + BFOE_DIFF) * 7.45')} rules={[{ required: showFormula }]}>
               <Input.TextArea rows={3} style={{ fontFamily: 'monospace' }} placeholder="(DTBRT + BFOE_DIFF) * 7.45 + FREIGHT - 1.50" />
             </Form.Item>
+          )}
+
+          {showTas && (
+            <>
+              <Divider orientation="left" style={{ margin: '12px 0 8px', fontSize: 11 }}>
+                <Typography.Text type="secondary" style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>TAS Configuration</Typography.Text>
+              </Divider>
+              <Space style={{ width: '100%', gap: 12 }}>
+                <Form.Item name="tasExchange" label={hint('Exchange', 'Exchange where settlement price is published. CME_NYMEX: WTI CL, NG, HO, RB. ICE_EUROPE: Brent BZ, Gasoil.', 'CME_NYMEX')} style={{ flex: 1 }} rules={[{ required: showTas }]}>
+                  <Select options={TAS_EXCHANGES.map((e) => ({ value: e, label: e.replace(/_/g, ' ') }))} placeholder="CME_NYMEX" />
+                </Form.Item>
+                <Form.Item name="tasContractSeries" label={hint('Contract Series', 'Futures product family. CL = WTI Crude, NG = Natural Gas, HO = Heating Oil, RB = RBOB Gasoline, BZ = ICE Brent.', 'CL')} style={{ flex: 1 }} rules={[{ required: showTas }]}>
+                  <Select options={TAS_CONTRACT_SERIES.map((s) => ({ value: s, label: s }))} placeholder="CL" />
+                </Form.Item>
+                <Form.Item name="tasTickSize" label={hint('Tick Size', 'Minimum price movement in USD per unit. CL: $0.01/bbl. NG: $0.001/mmbtu. HO/RB: $0.0001/gal. BZ: $0.01/bbl.', '0.01')} style={{ flex: 1 }} rules={[{ required: showTas }]}>
+                  <InputNumber style={{ width: '100%' }} precision={6} step={0.001} placeholder="0.01" min={0.0001} />
+                </Form.Item>
+              </Space>
+            </>
+          )}
+
+          {showBalmo && (
+            <>
+              <Divider orientation="left" style={{ margin: '12px 0 8px', fontSize: 11 }}>
+                <Typography.Text type="secondary" style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>BALMO Configuration</Typography.Text>
+              </Divider>
+              <Space style={{ width: '100%', gap: 12 }}>
+                <Form.Item name="balmoExchange" label={hint('Exchange', 'Exchange listing the BALMO contract. CME_NYMEX: WTI CL BALMO (J42), NG BALMO. ICE_EUROPE: Brent BALMO, Gasoil BALMO.', 'CME_NYMEX')} style={{ flex: 1 }} rules={[{ required: showBalmo }]}>
+                  <Select options={BALMO_EXCHANGES.map((e) => ({ value: e, label: e.replace(/_/g, ' ') }))} placeholder="CME_NYMEX" />
+                </Form.Item>
+                <Form.Item name="balmoSeries" label={hint('Contract Series', 'Underlying futures family for daily settlement. CL = WTI BALMO, BZ = ICE Brent BALMO, HO = Heating Oil BALMO, NG = Henry Hub BALMO.', 'CL')} style={{ flex: 1 }} rules={[{ required: showBalmo }]}>
+                  <Select options={BALMO_CONTRACT_SERIES.map((s) => ({ value: s, label: s }))} placeholder="CL" />
+                </Form.Item>
+                <Form.Item name="balmoTickSize" label={hint('Tick Size', 'Minimum price movement — same as the underlying futures. CL: $0.01/bbl. NG: $0.001/mmbtu. HO/RB: $0.0001/gal. BZ: $0.01/bbl.', '0.01')} style={{ flex: 1 }} rules={[{ required: showBalmo }]}>
+                  <InputNumber style={{ width: '100%' }} precision={6} step={0.001} placeholder="0.01" min={0.0001} />
+                </Form.Item>
+              </Space>
+            </>
           )}
 
           <Space style={{ width: '100%', gap: 12 }}>

@@ -9,6 +9,7 @@ import { hint } from '@components/smart/FieldHint';
 import { usePriceIndices, useSavePriceIndex, useDeactivatePriceIndex } from './hooks';
 import { PUBLICATION_SOURCES, type PriceIndex, type PriceIndexInput } from './types';
 import { COMMODITY_TYPES, type CommodityType } from '@features/organization/desks/types';
+import { useFormDraft } from '@components/smart/formDraft';
 
 const SOURCE_COLOR: Record<string, string> = {
   PLATTS: 'blue', ARGUS: 'cyan', ICE: 'purple', LME: 'gold',
@@ -16,6 +17,7 @@ const SOURCE_COLOR: Record<string, string> = {
 };
 const COMMODITY_COLOR: Record<CommodityType, string> = {
   OIL: 'volcano', GAS: 'blue', POWER: 'gold', METALS: 'purple', AGRICULTURAL: 'green',
+  LNG: 'cyan', FREIGHT: 'orange', RINS: 'lime', ENVIRONMENTAL: 'geekblue', MULTI: 'magenta', OTHER: 'default',
 };
 
 export function PriceIndicesPage() {
@@ -26,6 +28,7 @@ export function PriceIndicesPage() {
   const [editing, setEditing] = useState<PriceIndex | null>(null);
   const [activeCommodity, setActiveCommodity] = useState<'ALL' | CommodityType>('ALL');
   const [form] = Form.useForm<PriceIndexInput>();
+  useFormDraft('markets-price-indices', { form, open, setOpen, editing, setEditing });
 
   const filtered = useMemo(
     () => (data ?? []).filter((p) => activeCommodity === 'ALL' || p.commodityType === activeCommodity),
@@ -38,7 +41,11 @@ export function PriceIndicesPage() {
     form.setFieldsValue({ indexCode: p.indexCode, indexName: p.indexName, commodityType: p.commodityType, currencyCode: p.currencyCode, uomCode: p.uomCode, publicationSource: p.publicationSource, fixingTime: p.fixingTime ?? undefined, fixingTimezone: p.fixingTimezone ?? undefined, publishedPage: p.publishedPage ?? undefined, isActive: p.isActive });
     setOpen(true);
   }
-  async function submit() { const v = await form.validateFields(); await save.mutateAsync({ id: editing?.priceIndexId ?? null, input: v }); setOpen(false); }
+  async function submit(closeAfter = true) {
+    const v = await form.validateFields();
+    const saved = await save.mutateAsync({ id: editing?.priceIndexId ?? null, input: v });
+    if (closeAfter) setOpen(false); else setEditing(saved);
+  }
 
   const colDefs = useMemo<ColDef<PriceIndex>[]>(() => [
     { field: 'indexCode', headerName: 'Index Code', cellClass: 'cell-mono', width: 170, pinned: 'left',
@@ -83,7 +90,7 @@ export function PriceIndicesPage() {
         getRowId={(p) => String(p.data.priceIndexId)} />
 
       <Drawer title={editing ? `Edit Index — ${editing.indexCode}` : 'New Price Index'} open={open} onClose={() => setOpen(false)} width={520}
-        footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button type="primary" onClick={submit} loading={save.isPending}>Save</Button></Space>}>
+        footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
         <Form form={form} layout="vertical">
           <Form.Item name="indexCode" label={hint('Index Code', 'Canonical code for this benchmark. Use the industry-standard code from the publication source (e.g. Platts uses DTBRT for Dated Brent, Argus uses PA0003858). This code is used in pricing formula expressions.', 'DATED_BRENT')} rules={[{ required: true }]}>
             <Input placeholder="DATED_BRENT" style={{ fontFamily: 'monospace' }} />

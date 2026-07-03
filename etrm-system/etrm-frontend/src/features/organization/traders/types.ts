@@ -13,6 +13,8 @@ export interface Trader {
   userId: number;
   fullName: string;
   email: string;
+  legalEntityId: number;
+  legalEntityCode: string;
   deskId: number;
   deskCode: string;
   deskName: string;
@@ -26,5 +28,6 @@ export interface Trader {
   updatedAt: string;
 }
 
+// fullName, email, legalEntityCode, deskCode, deskName, approverName are denormalized — not sent on save
 export type TraderInput = Omit<Trader,
-  'traderId' | 'fullName' | 'email' | 'deskCode' | 'deskName' | 'approverName' | 'createdAt' | 'updatedAt'>;
+  'traderId' | 'fullName' | 'email' | 'legalEntityCode' | 'deskCode' | 'deskName' | 'approverName' | 'createdAt' | 'updatedAt'>;

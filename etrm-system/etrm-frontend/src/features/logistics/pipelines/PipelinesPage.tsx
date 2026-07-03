@@ -8,6 +8,7 @@ import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import { usePipelines, useSavePipeline, useDeactivatePipeline } from './hooks';
 import { PIPELINE_TYPES, PIPELINE_STATUS_CODES, type Pipeline, type PipelineInput, type PipelineType, type PipelineStatusCode } from './types';
+import { useFormDraft } from '@components/smart/formDraft';
 
 const TYPE_COLOR: Record<PipelineType, string> = {
   CRUDE_OIL: 'blue', REFINED_PRODUCTS: 'green', NATURAL_GAS: 'orange', LNG: 'gold',
@@ -25,6 +26,7 @@ export function PipelinesPage() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Pipeline | null>(null);
   const [form] = Form.useForm<PipelineInput>();
+  useFormDraft('logistics-pipelines', { form, open, setOpen, editing, setEditing });
 
   function openNew() { setEditing(null); form.resetFields(); form.setFieldValue('isActive', true); form.setFieldValue('statusCode', 'OPERATIONAL'); setOpen(true); }
   function openEdit(p: Pipeline) {
@@ -39,7 +41,11 @@ export function PipelinesPage() {
     });
     setOpen(true);
   }
-  async function submit() { const v = await form.validateFields(); await save.mutateAsync({ id: editing?.pipelineId ?? null, input: v }); setOpen(false); }
+  async function submit(closeAfter = true) {
+    const v = await form.validateFields();
+    const saved = await save.mutateAsync({ id: editing?.pipelineId ?? null, input: v });
+    if (closeAfter) setOpen(false); else setEditing(saved);
+  }
 
   const colDefs = useMemo<ColDef<Pipeline>[]>(() => [
     { field: 'pipelineCode', headerName: 'Code', cellClass: 'cell-mono', width: 130, pinned: 'left' },
@@ -78,7 +84,7 @@ export function PipelinesPage() {
       <SmartGrid columnDefs={colDefs} rowData={data} loading={isLoading} onAdd={openNew} addLabel="New Pipeline" onRefresh={() => { void refetch(); }} getRowId={(p) => String(p.data.pipelineId)} />
 
       <Drawer title={editing ? `Edit Pipeline — ${editing.pipelineCode}` : 'New Pipeline'} open={open} onClose={() => setOpen(false)} width={540}
-        footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button type="primary" onClick={submit} loading={save.isPending}>Save</Button></Space>}>
+        footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
         <Form form={form} layout="vertical">
           <Form.Item name="pipelineCode" label={hint('Pipeline Code', 'Industry-standard or internal code. Gas pipelines often follow TSO nomination codes. Examples: TANAP (Trans-Anatolian), EUGAL (European Gas Link), GNS (Greet Northern System).', 'TANAP-GAS')} rules={[{ required: true }]}>
             <Input placeholder="TANAP-GAS" style={{ fontFamily: 'monospace', textTransform: 'uppercase' }} />

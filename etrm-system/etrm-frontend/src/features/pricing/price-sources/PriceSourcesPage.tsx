@@ -19,6 +19,7 @@ import {
   type PriceSource, type PriceSourceInput, type SourceType, type PriceIndexSource,
   type PriceIndexSourceInput,
 } from './types';
+import { useFormDraft } from '@components/smart/formDraft';
 
 const TYPE_COLOR: Record<SourceType, string> = {
   EXCHANGE: 'blue', VENDOR: 'green', BROKER: 'purple', BLOOMBERG: 'cyan',
@@ -46,7 +47,7 @@ function IndexLinksDrawer({ source, onClose }: { source: PriceSource; onClose: (
     form.setFieldsValue({ priceIndexId: l.priceIndexId, priceSourceId: l.priceSourceId, sourceRole: l.sourceRole, sourceFieldCode: l.sourceFieldCode ?? undefined, sourceTicker: l.sourceTicker ?? undefined, priceMultiplier: l.priceMultiplier, priceOffset: l.priceOffset, effectiveFrom: dayjs(l.effectiveFrom) as unknown as string, effectiveTo: l.effectiveTo ? dayjs(l.effectiveTo) as unknown as string : undefined, isActive: l.isActive });
     setAddOpen(true);
   }
-  async function submit() {
+  async function submit(closeAfter = true) {
     const v = await form.validateFields();
     const input: PriceIndexSourceInput = {
       ...v,
@@ -54,7 +55,7 @@ function IndexLinksDrawer({ source, onClose }: { source: PriceSource; onClose: (
       effectiveTo: v.effectiveTo ? dayjs(v.effectiveTo as unknown as dayjs.Dayjs).format('YYYY-MM-DD') : null,
     };
     await save.mutateAsync({ id: editing?.pisId ?? null, input });
-    setAddOpen(false);
+    if (closeAfter) { setAddOpen(false); } else { setEditing(null); form.resetFields(); }
   }
 
   return (
@@ -132,7 +133,8 @@ function IndexLinksDrawer({ source, onClose }: { source: PriceSource; onClose: (
               </Form.Item>
             </Space>
             <Space>
-              <Button type="primary" size="small" onClick={submit} loading={save.isPending}>Save</Button>
+              <Button size="small" onClick={() => { void submit(false); }} loading={save.isPending}>Save & Next</Button>
+              <Button type="primary" size="small" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button>
               <Button size="small" onClick={() => { setAddOpen(false); form.resetFields(); }}>Cancel</Button>
             </Space>
           </Form>
@@ -151,6 +153,7 @@ export function PriceSourcesPage() {
   const [linksSource, setLinksSource] = useState<PriceSource | null>(null);
   const [editing, setEditing] = useState<PriceSource | null>(null);
   const [form] = Form.useForm<PriceSourceInput>();
+  useFormDraft('pricing-price-sources', { form, open: editOpen, setOpen: setEditOpen, editing, setEditing });
 
   function openNew() { setEditing(null); form.resetFields(); form.setFieldsValue({ isActive: true, deliveryMethod: 'API', frequency: 'EOD' }); setEditOpen(true); }
   function openEdit(s: PriceSource) {
@@ -158,7 +161,11 @@ export function PriceSourcesPage() {
     form.setFieldsValue({ sourceCode: s.sourceCode, sourceName: s.sourceName, sourceType: s.sourceType, deliveryMethod: s.deliveryMethod, frequency: s.frequency, timezone: s.timezone ?? undefined, baseUrl: s.baseUrl ?? undefined, credentialsRef: s.credentialsRef ?? undefined, slaMinutes: s.slaMinutes, isActive: s.isActive });
     setEditOpen(true);
   }
-  async function submit() { const v = await form.validateFields(); await save.mutateAsync({ id: editing?.priceSourceId ?? null, input: v }); setEditOpen(false); }
+  async function submit(closeAfter = true) {
+    const v = await form.validateFields();
+    const saved = await save.mutateAsync({ id: editing?.priceSourceId ?? null, input: v });
+    if (closeAfter) setEditOpen(false); else setEditing(saved);
+  }
 
   const colDefs = useMemo<ColDef<PriceSource>[]>(() => [
     { field: 'sourceCode', headerName: 'Source Code', cellClass: 'cell-mono', width: 130, pinned: 'left',
@@ -204,7 +211,7 @@ export function PriceSourcesPage() {
       <Drawer
         title={editing ? `Edit Price Source — ${editing.sourceCode}` : 'New Price Source'}
         open={editOpen} onClose={() => setEditOpen(false)} width={520}
-        footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setEditOpen(false)}>Cancel</Button><Button type="primary" onClick={submit} loading={save.isPending}>Save</Button></Space>}
+        footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setEditOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}
       >
         <Form form={form} layout="vertical">
           <Form.Item name="sourceCode" label={hint('Source Code', 'Short code used internally and in configuration files. Industry-standard: PLATTS, ARGUS, BLOOMBERG, ICE_DATA, NYMEX_DATA, LME_DATA, REUTERS.', 'PLATTS, ARGUS, BLOOMBERG')} rules={[{ required: true }]}>

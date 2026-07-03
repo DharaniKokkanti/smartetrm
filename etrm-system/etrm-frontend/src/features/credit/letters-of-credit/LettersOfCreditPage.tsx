@@ -12,6 +12,7 @@ import { useCounterparties, useLegalEntities } from '@features/trade/hooks';
 import { useTableRows } from '@features/tier2/hooks';
 import { useLettersOfCredit, useSaveLetterOfCredit, useCancelLetterOfCredit } from './hooks';
 import type { LetterOfCredit, LetterOfCreditInput } from './types';
+import { useFormDraft } from '@components/smart/formDraft';
 
 const { Text } = Typography;
 
@@ -47,6 +48,7 @@ export function LettersOfCreditPage() {
   const [open, setOpen]       = useState(false);
   const [editing, setEditing] = useState<LetterOfCredit | null>(null);
   const [form]                = Form.useForm<LetterOfCreditInput>();
+  useFormDraft('credit-lcs', { form, open, setOpen, editing, setEditing });
 
   function openNew() {
     setEditing(null);
@@ -73,10 +75,10 @@ export function LettersOfCreditPage() {
     setOpen(true);
   }
 
-  async function submit() {
+  async function submit(closeAfter = true) {
     const values = await form.validateFields();
-    await save.mutateAsync({ id: editing?.lcId ?? null, input: values });
-    setOpen(false);
+    const saved = await save.mutateAsync({ id: editing?.lcId ?? null, input: values });
+    if (closeAfter) setOpen(false); else setEditing(saved);
   }
 
   const cpOpts = useMemo(
@@ -177,7 +179,8 @@ export function LettersOfCreditPage() {
         footer={
           <Space style={{ justifyContent: 'flex-end', display: 'flex' }}>
             <Button onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="primary" onClick={submit} loading={save.isPending}>Save</Button>
+            <Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button>
+            <Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button>
           </Space>
         }
       >

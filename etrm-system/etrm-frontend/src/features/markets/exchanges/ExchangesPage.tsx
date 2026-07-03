@@ -8,6 +8,7 @@ import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import { useExchanges, useSaveExchange, useDeactivateExchange } from './hooks';
 import { EXCHANGE_TYPES, type Exchange, type ExchangeInput } from './types';
+import { useFormDraft } from '@components/smart/formDraft';
 
 const TYPE_COLOR: Record<string, string> = {
   EXCHANGE: 'blue', ECN: 'purple', OTC_PLATFORM: 'cyan', DARK_POOL: 'default',
@@ -20,10 +21,15 @@ export function ExchangesPage() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Exchange | null>(null);
   const [form] = Form.useForm<ExchangeInput>();
+  useFormDraft('markets-exchanges', { form, open, setOpen, editing, setEditing });
 
   function openNew() { setEditing(null); form.resetFields(); form.setFieldValue('isActive', true); setOpen(true); }
   function openEdit(e: Exchange) { setEditing(e); form.setFieldsValue({ exchangeCode: e.exchangeCode, exchangeName: e.exchangeName, exchangeType: e.exchangeType, countryCode: e.countryCode, timezone: e.timezone, currencyCode: e.currencyCode, regulator: e.regulator ?? undefined, micCode: e.micCode ?? undefined, clearingHouse: e.clearingHouse ?? undefined, isActive: e.isActive }); setOpen(true); }
-  async function submit() { const v = await form.validateFields(); await save.mutateAsync({ id: editing?.exchangeId ?? null, input: v }); setOpen(false); }
+  async function submit(closeAfter = true) {
+    const v = await form.validateFields();
+    const saved = await save.mutateAsync({ id: editing?.exchangeId ?? null, input: v });
+    if (closeAfter) setOpen(false); else setEditing(saved);
+  }
 
   const colDefs = useMemo<ColDef<Exchange>[]>(() => [
     { field: 'exchangeCode', headerName: 'Code', cellClass: 'cell-mono', width: 100, pinned: 'left' },
@@ -60,7 +66,7 @@ export function ExchangesPage() {
       <SmartGrid columnDefs={colDefs} rowData={data} loading={isLoading} onAdd={openNew} addLabel="New Exchange" onRefresh={() => { void refetch(); }} getRowId={(p) => String(p.data.exchangeId)} />
 
       <Drawer title={editing ? `Edit Exchange — ${editing.exchangeCode}` : 'New Exchange'} open={open} onClose={() => setOpen(false)} width={520}
-        footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button type="primary" onClick={submit} loading={save.isPending}>Save</Button></Space>}>
+        footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
         <Form form={form} layout="vertical">
           <Form.Item name="exchangeCode" label={hint('Exchange Code', 'Short code used internally for this venue. Typically follows the exchange\'s own abbreviation.', 'ICE, NYMEX, LME, EEX')} rules={[{ required: true }]}>
             <Input placeholder="ICE" style={{ fontFamily: 'monospace', textTransform: 'uppercase' }} />

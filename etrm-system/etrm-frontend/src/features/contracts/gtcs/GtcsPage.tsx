@@ -9,6 +9,7 @@ import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import { useGtcs, useSaveGtc, useDeactivateGtc } from './hooks';
 import { GTC_TYPES, type Gtc, type GtcInput, type GtcType } from './types';
+import { useFormDraft } from '@components/smart/formDraft';
 
 const TYPE_COLOR: Record<GtcType, string> = {
   CRUDE_OIL: 'blue',
@@ -29,6 +30,7 @@ export function GtcsPage() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Gtc | null>(null);
   const [form] = Form.useForm<GtcInput>();
+  useFormDraft('contracts-gtcs', { form, open, setOpen, editing, setEditing });
 
   function openNew() {
     setEditing(null);
@@ -55,15 +57,15 @@ export function GtcsPage() {
     setOpen(true);
   }
 
-  async function submit() {
+  async function submit(closeAfter = true) {
     const v = await form.validateFields();
     const input: GtcInput = {
       ...v,
       effectiveDate: v.effectiveDate ? dayjs(v.effectiveDate as unknown as dayjs.Dayjs).format('YYYY-MM-DD') : '',
       expiryDate: v.expiryDate ? dayjs(v.expiryDate as unknown as dayjs.Dayjs).format('YYYY-MM-DD') : null,
     };
-    await save.mutateAsync({ id: editing?.gtcId ?? null, input });
-    setOpen(false);
+    const saved = await save.mutateAsync({ id: editing?.gtcId ?? null, input });
+    if (closeAfter) setOpen(false); else setEditing(saved);
   }
 
   const colDefs = useMemo<ColDef<Gtc>[]>(() => [
@@ -119,7 +121,8 @@ export function GtcsPage() {
         footer={
           <Space style={{ justifyContent: 'flex-end', display: 'flex' }}>
             <Button onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="primary" onClick={submit} loading={save.isPending}>Save</Button>
+            <Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button>
+            <Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button>
           </Space>
         }
       >

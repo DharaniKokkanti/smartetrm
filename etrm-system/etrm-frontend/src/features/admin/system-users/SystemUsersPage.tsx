@@ -8,6 +8,7 @@ import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import { useSystemUsers, useSaveSystemUser, useDeactivateSystemUser } from './hooks';
 import { USER_ROLES, type SystemUser, type SystemUserInput, type UserRole } from './types';
+import { useFormDraft } from '@components/smart/formDraft';
 
 const ROLE_COLOR: Record<UserRole, string> = {
   ADMIN: 'red',
@@ -25,6 +26,7 @@ export function SystemUsersPage() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<SystemUser | null>(null);
   const [form] = Form.useForm<SystemUserInput>();
+  useFormDraft('admin-users', { form, open, setOpen, editing, setEditing });
 
   function openNew() {
     setEditing(null);
@@ -50,10 +52,10 @@ export function SystemUsersPage() {
     setOpen(true);
   }
 
-  async function submit() {
+  async function submit(closeAfter = true) {
     const values = await form.validateFields();
-    await save.mutateAsync({ id: editing?.userId ?? null, input: values });
-    setOpen(false);
+    const saved = await save.mutateAsync({ id: editing?.userId ?? null, input: values });
+    if (closeAfter) setOpen(false); else setEditing(saved);
   }
 
   const colDefs = useMemo<ColDef<SystemUser>[]>(() => [
@@ -114,7 +116,8 @@ export function SystemUsersPage() {
         footer={
           <Space style={{ justifyContent: 'flex-end', display: 'flex' }}>
             <Button onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="primary" onClick={submit} loading={save.isPending}>Save</Button>
+            <Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button>
+            <Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button>
           </Space>
         }
       >

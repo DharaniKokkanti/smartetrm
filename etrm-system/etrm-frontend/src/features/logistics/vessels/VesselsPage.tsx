@@ -10,6 +10,7 @@ import { ExpiryBadge } from '@components/smart/ExpiryBadge';
 import { hint } from '@components/smart/FieldHint';
 import { useVessels, useSaveVessel, useDeactivateVessel } from './hooks';
 import { VESSEL_TYPES, VESSEL_STATUS_CODES, type Vessel, type VesselInput, type VesselType, type VesselStatusCode } from './types';
+import { useFormDraft } from '@components/smart/formDraft';
 
 const TYPE_COLOR: Record<VesselType, string> = {
   VLCC: 'blue', SUEZMAX: 'geekblue', AFRAMAX: 'purple', PANAMAX: 'cyan',
@@ -30,6 +31,7 @@ export function VesselsPage() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Vessel | null>(null);
   const [form] = Form.useForm<VesselInput>();
+  useFormDraft('logistics-vessels', { form, open, setOpen, editing, setEditing });
 
   function openNew() { setEditing(null); form.resetFields(); form.setFieldValue('isActive', true); form.setFieldValue('statusCode', 'ACTIVE'); setOpen(true); }
   function openEdit(v: Vessel) {
@@ -45,15 +47,15 @@ export function VesselsPage() {
     setOpen(true);
   }
 
-  async function submit() {
+  async function submit(closeAfter = true) {
     const v = await form.validateFields();
     const input: VesselInput = {
       ...v,
       vettingExpiry: v.vettingExpiry ? dayjs(v.vettingExpiry as unknown as dayjs.Dayjs).format('YYYY-MM-DD') : null,
       sireInspectionDate: v.sireInspectionDate ? dayjs(v.sireInspectionDate as unknown as dayjs.Dayjs).format('YYYY-MM-DD') : null,
     };
-    await save.mutateAsync({ id: editing?.vesselId ?? null, input });
-    setOpen(false);
+    const saved = await save.mutateAsync({ id: editing?.vesselId ?? null, input });
+    if (closeAfter) setOpen(false); else setEditing(saved);
   }
 
   const colDefs = useMemo<ColDef<Vessel>[]>(() => [
@@ -92,7 +94,7 @@ export function VesselsPage() {
       <SmartGrid columnDefs={colDefs} rowData={data} loading={isLoading} onAdd={openNew} addLabel="New Vessel" onRefresh={() => { void refetch(); }} getRowId={(p) => String(p.data.vesselId)} />
 
       <Drawer title={editing ? `Edit Vessel — ${editing.imoNumber}` : 'New Vessel'} open={open} onClose={() => setOpen(false)} width={560}
-        footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button type="primary" onClick={submit} loading={save.isPending}>Save</Button></Space>}>
+        footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
         <Form form={form} layout="vertical">
           <Space style={{ width: '100%', gap: 12 }}>
             <Form.Item name="imoNumber" label={hint('IMO Number', 'International Maritime Organization vessel identifier — permanent 7-digit number prefixed "IMO". Assigned by Lloyd\'s Register. Never changes on rename or re-flagging. MARPOL 73/78 requires display on hull.', 'IMO 9741060', 'IMO NNNNNNN')} rules={[{ required: true, pattern: /^IMO\s?\d{7}$/, message: 'Format: IMO 9741060' }]} style={{ flex: 1 }}>

@@ -8,6 +8,7 @@ import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import { useCurrencies, useSaveCurrency, useDeactivateCurrency } from './hooks';
 import type { Currency, CurrencyInput } from './types';
+import { useFormDraft } from '@components/smart/formDraft';
 
 export function CurrenciesPage() {
   const { data, isLoading, refetch } = useCurrencies();
@@ -16,10 +17,15 @@ export function CurrenciesPage() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Currency | null>(null);
   const [form] = Form.useForm<CurrencyInput>();
+  useFormDraft('ref-currencies', { form, open, setOpen, editing, setEditing });
 
   function openNew() { setEditing(null); form.resetFields(); form.setFieldsValue({ decimalPlaces: 2, isBaseCurrency: false, isActive: true }); setOpen(true); }
   function openEdit(r: Currency) { setEditing(r); form.setFieldsValue({ ...r }); setOpen(true); }
-  async function submit() { const v = await form.validateFields(); await save.mutateAsync({ id: editing?.currencyId ?? null, input: v }); setOpen(false); }
+  async function submit(closeAfter = true) {
+    const v = await form.validateFields();
+    const saved = await save.mutateAsync({ id: editing?.currencyId ?? null, input: v });
+    if (closeAfter) setOpen(false); else setEditing(saved);
+  }
 
   const colDefs = useMemo<ColDef<Currency>[]>(() => [
     { field: 'currencyCode', headerName: 'Code', width: 80, pinned: 'left', cellClass: 'cell-mono',
@@ -49,7 +55,7 @@ export function CurrenciesPage() {
       <PageHeader title="Currencies" description="ISO 4217 currency codes used across all trade, pricing, and settlement records." moduleGroup="reference" />
       <SmartGrid columnDefs={colDefs} rowData={data} loading={isLoading} onAdd={openNew} addLabel="New Currency" onRefresh={() => { void refetch(); }} getRowId={(p) => String(p.data.currencyId)} />
       <Drawer title={editing ? `Edit ${editing.currencyCode}` : 'New Currency'} open={open} onClose={() => setOpen(false)} width={460}
-        footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button type="primary" onClick={submit} loading={save.isPending}>Save</Button></Space>}>
+        footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
         <Form form={form} layout="vertical">
           <Form.Item name="currencyCode" label={hint('Currency Code', 'ISO 4217 three-letter code — USD, EUR, GBP. Cannot be changed once used in a trade.', 'USD')} rules={[{ required: true, max: 3 }]}>
             <Input placeholder="USD" maxLength={3} style={{ fontFamily: 'monospace', textTransform: 'uppercase', fontWeight: 700 }} />

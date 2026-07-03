@@ -8,12 +8,14 @@ import { ActiveTag } from '@components/smart/StatusTag';
 import { useDesks, useDeactivateDesk } from './hooks';
 import type { Desk } from './types';
 import { DeskFormDrawer } from './DeskFormDrawer';
+import { useDraftState } from '@components/smart/formDraft';
 
 export function DesksPage() {
   const { data, isLoading, refetch } = useDesks();
   const deactivate = useDeactivateDesk();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editing, setEditing] = useState<Desk | null>(null);
+  useDraftState('org-desks', { open: drawerOpen, setOpen: setDrawerOpen, editing, setEditing });
 
   const colDefs = useMemo<ColDef<Desk>[]>(() => [
     { field: 'deskCode', headerName: 'Code', cellClass: 'cell-mono', width: 140, pinned: 'left' },
@@ -71,7 +73,7 @@ export function DesksPage() {
         onRefresh={() => { void refetch(); }}
         getRowId={(p) => String(p.data.deskId)}
       />
-      <DeskFormDrawer open={drawerOpen} editing={editing} onClose={() => setDrawerOpen(false)} />
+      <DeskFormDrawer open={drawerOpen} editing={editing} onClose={() => setDrawerOpen(false)} onSaved={(d) => setEditing(d)} />
     </>
   );
 }

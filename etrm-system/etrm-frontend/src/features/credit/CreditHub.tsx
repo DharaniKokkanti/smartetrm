@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Card, Col, Row, Typography, Tag } from 'antd';
 import {
-  SafetyCertificateOutlined, DollarOutlined, BankOutlined, AlertOutlined,
+  SafetyCertificateOutlined, BankOutlined, AlertOutlined,
 } from '@ant-design/icons';
 import { PageHeader } from '@components/layout/PageHeader';
 
