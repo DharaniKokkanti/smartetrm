@@ -36,7 +36,7 @@ interface LookupDef {
 
 const PARENT_LOOKUP_TABLES: LookupDef[] = [
   {
-    name: 'deal_type', label: 'Deal Types', pk: 'dealTypeId', group: 'Trade', order: 1,
+    name: 'deal_type', label: 'Deal Types', pk: 'dealTypeId', group: 'Products & Markets', order: 1,
     subGroup: 'Trade Types', description: 'Classifies trades by the nature of the obligation — physical delivery, financial settlement, options, or freight charters. Used on every trade ticket to drive workflow rules and position logic.',
     rows: [
       { dealTypeId: 1, typeCode: 'PHYSICAL',  typeName: 'Physical',  description: 'Physical commodity delivery trade',            sortOrder: 1, isActive: true },
@@ -46,7 +46,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'payment_method', label: 'Payment Methods', pk: 'paymentMethodId', group: 'Commercial', order: 1,
+    name: 'payment_method', label: 'Payment Methods', pk: 'paymentMethodId', group: 'Contract & Legal', order: 1,
     subGroup: 'Settlement', description: 'Valid mechanisms for settling payment obligations — wire transfers, LCs, bank guarantees, and netting. Drives payment term configuration and bank account type requirements.',
     rows: [
       { paymentMethodId: 1, typeCode: 'WIRE',             typeName: 'Wire Transfer',    description: 'Bank-to-bank SWIFT wire transfer',              sortOrder: 1, isActive: true },
@@ -59,7 +59,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'counterparty_type', label: 'Counterparty Types', pk: 'counterpartyTypeId', group: 'Counterparty', order: 1,
+    name: 'counterparty_type', label: 'Counterparty Types', pk: 'counterpartyTypeId', group: 'Counterparties & Agreements', order: 1,
     subGroup: 'Classification', description: 'Classifies entities you trade WITH as the legal counterparty. IDB brokers (ICAP, BGC, Tradition etc.) are NOT counterparties — manage them in the Brokers table. FCM and Prime Broker ARE counterparties: they are the legal entity on the trade ticket and require credit lines.',
     rows: [
       { counterpartyTypeId: 1,  typeCode: 'PRODUCER',     typeName: 'Producer',          description: 'Physical commodity producer — oil field operator, gas producer, miner, farmer.',                                                                                                                                                                                       sortOrder: 1,  isActive: true },
@@ -75,7 +75,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'kyc_status', label: 'KYC Statuses', pk: 'kycStatusId', group: 'Counterparty', order: 2,
+    name: 'kyc_status', label: 'KYC Statuses', pk: 'kycStatusId', group: 'Counterparties & Agreements', order: 2,
     subGroup: 'Compliance', description: 'Know Your Customer (KYC) lifecycle statuses applied to each counterparty. A counterparty must reach Approved status before trades can be booked against it.',
     rows: [
       { kycStatusId: 1, typeCode: 'PENDING',   typeName: 'Pending',   sortOrder: 1, isActive: true },
@@ -86,7 +86,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'contact_role', label: 'Contact Roles', pk: 'contactRoleId', group: 'Organisation', order: 1,
+    name: 'contact_role', label: 'Contact Roles', pk: 'contactRoleId', group: 'Organization & Users', order: 1,
     subGroup: 'People', description: 'Functional roles assigned to contacts on counterparties and legal entities — e.g. Trader, Back Office, Legal, Compliance. A contact can hold multiple roles against different entities.',
     rows: [
       { contactRoleId:  1, typeCode: 'TRADER',      typeName: 'Trader',      sortOrder:  1, isActive: true },
@@ -103,7 +103,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'address_type', label: 'Address Types', pk: 'addressTypeId', group: 'Reference', order: 6,
+    name: 'address_type', label: 'Address Types', pk: 'addressTypeId', group: 'Counterparties & Agreements', order: 6,
     subGroup: 'Address & Banking', description: 'Categorises the purpose of a physical address assigned to a counterparty, legal entity, or broker — e.g. Registered Office, Trading Address, Billing or Shipping location.',
     rows: [
       { addressTypeId: 1, typeCode: 'REGISTERED', typeName: 'Registered', sortOrder: 1, isActive: true },
@@ -115,7 +115,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'bank_account_type', label: 'Bank Account Types', pk: 'bankAccountTypeId', group: 'Reference', order: 7,
+    name: 'bank_account_type', label: 'Bank Account Types', pk: 'bankAccountTypeId', group: 'Counterparties & Agreements', order: 7,
     subGroup: 'Address & Banking', description: 'Designates the purpose of a bank account on a counterparty — settlement, collateral posting, margin, fee, or escrow. Drives the account selection on payment instructions and confirms correct routing.',
     rows: [
       { bankAccountTypeId: 1, typeCode: 'SETTLEMENT', typeName: 'Settlement', sortOrder: 1, isActive: true },
@@ -127,7 +127,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'book_type', label: 'Book Types', pk: 'bookTypeId', group: 'Organisation', order: 2,
+    name: 'book_type', label: 'Book Types', pk: 'bookTypeId', group: 'Organization & Users', order: 2,
     subGroup: 'Trading', description: 'Classifies trading books by mandate — proprietary trading, hedging, arbitrage, client facilitation, or risk management. Each book type carries distinct P&L attribution and risk limit rules.',
     rows: [
       { bookTypeId: 1, typeCode: 'TRADING',   typeName: 'Trading',   description: 'Proprietary trading book for physical and financial positions',  sortOrder: 1, isActive: true },
@@ -139,7 +139,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'legal_entity_type', label: 'Legal Entity Types', pk: 'legalEntityTypeId', group: 'Organisation', order: 3,
+    name: 'legal_entity_type', label: 'Legal Entity Types', pk: 'legalEntityTypeId', group: 'Organization & Users', order: 3,
     subGroup: 'Entity', description: 'Legal form of each internal entity registered in the system — trading company, subsidiary, branch, holding company, or broker. Determines regulatory scope and guarantor eligibility.',
     rows: [
       { legalEntityTypeId: 1, typeCode: 'TRADING_COMPANY', typeName: 'Trading Company', description: 'Standalone commodity trading company',             sortOrder: 1, isActive: true },
@@ -150,7 +150,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'settlement_type', label: 'Settlement Types', pk: 'settlementTypeId', group: 'Products', order: 1,
+    name: 'settlement_type', label: 'Settlement Types', pk: 'settlementTypeId', group: 'Products & Markets', order: 1,
     subGroup: 'Settlement', description: 'How a trade obligation is ultimately settled — physical commodity delivery, cash settlement against an index, options exercise, swap, or netting against an opposing position.',
     rows: [
       { settlementTypeId: 1, typeCode: 'PHYSICAL',  typeName: 'Physical',  description: 'Commodity physically delivered to buyer',                sortOrder: 1, isActive: true },
@@ -161,7 +161,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'storage_facility_type', label: 'Storage Facility Types', pk: 'storageFacilityTypeId', group: 'Logistics', order: 1,
+    name: 'storage_facility_type', label: 'Storage Facility Types', pk: 'storageFacilityTypeId', group: 'Logistics & Delivery', order: 1,
     subGroup: 'Facilities', description: 'Classifies physical storage facilities — tanks, warehouses, LNG terminals, grain silos, refineries, underground caverns, and vaults. Used on logistics legs and inventory positions.',
     rows: [
       { storageFacilityTypeId: 1,  typeCode: 'TANK_FARM',            typeName: 'Tank Farm',            description: 'Fixed or floating-roof above-ground tanks (crude, refined products)',   sortOrder: 1,  isActive: true },
@@ -181,7 +181,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'netting_agreement_type', label: 'Netting Agreement Types', pk: 'nettingAgreementTypeId', group: 'Commercial', order: 2,
+    name: 'netting_agreement_type', label: 'Netting Agreement Types', pk: 'nettingAgreementTypeId', group: 'Counterparties & Agreements', order: 2,
     subGroup: 'Legal', description: 'Industry-standard master agreements that govern the right to net outstanding obligations against a single counterparty — ISDA, EFET, GTMA, and NAESB. Required for bilateral netting under Basel III.',
     rows: [
       { nettingAgreementTypeId: 1, typeCode: 'ISDA_2002', typeName: 'ISDA 2002 MA', description: 'International Swaps & Derivatives Assoc. 2002 Master Agreement', sortOrder: 1, isActive: true },
@@ -193,7 +193,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'tax_type', label: 'Tax Types', pk: 'taxTypeId', group: 'Reference', order: 8,
+    name: 'tax_type', label: 'Tax Types', pk: 'taxTypeId', group: 'Credit & Collateral', order: 8,
     subGroup: 'Fiscal', description: 'Tax and business registration identifier types used across counterparty and legal entity records — VAT, GST, EIN, UTR, TIN, ABN, SIREN, and others. Required for invoice generation and regulatory reporting.',
     rows: [
       { taxTypeId: 1, typeCode: 'VAT',   typeName: 'VAT',   description: 'Value Added Tax (EU, UK, and most jurisdictions)',      sortOrder: 1, isActive: true },
@@ -209,7 +209,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
   },
   // ── Additional simple classification tables (non-V17, same shape) ──────────
   {
-    name: 'mot_type', label: 'Modes of Transport', pk: 'motTypeId', group: 'Logistics', order: 2,
+    name: 'mot_type', label: 'Modes of Transport', pk: 'motTypeId', group: 'Logistics & Delivery', order: 2,
     subGroup: 'Transport', description: 'Physical transport modes used to move commodity from origin to destination — sea vessel, pipeline, road tanker, rail car, barge, or air freight. Drives logistics leg type, Incoterm compatibility, and inspection rules.',
     rows: [
       { motTypeId: 1, typeCode: 'SEA',         typeName: 'Sea',         description: 'Ocean vessel — tanker, bulker, or LNG carrier',                         sortOrder: 1, isActive: true },
@@ -222,7 +222,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'location_type', label: 'Location Types', pk: 'locationTypeId', group: 'Logistics', order: 3,
+    name: 'location_type', label: 'Location Types', pk: 'locationTypeId', group: 'Logistics & Delivery', order: 3,
     subGroup: 'Locations', description: 'Types of delivery and trading locations used on trades and logistics legs — marine ports, gas hubs, LNG terminals, pipeline hubs, power grid nodes, storage facilities, and refineries.',
     rows: [
       { locationTypeId: 1, typeCode: 'PORT',             typeName: 'Port',             description: 'Marine loading or discharge port',                        sortOrder: 1, isActive: true },
@@ -235,7 +235,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'pricing_type', label: 'Pricing Types', pk: 'pricingTypeId', group: 'Reference', order: 9,
+    name: 'pricing_type', label: 'Pricing Types', pk: 'pricingTypeId', group: 'Pricing & Rates', order: 9,
     subGroup: 'Pricing', description: 'Determines how the trade price is calculated — fixed at trade date, floating benchmark index, formula-based, differential spread, or Asian average over a pricing period.',
     rows: [
       { pricingTypeId: 1, typeCode: 'FIXED',          typeName: 'Fixed',                      description: 'Firm price agreed at trade date, no market linkage',                                                          sortOrder: 1, isActive: true },
@@ -250,7 +250,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'inspection_type', label: 'Inspection Types', pk: 'inspectionTypeId', group: 'Logistics', order: 4,
+    name: 'inspection_type', label: 'Inspection Types', pk: 'inspectionTypeId', group: 'Logistics & Delivery', order: 4,
     subGroup: 'Inspection', description: 'Types of independent cargo and vessel inspections that can be arranged for a shipment — quantity survey, quality survey, tank calibration, ullage, and draught surveys.',
     rows: [
       { inspectionTypeId: 1, typeCode: 'QUANTITY',         typeName: 'Quantity Survey',    description: 'Independent inspector for cargo quantity / weight survey',   sortOrder: 1, isActive: true },
@@ -262,7 +262,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'transport_document_type', label: 'Transport Document Types', pk: 'transportDocumentTypeId', group: 'Commercial', order: 3,
+    name: 'transport_document_type', label: 'Transport Document Types', pk: 'transportDocumentTypeId', group: 'Contract & Legal', order: 3,
     subGroup: 'Documentation', description: 'Title and consignment documents produced when commodity is moved — Bills of Lading, CMR/CIM consignment notes, air waybills, pipeline batch tickets, and delivery notes.',
     rows: [
       { transportDocumentTypeId: 1, typeCode: 'BOL',                   typeName: 'Bill of Lading',          description: 'Maritime bill of lading — title document for sea cargo',          sortOrder: 1, isActive: true },
@@ -275,7 +275,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'transmission_right_type', label: 'Transmission Right Types', pk: 'transmissionRightTypeId', group: 'Power', order: 4,
+    name: 'transmission_right_type', label: 'Transmission Right Types', pk: 'transmissionRightTypeId', group: 'Power & Energy', order: 4,
     subGroup: 'Grid', description: 'Types of transmission rights that grant or hedge capacity on electricity grids — Financial (FTR), Physical (PTR), and Auction (ATR) rights. Required for cross-border and inter-zone power positions.',
     rows: [
       { transmissionRightTypeId: 1, typeCode: 'FTR', typeName: 'FTR (Financial)', description: 'Financial transmission right — hedges against congestion costs without physical flow', sortOrder: 1, isActive: true },
@@ -285,7 +285,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
   },
   // ── Payment Term calculation lookups ──────────────────────────────────────
   {
-    name: 'base_date_event_type', label: 'Base Date Event Types', pk: 'baseDateEventTypeId', group: 'Commercial', order: 4,
+    name: 'base_date_event_type', label: 'Base Date Event Types', pk: 'baseDateEventTypeId', group: 'Contract & Legal', order: 4,
     subGroup: 'Payment Terms', description: 'The trade event that anchors payment date calculation — invoice date, Bill of Lading, end of delivery month, pricing date, etc. Referenced by Payment Terms to drive the payment date formula. Each commodity type typically uses a different anchor event.',
     rows: [
       { baseDateEventTypeId:  1, typeCode: 'INVOICE_DATE',            typeName: 'Invoice Date',              description: 'Payment date calculated from the date the invoice is issued. Standard for most commercial trades.',                                                  applicableCommodity: 'All commodities',                    sortOrder:  10, isActive: true },
@@ -302,7 +302,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'business_day_convention_type', label: 'Business Day Conventions', pk: 'bdcTypeId', group: 'Commercial', order: 5,
+    name: 'business_day_convention_type', label: 'Business Day Conventions', pk: 'bdcTypeId', group: 'Contract & Legal', order: 5,
     subGroup: 'Payment Terms', description: 'Defines how to roll a calculated payment date when it falls on a weekend or public holiday. Modified Following is the market standard for most commodity trades. The convention is applied using the associated holiday calendar.',
     rows: [
       { bdcTypeId: 1, typeCode: 'UNADJUSTED',    typeName: 'Unadjusted',           description: 'No adjustment — payment falls on the calculated date even if it is a holiday or weekend. Rare in practice.',                                                                                  sortOrder: 10, isActive: true },
@@ -314,7 +314,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
   },
   // ── Trade — commodity-detail dropdowns ────────────────────────────────────────
   {
-    name: 'crude_grade_type', label: 'Crude Oil Grades', pk: 'crudeGradeId', group: 'Trade', order: 5,
+    name: 'crude_grade_type', label: 'Crude Oil Grades', pk: 'crudeGradeId', group: 'Products & Markets', order: 5,
     subGroup: 'Oil Details', description: 'Named crude oil grades and blends tradeable under dated benchmark pricing. Determines applicable quality spec, pricing differential, and delivery point. Managed by the Oil Operations team.',
     rows: [
       { crudeGradeId:  1, typeCode: 'BRENT',       typeName: 'Brent Blend',             region: 'North Sea',    benchmarkIndex: 'DTBRT', sortOrder: 10, isActive: true },
@@ -334,7 +334,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'metal_shape', label: 'Metal Physical Forms', pk: 'metalShapeId', group: 'Trade', order: 6,
+    name: 'metal_shape', label: 'Metal Physical Forms', pk: 'metalShapeId', group: 'Products & Markets', order: 6,
     subGroup: 'Metals Details', description: 'Physical form in which a metal is traded and delivered. LME contracts specify acceptable shapes per metal — e.g. copper as cathode, aluminium as ingot or billet. Affects storage, transport, and melting characteristics.',
     rows: [
       { metalShapeId: 1, typeCode: 'CATHODE',   typeName: 'Cathode',         applicableMetals: 'Copper, Zinc', sortOrder: 10, isActive: true },
@@ -349,7 +349,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'gas_day_type', label: 'Gas Day Types', pk: 'gasDayTypeId', group: 'Trade', order: 7,
+    name: 'gas_day_type', label: 'Gas Day Types', pk: 'gasDayTypeId', group: 'Products & Markets', order: 7,
     subGroup: 'Gas Details', description: 'Defines the start and end time of the gas delivery day at a specific hub. NBP (UK) uses 06:00–06:00 UTC. Continental European hubs (TTF, NCG, GPL) use 06:00–06:00 CET. Some pipelines use midnight-to-midnight.',
     rows: [
       { gasDayTypeId: 1, typeCode: 'STANDARD',   typeName: 'Standard (06:00–06:00)',  description: 'Gas day runs 06:00 to 06:00 local hub time. Standard for UK NBP, TTF, NCG, and most European hubs.', sortOrder: 10, isActive: true },
@@ -358,7 +358,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'nomination_type', label: 'Gas Nomination Types', pk: 'nominationTypeId', group: 'Trade', order: 8,
+    name: 'nomination_type', label: 'Gas Nomination Types', pk: 'nominationTypeId', group: 'Products & Markets', order: 8,
     subGroup: 'Gas Details', description: 'Defines the firm vs. interruptible nature of a gas nomination — i.e. whether the shipper/supplier is guaranteed to deliver the nominated quantity or may curtail with notice.',
     rows: [
       { nominationTypeId: 1, typeCode: 'FIRM',          typeName: 'Firm',          description: 'Shipper guarantees delivery of the full nominated quantity. Higher price; used for regulated supply obligations and industrial customers.', sortOrder: 10, isActive: true },
@@ -367,7 +367,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'lng_price_basis', label: 'LNG Price Linkages', pk: 'lngPriceBasisId', group: 'Trade', order: 9,
+    name: 'lng_price_basis', label: 'LNG Price Linkages', pk: 'lngPriceBasisId', group: 'Products & Markets', order: 9,
     subGroup: 'LNG Details', description: 'Benchmark index to which an LNG cargo price is linked. Asian LNG is typically JCC-linked. US export LNG is HH-linked. European destination cargoes use TTF or NBP. Some transactions are hybrid (JCC slope + HH floor).',
     rows: [
       { lngPriceBasisId: 1, typeCode: 'JCC',    typeName: 'JCC (Japan Crude Cocktail)',      description: 'Average price of crude oils imported to Japan (Ministry of Finance monthly). Dominant basis for long-term Asian LNG contracts. Typically expressed as a slope (e.g. 13.9% × JCC).', sortOrder: 10, isActive: true },
@@ -379,7 +379,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'power_load_type', label: 'Power Load Types', pk: 'powerLoadTypeId', group: 'Trade', order: 10,
+    name: 'power_load_type', label: 'Power Load Types', pk: 'powerLoadTypeId', group: 'Products & Markets', order: 10,
     subGroup: 'Power Details', description: 'Defines the delivery hour profile for a power trade. Baseload covers all hours 24/7. Peak and off-peak split by agreed hour boundaries. Custom profiles reference a load_shape_template. Critical for position and scheduling calculations.',
     rows: [
       { powerLoadTypeId: 1, typeCode: 'BASELOAD',  typeName: 'Baseload (7×24)',   description: 'Continuous delivery 24 hours/day, 7 days/week for the full contract period. Simplest profile; used for large industrial supply and wholesale bulk contracts.', sortOrder: 10, isActive: true },
@@ -390,7 +390,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
   },
   // ── Credit & Risk classification tables ───────────────────────────────────
   {
-    name: 'margin_agreement_type', label: 'Margin Agreement Types', pk: 'marginAgreementTypeId', group: 'Credit & Risk', order: 1,
+    name: 'margin_agreement_type', label: 'Margin Agreement Types', pk: 'marginAgreementTypeId', group: 'Credit & Collateral', order: 1,
     subGroup: 'Margin & Collateral', description: 'Types of credit support annex (CSA) and pledge arrangements governing how collateral is exchanged between two counterparties. CSA_BILATERAL = mutual obligation. CSA_ONE_WAY = only one party posts. PLEDGE = title transfer collateral. CTA = collateral transfer agreement.',
     rows: [
       { marginAgreementTypeId: 1, typeCode: 'CSA_BILATERAL',   typeName: 'CSA Bilateral',        description: 'Both parties can be required to post collateral depending on MTM direction. Standard under ISDA 2002 Credit Support Annex (English law).', sortOrder: 10, isActive: true },
@@ -401,7 +401,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'valuation_frequency_type', label: 'Valuation Frequencies', pk: 'valuationFrequencyTypeId', group: 'Credit & Risk', order: 2,
+    name: 'valuation_frequency_type', label: 'Valuation Frequencies', pk: 'valuationFrequencyTypeId', group: 'Credit & Collateral', order: 2,
     subGroup: 'Margin & Collateral', description: 'How often MTM valuation is performed and compared against the CSA threshold to determine whether a margin call must be issued. Daily is the market standard under ISDA and EMIR clearing rules.',
     rows: [
       { valuationFrequencyTypeId: 1, typeCode: 'DAILY',   typeName: 'Daily',   description: 'MTM valuation performed every business day. Margin calls issued next business day if call amount exceeds MTA. Standard under ISDA 2002 and EMIR.', sortOrder: 10, isActive: true },
@@ -410,7 +410,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'governing_law_type', label: 'CSA Governing Laws', pk: 'governingLawTypeId', group: 'Credit & Risk', order: 3,
+    name: 'governing_law_type', label: 'CSA Governing Laws', pk: 'governingLawTypeId', group: 'Credit & Collateral', order: 3,
     subGroup: 'Margin & Collateral', description: 'Legal jurisdiction under which the Credit Support Annex is governed. English law and New York law are the two dominant ISDA CSA jurisdictions; each has different title-transfer vs. security-interest treatment of collateral.',
     rows: [
       { governingLawTypeId: 1, typeCode: 'ENGLISH',  typeName: 'English Law',   description: 'ISDA 1995 / 2016 Credit Support Annex (Transfer — English law). Collateral is transferred by way of title, not security interest. Most common in Europe and Asia.', sortOrder: 10, isActive: true },
@@ -419,7 +419,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'credit_limit_type', label: 'Credit Limit Types', pk: 'creditLimitTypeId', group: 'Credit & Risk', order: 4,
+    name: 'credit_limit_type', label: 'Credit Limit Types', pk: 'creditLimitTypeId', group: 'Credit & Collateral', order: 4,
     subGroup: 'Credit Limits', description: 'Classifies what type of credit exposure the limit controls. A single counterparty typically has separate limits for each type — pre-settlement, settlement, and MTM exposure are independently tracked against their own approved limits.',
     rows: [
       { creditLimitTypeId: 1, typeCode: 'PRE_SETTLEMENT',  typeName: 'Pre-Settlement',    description: 'Forward exposure risk — the replacement cost if the counterparty defaults before maturity. Calculated as sum of positive MTM of all open trades. Most important limit type for long-dated OTC portfolios.', sortOrder: 10, isActive: true },
@@ -429,7 +429,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'credit_limit_status_type', label: 'Credit Limit Statuses', pk: 'creditLimitStatusTypeId', group: 'Credit & Risk', order: 5,
+    name: 'credit_limit_status_type', label: 'Credit Limit Statuses', pk: 'creditLimitStatusTypeId', group: 'Credit & Collateral', order: 5,
     subGroup: 'Credit Limits', description: 'Lifecycle status of a credit limit record. Only ACTIVE limits are checked during trade booking. SUSPENDED limits block new trades but do not cancel existing ones. EXPIRED limits are automatically transitioned by the system at end of day on the expiry date.',
     rows: [
       { creditLimitStatusTypeId: 1, typeCode: 'ACTIVE',    typeName: 'Active',    description: 'Limit is in effect and enforced. New trades are validated against this limit during booking. Utilisaton tracked in real time.',                                   sortOrder: 10, isActive: true },
@@ -439,7 +439,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'lc_type', label: 'Letter of Credit Types', pk: 'lcTypeId', group: 'Credit & Risk', order: 6,
+    name: 'lc_type', label: 'Letter of Credit Types', pk: 'lcTypeId', group: 'Credit & Collateral', order: 6,
     subGroup: 'Letters of Credit', description: 'Category of letter of credit, which determines the conditions under which it can be drawn and whether it can be transferred or renewed. Most commodity trades use Standby or Documentary LCs. Governed by ICC UCP 600 (documentary) or ISP98 (standby).',
     rows: [
       { lcTypeId: 1, typeCode: 'STANDBY',       typeName: 'Standby LC',        description: 'Independent payment guarantee — drawn only on default or non-performance. No physical document presentation required. Governed by ISP98. Used as general credit support for commodity trades.', sortOrder: 10, isActive: true },
@@ -449,7 +449,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'lc_status_type', label: 'LC Statuses', pk: 'lcStatusTypeId', group: 'Credit & Risk', order: 7,
+    name: 'lc_status_type', label: 'LC Statuses', pk: 'lcStatusTypeId', group: 'Credit & Collateral', order: 7,
     subGroup: 'Letters of Credit', description: 'Lifecycle status of a letter of credit record. Tracks the LC from issuance through partial or full drawdown to expiry or cancellation. PARTIALLY_DRAWN and FULLY_DRAWN are system-computed based on drawdown_amount vs lc_amount.',
     rows: [
       { lcStatusTypeId: 1, typeCode: 'ACTIVE',           typeName: 'Active',           description: 'LC is current and available to draw against. Expiry date is in the future and face value is not fully drawn.',                                                                     sortOrder: 10, isActive: true },
@@ -460,7 +460,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'uom_type', label: 'UoM Types', pk: 'uomTypeId', group: 'Reference', order: 10,
+    name: 'uom_type', label: 'UoM Types', pk: 'uomTypeId', group: 'Finance & Settlement', order: 10,
     subGroup: 'Units & Conversions', description: 'Physical dimension classification for a unit of measure. Units of the same type convert by a fixed factor (e.g. BBL→MT for a given crude grade). Cross-type conversions (Volume↔Weight, Volume↔Energy) require a product-specific density or calorific value, not a fixed factor.',
     rows: [
       { uomTypeId: 1, typeCode: 'VOLUME',   typeName: 'Volume',   description: 'Liquid or gas volume units — barrels, cubic metres, gallons, litres. Used for crude, refined products, and LNG.', sortOrder: 10, isActive: true },
@@ -472,7 +472,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'emission_scheme_type', label: 'Emission Scheme Types', pk: 'emissionSchemeTypeId', group: 'Reference', order: 11,
+    name: 'emission_scheme_type', label: 'Emission Scheme Types', pk: 'emissionSchemeTypeId', group: 'Carbon & Environmental', order: 11,
     subGroup: 'Carbon & Environmental', description: 'Classification of emission trading schemes. Compliance schemes are mandatory (EU ETS, UK ETS, CA Cap-and-Trade, RGGI). Voluntary schemes are market-driven (VCS, Gold Standard).',
     rows: [
       { emissionSchemeTypeId: 1, typeCode: 'COMPLIANCE', typeName: 'Compliance', description: 'Mandatory cap-and-trade scheme imposed by law. Participants must surrender allowances equal to verified emissions.', sortOrder: 10, isActive: true },
@@ -480,7 +480,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'environmental_product_type', label: 'Environmental Product Types', pk: 'environmentalProductTypeId', group: 'Reference', order: 12,
+    name: 'environmental_product_type', label: 'Environmental Product Types', pk: 'environmentalProductTypeId', group: 'Carbon & Environmental', order: 12,
     subGroup: 'Carbon & Environmental', description: 'Classification of tradeable environmental instruments. Allowances represent the right to emit one tonne CO2e. Certificates prove renewable energy generation. Offsets represent verified emission reductions from projects.',
     rows: [
       { environmentalProductTypeId: 1, typeCode: 'ALLOWANCE',   typeName: 'Allowance',   description: 'Cap-and-trade permit conferring the right to emit one unit (typically one tonne CO2e). EUA, UKA, CCA and EUAA are allowances.', sortOrder: 10, isActive: true },
@@ -489,7 +489,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'carbon_registry_type', label: 'Carbon Registry Types', pk: 'carbonRegistryTypeId', group: 'Reference', order: 13,
+    name: 'carbon_registry_type', label: 'Carbon Registry Types', pk: 'carbonRegistryTypeId', group: 'Carbon & Environmental', order: 13,
     subGroup: 'Carbon & Environmental', description: 'Classification of carbon registries. Compliance registries are established by law to track mandatory allowance holdings and transfers. Voluntary registries operate privately to issue and retire voluntary carbon credits.',
     rows: [
       { carbonRegistryTypeId: 1, typeCode: 'COMPLIANCE', typeName: 'Compliance', description: 'Registry mandated by a regulator to issue, transfer and cancel compliance allowances — EU Union Registry, UK Registry, CITSS (California).', sortOrder: 10, isActive: true },
@@ -497,7 +497,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'emission_obligation_status', label: 'Emission Obligation Statuses', pk: 'emissionObligationStatusId', group: 'Reference', order: 14,
+    name: 'emission_obligation_status', label: 'Emission Obligation Statuses', pk: 'emissionObligationStatusId', group: 'Carbon & Environmental', order: 14,
     subGroup: 'Carbon & Environmental', description: 'Lifecycle status of an annual surrender obligation for a legal entity under a specific emission scheme.',
     rows: [
       { emissionObligationStatusId: 1, typeCode: 'OPEN',                  typeName: 'Open',                  description: 'Obligation is active and not yet settled. Verified emissions and/or allowances held may still be incomplete.', sortOrder: 10, isActive: true },
@@ -507,7 +507,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'gl_account_type', label: 'GL Account Types', pk: 'glAccountTypeId', group: 'Reference', order: 15,
+    name: 'gl_account_type', label: 'GL Account Types', pk: 'glAccountTypeId', group: 'Finance & Settlement', order: 15,
     subGroup: 'Finance & Settlement', description: 'Chart-of-accounts classification for general ledger accounts used in trade P&L, fee, and settlement postings.',
     rows: [
       { glAccountTypeId: 1, typeCode: 'REVENUE',   typeName: 'Revenue',   description: 'Income accounts — physical trade revenue, financial hedge realised gains, fee income.', sortOrder: 10, isActive: true },
@@ -519,7 +519,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'rin_transaction_type', label: 'RIN Transaction Types', pk: 'rinTransactionTypeId', group: 'Reference', order: 16,
+    name: 'rin_transaction_type', label: 'RIN Transaction Types', pk: 'rinTransactionTypeId', group: 'RIN & Renewable Fuels', order: 16,
     subGroup: 'Regulatory Compliance', description: 'Types of RIN movements under the EPA Renewable Fuel Standard (RFS2). Each type changes the inventory position in a specific direction and has distinct EMTS reporting requirements.',
     rows: [
       { rinTransactionTypeId: 1, typeCode: 'GENERATE',      typeName: 'Generate',         description: 'Renewable fuel producer generates attached RINs with each batch of qualifying fuel. Quantity = gallons × equivalence value.', sortOrder: 10, isActive: true },
@@ -530,7 +530,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'rin_obligation_status', label: 'RIN Obligation Statuses', pk: 'rinObligationStatusId', group: 'Reference', order: 17,
+    name: 'rin_obligation_status', label: 'RIN Obligation Statuses', pk: 'rinObligationStatusId', group: 'RIN & Renewable Fuels', order: 17,
     subGroup: 'Regulatory Compliance', description: 'Compliance status of an annual Renewable Volume Obligation (RVO) for a specific legal entity and D-code.',
     rows: [
       { rinObligationStatusId: 1, typeCode: 'OPEN',                label: 'Open',                  description: 'RVO is active. Required quantity not yet fully satisfied.', sortOrder: 10, isActive: true },
@@ -540,7 +540,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'instrument_type', label: 'Instrument Types', pk: 'instrumentTypeId', group: 'Trade', order: 18,
+    name: 'instrument_type', label: 'Instrument Types', pk: 'instrumentTypeId', group: 'Products & Markets', order: 18,
     subGroup: 'Deal Classification', description: 'Financial structure / legal form of the deal. More granular than Trade Type — distinguishes futures from forwards, vanilla swaps from basis swaps, and American from Asian options.',
     rows: [
       { instrumentTypeId: 1,  typeCode: 'PHYSICAL',              typeName: 'Physical Delivery',        description: 'Standard physical commodity delivery against a fixed or floating price.',                                                                                              sortOrder: 10,  isActive: true },
@@ -558,7 +558,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'storage_agreement_type', label: 'Storage Agreement Types', pk: 'storageAgreementTypeId', group: 'Trade', order: 19,
+    name: 'storage_agreement_type', label: 'Storage Agreement Types', pk: 'storageAgreementTypeId', group: 'Products & Markets', order: 19,
     subGroup: 'Agreement Deal Types', description: 'Commercial structure of a storage capacity agreement. Active when instrument type = STORAGE_AGREEMENT.',
     rows: [
       { storageAgreementTypeId: 1, typeCode: 'TANK_LEASE',     typeName: 'Tank Lease',           description: 'Fixed capacity lease — monthly/annual fee for reserved tank space regardless of utilisation. Take-or-pay.',         sortOrder: 10, isActive: true },
@@ -571,7 +571,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'transport_agreement_type', label: 'Transport Agreement Types', pk: 'transportAgreementTypeId', group: 'Trade', order: 20,
+    name: 'transport_agreement_type', label: 'Transport Agreement Types', pk: 'transportAgreementTypeId', group: 'Products & Markets', order: 20,
     subGroup: 'Agreement Deal Types', description: 'Commercial structure of a transportation capacity agreement. Active when instrument type = TRANSPORT_AGREEMENT.',
     rows: [
       { transportAgreementTypeId: 1,  typeCode: 'VOYAGE_CHARTER',         typeName: 'Voyage Charter',               description: 'Specific voyage at worldscale or lumpsum. Charterer pays bunkers and port costs; owner pays vessel ops.',    sortOrder: 10,  isActive: true },
@@ -587,7 +587,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'price_adjustment_type', label: 'Price Adjustment Types', pk: 'priceAdjustmentTypeId', group: 'Trade', order: 21,
+    name: 'price_adjustment_type', label: 'Price Adjustment Types', pk: 'priceAdjustmentTypeId', group: 'Products & Markets', order: 21,
     subGroup: 'Physical Price Terms', description: 'Types of quality or commercial adjustment applied to the physical contract price. Positive value = premium added; negative = discount subtracted.',
     rows: [
       { priceAdjustmentTypeId:  1, typeCode: 'API_GRAVITY',      typeName: 'API Gravity Differential',      description: 'Premium or discount per BBL for each °API above/below the reference crude specification (e.g. Brent ≈ 38.5°).',   sortOrder: 10,  isActive: true },
@@ -608,7 +608,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'demurrage_basis', label: 'Demurrage Basis', pk: 'demurrageBasisId', group: 'Trade', order: 22,
+    name: 'demurrage_basis', label: 'Demurrage Basis', pk: 'demurrageBasisId', group: 'Products & Markets', order: 22,
     subGroup: 'Physical Price Terms', description: 'Determines how laytime allowances at load and discharge ports are pooled when calculating demurrage.',
     rows: [
       { demurrageBasisId: 1, typeCode: 'REVERSIBLE',     typeName: 'Reversible',      description: 'Load and discharge laytime allowances are combined into a single pool. Any saved time at one port offsets excess at the other.',      sortOrder: 10, isActive: true },
@@ -789,19 +789,19 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
  * not new code (per the Master Data Entry Technical Design doc).
  */
 export const registrySeed: RegistryEntry[] = [
-  { registryId: 1, tableName: 'currency',            displayName: 'Currencies',           moduleGroup: 'Reference', subGroup: 'Global Codes',      description: 'ISO 4217 currency codes used across all monetary fields. The 3-letter alphabetic code (e.g. USD, EUR, GBP) is enforced. Reference: iso.org/iso-4217-currency-codes.html', allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: true,  isEnabled: true, displayOrder: 1 },
-  { registryId: 2, tableName: 'commodity',           displayName: 'Commodities',          moduleGroup: 'Reference', subGroup: 'Classification',    description: 'Top-level commodity classification — Oil, Gas, Power, Agricultural, Metals, and Other. Drives product group assignment, applicable trade types, and pricing curve linkage.',                                allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
-  { registryId: 3, tableName: 'credit_rating',       displayName: 'Credit Ratings',       moduleGroup: 'Reference', subGroup: 'Classification',    description: 'S&P, Moody\'s, and Fitch credit rating scales with numeric equivalents. Used to derive credit exposure limits and margin requirements for each counterparty.',                                                   allowCreate: true,  allowEdit: true,  allowDelete: true,  allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
-  { registryId: 4, tableName: 'incoterm',            displayName: 'Incoterms',            moduleGroup: 'Reference', subGroup: 'Global Codes',      description: 'ICC Incoterms® 2020 rules that define the point at which risk and cost transfer from seller to buyer. Reference: iccwbo.org/resources-for-business/incoterms-rules',                            allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 4 },
-  { registryId: 5, tableName: 'charter_party_type',  displayName: 'Charter Party Types',  moduleGroup: 'Freight',   subGroup: 'Charter',           description: 'Types of vessel charter arrangements — Voyage Charter (fixed route, per tonne) or Time Charter (per day, operator controls routing). Determines freight cost calculation and demurrage liability.',     allowCreate: true,  allowEdit: true,  allowDelete: true,  allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
-  { registryId: 6, tableName: 'load_shape_template', displayName: 'Load Shape Templates', moduleGroup: 'Power',     subGroup: 'Markets',           description: 'Standard electricity delivery profiles — Baseload (7×24), Peak (5×16 or 6×16), Off-peak, and user-defined shapes. Templates constrain the hours delivered under a power supply contract.',               allowCreate: true,  allowEdit: true,  allowDelete: true,  allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
-  { registryId: 7, tableName: 'balancing_authority', displayName: 'Balancing Authorities',moduleGroup: 'Power',     subGroup: 'Markets',           description: 'Grid operators (ISOs/RTOs and utilities) responsible for maintaining real-time balance between supply and demand within their control area — PJM, ERCOT, CAISO, and others.',                        allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
-  { registryId: 8, tableName: 'transmission_zone',   displayName: 'Transmission Zones',   moduleGroup: 'Power',     subGroup: 'Grid',              description: 'Pricing and scheduling zones within a balancing authority area — hubs, load zones, and LMP nodes. Each zone has its own congestion and loss components for locational marginal pricing.',            allowCreate: true,  allowEdit: true,  allowDelete: true,  allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
+  { registryId: 1, tableName: 'currency',            displayName: 'Currencies',           moduleGroup: 'Finance & Settlement', subGroup: 'Global Codes',      description: 'ISO 4217 currency codes used across all monetary fields. The 3-letter alphabetic code (e.g. USD, EUR, GBP) is enforced. Reference: iso.org/iso-4217-currency-codes.html', allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: true,  isEnabled: true, displayOrder: 1 },
+  { registryId: 2, tableName: 'commodity',           displayName: 'Commodities',          moduleGroup: 'Products & Markets', subGroup: 'Classification',    description: 'Top-level commodity classification — Oil, Gas, Power, Agricultural, Metals, and Other. Drives product group assignment, applicable trade types, and pricing curve linkage.',                                allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
+  { registryId: 3, tableName: 'credit_rating',       displayName: 'Credit Ratings',       moduleGroup: 'Counterparties & Agreements', subGroup: 'Classification',    description: 'S&P, Moody\'s, and Fitch credit rating scales with numeric equivalents. Used to derive credit exposure limits and margin requirements for each counterparty.',                                                   allowCreate: true,  allowEdit: true,  allowDelete: true,  allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
+  { registryId: 4, tableName: 'incoterm',            displayName: 'Incoterms',            moduleGroup: 'Contract & Legal', subGroup: 'Global Codes',      description: 'ICC Incoterms® 2020 rules that define the point at which risk and cost transfer from seller to buyer. Reference: iccwbo.org/resources-for-business/incoterms-rules',                            allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 4 },
+  { registryId: 5, tableName: 'charter_party_type',  displayName: 'Charter Party Types',  moduleGroup: 'Freight & Shipping',   subGroup: 'Charter',           description: 'Types of vessel charter arrangements — Voyage Charter (fixed route, per tonne) or Time Charter (per day, operator controls routing). Determines freight cost calculation and demurrage liability.',     allowCreate: true,  allowEdit: true,  allowDelete: true,  allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
+  { registryId: 6, tableName: 'load_shape_template', displayName: 'Load Shape Templates', moduleGroup: 'Power & Energy',     subGroup: 'Markets',           description: 'Standard electricity delivery profiles — Baseload (7×24), Peak (5×16 or 6×16), Off-peak, and user-defined shapes. Templates constrain the hours delivered under a power supply contract.',               allowCreate: true,  allowEdit: true,  allowDelete: true,  allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
+  { registryId: 7, tableName: 'balancing_authority', displayName: 'Balancing Authorities',moduleGroup: 'Power & Energy',     subGroup: 'Markets',           description: 'Grid operators (ISOs/RTOs and utilities) responsible for maintaining real-time balance between supply and demand within their control area — PJM, ERCOT, CAISO, and others.',                        allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
+  { registryId: 8, tableName: 'transmission_zone',   displayName: 'Transmission Zones',   moduleGroup: 'Power & Energy',     subGroup: 'Grid',              description: 'Pricing and scheduling zones within a balancing authority area — hubs, load zones, and LMP nodes. Each zone has its own congestion and loss components for locational marginal pricing.',            allowCreate: true,  allowEdit: true,  allowDelete: true,  allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
   // V51 — nested shape structure + distributed energy footprints (ids above the 10+i parent-lookup block)
-  { registryId: 201, tableName: 'load_shape_interval',   displayName: 'Load Shape Intervals',   moduleGroup: 'Power', subGroup: 'Markets', description: 'Per-interval MW weighting under a load shape template — the hourly (or 15/30-min) profile behind shaped products such as solar generation or EV charging demand curves.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 4 },
-  { registryId: 202, tableName: 'load_shape_component',  displayName: 'Load Shape Components',  moduleGroup: 'Power', subGroup: 'Markets', description: 'Nested shape structure — composite parent shapes built from weighted child shapes, optionally scoped to a seasonal month window (e.g. ATC = Peak + Off-Peak).',           allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 5 },
-  { registryId: 203, tableName: 'energy_footprint',      displayName: 'Energy Footprints',      moduleGroup: 'Power', subGroup: 'Assets',  description: 'Distributed asset portfolios and networks traded as one unit — solar portfolios, EV charging networks, battery fleets, demand-response aggregations.',                     allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 6 },
-  { registryId: 204, tableName: 'energy_footprint_site', displayName: 'Energy Footprint Sites', moduleGroup: 'Power', subGroup: 'Assets',  description: 'Member sites of an energy footprint — per-site location, settlement zone, capacity, and technology detail (solar array, EV charging hub, battery unit).',                  allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 7 },
+  { registryId: 201, tableName: 'load_shape_interval',   displayName: 'Load Shape Intervals',   moduleGroup: 'Power & Energy', subGroup: 'Markets', description: 'Per-interval MW weighting under a load shape template — the hourly (or 15/30-min) profile behind shaped products such as solar generation or EV charging demand curves.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 4 },
+  { registryId: 202, tableName: 'load_shape_component',  displayName: 'Load Shape Components',  moduleGroup: 'Power & Energy', subGroup: 'Markets', description: 'Nested shape structure — composite parent shapes built from weighted child shapes, optionally scoped to a seasonal month window (e.g. ATC = Peak + Off-Peak).',           allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 5 },
+  { registryId: 203, tableName: 'energy_footprint',      displayName: 'Energy Footprints',      moduleGroup: 'Power & Energy', subGroup: 'Assets',  description: 'Distributed asset portfolios and networks traded as one unit — solar portfolios, EV charging networks, battery fleets, demand-response aggregations.',                     allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 6 },
+  { registryId: 204, tableName: 'energy_footprint_site', displayName: 'Energy Footprint Sites', moduleGroup: 'Power & Energy', subGroup: 'Assets',  description: 'Member sites of an energy footprint — per-site location, settlement zone, capacity, and technology detail (solar array, EV charging hub, battery unit).',                  allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 7 },
   // V17 parent lookup tables — generated from the simple list above
   ...PARENT_LOOKUP_TABLES.map((t, i) => ({
     registryId:       10 + i,
@@ -873,8 +873,8 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { shapeComponentId: 2, parentLoadShapeId: 6, childLoadShapeId: 3, weightFactor: 1, monthFrom: null, monthTo: null, sequenceNo: 2 },
   ],
   energy_footprint: [
-    { energyFootprintId: 1, footprintCode: 'SOLAR_CA_01', footprintName: 'California Distributed Solar Portfolio', footprintType: 'SOLAR_PORTFOLIO',     flowDirection: 'GENERATION', balancingAuthorityId: null, defaultZoneId: null, totalCapacityMw: 120, defaultLoadShapeId: 4, isAggregatedDispatch: true,  isActive: true },
-    { energyFootprintId: 2, footprintCode: 'EVNET_GB_01', footprintName: 'GB Motorway Fast-Charging Network',      footprintType: 'EV_CHARGING_NETWORK', flowDirection: 'LOAD',       balancingAuthorityId: null, defaultZoneId: null, totalCapacityMw: 45,  defaultLoadShapeId: 5, isAggregatedDispatch: false, isActive: true },
+    { energyFootprintId: 1, footprintCode: 'SOLAR_CA_01', footprintName: 'California Distributed Solar Portfolio', footprintType: 'SOLAR_PORTFOLIO',     flowDirection: 'GENERATION', balancingAuthorityId: 3, defaultZoneId: null, totalCapacityMw: 120, defaultLoadShapeId: 4, isAggregatedDispatch: true,  isActive: true },
+    { energyFootprintId: 2, footprintCode: 'EVNET_GB_01', footprintName: 'GB Motorway Fast-Charging Network',      footprintType: 'EV_CHARGING_NETWORK', flowDirection: 'LOAD',       balancingAuthorityId: 6, defaultZoneId: null, totalCapacityMw: 45,  defaultLoadShapeId: 5, isAggregatedDispatch: false, isActive: true },
   ],
   energy_footprint_site: [
     { footprintSiteId: 1, energyFootprintId: 1, siteCode: 'SC-FRESNO-1',  siteName: 'Fresno Ground-Mount Array',   siteType: 'SOLAR_ARRAY',     zoneId: null, capacityMw: 60, storageCapacityMwh: null, chargerCount: null, maxChargerKw: null, connectorStandard: null,  technology: 'TRACKER_PV',  isActive: true },
@@ -883,12 +883,21 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { footprintSiteId: 4, energyFootprintId: 2, siteCode: 'EV-LDN-DEPOT', siteName: 'London Bus Depot',            siteType: 'EV_DEPOT',        zoneId: null, capacityMw: 23, storageCapacityMwh: null, chargerCount: 80,   maxChargerKw: 150,  connectorStandard: 'TYPE2', technology: 'DC_FAST',   isActive: true },
   ],
   balancing_authority: [
-    { balancingAuthorityId: 1, baCode: 'PJM',   baName: 'PJM Interconnection',                  countryCode: 'US', marketType: 'RTO', isActive: true },
-    { balancingAuthorityId: 2, baCode: 'ERCOT', baName: 'Electric Reliability Council of Texas', countryCode: 'US', marketType: 'ISO', isActive: true },
+    { balancingAuthorityId: 1, baCode: 'PJM',    baName: 'PJM Interconnection',                          countryCode: 'US', marketType: 'RTO', isActive: true },
+    { balancingAuthorityId: 2, baCode: 'ERCOT',  baName: 'Electric Reliability Council of Texas',        countryCode: 'US', marketType: 'ISO', isActive: true },
+    { balancingAuthorityId: 3, baCode: 'CAISO',  baName: 'California ISO',                               countryCode: 'US', marketType: 'ISO', isActive: true },
+    { balancingAuthorityId: 4, baCode: 'MISO',   baName: 'Midcontinent ISO',                             countryCode: 'US', marketType: 'RTO', isActive: true },
+    { balancingAuthorityId: 5, baCode: 'NYISO',  baName: 'New York ISO',                                 countryCode: 'US', marketType: 'ISO', isActive: true },
+    { balancingAuthorityId: 6, baCode: 'NGESO',  baName: 'National Grid Electricity System Operator',    countryCode: 'GB', marketType: 'TSO', isActive: true },
+    { balancingAuthorityId: 7, baCode: 'TENNET', baName: 'TenneT TSO',                                   countryCode: 'NL', marketType: 'TSO', isActive: true },
   ],
   transmission_zone: [
-    { zoneId: 1, balancingAuthorityId: 1, zoneCode: 'PJM_WEST',    zoneName: 'PJM West Hub',    zoneType: 'HUB', isActive: true },
-    { zoneId: 2, balancingAuthorityId: 2, zoneCode: 'ERCOT_NORTH', zoneName: 'ERCOT North Hub', zoneType: 'HUB', isActive: true },
+    { zoneId: 1, balancingAuthorityId: 1, zoneCode: 'PJM_WEST',    zoneName: 'PJM West Hub',    zoneType: 'HUB',       isActive: true },
+    { zoneId: 2, balancingAuthorityId: 1, zoneCode: 'PJM_AECO',    zoneName: 'AECO Zone',       zoneType: 'LOAD_ZONE', isActive: true },
+    { zoneId: 3, balancingAuthorityId: 2, zoneCode: 'ERCOT_NORTH', zoneName: 'ERCOT North Hub', zoneType: 'HUB',       isActive: true },
+    { zoneId: 4, balancingAuthorityId: 2, zoneCode: 'ERCOT_HOUSTON', zoneName: 'ERCOT Houston Hub', zoneType: 'HUB',   isActive: true },
+    { zoneId: 5, balancingAuthorityId: 6, zoneCode: 'GSP_A',      zoneName: 'GSP Group _A',    zoneType: 'GSP_GROUP', isActive: true },
+    { zoneId: 6, balancingAuthorityId: 6, zoneCode: 'GSP_B',      zoneName: 'GSP Group _B',    zoneType: 'GSP_GROUP', isActive: true },
   ],
   // V17 parent lookup tables — rows come from the simple list above
   ...Object.fromEntries(PARENT_LOOKUP_TABLES.map((t) => [t.name, t.rows])),

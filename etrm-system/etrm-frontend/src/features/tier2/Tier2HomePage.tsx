@@ -9,10 +9,14 @@ import type { RegistryEntry } from '@models/referenceData';
 
 const { Text, Paragraph } = Typography;
 
-// Canonical sidebar order — groups not listed here are appended at the end
+// Canonical sidebar order — mirrors the Master Data Hub's own group order, so
+// a card clicked in the Hub lands in a sidebar group with the same name in
+// the same relative position. Groups not listed here are appended at the end.
 const GROUP_ORDER = [
-  'Organisation', 'Trade', 'Counterparty', 'Commercial',
-  'Products', 'Logistics', 'Reference', 'Freight', 'Power',
+  'Organization & Users', 'Counterparties & Agreements', 'Credit & Collateral',
+  'Products & Markets', 'Contract & Legal', 'Logistics & Delivery',
+  'Freight & Shipping', 'Power & Energy', 'Pricing & Rates',
+  'Finance & Settlement', 'Carbon & Environmental', 'RIN & Renewable Fuels',
 ];
 
 function sortedGroupEntries(map: Map<string, RegistryEntry[]>): [string, RegistryEntry[]][] {
@@ -83,12 +87,44 @@ export function Tier2HomePage() {
   // Set of group names that are collapsed
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
 
+  const allGroupNames = useMemo(
+    () => new Set((tables ?? []).filter((t) => t.isEnabled).map((t) => t.moduleGroup)),
+    [tables],
+  );
+
+  const activeTable = (tables ?? []).find((t) => t.tableName === tableName);
+
+  // Accordion behaviour, driven by which table is selected: whenever the
+  // selected table (and therefore its group) changes — including arriving
+  // here via a Master Data Hub card click — collapse every other group down
+  // to just its header, leaving only the active table's group expanded. With
+  // nothing selected yet, every group starts collapsed (headers only).
+  //
+  // This adjusts state during render (React's documented pattern for "reset
+  // state when a prop changes", https://react.dev/learn/you-might-not-need-an-effect)
+  // rather than in a useEffect, guarded by a "last seen selection" marker so
+  // it only fires once per actual navigation, not on every render — manual
+  // header clicks via toggleGroup are left alone in between.
+  const autoKey = `${tableName ?? ''}::${[...allGroupNames].sort().join(',')}`;
+  const [lastAutoKey, setLastAutoKey] = useState<string | null>(null);
+  if (allGroupNames.size > 0 && autoKey !== lastAutoKey) {
+    setLastAutoKey(autoKey);
+    const next = new Set(allGroupNames);
+    if (activeTable) next.delete(activeTable.moduleGroup);
+    setCollapsed(next);
+  }
+
   function toggleGroup(group: string) {
     setCollapsed((prev) => {
-      const next = new Set(prev);
-      if (next.has(group)) next.delete(group);
-      else next.add(group);
-      return next;
+      if (prev.has(group)) {
+        // Expanding this group — collapse all others (single-open accordion,
+        // matching the main app sidebar's behaviour).
+        const next = new Set(allGroupNames);
+        next.delete(group);
+        return next;
+      }
+      // Collapsing this group — leave the others as they are.
+      return new Set(prev).add(group);
     });
   }
 
@@ -105,7 +141,6 @@ export function Tier2HomePage() {
     return sortedGroupEntries(map);
   }, [tables, filter]);
 
-  const activeTable = (tables ?? []).find((t) => t.tableName === tableName);
   const isFiltering = filter.trim().length > 0;
 
   return (
@@ -210,7 +245,7 @@ export function Tier2HomePage() {
             {activeTable ? (
               <>
                 <DescriptionPanel table={activeTable} />
-                <ReferenceDataTable table={activeTable} />
+                <ReferenceDataTable key={activeTable.tableName} table={activeTable} />
               </>
             ) : (
               <Empty

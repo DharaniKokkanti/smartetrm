@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { MouseEvent as ReactMouseEvent } from 'react';
 import {
   Button,
   Space,
@@ -15,7 +16,7 @@ import {
   Spin,
   Alert,
 } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, MinusOutlined, ExpandOutlined, CompressOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 import type { RegistryEntry, ColumnMetadata, ReferenceDataRow } from '@models/referenceData';
@@ -96,6 +97,40 @@ export function ReferenceDataTable({ table }: Props) {
     meta: () => ({ route: `/static-data/${table.tableName}`, label: table.displayName.replace(/s$/, '') }),
   });
 
+  // ── Move / minimize / maximize the capture modal ──────────────────────────
+  const [maximized, setMaximized] = useState(false);
+  const [minimized, setMinimized] = useState(false);
+  const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
+  const draggingRef = useRef(false);
+  const dragStartRef = useRef({ mouseX: 0, mouseY: 0, x: 0, y: 0 });
+
+  useEffect(() => {
+    function handleMove(e: MouseEvent) {
+      if (!draggingRef.current) return;
+      const { mouseX, mouseY, x, y } = dragStartRef.current;
+      setDragPos({ x: x + (e.clientX - mouseX), y: y + (e.clientY - mouseY) });
+    }
+    function handleUp() { draggingRef.current = false; }
+    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('mouseup', handleUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('mouseup', handleUp);
+    };
+  }, []);
+
+  function onTitleBarMouseDown(e: ReactMouseEvent) {
+    if (maximized) return;
+    draggingRef.current = true;
+    dragStartRef.current = { mouseX: e.clientX, mouseY: e.clientY, x: dragPos.x, y: dragPos.y };
+  }
+
+  function resetWindowState() {
+    setMaximized(false);
+    setMinimized(false);
+    setDragPos({ x: 0, y: 0 });
+  }
+
   const editableColumns = useMemo(
     () =>
       (metadata?.columns ?? []).filter(
@@ -116,6 +151,7 @@ export function ReferenceDataTable({ table }: Props) {
   function openAdd() {
     setEditingId(null);
     form.resetFields();
+    resetWindowState();
     setModalOpen(true);
   }
 
@@ -129,6 +165,7 @@ export function ReferenceDataTable({ table }: Props) {
       }
     }
     form.setFieldsValue(values);
+    resetWindowState();
     setModalOpen(true);
   }
 
@@ -203,9 +240,33 @@ export function ReferenceDataTable({ table }: Props) {
         locale={{ emptyText: <Empty description="No rows yet" /> }}
       />
       <Modal mask={false} forceRender
-        title={editingId === null ? `New ${table.displayName.replace(/s$/, '')}` : `Edit row`}
+        title={
+          <div
+            onMouseDown={onTitleBarMouseDown}
+            style={{
+              cursor: maximized ? 'default' : 'move',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingRight: 44,
+              userSelect: 'none',
+            }}
+          >
+            <span>{editingId === null ? `New ${table.displayName.replace(/s$/, '')}` : `Edit row`}</span>
+            <Space size={2} onMouseDown={(e) => e.stopPropagation()}>
+              <Button type="text" size="small" icon={<MinusOutlined />} onClick={() => setMinimized(true)} aria-label="Minimize" />
+              <Button
+                type="text"
+                size="small"
+                icon={maximized ? <CompressOutlined /> : <ExpandOutlined />}
+                onClick={() => { setMaximized((m) => !m); setDragPos({ x: 0, y: 0 }); }}
+                aria-label={maximized ? 'Restore' : 'Maximize'}
+              />
+            </Space>
+          </div>
+        }
         open={modalOpen}
-        onCancel={() => setModalOpen(false)}
+        onCancel={() => { setModalOpen(false); resetWindowState(); }}
         onOk={() => { void handleSave(true); }}
         okText="Save & Close"
         confirmLoading={saveRow.isPending}
@@ -213,8 +274,22 @@ export function ReferenceDataTable({ table }: Props) {
           <><CancelBtn /><Button loading={saveRow.isPending} onClick={() => { void handleSave(false); }}>Save & Next</Button><OkBtn /></>
         )}
         destroyOnHidden
+        width={maximized ? 'calc(100vw - 48px)' : undefined}
+        style={maximized ? { top: 16 } : undefined}
+        styles={maximized ? {
+          content: { maxHeight: 'calc(100vh - 32px)' },
+          body: { maxHeight: 'calc(100vh - 180px)' },
+        } : undefined}
+        modalRender={(node) => (
+          <div style={{
+            transform: `translate(${dragPos.x}px, ${dragPos.y}px)`,
+            display: minimized ? 'none' : undefined,
+          }}>
+            {node}
+          </div>
+        )}
       >
-        <Form form={form} layout="vertical">
+        <Form form={form} layout="vertical" initialValues={{ isActive: true }}>
           {editableColumns.map((col) => (
             <Form.Item
               key={col.name}
@@ -231,6 +306,33 @@ export function ReferenceDataTable({ table }: Props) {
           ))}
         </Form>
       </Modal>
+
+      {minimized && modalOpen && (
+        <div
+          onClick={() => setMinimized(false)}
+          role="button"
+          tabIndex={0}
+          style={{
+            position: 'fixed',
+            bottom: 16,
+            right: 16,
+            zIndex: 1050,
+            background: '#1677ff',
+            color: '#fff',
+            padding: '9px 16px',
+            borderRadius: 20,
+            cursor: 'pointer',
+            boxShadow: '0 4px 14px rgba(0,0,0,0.28)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            fontSize: 13,
+          }}
+        >
+          <span>{editingId === null ? `New ${table.displayName.replace(/s$/, '')}` : 'Editing row'} (minimized)</span>
+          <ExpandOutlined />
+        </div>
+      )}
     </div>
   );
 }

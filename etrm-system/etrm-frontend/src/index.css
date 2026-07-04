@@ -79,3 +79,27 @@ body {
 .ant-modal-wrap .ant-modal {
   pointer-events: auto;
 }
+/* .ant-modal-wrap is normally the element that scrolls when a modal's
+   content is taller than the viewport (it has overflow:auto by default).
+   pointer-events:none removes it from wheel/touch hit-testing entirely, so
+   once a modal's content overflows the viewport it becomes unscrollable —
+   the wheel event passes straight through to whatever is behind it. Give the
+   modal box itself (which keeps pointer-events:auto) a bounded height and
+   its own internal scroll region instead of depending on the wrap. */
+.ant-modal-wrap .ant-modal {
+  max-height: calc(100vh - 64px);
+  overflow: visible;
+}
+/* max-height on .ant-modal-content must be the same concrete calc(), not a
+   percentage — percentage heights only resolve against a parent with a
+   definite `height`, and .ant-modal only has `max-height`, so `100%` here
+   would compute to none and silently fail to cap the content box. */
+.ant-modal-wrap .ant-modal .ant-modal-content {
+  max-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+}
+.ant-modal-wrap .ant-modal .ant-modal-body {
+  overflow-y: auto;
+  flex: 1 1 auto;
+}
