@@ -76,7 +76,7 @@ export function ApiLogDrawer() {
   ];
 
   return (
-    <Drawer
+    <Drawer mask={false} forceRender
       title={
         <Space style={{ width: '100%', justifyContent: 'space-between' }}>
           <span>API Activity Log</span>

@@ -8,6 +8,8 @@ import { hint } from '@components/smart/FieldHint';
 import { useSettlementPrices, useSaveSettlementPrice, useConfirmSettlementPrice } from './hooks';
 import { TAS_EXCHANGES, SETTLEMENT_SOURCES, type SettlementPrice, type SettlementPriceInput, type TasExchange } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AppDatePicker } from '@components/smart/AppDatePicker';
+import dayjs, { type Dayjs } from 'dayjs';
 
 const EXCHANGE_COLOR: Record<TasExchange, string> = {
   CME_NYMEX: 'blue', ICE_EUROPE: 'orange', ICE_US: 'cyan',
@@ -31,15 +33,21 @@ export function SettlementPricesPage() {
   function openEdit(r: SettlementPrice) {
     setEditing(r);
     form.setFieldsValue({
-      exchange: r.exchange, contractTicker: r.contractTicker, settleDate: r.settleDate,
+      exchange: r.exchange, contractTicker: r.contractTicker,
+      settleDate: r.settleDate ? dayjs(r.settleDate) : undefined,
       settlePrice: r.settlePrice, tickSize: r.tickSize, tickCurrency: r.tickCurrency,
       uomCode: r.uomCode, isConfirmed: r.isConfirmed, source: r.source, notes: r.notes ?? undefined,
-    });
+    } as unknown as SettlementPriceInput);
     setOpen(true);
   }
   async function submit(closeAfter = true) {
-    const v = await form.validateFields();
-    const saved = await save.mutateAsync({ id: editing?.settlementPriceId ?? null, input: v });
+    const values = await form.validateFields();
+    const v = values as unknown as Record<string, Dayjs | undefined>;
+    const input: SettlementPriceInput = {
+      ...values,
+      settleDate: v.settleDate ? v.settleDate.format('YYYY-MM-DD') : values.settleDate,
+    };
+    const saved = await save.mutateAsync({ id: editing?.settlementPriceId ?? null, input });
     if (closeAfter) setOpen(false); else setEditing(saved);
   }
 
@@ -103,7 +111,7 @@ export function SettlementPricesPage() {
         getRowStyle={(p) => !(p.data as SettlementPrice).isConfirmed ? { background: 'rgba(250,173,20,0.04)' } : undefined}
       />
 
-      <Drawer
+      <Drawer mask={false} forceRender
         title={editing ? `Edit — ${editing.contractTicker} ${editing.settleDate}` : 'Add Settlement Price'}
         open={open}
         onClose={() => setOpen(false)}
@@ -125,7 +133,7 @@ export function SettlementPricesPage() {
               <Input placeholder="CLZ26" style={{ fontFamily: 'monospace', textTransform: 'uppercase' }} />
             </Form.Item>
             <Form.Item name="settleDate" label="Settle Date" rules={[{ required: true }]} style={{ flex: 1 }}>
-              <Input placeholder="2026-07-01" />
+              <AppDatePicker />
             </Form.Item>
           </Space>
           <Space style={{ width: '100%', gap: 12 }}>

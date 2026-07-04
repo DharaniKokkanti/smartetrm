@@ -90,7 +90,7 @@ export function PricingRulesPage() {
       <PageHeader title="Pricing Rules" description="Price determination rules — fixed, floating, differential, formula and Platts window pricing configurations." moduleGroup="pricing" />
       <SmartGrid columnDefs={colDefs} rowData={data} loading={isLoading} onAdd={openNew} addLabel="New Pricing Rule" onRefresh={() => { void refetch(); }} getRowId={(p) => String(p.data.pricingRuleId)} />
 
-      <Drawer title={editing ? `Edit Pricing Rule — ${editing.ruleCode}` : 'New Pricing Rule'} open={open} onClose={() => setOpen(false)} width={560}
+      <Drawer mask={false} forceRender title={editing ? `Edit Pricing Rule — ${editing.ruleCode}` : 'New Pricing Rule'} open={open} onClose={() => setOpen(false)} width={560}
         footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
         <Form form={form} layout="vertical" onValuesChange={(c) => { if (c.pricingType) setPricingType(c.pricingType as PricingType); }}>
           <Form.Item name="ruleCode" label={hint('Rule Code', 'Unique identifier for this pricing rule. Referenced in contracts and deal capture. Recommendation: prefix by type — FX-DTBRT-M1 (floating Dated Brent monthly), DIFF-WTI-CUSHING (WTI differential).', 'FX-DTBRT-M1, DIFF-WTI-CUSHING')} rules={[{ required: true }]}>

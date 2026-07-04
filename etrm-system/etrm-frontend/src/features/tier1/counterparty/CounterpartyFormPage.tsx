@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  Tabs, Form, Input, Select, Switch, DatePicker,
+  Tabs, Form, Input, Select, Switch,
   InputNumber, Button, Space, Spin, Badge,
 } from 'antd';
 import dayjs from 'dayjs';
@@ -15,6 +15,8 @@ import { ContactsSection } from './ContactsSection';
 import { BankAccountsSection } from './BankAccountsSection';
 import { AddressesSection } from './AddressesSection';
 import { EntityGuaranteesPanel } from '@features/tier1/guarantee/EntityGuaranteesPanel';
+import { usePageFormDraft } from '@components/smart/formDraft';
+import { AppDatePicker } from '@components/smart/AppDatePicker';
 
 const CURRENCY_OPTIONS = CURRENCY_LOOKUP.map((c) => ({ label: c.currencyCode, value: c.currencyId }));
 const RATING_OPTIONS = CREDIT_RATING_LOOKUP.map((r) => ({ label: `${r.agency} ${r.rating}`, value: r.creditRatingId }));
@@ -44,7 +46,25 @@ export function CounterpartyFormPage() {
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [addresses, setAddresses] = useState<AddressAssignment[]>([]);
 
+  const activeRef = useRef(true);
+  const { skipFormSyncRef, skipExtraSyncRef } = usePageFormDraft('counterparty', {
+    form: coreForm,
+    recordId: cpId,
+    activeRef,
+    extra: () => ({ contacts, bankAccounts, addresses }),
+    onRestore: (_values, extra) => {
+      setContacts((extra?.contacts as ContactAssignment[] | undefined) ?? []);
+      setBankAccounts((extra?.bankAccounts as BankAccount[] | undefined) ?? []);
+      setAddresses((extra?.addresses as AddressAssignment[] | undefined) ?? []);
+    },
+    meta: () => ({
+      route: isNew ? '/tier1/counterparty/new' : `/tier1/counterparty/${cpId}`,
+      label: existing ? existing.legalName : 'New Counterparty',
+    }),
+  });
+
   useEffect(() => {
+    if (skipFormSyncRef.current) { skipFormSyncRef.current = false; return; }
     if (existing) {
       coreForm.setFieldsValue({
         ...existing,
@@ -54,17 +74,18 @@ export function CounterpartyFormPage() {
         onboardedDate: existing.onboardedDate ? dayjs(existing.onboardedDate) : undefined,
       });
     }
-  }, [existing, coreForm]);
+  }, [existing, coreForm, skipFormSyncRef]);
 
   useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect */
+    if (skipExtraSyncRef.current) { skipExtraSyncRef.current = false; return; }
     if (existingChildren) {
       setContacts(existingChildren.contacts.map((c) => ({ ...c, _localId: `srv-ec-${c.entityContactId}` })));
       setBankAccounts(existingChildren.bankAccounts.map((b) => ({ ...b, _localId: `srv-b-${b.bankAccountId}` })));
       setAddresses(existingChildren.addresses.map((a) => ({ ...a, _localId: `srv-ea-${a.entityAddressId}` })));
     }
     /* eslint-enable react-hooks/set-state-in-effect */
-  }, [existingChildren]);
+  }, [existingChildren, skipExtraSyncRef]);
 
   const legalEntityOptions = useMemo(
     () => (legalEntities ?? []).map((e) => ({ label: `${e.entityCode} — ${e.entityName}`, value: e.legalEntityId })),
@@ -81,6 +102,7 @@ export function CounterpartyFormPage() {
       onboardedDate: values.onboardedDate ? values.onboardedDate.format('YYYY-MM-DD') : null,
     };
     const result = await saveDraft.mutateAsync({ id: cpId, draft: { core, contacts, bankAccounts, addresses } });
+    activeRef.current = false;
     navigate(`/tier1/counterparty/${result.parent.counterpartyId}`, { replace: true });
   }
 
@@ -94,7 +116,7 @@ export function CounterpartyFormPage() {
         moduleGroup="trade"
         extra={
           <Space>
-            <Button onClick={() => navigate('/tier1/counterparty')}>Cancel</Button>
+            <Button onClick={() => { activeRef.current = false; navigate('/tier1/counterparty'); }}>Cancel</Button>
             <Button type="primary" loading={saveDraft.isPending} onClick={handleSave}>Save Counterparty</Button>
           </Space>
         }
@@ -152,7 +174,7 @@ export function CounterpartyFormPage() {
                       <Input maxLength={3} style={{ textTransform: 'uppercase' }} />
                     </Form.Item>
                   </Space.Compact>
-                  <Form.Item name="creditReviewDate" label="Credit Review Date"><DatePicker style={{ width: '100%' }} /></Form.Item>
+                  <Form.Item name="creditReviewDate" label="Credit Review Date"><AppDatePicker /></Form.Item>
                   <Form.Item name="settlementDays" label="Settlement Days" rules={[{ required: true }]}>
                     <InputNumber style={{ width: '100%' }} min={0} max={365} />
                   </Form.Item>
@@ -162,9 +184,9 @@ export function CounterpartyFormPage() {
                   <Form.Item name="kycStatus" label="KYC Status" rules={[{ required: true }]}>
                     <Select options={kycStatusOptions} loading={loadingKycStatus} />
                   </Form.Item>
-                  <Form.Item name="kycApprovedDate" label="KYC Approved Date"><DatePicker style={{ width: '100%' }} /></Form.Item>
-                  <Form.Item name="kycExpiryDate" label="KYC Expiry Date"><DatePicker style={{ width: '100%' }} /></Form.Item>
-                  <Form.Item name="onboardedDate" label="Onboarded Date"><DatePicker style={{ width: '100%' }} /></Form.Item>
+                  <Form.Item name="kycApprovedDate" label="KYC Approved Date"><AppDatePicker /></Form.Item>
+                  <Form.Item name="kycExpiryDate" label="KYC Expiry Date"><AppDatePicker /></Form.Item>
+                  <Form.Item name="onboardedDate" label="Onboarded Date"><AppDatePicker /></Form.Item>
                 </div>
               ),
             },

@@ -145,7 +145,7 @@ export function StoragePage() {
         getRowId={(p) => String(p.data.storageId)}
       />
 
-      <Drawer
+      <Drawer mask={false} forceRender
         title={editing ? `Edit Storage — ${editing.storageCode}` : 'New Storage Facility'}
         open={open}
         onClose={() => setOpen(false)}

@@ -11,6 +11,8 @@ import {
   type BalmoProduct, type BalmoProductInput, type BalmoProductStatus,
 } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AppDatePicker } from '@components/smart/AppDatePicker';
+import dayjs, { type Dayjs } from 'dayjs';
 
 const STATUS_COLOR: Record<BalmoProductStatus, string> = {
   ACTIVE: 'success', EXPIRED: 'default', SUSPENDED: 'warning',
@@ -33,12 +35,24 @@ export function BalmoProductsPage() {
   function openEdit(r: BalmoProduct) {
     setEditing(r);
     form.resetFields();
-    form.setFieldsValue({ ...r });
+    form.setFieldsValue({
+      ...r,
+      pricingStartDate: r.pricingStartDate ? dayjs(r.pricingStartDate) : undefined,
+      pricingEndDate: r.pricingEndDate ? dayjs(r.pricingEndDate) : undefined,
+      lastTradingDate: r.lastTradingDate ? dayjs(r.lastTradingDate) : undefined,
+    } as unknown as BalmoProductInput);
     setOpen(true);
   }
   async function submit(closeAfter = true) {
-    const v = await form.validateFields();
-    const saved = await save.mutateAsync({ id: editing?.balmoProductId ?? null, input: v });
+    const values = await form.validateFields();
+    const v = values as unknown as Record<string, Dayjs | undefined>;
+    const input: BalmoProductInput = {
+      ...values,
+      pricingStartDate: v.pricingStartDate ? v.pricingStartDate.format('YYYY-MM-DD') : values.pricingStartDate,
+      pricingEndDate: v.pricingEndDate ? v.pricingEndDate.format('YYYY-MM-DD') : values.pricingEndDate,
+      lastTradingDate: v.lastTradingDate ? v.lastTradingDate.format('YYYY-MM-DD') : values.lastTradingDate,
+    };
+    const saved = await save.mutateAsync({ id: editing?.balmoProductId ?? null, input });
     if (closeAfter) setOpen(false); else setEditing(saved);
   }
 
@@ -91,7 +105,7 @@ export function BalmoProductsPage() {
         getRowId={(p) => String(p.data.balmoProductId)}
       />
 
-      <Drawer
+      <Drawer mask={false} forceRender
         title={editing ? `Edit BALMO Product — ${editing.productCode}` : 'New BALMO Product'}
         open={open}
         onClose={() => setOpen(false)}
@@ -142,19 +156,19 @@ export function BalmoProductsPage() {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item name="pricingStartDate" label={hint('Pricing Start', 'First business day this contract prices from. For current month = today; future months = 1st business day of month.')} rules={[{ required: true }]}>
-                <Input placeholder="2026-07-01" />
+                <AppDatePicker />
               </Form.Item>
             </Col>
             <Col span={12}>
               <Form.Item name="pricingEndDate" label={hint('Pricing End', 'Last business day of the contract month. All daily settlements up to and including this date are averaged.')} rules={[{ required: true }]}>
-                <Input placeholder="2026-07-31" />
+                <AppDatePicker />
               </Form.Item>
             </Col>
           </Row>
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item name="lastTradingDate" label={hint('Last Trading Date', 'Last day a BALMO trade can be executed for this month. Typically the last business day of the prior month on CME, or 1st business day of the contract month.')} rules={[{ required: true }]}>
-                <Input placeholder="2026-07-01" />
+                <AppDatePicker />
               </Form.Item>
             </Col>
             <Col span={12}>

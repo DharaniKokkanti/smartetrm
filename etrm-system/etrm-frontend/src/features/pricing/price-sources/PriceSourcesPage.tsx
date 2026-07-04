@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import {
   Button, Space, Popconfirm, Tag, Drawer, Form, Input, Select, Switch,
-  InputNumber, Table, DatePicker,
+  InputNumber, Table,
 } from 'antd';
 import { EditOutlined, StopOutlined, LinkOutlined, PlusOutlined } from '@ant-design/icons';
 import type { ColDef } from 'ag-grid-community';
@@ -20,6 +20,7 @@ import {
   type PriceIndexSourceInput,
 } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AppDatePicker } from '@components/smart/AppDatePicker';
 
 const TYPE_COLOR: Record<SourceType, string> = {
   EXCHANGE: 'blue', VENDOR: 'green', BROKER: 'purple', BLOOMBERG: 'cyan',
@@ -59,7 +60,7 @@ function IndexLinksDrawer({ source, onClose }: { source: PriceSource; onClose: (
   }
 
   return (
-    <Drawer
+    <Drawer mask={false} forceRender
       title={<Space><Tag>{source.sourceCode}</Tag>Price Index Links</Space>}
       open onClose={onClose} width={680}
       extra={<Button icon={<PlusOutlined />} type="primary" size="small" onClick={openAdd}>Link Index</Button>}
@@ -126,10 +127,10 @@ function IndexLinksDrawer({ source, onClose }: { source: PriceSource; onClose: (
             </Space>
             <Space style={{ width: '100%', gap: 12 }}>
               <Form.Item name="effectiveFrom" label="Effective From" rules={[{ required: true }]} style={{ flex: 1 }}>
-                <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
+                <AppDatePicker />
               </Form.Item>
               <Form.Item name="effectiveTo" label={hint('Effective To', 'Leave blank for currently active links. Set to end date when switching to a new source — keeps history intact.')} style={{ flex: 1 }}>
-                <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
+                <AppDatePicker />
               </Form.Item>
             </Space>
             <Space>
@@ -208,7 +209,7 @@ export function PriceSourcesPage() {
 
       {linksSource && <IndexLinksDrawer source={linksSource} onClose={() => setLinksSource(null)} />}
 
-      <Drawer
+      <Drawer mask={false} forceRender
         title={editing ? `Edit Price Source — ${editing.sourceCode}` : 'New Price Source'}
         open={editOpen} onClose={() => setEditOpen(false)} width={520}
         footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setEditOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}

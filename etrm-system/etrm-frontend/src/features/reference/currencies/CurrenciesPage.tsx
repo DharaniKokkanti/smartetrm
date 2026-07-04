@@ -54,7 +54,7 @@ export function CurrenciesPage() {
     <>
       <PageHeader title="Currencies" description="ISO 4217 currency codes used across all trade, pricing, and settlement records." moduleGroup="reference" />
       <SmartGrid columnDefs={colDefs} rowData={data} loading={isLoading} onAdd={openNew} addLabel="New Currency" onRefresh={() => { void refetch(); }} getRowId={(p) => String(p.data.currencyId)} />
-      <Drawer title={editing ? `Edit ${editing.currencyCode}` : 'New Currency'} open={open} onClose={() => setOpen(false)} width={460}
+      <Drawer mask={false} forceRender title={editing ? `Edit ${editing.currencyCode}` : 'New Currency'} open={open} onClose={() => setOpen(false)} width={460}
         footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
         <Form form={form} layout="vertical">
           <Form.Item name="currencyCode" label={hint('Currency Code', 'ISO 4217 three-letter code — USD, EUR, GBP. Cannot be changed once used in a trade.', 'USD')} rules={[{ required: true, max: 3 }]}>

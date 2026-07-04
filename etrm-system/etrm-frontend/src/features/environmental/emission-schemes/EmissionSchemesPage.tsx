@@ -67,7 +67,7 @@ export function EmissionSchemesPage() {
     <>
       <PageHeader title="Emission Schemes" description="Cap-and-trade and voluntary carbon schemes — EU ETS, UK ETS, California Cap-and-Trade, RGGI, VCS, Gold Standard. Parent reference for environmental products and surrender obligations." moduleGroup="environmental" />
       <SmartGrid columnDefs={colDefs} rowData={data} loading={isLoading} onAdd={openNew} addLabel="New Scheme" onRefresh={() => { void refetch(); }} getRowId={(p) => String(p.data.schemeId)} />
-      <Drawer title={editing ? `Edit — ${editing.schemeName}` : 'New Emission Scheme'} open={open} onClose={() => setOpen(false)} width={520}
+      <Drawer mask={false} forceRender title={editing ? `Edit — ${editing.schemeName}` : 'New Emission Scheme'} open={open} onClose={() => setOpen(false)} width={520}
         footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
         <Form form={form} layout="vertical" size="small">
           <Space style={{ width: '100%' }} size={12}>

@@ -85,7 +85,7 @@ export function EnvironmentalProductsPage() {
     <>
       <PageHeader title="Environmental Products" description="Tradeable environmental instruments — EUA, EUAA, UKA, CCA (allowances), REC, GO (certificates), VCU, CER (offsets). Each product is linked to its issuing scheme and registry." moduleGroup="environmental" />
       <SmartGrid columnDefs={colDefs} rowData={data} loading={isLoading} onAdd={openNew} addLabel="New Product" onRefresh={() => { void refetch(); }} getRowId={(p) => String(p.data.productId)} />
-      <Drawer title={editing ? `Edit — ${editing.productCode}` : 'New Environmental Product'} open={open} onClose={() => setOpen(false)} width={540}
+      <Drawer mask={false} forceRender title={editing ? `Edit — ${editing.productCode}` : 'New Environmental Product'} open={open} onClose={() => setOpen(false)} width={540}
         footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
         <Form form={form} layout="vertical" size="small">
           <Space style={{ width: '100%' }} size={12}>

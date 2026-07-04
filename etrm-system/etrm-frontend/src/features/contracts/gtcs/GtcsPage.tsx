@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Space, Popconfirm, Tag, Drawer, Form, Input, Select, Switch, DatePicker } from 'antd';
+import { Button, Space, Popconfirm, Tag, Drawer, Form, Input, Select, Switch } from 'antd';
 import { EditOutlined, StopOutlined } from '@ant-design/icons';
 import type { ColDef } from 'ag-grid-community';
 import dayjs from 'dayjs';
@@ -10,6 +10,7 @@ import { hint } from '@components/smart/FieldHint';
 import { useGtcs, useSaveGtc, useDeactivateGtc } from './hooks';
 import { GTC_TYPES, type Gtc, type GtcInput, type GtcType } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AppDatePicker } from '@components/smart/AppDatePicker';
 
 const TYPE_COLOR: Record<GtcType, string> = {
   CRUDE_OIL: 'blue',
@@ -113,7 +114,7 @@ export function GtcsPage() {
         getRowId={(p) => String(p.data.gtcId)}
       />
 
-      <Drawer
+      <Drawer mask={false} forceRender
         title={editing ? `Edit GTC — ${editing.gtcCode}` : 'New GTC'}
         open={open}
         onClose={() => setOpen(false)}
@@ -173,14 +174,14 @@ export function GtcsPage() {
               rules={[{ required: true }]}
               style={{ flex: 1 }}
             >
-              <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
+              <AppDatePicker />
             </Form.Item>
             <Form.Item
               name="expiryDate"
               label="Expiry Date"
               style={{ flex: 1 }}
             >
-              <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
+              <AppDatePicker />
             </Form.Item>
           </Space>
 

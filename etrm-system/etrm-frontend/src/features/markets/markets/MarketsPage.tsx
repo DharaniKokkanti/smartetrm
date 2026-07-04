@@ -38,7 +38,7 @@ function MarketProductDetail({ mp, onClose }: { mp: MarketProduct; onClose: () =
   const addPeriod = useAddPeriodToMarketProduct(mp.marketProductId);
 
   return (
-    <Drawer
+    <Drawer mask={false} forceRender
       title={<Space><Tag color="blue">{mp.productCode}</Tag>{mp.productName} on this market</Space>}
       open onClose={onClose} width={620}
     >
@@ -161,7 +161,7 @@ function MarketProductsDrawer({ market, onClose }: { market: Market; onClose: ()
 
   return (
     <>
-      <Drawer
+      <Drawer mask={false} forceRender
         title={<Space><Tag color="blue">{market.marketCode}</Tag>Products & Periods & Sources</Space>}
         open onClose={onClose} width={760}
         extra={<Button icon={<PlusOutlined />} type="primary" size="small" onClick={() => setAddOpen(true)}>Link Product</Button>}
@@ -314,7 +314,7 @@ export function MarketsPage() {
       {detailMarket && <MarketProductsDrawer market={detailMarket} onClose={() => setDetailMarket(null)} />}
 
       {/* Create / Edit market form */}
-      <Drawer
+      <Drawer mask={false} forceRender
         title={editing ? `Edit Market — ${editing.marketCode}` : 'New Market'}
         open={editOpen} onClose={() => setEditOpen(false)} width={560}
         footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setEditOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}

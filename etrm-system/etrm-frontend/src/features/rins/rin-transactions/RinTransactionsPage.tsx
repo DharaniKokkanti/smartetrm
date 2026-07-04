@@ -12,6 +12,8 @@ import { useRinObligations } from '@features/rins/rin-obligations/hooks';
 import { useRinTransactions, useCreateRinTransaction, useVoidRinTransaction } from './hooks';
 import type { RinTransaction, RinTransactionInput } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AppDatePicker } from '@components/smart/AppDatePicker';
+import dayjs, { type Dayjs } from 'dayjs';
 
 const TX_TYPE_COLOR: Record<string, string> = {
   GENERATE: 'green', SEPARATE: 'cyan', TRANSFER_BUY: 'blue', TRANSFER_SELL: 'orange', RETIRE: 'purple',
@@ -77,17 +79,19 @@ export function RinTransactionsPage() {
 
   function openNew() {
     form.resetFields();
-    form.setFieldsValue({ transactionDate: new Date().toISOString().slice(0, 10), status: 'CONFIRMED', vintageYear: new Date().getFullYear() });
+    form.setFieldsValue({ transactionDate: dayjs(), status: 'CONFIRMED', vintageYear: new Date().getFullYear() } as unknown as RinTransactionInput);
     setTxType('TRANSFER_BUY');
     setOpen(true);
   }
 
   async function submit(closeAfter = true) {
     const v = await form.validateFields();
+    const txDate = (v as unknown as { transactionDate?: Dayjs }).transactionDate;
     const qty = v.quantity ?? 0;
     const price = v.pricePerRin ?? null;
     await create.mutateAsync({
       ...v,
+      transactionDate: txDate ? txDate.format('YYYY-MM-DD') : v.transactionDate,
       totalValue: price != null ? qty * price : null,
       pricePerRin: price,
       counterpartyId: v.counterpartyId ?? null,
@@ -159,7 +163,7 @@ export function RinTransactionsPage() {
           <Button type="primary" icon={<PlusOutlined />} size="small" onClick={openNew}>New Transaction</Button>
         }
       />
-      <Drawer
+      <Drawer mask={false} forceRender
         title="New RIN Transaction"
         open={open} onClose={() => setOpen(false)} width={560}
         footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={create.isPending}>Record & Next</Button><Button type="primary" onClick={() => { void submit(true); }} loading={create.isPending}>Record & Close</Button></Space>}
@@ -167,7 +171,7 @@ export function RinTransactionsPage() {
         <Form form={form} layout="vertical" size="small" onValuesChange={(changed) => { if (changed.transactionType) setTxType(changed.transactionType as string); }}>
           <Space style={{ width: '100%' }} size={12}>
             <Form.Item name="transactionDate" label="Date" rules={[{ required: true }]} style={{ flex: 1 }}>
-              <Input type="date" />
+              <AppDatePicker />
             </Form.Item>
             <Form.Item name="transactionType" label="Transaction Type" rules={[{ required: true }]} style={{ flex: 2 }}>
               <Select options={TX_TYPE_OPTS} />

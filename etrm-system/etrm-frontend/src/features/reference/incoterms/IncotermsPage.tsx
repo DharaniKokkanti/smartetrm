@@ -53,7 +53,7 @@ export function IncotermsPage() {
     <>
       <PageHeader title="Incoterms" description="Incoterms 2020 delivery terms — define risk transfer, cost responsibility, and title transfer points for all physical trades." moduleGroup="reference" />
       <SmartGrid columnDefs={colDefs} rowData={data} loading={isLoading} onAdd={openNew} addLabel="New Incoterm" onRefresh={() => { void refetch(); }} getRowId={(p) => String(p.data.incotermId)} />
-      <Drawer title={editing ? `Edit ${editing.incotermCode}` : 'New Incoterm'} open={open} onClose={() => setOpen(false)} width={560}
+      <Drawer mask={false} forceRender title={editing ? `Edit ${editing.incotermCode}` : 'New Incoterm'} open={open} onClose={() => setOpen(false)} width={560}
         footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
         <Form form={form} layout="vertical">
           <Form.Item name="incotermCode" label={hint('Incoterm Code', 'Standard 3-letter ICC code — FOB, CIF, DAP, EXW etc. Must match ICC Incoterms 2020 publication exactly.', 'FOB')} rules={[{ required: true, max: 3 }]}>

@@ -14,6 +14,7 @@ import {
   useCreateRole, useUpdateRole, useSubmitRole, useApproveRole, useRejectRole,
   useAssignments, useApproveAssignment, useRejectAssignment, useRevokeAssignment,
 } from './hooks';
+import { useDraftState, useDraftValues } from '@components/smart/formDraft';
 
 const { Title, Text } = Typography;
 
@@ -120,7 +121,7 @@ function RejectModal({
 }: { open: boolean; onOk: (reason: string) => void; onCancel: () => void; loading: boolean }) {
   const [reason, setReason] = useState('');
   return (
-    <Modal
+    <Modal mask={false} forceRender
       open={open}
       title="Reject Role"
       onCancel={onCancel}
@@ -152,6 +153,7 @@ interface RoleFormModalProps {
 
 function RoleFormModal({ open, editing, modules, functions, onClose }: RoleFormModalProps) {
   const [form] = Form.useForm();
+  const skipDraftReset = useDraftValues('admin-roles-v', form, open, editing);
   const { data: detail } = useRoleDetail(editing?.roleId ?? null);
   const createRole = useCreateRole();
   const updateRole = useUpdateRole();
@@ -170,13 +172,14 @@ function RoleFormModal({ open, editing, modules, functions, onClose }: RoleFormM
 
   // Reset when switching between roles (or create vs edit)
   useEffect(() => {
+    if (skipDraftReset.current) { if (open) skipDraftReset.current = false; return; }
     if (!editing) {
       form.resetFields();
       setGrantMap(new Map());
     } else {
       form.setFieldsValue({ roleCode: editing.roleCode, roleName: editing.roleName, description: editing.description });
     }
-  }, [editing, form]);
+  }, [editing, form, open]);
 
   async function handleOk() {
     const vals = await form.validateFields();
@@ -195,7 +198,7 @@ function RoleFormModal({ open, editing, modules, functions, onClose }: RoleFormM
   const isSystem = editing?.roleType === 'SYSTEM';
 
   return (
-    <Modal
+    <Modal mask={false} forceRender
       open={open}
       title={editing ? `Edit Role — ${editing.roleCode}` : 'Create Custom Role'}
       width={700}
@@ -260,6 +263,7 @@ export function RolesPage() {
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<UserRole | null>(null);
+  useDraftState('admin-roles', { open: formOpen, setOpen: setFormOpen, editing: editingRole, setEditing: setEditingRole });
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectTarget, setRejectTarget] = useState<number | null>(null);
   const [rejectAssignmentOpen, setRejectAssignmentOpen] = useState(false);

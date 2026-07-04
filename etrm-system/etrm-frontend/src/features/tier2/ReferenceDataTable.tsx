@@ -11,8 +11,7 @@ import {
   InputNumber,
   Select,
   Switch,
-  DatePicker,
-  Empty,
+    Empty,
   Spin,
   Alert,
 } from 'antd';
@@ -21,6 +20,8 @@ import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 import type { RegistryEntry, ColumnMetadata, ReferenceDataRow } from '@models/referenceData';
 import { useTableMetadata, useTableRows, useSaveRow, useDeleteRow } from './hooks';
+import { useFormDraft } from '@components/smart/formDraft';
+import { AppDatePicker } from '@components/smart/AppDatePicker';
 
 interface Props {
   table: RegistryEntry;
@@ -63,7 +64,7 @@ function fieldControl(col: ColumnMetadata) {
       // which exists yet. Flagged here rather than silently faked.
       return <InputNumber style={{ width: '100%' }} />;
     case 'date':
-      return <DatePicker style={{ width: '100%' }} />;
+      return <AppDatePicker />;
     case 'enum':
       return <Select options={(col.enumValues ?? []).map((v) => ({ label: v, value: v }))} />;
     default: {
@@ -90,6 +91,10 @@ export function ReferenceDataTable({ table }: Props) {
   const [form] = Form.useForm();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  useFormDraft(`tier2-${table.tableName}`, {
+    form, open: modalOpen, setOpen: setModalOpen, editing: editingId, setEditing: setEditingId,
+    meta: () => ({ route: `/static-data/${table.tableName}`, label: table.displayName.replace(/s$/, '') }),
+  });
 
   const editableColumns = useMemo(
     () =>
@@ -197,7 +202,7 @@ export function ReferenceDataTable({ table }: Props) {
         pagination={{ pageSize: 20 }}
         locale={{ emptyText: <Empty description="No rows yet" /> }}
       />
-      <Modal
+      <Modal mask={false} forceRender
         title={editingId === null ? `New ${table.displayName.replace(/s$/, '')}` : `Edit row`}
         open={modalOpen}
         onCancel={() => setModalOpen(false)}

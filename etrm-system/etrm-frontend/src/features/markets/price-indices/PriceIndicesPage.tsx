@@ -89,7 +89,7 @@ export function PriceIndicesPage() {
         onRefresh={() => { void refetch(); }}
         getRowId={(p) => String(p.data.priceIndexId)} />
 
-      <Drawer title={editing ? `Edit Index — ${editing.indexCode}` : 'New Price Index'} open={open} onClose={() => setOpen(false)} width={520}
+      <Drawer mask={false} forceRender title={editing ? `Edit Index — ${editing.indexCode}` : 'New Price Index'} open={open} onClose={() => setOpen(false)} width={520}
         footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
         <Form form={form} layout="vertical">
           <Form.Item name="indexCode" label={hint('Index Code', 'Canonical code for this benchmark. Use the industry-standard code from the publication source (e.g. Platts uses DTBRT for Dated Brent, Argus uses PA0003858). This code is used in pricing formula expressions.', 'DATED_BRENT')} rules={[{ required: true }]}>

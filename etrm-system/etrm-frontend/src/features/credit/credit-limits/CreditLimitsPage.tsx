@@ -19,6 +19,8 @@ import {
   REVIEW_OUTCOMES, COUNTRY_RISK_RATINGS, BREACH_ACTIONS,
 } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AppDatePicker } from '@components/smart/AppDatePicker';
+import dayjs, { type Dayjs } from 'dayjs';
 
 const { Text } = Typography;
 
@@ -103,9 +105,9 @@ export function CreditLimitsPage() {
       alertInternal: true, alertCounterparty: false,
       reviewFrequencyDays: 365,
       status: 'ACTIVE', isActive: true,
-      effectiveDate: new Date().toISOString().slice(0, 10),
+      effectiveDate: dayjs(),
       lineItems: [],
-    });
+    } as unknown as CreditLimitInput);
     setOpen(true);
   }
 
@@ -114,18 +116,32 @@ export function CreditLimitsPage() {
     form.resetFields();
     form.setFieldsValue({
       ...r,
-      expiryDate: r.expiryDate ?? undefined,
+      effectiveDate: r.effectiveDate ? dayjs(r.effectiveDate) : undefined,
+      expiryDate: r.expiryDate ? dayjs(r.expiryDate) : undefined,
       approvedBy: r.approvedBy ?? undefined,
-      approvalDate: r.approvalDate ?? undefined,
+      approvalDate: r.approvalDate ? dayjs(r.approvalDate) : undefined,
+      lastReviewDate: r.lastReviewDate ? dayjs(r.lastReviewDate) : undefined,
+      nextReviewDate: r.nextReviewDate ? dayjs(r.nextReviewDate) : undefined,
+      tempUpliftExpiry: r.tempUpliftExpiry ? dayjs(r.tempUpliftExpiry) : undefined,
       nettingAgreementRef: r.nettingAgreementRef ?? undefined,
       lineItems: r.lineItems ?? [],
-    });
+    } as unknown as CreditLimitInput);
     setOpen(true);
   }
 
   async function submit(closeAfter = true) {
     const values = await form.validateFields();
-    const saved = await save.mutateAsync({ id: editing?.creditLimitId ?? null, input: values });
+    const v = values as unknown as Record<string, Dayjs | undefined>;
+    const input: CreditLimitInput = {
+      ...values,
+      effectiveDate: v.effectiveDate ? v.effectiveDate.format('YYYY-MM-DD') : values.effectiveDate,
+      expiryDate: v.expiryDate ? v.expiryDate.format('YYYY-MM-DD') : null,
+      approvalDate: v.approvalDate ? v.approvalDate.format('YYYY-MM-DD') : null,
+      lastReviewDate: v.lastReviewDate ? v.lastReviewDate.format('YYYY-MM-DD') : null,
+      nextReviewDate: v.nextReviewDate ? v.nextReviewDate.format('YYYY-MM-DD') : null,
+      tempUpliftExpiry: v.tempUpliftExpiry ? v.tempUpliftExpiry.format('YYYY-MM-DD') : null,
+    };
+    const saved = await save.mutateAsync({ id: editing?.creditLimitId ?? null, input });
     if (closeAfter) setOpen(false); else setEditing(saved);
   }
 
@@ -238,7 +254,7 @@ export function CreditLimitsPage() {
         getRowId={(p) => String(p.data.creditLimitId)}
       />
 
-      <Drawer
+      <Drawer mask={false} forceRender
         title={editing ? `Edit Credit Limit — ${editing.counterpartyName} (${editing.limitType.replace(/_/g, ' ')})` : 'New Credit Limit'}
         open={open}
         onClose={() => setOpen(false)}
@@ -334,7 +350,7 @@ export function CreditLimitsPage() {
             </Col>
             <Col span={8}>
               <Form.Item name="tempUpliftExpiry" label="Uplift Expiry">
-                <Input placeholder="2026-09-30" style={{ fontFamily: 'monospace' }} />
+                <AppDatePicker />
               </Form.Item>
             </Col>
             <Col span={6}>
@@ -346,8 +362,8 @@ export function CreditLimitsPage() {
 
           {sec('Validity')}
           <Row gutter={12}>
-            <Col span={10}><Form.Item name="effectiveDate" label="Effective Date" rules={[{ required: true }]}><Input placeholder="2026-01-01" style={{ fontFamily: 'monospace' }} /></Form.Item></Col>
-            <Col span={10}><Form.Item name="expiryDate" label="Expiry Date"><Input placeholder="Blank = evergreen" style={{ fontFamily: 'monospace' }} /></Form.Item></Col>
+            <Col span={10}><Form.Item name="effectiveDate" label="Effective Date" rules={[{ required: true }]}><AppDatePicker /></Form.Item></Col>
+            <Col span={10}><Form.Item name="expiryDate" label={hint('Expiry Date', 'Leave blank for evergreen / no fixed term.')}><AppDatePicker /></Form.Item></Col>
           </Row>
 
           </Col>
@@ -364,7 +380,7 @@ export function CreditLimitsPage() {
               <Form.Item name="approvedBy" label="Approved By"><Input placeholder="Credit Committee" /></Form.Item>
             </Col>
             <Col span={6}>
-              <Form.Item name="approvalDate" label="Approval Date"><Input placeholder="2025-12-10" style={{ fontFamily: 'monospace' }} /></Form.Item>
+              <Form.Item name="approvalDate" label="Approval Date"><AppDatePicker /></Form.Item>
             </Col>
           </Row>
           <Row gutter={12}>
@@ -377,11 +393,11 @@ export function CreditLimitsPage() {
               </Form.Item>
             </Col>
             <Col span={6}>
-              <Form.Item name="lastReviewDate" label="Last Review"><Input placeholder="2025-12-10" style={{ fontFamily: 'monospace' }} /></Form.Item>
+              <Form.Item name="lastReviewDate" label="Last Review"><AppDatePicker /></Form.Item>
             </Col>
             <Col span={6}>
               <Form.Item name="nextReviewDate" label={hint('Next Review', 'Leave blank to auto-derive: last review + review cycle.')}>
-                <Input placeholder="auto" style={{ fontFamily: 'monospace' }} />
+                <AppDatePicker placeholder="auto" />
               </Form.Item>
             </Col>
             <Col span={6}>

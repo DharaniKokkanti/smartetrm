@@ -365,7 +365,7 @@ function SpecTemplateValues({ templateId, commodityType }: { templateId: number;
           : <Table size="small" columns={cols} dataSource={data} rowKey="specValueId" pagination={false} style={{ fontSize: 12 }} />
       }
 
-      <Modal
+      <Modal mask={false} forceRender
         title={editingValue ? 'Edit Spec Value' : 'Add Spec Value'}
         open={modalOpen}
         onCancel={() => setModalOpen(false)}
@@ -687,7 +687,7 @@ function SpecsTab({ product, isBlend }: { product: Product; isBlend: boolean }) 
       </div>
 
       {/* ── Add Template Modal ──────────────────────────────────────────── */}
-      <Modal
+      <Modal mask={false} forceRender
         title="Add Spec Template"
         open={tplModalOpen}
         onCancel={() => setTplModalOpen(false)}
@@ -1235,7 +1235,7 @@ export function ProductsPage() {
         getRowId={(p) => String(p.data.productId)}
       />
 
-      <Drawer
+      <Drawer mask={false} forceRender
         title={editing ? `Edit Product — ${editing.productCode}` : 'New Product'}
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}

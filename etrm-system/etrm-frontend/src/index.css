@@ -67,3 +67,15 @@ body {
   outline: 2px solid #2e75b6;
   outline-offset: 2px;
 }
+
+/* Modal forms use mask={false} so the sidebar stays usable while one is open
+   (minimize-by-navigating-away — see MinimizedDraftsDock) — but unlike
+   Drawer, antd's Modal wrap div (`.ant-modal-wrap`) always spans the full
+   viewport and swallows clicks even with no visible mask. Punch a hole in it:
+   only the modal box itself should intercept pointer events. */
+.ant-modal-wrap {
+  pointer-events: none;
+}
+.ant-modal-wrap .ant-modal {
+  pointer-events: auto;
+}

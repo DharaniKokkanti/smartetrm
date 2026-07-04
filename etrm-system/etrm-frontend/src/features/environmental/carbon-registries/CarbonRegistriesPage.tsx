@@ -67,7 +67,7 @@ export function CarbonRegistriesPage() {
     <>
       <PageHeader title="Carbon Registries" description="Registries where environmental instruments are issued, held, and cancelled — EU Union Registry, UK Registry, Verra, Gold Standard, American Carbon Registry." moduleGroup="environmental" />
       <SmartGrid columnDefs={colDefs} rowData={data} loading={isLoading} onAdd={openNew} addLabel="New Registry" onRefresh={() => { void refetch(); }} getRowId={(p) => String(p.data.registryId)} />
-      <Drawer title={editing ? `Edit — ${editing.registryName}` : 'New Carbon Registry'} open={open} onClose={() => setOpen(false)} width={500}
+      <Drawer mask={false} forceRender title={editing ? `Edit — ${editing.registryName}` : 'New Carbon Registry'} open={open} onClose={() => setOpen(false)} width={500}
         footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
         <Form form={form} layout="vertical" size="small">
           <Space style={{ width: '100%' }} size={12}>

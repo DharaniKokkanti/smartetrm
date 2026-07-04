@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Space, Popconfirm, Tag, Drawer, Form, Input, Select, Switch, DatePicker } from 'antd';
+import { Button, Space, Popconfirm, Tag, Drawer, Form, Input, Select, Switch } from 'antd';
 import { EditOutlined, StopOutlined } from '@ant-design/icons';
 import type { ColDef } from 'ag-grid-community';
 import dayjs from 'dayjs';
@@ -10,6 +10,7 @@ import { hint } from '@components/smart/FieldHint';
 import { usePeriods, useSavePeriod, useDeactivatePeriod } from './hooks';
 import { PERIOD_TYPES, PERIOD_STATUS_CODES, type Period, type PeriodInput, type PeriodType, type PeriodStatusCode } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AppDatePicker } from '@components/smart/AppDatePicker';
 
 const TYPE_COLOR: Record<PeriodType, string> = {
   DAILY: 'default', WEEKLY: 'lime', MONTHLY: 'green', QUARTERLY: 'blue',
@@ -89,7 +90,7 @@ export function PeriodsPage() {
       <PageHeader title="Periods" description="Trading periods — daily, monthly, quarterly, annual, spot and prompt. Each period defines the pricing and delivery window for deals." moduleGroup="calendar" />
       <SmartGrid columnDefs={colDefs} rowData={data} loading={isLoading} onAdd={openNew} addLabel="New Period" onRefresh={() => { void refetch(); }} getRowId={(p) => String(p.data.periodId)} />
 
-      <Drawer title={editing ? `Edit Period — ${editing.periodCode}` : 'New Period'} open={open} onClose={() => setOpen(false)} width={520}
+      <Drawer mask={false} forceRender title={editing ? `Edit Period — ${editing.periodCode}` : 'New Period'} open={open} onClose={() => setOpen(false)} width={520}
         footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
         <Form form={form} layout="vertical">
           <Form.Item name="periodCode" label={hint('Period Code', 'Standardized code used in trade capture. Convention: monthly M2026-01 (Jan 2026), quarterly Q2026-Q1, annual Y2026. Spot/prompt: SPOT, M+1, Q+1.', 'M2026-01, Q2026-Q1, Y2026, SPOT')} rules={[{ required: true }]}>
@@ -103,18 +104,18 @@ export function PeriodsPage() {
           </Form.Item>
           <Space style={{ width: '100%', gap: 12 }}>
             <Form.Item name="startDate" label={hint('Start Date', 'First calendar day of the pricing period. For monthly: 1st of month. Gas periods often start from gas day boundary (6:00 AM UK).', '2026-01-01')} rules={[{ required: true }]} style={{ flex: 1 }}>
-              <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
+              <AppDatePicker />
             </Form.Item>
             <Form.Item name="endDate" label={hint('End Date', 'Last calendar day of the period (inclusive). For monthly: last day of month. Check calendar for holiday impact on Last Trading Day.', '2026-01-31')} rules={[{ required: true }]} style={{ flex: 1 }}>
-              <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
+              <AppDatePicker />
             </Form.Item>
           </Space>
           <Space style={{ width: '100%', gap: 12 }}>
             <Form.Item name="deliveryStartDate" label={hint('Delivery Start', 'Physical delivery window start. May differ from pricing period — e.g. crude oil: pricing in month N, delivery in month N+1 (laytime basis).', '2026-01-01')} style={{ flex: 1 }}>
-              <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
+              <AppDatePicker />
             </Form.Item>
             <Form.Item name="deliveryEndDate" label="Delivery End" style={{ flex: 1 }}>
-              <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
+              <AppDatePicker />
             </Form.Item>
           </Space>
           <Space style={{ width: '100%', gap: 12 }}>

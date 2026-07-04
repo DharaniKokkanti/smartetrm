@@ -4,6 +4,7 @@ import {
   InputNumber, Divider, Typography, Row, Col, Segmented, Card,
   Tooltip, Table, Alert, Badge, Empty, Switch,
 } from 'antd';
+import dayjs, { type Dayjs } from 'dayjs';
 import { useFieldPermissions } from '@permissions/useFieldPermissions';
 import {
   EditOutlined, StopOutlined, CheckCircleOutlined,
@@ -49,8 +50,30 @@ import { useCommodityInstrumentMap } from '@features/reference/commodity-instrum
 import { useTableRows } from '@features/tier2/hooks';
 import { useUiStore } from '@store/uiStore';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AppDatePicker } from '@components/smart/AppDatePicker';
 
 const { Text } = Typography;
+
+/** Converts named string-date fields on a nested detail object (oilDetail, gasDetail, ...) to dayjs for the form. */
+function detailToForm<T extends object>(obj: T | null | undefined, dateFields: (keyof T)[]): Record<string, unknown> | undefined {
+  if (!obj) return undefined;
+  const out: Record<string, unknown> = { ...obj } as Record<string, unknown>;
+  for (const f of dateFields) {
+    const v = out[f as string];
+    if (typeof v === 'string' && v) out[f as string] = dayjs(v);
+  }
+  return out;
+}
+/** Reverses `detailToForm` — dayjs fields back to ISO strings for the API payload. */
+function detailFromForm<T extends object>(obj: T | null | undefined, dateFields: (keyof T)[]): Record<string, unknown> | null | undefined {
+  if (!obj) return obj as null | undefined;
+  const out: Record<string, unknown> = { ...obj } as Record<string, unknown>;
+  for (const f of dateFields) {
+    const v = out[f as string];
+    if (v && typeof v === 'object' && 'format' in (v as object)) out[f as string] = (v as Dayjs).format('YYYY-MM-DD');
+  }
+  return out;
+}
 
 // ─── Colour maps ──────────────────────────────────────────────────────────────
 const COMMODITY_COLOR: Record<string, string> = {
@@ -142,10 +165,10 @@ function OilSection({ locations, vessels, crudeGrades, pipelines }: {
         )}
       </Row>
       <Row gutter={16}>
-        <Col span={6}><Form.Item name={['oilDetail', 'laycanStart']} label={hint('Laycan Start', 'Earliest date vessel can present at load port.')}><Input placeholder="2026-07-10" /></Form.Item></Col>
-        <Col span={6}><Form.Item name={['oilDetail', 'laycanEnd']} label="Laycan End"><Input placeholder="2026-07-12" /></Form.Item></Col>
-        <Col span={6}><Form.Item name={['oilDetail', 'blDate']} label={hint('B/L Date', 'Bill of Lading date — legal date of title transfer.')}><Input placeholder="2026-07-11" /></Form.Item></Col>
-        <Col span={6}><Form.Item name={['oilDetail', 'norsTenderedDate']} label={hint('NOR Tendered', 'Notice of Readiness — starts demurrage clock.')}><Input placeholder="2026-07-10T06:00" /></Form.Item></Col>
+        <Col span={6}><Form.Item name={['oilDetail', 'laycanStart']} label={hint('Laycan Start', 'Earliest date vessel can present at load port.')}><AppDatePicker /></Form.Item></Col>
+        <Col span={6}><Form.Item name={['oilDetail', 'laycanEnd']} label="Laycan End"><AppDatePicker /></Form.Item></Col>
+        <Col span={6}><Form.Item name={['oilDetail', 'blDate']} label={hint('B/L Date', 'Bill of Lading date — legal date of title transfer.')}><AppDatePicker /></Form.Item></Col>
+        <Col span={6}><Form.Item name={['oilDetail', 'norsTenderedDate']} label={hint('NOR Tendered', 'Notice of Readiness — starts demurrage clock.')}><AppDatePicker showTime format="YYYY-MM-DD HH:mm" /></Form.Item></Col>
       </Row>
     </>
   );
@@ -174,8 +197,8 @@ function GasSection({ nominationTypes, gasDayTypes }: { nominationTypes: SelectO
         </Col>
       </Row>
       <Row gutter={16}>
-        <Col span={6}><Form.Item name={['gasDetail', 'gasDeliveryStart']} label="Delivery Start"><Input placeholder="2026-07-01" /></Form.Item></Col>
-        <Col span={6}><Form.Item name={['gasDetail', 'gasDeliveryEnd']} label="Delivery End"><Input placeholder="2026-07-31" /></Form.Item></Col>
+        <Col span={6}><Form.Item name={['gasDetail', 'gasDeliveryStart']} label="Delivery Start"><AppDatePicker /></Form.Item></Col>
+        <Col span={6}><Form.Item name={['gasDetail', 'gasDeliveryEnd']} label="Delivery End"><AppDatePicker /></Form.Item></Col>
         <Col span={6}>
           <Form.Item name={['gasDetail', 'gasDayType']} label={hint('Gas Day Type', 'STANDARD = 06:00–06:00 UK time (NBP).')}>
             <Select options={gasDayTypes} allowClear />
@@ -209,8 +232,8 @@ function PowerSection({ powerLoadTypes }: { powerLoadTypes: SelectOpt[] }) {
         </Col>
       </Row>
       <Row gutter={16}>
-        <Col span={6}><Form.Item name={['powerDetail', 'deliveryStart']} label="Delivery Start"><Input placeholder="2026-07-01" /></Form.Item></Col>
-        <Col span={6}><Form.Item name={['powerDetail', 'deliveryEnd']} label="Delivery End"><Input placeholder="2026-07-31" /></Form.Item></Col>
+        <Col span={6}><Form.Item name={['powerDetail', 'deliveryStart']} label="Delivery Start"><AppDatePicker /></Form.Item></Col>
+        <Col span={6}><Form.Item name={['powerDetail', 'deliveryEnd']} label="Delivery End"><AppDatePicker /></Form.Item></Col>
         <Col span={6}>
           <Form.Item name={['powerDetail', 'gridNodeCode']} label={hint('Grid Node', 'DE-AT-LU, PJM-AEP, ERCOT-HUB-WEST.')}>
             <Input placeholder="DE-AT-LU" style={{ fontFamily: 'monospace' }} />
@@ -259,7 +282,7 @@ function MetalsSection({ locations, metalShapes }: { locations: SelectOpt[]; met
       </Row>
       <Row gutter={16}>
         <Col span={8}><Form.Item name={['metalsDetail', 'motType']} label="MOT"><Select options={['SHIP', 'TRUCK', 'RAIL', 'BARGE'].map((v) => ({ value: v, label: v }))} placeholder="MOT" allowClear /></Form.Item></Col>
-        <Col span={8}><Form.Item name={['metalsDetail', 'lmeDate']} label={hint('LME Date', 'Cash (T+2) or 3-month forward prompt date.')}><Input placeholder="2026-07-01" /></Form.Item></Col>
+        <Col span={8}><Form.Item name={['metalsDetail', 'lmeDate']} label={hint('LME Date', 'Cash (T+2) or 3-month forward prompt date.')}><AppDatePicker /></Form.Item></Col>
         <Col span={8}><Form.Item name={['metalsDetail', 'warehouseLocationCode']} label="Warehouse"><Select options={locations} placeholder="LME warehouse" allowClear showSearch /></Form.Item></Col>
       </Row>
       <Row gutter={16}>
@@ -305,8 +328,8 @@ function FreightSection({ locations }: { locations: SelectOpt[] }) {
       <Row gutter={16}>
         <Col span={6}><Form.Item name={['freightDetail', 'freightRateType']} label="Rate Type"><Select options={FREIGHT_RATE_TYPES.map((v) => ({ value: v, label: v }))} placeholder="WS / $/MT / LS" allowClear /></Form.Item></Col>
         <Col span={6}><Form.Item name={['freightDetail', 'freightRate']} label="Freight Rate"><InputNumber placeholder="75.00" precision={4} style={{ width: '100%' }} /></Form.Item></Col>
-        <Col span={6}><Form.Item name={['freightDetail', 'laycanStart']} label="Laycan Start"><Input placeholder="2026-07-10" /></Form.Item></Col>
-        <Col span={6}><Form.Item name={['freightDetail', 'laycanEnd']} label="Laycan End"><Input placeholder="2026-07-13" /></Form.Item></Col>
+        <Col span={6}><Form.Item name={['freightDetail', 'laycanStart']} label="Laycan Start"><AppDatePicker /></Form.Item></Col>
+        <Col span={6}><Form.Item name={['freightDetail', 'laycanEnd']} label="Laycan End"><AppDatePicker /></Form.Item></Col>
       </Row>
     </>
   );
@@ -353,7 +376,7 @@ function TasSection() {
         </Col>
         <Col span={8}>
           <Form.Item name={['tasDetail', 'tasSettlementDate']} label={hint('Settlement Date', 'Date the exchange daily settlement was confirmed and price locked.')}>
-            <Input placeholder="2026-07-01" />
+            <AppDatePicker />
           </Form.Item>
         </Col>
       </Row>
@@ -402,7 +425,7 @@ function BalmoSection({ balmoProducts }: { balmoProducts: BalmoProduct[] }) {
             label={hint('Pricing Start', 'First day prices accumulate — typically the trade/booking date. BALMO prices from THIS date to end of month, not from month start.')}
             rules={[{ required: true, message: 'Required' }]}
           >
-            <Input placeholder="2026-07-14" />
+            <AppDatePicker />
           </Form.Item>
         </Col>
         <Col span={8}>
@@ -411,7 +434,7 @@ function BalmoSection({ balmoProducts }: { balmoProducts: BalmoProduct[] }) {
             label={hint('Pricing End', 'Last business day of the contract month — auto-derived from the BALMO product but can be overridden.')}
             rules={[{ required: true, message: 'Required' }]}
           >
-            <Input placeholder="2026-07-31" />
+            <AppDatePicker />
           </Form.Item>
         </Col>
         <Col span={8}>
@@ -721,12 +744,12 @@ function DeliveryFields({
       <Row gutter={16}>
         <Col span={8}>
           <Form.Item name="riskStartDate" label={hint('Risk Start', 'First day this leg carries price risk.')} rules={[{ required: true, message: 'Required for position engine' }]}>
-            <Input placeholder="2026-07-01" />
+            <AppDatePicker />
           </Form.Item>
         </Col>
         <Col span={8}>
           <Form.Item name="riskEndDate" label={hint('Risk End', 'Last day this leg carries price risk.')} rules={[{ required: true, message: 'Required for position engine' }]}>
-            <Input placeholder="2026-07-31" />
+            <AppDatePicker />
           </Form.Item>
         </Col>
       </Row>
@@ -955,12 +978,26 @@ export function TradeBlotter() {
     setEditingTrade(t);
     setTradeCommodity(t.commodityType);
     tradeForm.resetFields();
-    tradeForm.setFieldsValue({ ...t });
+    tradeForm.setFieldsValue({
+      ...t,
+      tradeDate: t.tradeDate ? dayjs(t.tradeDate) : undefined,
+      executionDatetime: t.executionDatetime ? dayjs(t.executionDatetime) : undefined,
+      rfpStartDate: t.rfpStartDate ? dayjs(t.rfpStartDate) : undefined,
+      rfpEndDate: t.rfpEndDate ? dayjs(t.rfpEndDate) : undefined,
+    } as unknown as TradeInput);
     setTradeOpen(true);
   }
   async function submitTrade(closeAfter = true) {
     const values = await tradeForm.validateFields();
-    const saved = await saveTrade.mutateAsync({ id: editingTrade?.tradeId ?? null, input: values as TradeInput });
+    const v = values as unknown as Record<string, Dayjs | undefined>;
+    const input: TradeInput = {
+      ...(values as TradeInput),
+      tradeDate: v.tradeDate ? v.tradeDate.format('YYYY-MM-DD') : (values as TradeInput).tradeDate,
+      executionDatetime: v.executionDatetime ? v.executionDatetime.format('YYYY-MM-DDTHH:mm:ss[Z]') : null,
+      rfpStartDate: v.rfpStartDate ? v.rfpStartDate.format('YYYY-MM-DD') : null,
+      rfpEndDate: v.rfpEndDate ? v.rfpEndDate.format('YYYY-MM-DD') : null,
+    };
+    const saved = await saveTrade.mutateAsync({ id: editingTrade?.tradeId ?? null, input });
     if (closeAfter) setTradeOpen(false); else setEditingTrade(saved);
   }
 
@@ -986,23 +1023,51 @@ export function TradeBlotter() {
     setEditingOrder(o);
     if (selectedTrade) setOrderCommodity(selectedTrade.commodityType);
     orderForm.resetFields();
+    const oilDetail = detailToForm(o.oilDetail, ['laycanStart', 'laycanEnd', 'blDate']);
     orderForm.setFieldsValue({
       ...o,
-      oilDetail:     o.oilDetail     ?? undefined,
-      gasDetail:     o.gasDetail     ?? undefined,
-      powerDetail:   o.powerDetail   ?? undefined,
+      oilDetail: oilDetail ? {
+        ...oilDetail,
+        norsTenderedDate: o.oilDetail?.norsTenderedDate ? dayjs(o.oilDetail.norsTenderedDate) : undefined,
+      } : undefined,
+      gasDetail:     detailToForm(o.gasDetail,     ['gasDeliveryStart', 'gasDeliveryEnd']),
+      powerDetail:   detailToForm(o.powerDetail,   ['deliveryStart', 'deliveryEnd']),
       lngDetail:     o.lngDetail     ?? undefined,
-      metalsDetail:  o.metalsDetail  ?? undefined,
+      metalsDetail:  detailToForm(o.metalsDetail,  ['lmeDate']),
       agriDetail:    o.agriDetail    ?? undefined,
-      freightDetail: o.freightDetail ?? undefined,
-      tasDetail:     o.tasDetail     ?? undefined,
-      balmoDetail:   o.balmoDetail   ?? undefined,
-    });
+      freightDetail: detailToForm(o.freightDetail, ['laycanStart', 'laycanEnd']),
+      tasDetail:     detailToForm(o.tasDetail,     ['tasSettlementDate']),
+      balmoDetail:   detailToForm(o.balmoDetail,   ['pricingStartDate', 'pricingEndDate']),
+      riskStartDate: o.riskStartDate ? dayjs(o.riskStartDate) : undefined,
+      riskEndDate:   o.riskEndDate   ? dayjs(o.riskEndDate) : undefined,
+    } as unknown as TradeOrderInput);
     setOrderOpen(true);
   }
   async function submitOrder(closeAfter = true) {
     const values = await orderForm.validateFields();
-    const saved = await saveOrder.mutateAsync({ id: editingOrder?.orderId ?? null, input: values as TradeOrderInput });
+    const v = values as unknown as Record<string, unknown>;
+    const riskStartDate = v.riskStartDate as Dayjs | undefined;
+    const riskEndDate = v.riskEndDate as Dayjs | undefined;
+    const rawOilDetail = v.oilDetail as { norsTenderedDate?: Dayjs } | undefined;
+    const oilDetail = detailFromForm(values.oilDetail, ['laycanStart', 'laycanEnd', 'blDate']);
+    const input = {
+      ...values,
+      oilDetail: oilDetail ? {
+        ...oilDetail,
+        norsTenderedDate: rawOilDetail?.norsTenderedDate
+          ? rawOilDetail.norsTenderedDate.format('YYYY-MM-DDTHH:mm')
+          : (values.oilDetail?.norsTenderedDate ?? null),
+      } : values.oilDetail,
+      gasDetail:     detailFromForm(values.gasDetail,     ['gasDeliveryStart', 'gasDeliveryEnd']),
+      powerDetail:   detailFromForm(values.powerDetail,   ['deliveryStart', 'deliveryEnd']),
+      metalsDetail:  detailFromForm(values.metalsDetail,  ['lmeDate']),
+      freightDetail: detailFromForm(values.freightDetail, ['laycanStart', 'laycanEnd']),
+      balmoDetail:   detailFromForm(values.balmoDetail,   ['pricingStartDate', 'pricingEndDate']),
+      tasDetail:     detailFromForm(values.tasDetail,     ['tasSettlementDate']),
+      riskStartDate: riskStartDate ? riskStartDate.format('YYYY-MM-DD') : values.riskStartDate,
+      riskEndDate: riskEndDate ? riskEndDate.format('YYYY-MM-DD') : values.riskEndDate,
+    } as unknown as TradeOrderInput;
+    const saved = await saveOrder.mutateAsync({ id: editingOrder?.orderId ?? null, input });
     if (closeAfter) setOrderOpen(false); else setEditingOrder(saved);
   }
 
@@ -1286,7 +1351,7 @@ export function TradeBlotter() {
       </Card>
 
       {/* ══ TRADE DRAWER — header-only fields ══════════════════════════════════ */}
-      <Drawer
+      <Drawer mask={false} forceRender
         title={<Space><SwapOutlined />{editingTrade ? `Edit Trade — ${editingTrade.tradeReference}` : 'New Trade'}</Space>}
         open={tradeOpen}
         onClose={() => setTradeOpen(false)}
@@ -1329,7 +1394,7 @@ export function TradeBlotter() {
           <Row gutter={16}>
             <Col span={8}>
               <Form.Item name="tradeDate" label={hint('Trade Date', 'Date the deal was agreed.')} rules={[{ required: true }]}>
-                <Input placeholder="2026-06-30" />
+                <AppDatePicker />
               </Form.Item>
             </Col>
             <Col span={8}>
@@ -1356,7 +1421,7 @@ export function TradeBlotter() {
             </Col>
             <Col span={8}>
               <Form.Item name="executionDatetime" label="Execution Time">
-                <Input placeholder="2026-06-30T09:30:00Z" />
+                <AppDatePicker showTime format="YYYY-MM-DD HH:mm:ss" />
               </Form.Item>
             </Col>
           </Row>
@@ -1457,12 +1522,12 @@ export function TradeBlotter() {
               <Row gutter={16}>
                 <Col span={8}>
                   <Form.Item name="rfpStartDate" label="RFP Start Date">
-                    <Input placeholder="2026-07-01" />
+                    <AppDatePicker />
                   </Form.Item>
                 </Col>
                 <Col span={8}>
                   <Form.Item name="rfpEndDate" label="RFP End Date">
-                    <Input placeholder="2026-12-31" />
+                    <AppDatePicker />
                   </Form.Item>
                 </Col>
               </Row>
@@ -1609,7 +1674,7 @@ export function TradeBlotter() {
       </Drawer>
 
       {/* ══ LEG DRAWER — all delivery detail ════════════════════════════════════ */}
-      <Drawer
+      <Drawer mask={false} forceRender
         title={
           <Space>
             <SwapOutlined />
@@ -1702,7 +1767,7 @@ export function TradeBlotter() {
       </Drawer>
 
       {/* ══ ITEM DRAWER ══════════════════════════════════════════════════════════ */}
-      <Drawer
+      <Drawer mask={false} forceRender
         title={editingItem ? `Edit Item #${editingItem.itemSequence}` : 'Add Item'}
         open={itemOpen}
         onClose={() => setItemOpen(false)}

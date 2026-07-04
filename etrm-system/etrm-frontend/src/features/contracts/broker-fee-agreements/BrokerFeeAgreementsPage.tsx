@@ -204,7 +204,7 @@ export function BrokerFeeAgreementsPage() {
         getRowId={(p) => String(p.data.agreementId)}
       />
 
-      <Drawer
+      <Drawer mask={false} forceRender
         title={editing ? `Edit Agreement — ${editing.agreementCode}` : 'New Broker Fee Agreement'}
         open={open}
         onClose={() => setOpen(false)}

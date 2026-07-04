@@ -128,7 +128,7 @@ export function BrokersPage() {
         getRowId={(p) => String(p.data.brokerId)}
       />
 
-      <Drawer
+      <Drawer mask={false} forceRender
         title={editing ? `Edit Broker — ${editing.brokerCode}` : 'New Broker'}
         open={open}
         onClose={() => setOpen(false)}

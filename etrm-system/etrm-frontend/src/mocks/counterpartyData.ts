@@ -139,7 +139,7 @@ export const addressPoolSeed: Address[] = [
     poBox: null,
     phoneNumber: '+44 20 7010 1000',
     isActive: true,
-    notes: 'SmartETRM Trading Ltd registered office',
+    notes: 'NonameETRM Trading Ltd registered office',
   },
 ];
 
@@ -182,7 +182,7 @@ export const addressAssignmentSeed: AddressAssignment[] = [
     isActive: true,
     isLinked: true,
   },
-  // SmartETRM Legal Entity 1 also uses address #3
+  // NonameETRM Legal Entity 1 also uses address #3
   {
     entityAddressId: 4,
     _localId: 'ea-4',

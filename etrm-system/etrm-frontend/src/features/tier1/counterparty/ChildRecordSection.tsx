@@ -105,7 +105,7 @@ export function ChildRecordSection<
         locale={{ emptyText: <Empty description={`No ${title.toLowerCase()} added yet`} /> }}
       />
 
-      <Modal
+      <Modal mask={false} forceRender
         title={editing && items.some((i) => i._localId === editing._localId) ? `Edit ${title}` : `Add ${title}`}
         open={modalOpen}
         onCancel={() => setModalOpen(false)}

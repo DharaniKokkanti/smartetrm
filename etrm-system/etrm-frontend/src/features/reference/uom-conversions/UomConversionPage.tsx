@@ -253,7 +253,7 @@ export function UomConversionPage() {
         getRowId={(p) => String(p.data.conversionId)}
       />
 
-      <Drawer
+      <Drawer mask={false} forceRender
         title={editing ? `Edit — ${editing.fromUomCode} → ${editing.toUomCode}` : 'New UoM Conversion'}
         open={open}
         onClose={() => setOpen(false)}

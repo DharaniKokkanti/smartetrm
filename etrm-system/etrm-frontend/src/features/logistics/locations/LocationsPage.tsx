@@ -68,7 +68,7 @@ export function LocationsPage() {
       <PageHeader title="Locations" description="Delivery and operational points — ports, pipeline hubs, gas hubs, grid nodes, warehouses, refineries, LNG terminals." moduleGroup="logistics" />
       <SmartGrid columnDefs={colDefs} rowData={data} loading={isLoading} onAdd={openNew} addLabel="New Location" onRefresh={() => { void refetch(); }} getRowId={(p) => String(p.data.locationId)} />
 
-      <Drawer title={editing ? `Edit Location — ${editing.locationCode}` : 'New Location'} open={open} onClose={() => setOpen(false)} width={540}
+      <Drawer mask={false} forceRender title={editing ? `Edit Location — ${editing.locationCode}` : 'New Location'} open={open} onClose={() => setOpen(false)} width={540}
         footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
         <Form form={form} layout="vertical">
           <Form.Item name="locationCode" label={hint('Location Code', 'Internal unique code. For ports, align with UN/LOCODE where possible. For hubs, use market convention (e.g. NBP for UK gas hub, TTF for Dutch gas hub, CUSHING for WTI delivery point).', 'CUSHING-OK, NBP-UK, SULLOM-VOE')} rules={[{ required: true }]}>

@@ -14,7 +14,7 @@ interface FieldHintProps {
  * Wraps any form label with an inline info icon that opens a tooltip
  * explaining the ETRM-specific meaning of the field — its industry context,
  * accepted format, and a concrete example from the domain. This is the key
- * UX differentiator for a Smart ETRM vs a traditional data-entry form.
+ * UX differentiator for a Noname ETRM vs a traditional data-entry form.
  */
 export function FieldHint({ label, hint, example, format, required }: FieldHintProps) {
   const content = (

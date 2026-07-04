@@ -17,6 +17,7 @@ import { useApiLogStore } from '@store/apiLogStore';
 import { useAuthStore } from '@store/authStore';
 import { paletteFor } from '@theme/tokens';
 import { ApiLogDrawer } from './ApiLogDrawer';
+import { MinimizedDraftsDock } from './MinimizedDraftsDock';
 
 const { Header, Sider, Content } = Layout;
 
@@ -162,7 +163,7 @@ export function AppShell() {
           </button>
           <Space align="center" size={8}>
             <BankOutlined style={{ color: '#60a5fa', fontSize: 20 }} />
-            <Typography.Text style={{ color: '#fff', fontWeight: 700, fontSize: 16, letterSpacing: 0.5 }}>Smart</Typography.Text>
+            <Typography.Text style={{ color: '#fff', fontWeight: 700, fontSize: 16, letterSpacing: 0.5 }}>Noname</Typography.Text>
             <Typography.Text style={{ color: '#60a5fa', fontWeight: 700, fontSize: 16 }}>ETRM</Typography.Text>
           </Space>
           <div style={{ flex: 1 }} />
@@ -210,6 +211,7 @@ export function AppShell() {
         </Layout>
       </Layout>
       <ApiLogDrawer />
+      <MinimizedDraftsDock />
     </>
   );
 }

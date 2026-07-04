@@ -3,6 +3,7 @@ import {
   Button, Space, Popconfirm, Tag, Drawer, Form, Input, Select, InputNumber,
   Card, Table, Divider, Typography, Row, Col, Tooltip, Badge, Empty, Alert,
 } from 'antd';
+import dayjs, { type Dayjs } from 'dayjs';
 import {
   EditOutlined, StopOutlined, CheckCircleOutlined, PlusOutlined,
   DeleteOutlined, FileDoneOutlined, WarningOutlined,
@@ -21,6 +22,7 @@ import { BOLMO_STATUSES, BOLMO_DIRECTIONS } from './types';
 import { useCounterparties, useLegalEntities } from '@features/trade/hooks';
 import { COMMODITY_TYPES_TRADE } from '@features/trade/types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AppDatePicker } from '@components/smart/AppDatePicker';
 
 const { Text } = Typography;
 
@@ -80,18 +82,25 @@ export function BolmoAgreementsPage() {
     setEditing(a);
     agForm.setFieldsValue({
       counterpartyId: a.counterpartyId, legalEntityId: a.legalEntityId,
-      agreementDate: a.agreementDate, settlementDate: a.settlementDate ?? undefined,
+      agreementDate: a.agreementDate ? dayjs(a.agreementDate) : undefined,
+      settlementDate: a.settlementDate ? dayjs(a.settlementDate) : undefined,
       commodityType: a.commodityType, deliveryLocationCode: a.deliveryLocationCode ?? undefined,
       deliveryPeriodCode: a.deliveryPeriodCode ?? undefined,
       netQuantity: a.netQuantity, uomCode: a.uomCode,
       nettingPrice: a.nettingPrice ?? undefined, currencyCode: a.currencyCode,
       status: a.status, notes: a.notes ?? undefined,
-    });
+    } as unknown as BolmoAgreementInput);
     setDrawerOpen(true);
   }
   async function submitAgreement(closeAfter = true) {
-    const v = await agForm.validateFields();
-    const saved = await saveAgreement.mutateAsync({ id: editing?.bolmoId ?? null, input: v });
+    const values = await agForm.validateFields();
+    const v = values as unknown as Record<string, Dayjs | undefined>;
+    const input: BolmoAgreementInput = {
+      ...values,
+      agreementDate: v.agreementDate ? v.agreementDate.format('YYYY-MM-DD') : values.agreementDate,
+      settlementDate: v.settlementDate ? v.settlementDate.format('YYYY-MM-DD') : null,
+    };
+    const saved = await saveAgreement.mutateAsync({ id: editing?.bolmoId ?? null, input });
     if (closeAfter) setDrawerOpen(false); else setEditing(saved);
   }
 
@@ -300,7 +309,7 @@ export function BolmoAgreementsPage() {
       </Card>
 
       {/* ══ AGREEMENT DRAWER ══════════════════════════════════════════════════════ */}
-      <Drawer
+      <Drawer mask={false} forceRender
         title={editing ? `Edit BOLMO — ${editing.bolmoReference}` : 'New BOLMO Agreement'}
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
@@ -349,12 +358,12 @@ export function BolmoAgreementsPage() {
           <Row gutter={12}>
             <Col span={8}>
               <Form.Item name="agreementDate" label="Agreement Date" rules={[{ required: true }]}>
-                <Input placeholder="2026-07-01" />
+                <AppDatePicker />
               </Form.Item>
             </Col>
             <Col span={8}>
               <Form.Item name="settlementDate" label={hint('Settlement Date', 'Date cash settlement amount is due.')}>
-                <Input placeholder="2026-07-15" />
+                <AppDatePicker />
               </Form.Item>
             </Col>
             <Col span={8}>
@@ -419,7 +428,7 @@ export function BolmoAgreementsPage() {
       </Drawer>
 
       {/* ══ LEG DRAWER ══════════════════════════════════════════════════════════ */}
-      <Drawer
+      <Drawer mask={false} forceRender
         title={`Add Leg — ${selectedAgreement?.bolmoReference ?? ''}`}
         open={legDrawerOpen}
         onClose={() => setLegDrawerOpen(false)}

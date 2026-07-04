@@ -83,7 +83,7 @@ export function PipelinesPage() {
       <PageHeader title="Pipelines" description="Pipeline infrastructure — crude, products, gas, LNG, NGL networks with TSO and regulatory mapping." moduleGroup="logistics" />
       <SmartGrid columnDefs={colDefs} rowData={data} loading={isLoading} onAdd={openNew} addLabel="New Pipeline" onRefresh={() => { void refetch(); }} getRowId={(p) => String(p.data.pipelineId)} />
 
-      <Drawer title={editing ? `Edit Pipeline — ${editing.pipelineCode}` : 'New Pipeline'} open={open} onClose={() => setOpen(false)} width={540}
+      <Drawer mask={false} forceRender title={editing ? `Edit Pipeline — ${editing.pipelineCode}` : 'New Pipeline'} open={open} onClose={() => setOpen(false)} width={540}
         footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
         <Form form={form} layout="vertical">
           <Form.Item name="pipelineCode" label={hint('Pipeline Code', 'Industry-standard or internal code. Gas pipelines often follow TSO nomination codes. Examples: TANAP (Trans-Anatolian), EUGAL (European Gas Link), GNS (Greet Northern System).', 'TANAP-GAS')} rules={[{ required: true }]}>

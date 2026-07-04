@@ -61,7 +61,7 @@ export function CountriesPage() {
     <>
       <PageHeader title="Countries" description="Country reference data with FATF and sanctions status — used in counterparty KYC, vessel flags, and trade compliance screening." moduleGroup="reference" />
       <SmartGrid columnDefs={colDefs} rowData={data} loading={isLoading} onAdd={openNew} addLabel="New Country" onRefresh={() => { void refetch(); }} getRowId={(p) => p.data.countryCode} />
-      <Drawer title={editing ? `Edit ${editing.countryCode} — ${editing.countryName}` : 'New Country'} open={open} onClose={() => setOpen(false)} width={480}
+      <Drawer mask={false} forceRender title={editing ? `Edit ${editing.countryCode} — ${editing.countryName}` : 'New Country'} open={open} onClose={() => setOpen(false)} width={480}
         footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
         <Form form={form} layout="vertical">
           <Form.Item name="countryCode" label={hint('ISO Code', 'ISO 3166-1 alpha-2 two-letter country code. GB, US, NL, DE, AE. Cannot change once linked to records.', 'GB')} rules={[{ required: true, len: 2 }]}>

@@ -13,6 +13,8 @@ import { useCounterparties } from '@features/trade/hooks';
 import { useTableRows } from '@features/tier2/hooks';
 import { useMarginAgreements, useSaveMarginAgreement, useDeactivateMarginAgreement } from './hooks';
 import type { MarginAgreement, MarginAgreementInput } from './types';
+import { AppDatePicker } from '@components/smart/AppDatePicker';
+import dayjs, { type Dayjs } from 'dayjs';
 import { useFormDraft } from '@components/smart/formDraft';
 
 const { Text } = Typography;
@@ -67,21 +69,31 @@ export function MarginAgreementsPage() {
       roundingAmount: 1000,
       valuationFrequency: 'DAILY',
       govLaw: 'ENGLISH',
-      effectiveDate: new Date().toISOString().slice(0, 10),
+      effectiveDate: dayjs(),
       isActive: true,
-    });
+    } as unknown as MarginAgreementInput);
     setOpen(true);
   }
 
   function openEdit(r: MarginAgreement) {
     setEditing(r);
-    form.setFieldsValue({ ...r, expiryDate: r.expiryDate ?? undefined });
+    form.setFieldsValue({
+      ...r,
+      effectiveDate: r.effectiveDate ? dayjs(r.effectiveDate) : undefined,
+      expiryDate: r.expiryDate ? dayjs(r.expiryDate) : undefined,
+    } as unknown as MarginAgreementInput);
     setOpen(true);
   }
 
   async function submit(closeAfter = true) {
     const values = await form.validateFields();
-    const saved = await save.mutateAsync({ id: editing?.marginAgreementId ?? null, input: values });
+    const v = values as unknown as Record<string, Dayjs | undefined>;
+    const input: MarginAgreementInput = {
+      ...values,
+      effectiveDate: v.effectiveDate ? v.effectiveDate.format('YYYY-MM-DD') : values.effectiveDate,
+      expiryDate: v.expiryDate ? v.expiryDate.format('YYYY-MM-DD') : null,
+    };
+    const saved = await save.mutateAsync({ id: editing?.marginAgreementId ?? null, input });
     if (closeAfter) setOpen(false); else setEditing(saved);
   }
 
@@ -157,7 +169,7 @@ export function MarginAgreementsPage() {
         getRowId={(p) => String(p.data.marginAgreementId)}
       />
 
-      <Drawer
+      <Drawer mask={false} forceRender
         title={editing ? `Edit — ${editing.agreementCode}` : 'New Margin Agreement'}
         open={open}
         onClose={() => setOpen(false)}
@@ -274,8 +286,8 @@ export function MarginAgreementsPage() {
 
           {sec('Dates & Status')}
           <Row gutter={16}>
-            <Col span={10}><Form.Item name="effectiveDate" label="Effective Date" rules={[{ required: true }]}><Input placeholder="2024-01-01" /></Form.Item></Col>
-            <Col span={10}><Form.Item name="expiryDate" label={hint('Expiry Date', 'Leave blank for perpetual / no fixed term.')}><Input placeholder="Leave blank = perpetual" /></Form.Item></Col>
+            <Col span={10}><Form.Item name="effectiveDate" label="Effective Date" rules={[{ required: true }]}><AppDatePicker /></Form.Item></Col>
+            <Col span={10}><Form.Item name="expiryDate" label={hint('Expiry Date', 'Leave blank for perpetual / no fixed term.')}><AppDatePicker placeholder="Perpetual" /></Form.Item></Col>
           </Row>
           <Form.Item name="notes" label="Notes">
             <Input.TextArea rows={2} placeholder="Any additional terms or internal notes..." />

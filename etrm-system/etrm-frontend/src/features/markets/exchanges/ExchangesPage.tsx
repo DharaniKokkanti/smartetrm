@@ -65,7 +65,7 @@ export function ExchangesPage() {
       <PageHeader title="Exchanges" description="Trading exchanges and OTC platforms — ICE, NYMEX, LME, EEX, CME and bilateral OTC venues." moduleGroup="markets" />
       <SmartGrid columnDefs={colDefs} rowData={data} loading={isLoading} onAdd={openNew} addLabel="New Exchange" onRefresh={() => { void refetch(); }} getRowId={(p) => String(p.data.exchangeId)} />
 
-      <Drawer title={editing ? `Edit Exchange — ${editing.exchangeCode}` : 'New Exchange'} open={open} onClose={() => setOpen(false)} width={520}
+      <Drawer mask={false} forceRender title={editing ? `Edit Exchange — ${editing.exchangeCode}` : 'New Exchange'} open={open} onClose={() => setOpen(false)} width={520}
         footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
         <Form form={form} layout="vertical">
           <Form.Item name="exchangeCode" label={hint('Exchange Code', 'Short code used internally for this venue. Typically follows the exchange\'s own abbreviation.', 'ICE, NYMEX, LME, EEX')} rules={[{ required: true }]}>

@@ -10,6 +10,8 @@ import { useRinFuelCategories } from '@features/rins/fuel-categories/hooks';
 import { useRinObligations, useSaveRinObligation } from './hooks';
 import type { RinObligation, RinObligationInput } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AppDatePicker } from '@components/smart/AppDatePicker';
+import dayjs, { type Dayjs } from 'dayjs';
 
 const D_CODE_COLOR: Record<string, string> = { D3: 'purple', D4: 'blue', D5: 'green', D6: 'orange', D7: 'cyan' };
 const STATUS_COLOR: Record<string, string> = {
@@ -51,12 +53,20 @@ export function RinObligationsPage() {
   }
   function openEdit(r: RinObligation) {
     setEditing(r);
-    form.setFieldsValue({ ...r, deadline: r.deadline ?? undefined, notes: r.notes ?? undefined });
+    form.setFieldsValue({
+      ...r,
+      deadline: r.deadline ? dayjs(r.deadline) : undefined,
+      notes: r.notes ?? undefined,
+    } as unknown as RinObligationInput);
     setOpen(true);
   }
   async function submit(closeAfter = true) {
     const v = await form.validateFields();
-    const saved = await save.mutateAsync({ id: editing?.obligationId ?? null, input: { ...v, deadline: v.deadline ?? null, notes: v.notes ?? null } });
+    const deadline = (v as unknown as Record<string, Dayjs | undefined>).deadline;
+    const saved = await save.mutateAsync({
+      id: editing?.obligationId ?? null,
+      input: { ...v, deadline: deadline ? deadline.format('YYYY-MM-DD') : null, notes: v.notes ?? null },
+    });
     if (closeAfter) setOpen(false); else setEditing(saved);
   }
 
@@ -132,7 +142,7 @@ export function RinObligationsPage() {
         </Col>
       </Row>
       <SmartGrid columnDefs={colDefs} rowData={data} loading={isLoading} onAdd={openNew} addLabel="New Obligation" onRefresh={() => { void refetch(); }} getRowId={(p) => String(p.data.obligationId)} />
-      <Drawer title={editing ? `Edit — ${editing.entityName} ${editing.dCode} ${editing.complianceYear}` : 'New RVO Obligation'} open={open} onClose={() => setOpen(false)} width={520}
+      <Drawer mask={false} forceRender title={editing ? `Edit — ${editing.entityName} ${editing.dCode} ${editing.complianceYear}` : 'New RVO Obligation'} open={open} onClose={() => setOpen(false)} width={520}
         footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
         <Form form={form} layout="vertical" size="small">
           <Form.Item name="legalEntityId" label="Legal Entity" rules={[{ required: true }]}>
@@ -156,7 +166,7 @@ export function RinObligationsPage() {
           </Space>
           <Space style={{ width: '100%' }} size={12}>
             <Form.Item name="deadline" label={hint('Deadline', 'Annual RVO submission deadline — typically March 31 of the year following the compliance year.')} style={{ flex: 1 }}>
-              <Input type="date" />
+              <AppDatePicker />
             </Form.Item>
             <Form.Item name="status" label="Status" rules={[{ required: true }]} style={{ flex: 1 }}>
               <Select options={STATUS_OPTS} />

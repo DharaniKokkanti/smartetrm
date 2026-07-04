@@ -4,7 +4,13 @@ import type { LegalEntity, LegalEntityInput } from '@features/tier1/legal-entity
 
 // In-memory store, mutated across requests for the lifetime of the dev
 // session — resets on full page reload. This is a mock, not a database.
-const store: LegalEntity[] = [...legalEntitySeed];
+// Exported so other mock handlers (e.g. GL accounts) can denormalize against
+// the same canonical legal entities the real CRUD UI shows and edits —
+// there's also a separate, older `legalEntitiesRef` shadow list in
+// etrmHandlers.ts used internally by desk/book/trader seed data, which is
+// NOT this table and must not be confused with it.
+export const legalEntityStore: LegalEntity[] = [...legalEntitySeed];
+const store = legalEntityStore;
 
 const API = '/api/v1';
 

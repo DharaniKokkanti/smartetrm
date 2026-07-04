@@ -58,7 +58,7 @@ export function UomPage() {
     <>
       <PageHeader title="Units of Measure" description="Standardised quantity and volume units used across all trade capture, pricing, and position records." moduleGroup="reference" />
       <SmartGrid columnDefs={colDefs} rowData={data} loading={isLoading} onAdd={openNew} addLabel="New UoM" onRefresh={() => { void refetch(); }} getRowId={(p) => String(p.data.uomId)} />
-      <Drawer title={editing ? `Edit UoM — ${editing.uomCode}` : 'New Unit of Measure'} open={open} onClose={() => setOpen(false)} width={480}
+      <Drawer mask={false} forceRender title={editing ? `Edit UoM — ${editing.uomCode}` : 'New Unit of Measure'} open={open} onClose={() => setOpen(false)} width={480}
         footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
         <Form form={form} layout="vertical">
           <Form.Item name="uomCode" label={hint('UoM Code', 'Short identifier used everywhere in system — BBL, MT, MWH, MMBTU, THERM. Cannot change once used in trades.', 'BBL')} rules={[{ required: true }]}>

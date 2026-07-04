@@ -106,7 +106,7 @@ export function PaymentMethodsPage() {
         getRowId={(p) => String(p.data.paymentMethodId)}
       />
 
-      <Drawer
+      <Drawer mask={false} forceRender
         title={editing ? `Edit Payment Method — ${editing.methodCode}` : 'New Payment Method'}
         open={open}
         onClose={() => setOpen(false)}

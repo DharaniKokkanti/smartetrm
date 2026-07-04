@@ -92,7 +92,7 @@ export function FuelCategoriesPage() {
         ))}
       </Row>
       <SmartGrid columnDefs={colDefs} rowData={data} loading={isLoading} onAdd={openNew} addLabel="New D-Code" onRefresh={() => { void refetch(); }} getRowId={(p) => String(p.data.categoryId)} />
-      <Drawer title={editing ? `Edit — ${editing.dCode} ${editing.fuelName}` : 'New Fuel Category (D-Code)'} open={open} onClose={() => setOpen(false)} width={520}
+      <Drawer mask={false} forceRender title={editing ? `Edit — ${editing.dCode} ${editing.fuelName}` : 'New Fuel Category (D-Code)'} open={open} onClose={() => setOpen(false)} width={520}
         footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
         <Form form={form} layout="vertical" size="small">
           <Space style={{ width: '100%' }} size={12}>

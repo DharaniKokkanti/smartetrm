@@ -14,10 +14,10 @@ interface Props {
 export function DeskFormDrawer({ open, editing, onClose, onSaved }: Props) {
   const [form] = Form.useForm<DeskInput>();
   const save = useSaveDesk();
-  const skipDraftReset = useDraftValues('org-desks-v', form, open);
+  const skipDraftReset = useDraftValues('org-desks-v', form, open, editing);
 
   useEffect(() => {
-    if (skipDraftReset.current) { skipDraftReset.current = false; return; }
+    if (skipDraftReset.current) { if (open) skipDraftReset.current = false; return; }
     if (open) {
       if (editing) {
         form.setFieldsValue({
@@ -42,7 +42,7 @@ export function DeskFormDrawer({ open, editing, onClose, onSaved }: Props) {
   }
 
   return (
-    <Drawer
+    <Drawer mask={false} forceRender
       title={editing ? `Edit Desk — ${editing.deskCode}` : 'New Trading Desk'}
       open={open}
       onClose={onClose}

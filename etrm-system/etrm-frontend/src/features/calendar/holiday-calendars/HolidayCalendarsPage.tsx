@@ -22,7 +22,7 @@ function HolidayDrawer({ calendarId, onClose }: { calendarId: number; onClose: (
   const nextYearHolidays = data?.filter((h) => h.holidayDate.startsWith(String(year + 1))) ?? [];
 
   return (
-    <Drawer title="Holiday Dates" open onClose={onClose} width={440}>
+    <Drawer mask={false} forceRender title="Holiday Dates" open onClose={onClose} width={440}>
       <div style={{ marginBottom: 12 }}><Badge count={currentYearHolidays.length} showZero><Tag>{year}</Tag></Badge></div>
       <Table dataSource={currentYearHolidays} rowKey="holidayId" pagination={false} size="small" loading={isLoading}
         columns={[
@@ -102,7 +102,7 @@ export function HolidayCalendarsPage() {
 
       {viewingCalId != null && <HolidayDrawer calendarId={viewingCalId} onClose={() => setViewingCalId(null)} />}
 
-      <Drawer title={editing ? `Edit Calendar — ${editing.calendarCode}` : 'New Calendar'} open={open} onClose={() => setOpen(false)} width={480}
+      <Drawer mask={false} forceRender title={editing ? `Edit Calendar — ${editing.calendarCode}` : 'New Calendar'} open={open} onClose={() => setOpen(false)} width={480}
         footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
         <Form form={form} layout="vertical">
           <Form.Item name="calendarCode" label={hint('Calendar Code', 'Short code used in trade pricing configuration, payment date calculations, and settlement. Industry-standard codes: LON (London banking), NYC (Fed/SIFMA), NYMEX, LME, ECB, TOCOM.', 'LON, NYC, NYMEX, LME')} rules={[{ required: true }]}>

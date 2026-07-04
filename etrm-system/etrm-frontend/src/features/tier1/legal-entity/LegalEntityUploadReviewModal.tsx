@@ -35,7 +35,7 @@ export function LegalEntityUploadReviewModal({ open, rows, onClose }: Props) {
   }
 
   return (
-    <Modal
+    <Modal mask={false} forceRender
       title="Review Upload"
       open={open}
       onCancel={onClose}

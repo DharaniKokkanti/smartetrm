@@ -11,6 +11,8 @@ import { useEmissionSchemes } from '@features/environmental/emission-schemes/hoo
 import { useEmissionObligations, useSaveEmissionObligation } from './hooks';
 import type { EmissionObligation, EmissionObligationInput } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AppDatePicker } from '@components/smart/AppDatePicker';
+import dayjs, { type Dayjs } from 'dayjs';
 
 const STATUS_COLOR: Record<string, string> = {
   OPEN: 'processing', SURRENDERED: 'success', PARTIALLY_SURRENDERED: 'warning', OVERDUE: 'error',
@@ -48,12 +50,23 @@ export function EmissionObligationsPage() {
   }
   function openEdit(r: EmissionObligation) {
     setEditing(r);
-    form.setFieldsValue({ ...r, verifiedEmissions: r.verifiedEmissions ?? undefined, allowancesHeld: r.allowancesHeld ?? undefined, surrenderDeadline: r.surrenderDeadline ?? undefined, notes: r.notes ?? undefined });
+    form.setFieldsValue({
+      ...r,
+      verifiedEmissions: r.verifiedEmissions ?? undefined,
+      allowancesHeld: r.allowancesHeld ?? undefined,
+      surrenderDeadline: r.surrenderDeadline ? dayjs(r.surrenderDeadline) : undefined,
+      notes: r.notes ?? undefined,
+    } as unknown as EmissionObligationInput);
     setOpen(true);
   }
   async function submit(closeAfter = true) {
-    const v = await form.validateFields();
-    const saved = await save.mutateAsync({ id: editing?.obligationId ?? null, input: v });
+    const values = await form.validateFields();
+    const v = values as unknown as Record<string, Dayjs | undefined>;
+    const input: EmissionObligationInput = {
+      ...values,
+      surrenderDeadline: v.surrenderDeadline ? v.surrenderDeadline.format('YYYY-MM-DD') : null,
+    };
+    const saved = await save.mutateAsync({ id: editing?.obligationId ?? null, input });
     if (closeAfter) setOpen(false); else setEditing(saved);
   }
 
@@ -89,7 +102,7 @@ export function EmissionObligationsPage() {
         extra={overdue > 0 ? <Tag icon={<WarningOutlined />} color="error">{overdue} OVERDUE</Tag> : undefined}
       />
       <SmartGrid columnDefs={colDefs} rowData={data} loading={isLoading} onAdd={openNew} addLabel="New Obligation" onRefresh={() => { void refetch(); }} getRowId={(p) => String(p.data.obligationId)} />
-      <Drawer title={editing ? `Edit Obligation — ${editing.entityName} ${editing.obligationYear}` : 'New Emission Obligation'} open={open} onClose={() => setOpen(false)} width={520}
+      <Drawer mask={false} forceRender title={editing ? `Edit Obligation — ${editing.entityName} ${editing.obligationYear}` : 'New Emission Obligation'} open={open} onClose={() => setOpen(false)} width={520}
         footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
         <Form form={form} layout="vertical" size="small">
           <Form.Item name="legalEntityId" label="Legal Entity" rules={[{ required: true }]}>
@@ -113,7 +126,7 @@ export function EmissionObligationsPage() {
           </Space>
           <Space style={{ width: '100%' }} size={12}>
             <Form.Item name="surrenderDeadline" label="Surrender Deadline" style={{ flex: 1 }}>
-              <Input placeholder="2026-04-30" />
+              <AppDatePicker />
             </Form.Item>
             <Form.Item name="status" label="Status" rules={[{ required: true }]} style={{ flex: 1 }}>
               <Select options={statusOpts} />

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Space, Popconfirm, Tag, Drawer, Form, Input, Select, Switch, InputNumber, DatePicker } from 'antd';
+import { Button, Space, Popconfirm, Tag, Drawer, Form, Input, Select, Switch, InputNumber } from 'antd';
 import { EditOutlined, StopOutlined } from '@ant-design/icons';
 import type { ColDef } from 'ag-grid-community';
 import dayjs from 'dayjs';
@@ -11,6 +11,7 @@ import { hint } from '@components/smart/FieldHint';
 import { useTrucks, useSaveTruck, useDeactivateTruck } from './hooks';
 import { VEHICLE_TYPES, VEHICLE_STATUS_CODES, type Truck, type TruckInput, type VehicleType, type VehicleStatusCode } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AppDatePicker } from '@components/smart/AppDatePicker';
 
 const TYPE_COLOR: Record<VehicleType, string> = {
   ROAD_TANKER: 'blue',
@@ -152,7 +153,7 @@ export function TrucksPage() {
         getRowId={(p) => String(p.data.vehicleId)}
       />
 
-      <Drawer
+      <Drawer mask={false} forceRender
         title={editing ? `Edit Truck — ${editing.vehicleCode}` : 'New Truck'}
         open={open}
         onClose={() => setOpen(false)}
@@ -240,10 +241,10 @@ export function TrucksPage() {
 
           <Space style={{ width: '100%', gap: 12 }}>
             <Form.Item name="licenseExpiryDate" label="License Expiry" style={{ flex: 1 }}>
-              <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
+              <AppDatePicker />
             </Form.Item>
             <Form.Item name="inspectionExpiryDate" label="Inspection Expiry" style={{ flex: 1 }}>
-              <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
+              <AppDatePicker />
             </Form.Item>
           </Space>
 
@@ -251,7 +252,7 @@ export function TrucksPage() {
             name="adrCertExpiry"
             label={hint('ADR Cert Expiry', 'ADR = European Agreement on International Carriage of Dangerous Goods by Road. Required for petroleum products. Renewed every 5 years.', '2027-01-01')}
           >
-            <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
+            <AppDatePicker />
           </Form.Item>
 
           <Form.Item name="commodityType" label="Commodity Type">

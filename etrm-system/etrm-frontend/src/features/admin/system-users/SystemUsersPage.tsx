@@ -108,7 +108,7 @@ export function SystemUsersPage() {
         getRowId={(p) => String(p.data.userId)}
       />
 
-      <Drawer
+      <Drawer mask={false} forceRender
         title={editing ? `Edit User — ${editing.username}` : 'New User'}
         open={open}
         onClose={() => setOpen(false)}

@@ -173,7 +173,7 @@ export function AddressesSection({ items, onChange, entityType = 'COUNTERPARTY' 
         locale={{ emptyText: <Empty description="No addresses added yet" /> }}
       />
 
-      <Modal
+      <Modal mask={false} forceRender
         title={editing ? 'Edit Address' : 'Add Address'}
         open={modalOpen}
         onCancel={() => setModalOpen(false)}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  Drawer, Form, Input, Select, Switch, DatePicker,
+  Drawer, Form, Input, Select, Switch,
   Button, Space, Divider, Tabs, Badge, Spin,
 } from 'antd';
 import dayjs from 'dayjs';
@@ -13,6 +13,7 @@ import type { AddressAssignment, ContactAssignment } from '@features/tier1/count
 import { fetchEntityAddresses, fetchEntityContacts, saveAddressAssignment, saveContactAssignment } from '@features/tier1/counterparty/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { useDraftValues } from '@components/smart/formDraft';
+import { AppDatePicker } from '@components/smart/AppDatePicker';
 
 interface Props {
   onSaved?: (saved: LegalEntity) => void;  // called on Save (stay open) so parent can switch to edit mode
@@ -27,7 +28,7 @@ type FormValues = Omit<LegalEntityInput, 'goLiveDate'> & { goLiveDate?: dayjs.Da
 
 export function LegalEntityFormDrawer({ open, onClose, editing, onSaved }: Props) {
   const [form] = Form.useForm<FormValues>();
-  const skipDraftReset = useDraftValues('tier1-legal-entity-v', form, open);
+  const skipDraftReset = useDraftValues('tier1-legal-entity-v', form, open, editing);
   const { data: entities } = useLegalEntities();
   const createMutation = useCreateLegalEntity();
   const updateMutation = useUpdateLegalEntity();
@@ -39,7 +40,7 @@ export function LegalEntityFormDrawer({ open, onClose, editing, onSaved }: Props
   const [loadingChildren, setLoadingChildren] = useState(false);
 
   useEffect(() => {
-    if (skipDraftReset.current) { skipDraftReset.current = false; return; }
+    if (skipDraftReset.current) { if (open) skipDraftReset.current = false; return; }
     if (open && editing) {
       form.setFieldsValue({
         ...editing,
@@ -90,7 +91,7 @@ export function LegalEntityFormDrawer({ open, onClose, editing, onSaved }: Props
   }
 
   return (
-    <Drawer
+    <Drawer mask={false} forceRender
       title={editing ? `Edit ${editing.entityCode}` : 'New Legal Entity'}
       width={600}
       open={open}
@@ -157,7 +158,7 @@ export function LegalEntityFormDrawer({ open, onClose, editing, onSaved }: Props
                 <Form.Item name="regulator" label="Regulator"><Input placeholder="e.g. FCA" /></Form.Item>
                 <Form.Item name="regulatoryLicence" label="Regulatory Licence"><Input /></Form.Item>
                 <Form.Item name="isInternal" label="Internal Entity" valuePropName="checked"><Switch /></Form.Item>
-                <Form.Item name="goLiveDate" label="Go-Live Date"><DatePicker style={{ width: '100%' }} /></Form.Item>
+                <Form.Item name="goLiveDate" label="Go-Live Date"><AppDatePicker /></Form.Item>
                 <Form.Item name="notes" label="Notes"><Input.TextArea rows={3} maxLength={1000} showCount /></Form.Item>
               </Form>
             ),

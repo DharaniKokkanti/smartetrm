@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Space, Popconfirm, Tag, Drawer, Form, Input, Select, Switch, InputNumber, DatePicker } from 'antd';
+import { Button, Space, Popconfirm, Tag, Drawer, Form, Input, Select, Switch, InputNumber } from 'antd';
 import { EditOutlined, StopOutlined } from '@ant-design/icons';
 import type { ColDef } from 'ag-grid-community';
 import dayjs from 'dayjs';
@@ -11,6 +11,7 @@ import { hint } from '@components/smart/FieldHint';
 import { useVessels, useSaveVessel, useDeactivateVessel } from './hooks';
 import { VESSEL_TYPES, VESSEL_STATUS_CODES, type Vessel, type VesselInput, type VesselType, type VesselStatusCode } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AppDatePicker } from '@components/smart/AppDatePicker';
 
 const TYPE_COLOR: Record<VesselType, string> = {
   VLCC: 'blue', SUEZMAX: 'geekblue', AFRAMAX: 'purple', PANAMAX: 'cyan',
@@ -93,7 +94,7 @@ export function VesselsPage() {
       <PageHeader title="Vessels" description="Approved vessel register — tankers, LNG carriers, FPSOs. Vetting expiry tracking with alerts for upcoming inspections." moduleGroup="logistics" />
       <SmartGrid columnDefs={colDefs} rowData={data} loading={isLoading} onAdd={openNew} addLabel="New Vessel" onRefresh={() => { void refetch(); }} getRowId={(p) => String(p.data.vesselId)} />
 
-      <Drawer title={editing ? `Edit Vessel — ${editing.imoNumber}` : 'New Vessel'} open={open} onClose={() => setOpen(false)} width={560}
+      <Drawer mask={false} forceRender title={editing ? `Edit Vessel — ${editing.imoNumber}` : 'New Vessel'} open={open} onClose={() => setOpen(false)} width={560}
         footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
         <Form form={form} layout="vertical">
           <Space style={{ width: '100%', gap: 12 }}>
@@ -134,10 +135,10 @@ export function VesselsPage() {
           </Form.Item>
           <Space style={{ width: '100%', gap: 12 }}>
             <Form.Item name="vettingExpiry" label={hint('Vetting Expiry', 'Date after which the vessel is not approved for loading at company-controlled terminals. SIRE (tankers) and CDI (chemicals) inspections typically valid 6-12 months. A vessel with expired vetting cannot load — trigger re-inspection 60 days before expiry.', '2026-12-31')} style={{ flex: 1 }}>
-              <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
+              <AppDatePicker />
             </Form.Item>
             <Form.Item name="sireInspectionDate" label={hint('Last SIRE Date', 'Date of the most recent Ship Inspection Report Programme inspection. OCIMF SIRE reports are shared between oil majors and used as primary vetting evidence. A fresh SIRE (<3 months) significantly speeds up vetting approval.', '2025-06-15')} style={{ flex: 1 }}>
-              <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
+              <AppDatePicker />
             </Form.Item>
           </Space>
           <Form.Item name="cdiBerthStatus" label={hint('CDI/Berth Status', 'Chemical Distribution Institute approval for chemical tankers, or terminal berth approval status. Some terminals maintain an approved vessel list — CDI/berth status indicates standing on that list.', 'APPROVED, CONDITIONAL, REJECTED')}>

@@ -6,6 +6,7 @@ import { GuaranteeFormDrawer, type PcgPrefill } from './GuaranteeFormDrawer';
 import { useGuaranteesForEntity } from './hooks';
 import type { ParentCompanyGuarantee } from './types';
 import type { PolymorphicEntityType } from '@features/tier1/counterparty/types';
+import { useDraftState } from '@components/smart/formDraft';
 
 interface Props {
   entityType: PolymorphicEntityType;
@@ -22,6 +23,7 @@ export function EntityGuaranteesPanel({ entityType, entityId, defaultRole }: Pro
   const { data: guarantees, isLoading } = useGuaranteesForEntity(entityType, entityId);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editing, setEditing] = useState<ParentCompanyGuarantee | null>(null);
+  useDraftState('guarantee', { open: drawerOpen, setOpen: setDrawerOpen, editing, setEditing });
 
   if (entityId === null) {
     return <Empty description="Save this record first, then add guarantees against it." />;

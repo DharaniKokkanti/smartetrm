@@ -1,9 +1,11 @@
 import { useEffect } from 'react';
 import { Drawer, Form, Input, Select, Button, Space, Switch, InputNumber } from 'antd';
+import dayjs, { type Dayjs } from 'dayjs';
 import { useSaveBook } from './hooks';
 import { BOOK_TYPES, type Book, type BookInput } from './types';
 import { COMMODITY_TYPES } from '../desks/types';
 import { useDraftValues } from '@components/smart/formDraft';
+import { AppDatePicker } from '@components/smart/AppDatePicker';
 
 interface Props {
   open: boolean;
@@ -15,10 +17,10 @@ interface Props {
 export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
   const [form] = Form.useForm<BookInput>();
   const save = useSaveBook();
-  const skipDraftReset = useDraftValues('org-books-v', form, open);
+  const skipDraftReset = useDraftValues('org-books-v', form, open, editing);
 
   useEffect(() => {
-    if (skipDraftReset.current) { skipDraftReset.current = false; return; }
+    if (skipDraftReset.current) { if (open) skipDraftReset.current = false; return; }
     if (open) {
       form.resetFields();
       if (editing) {
@@ -34,10 +36,10 @@ export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
           positionLimit:       editing.positionLimit,
           pnlLimit:            editing.pnlLimit,
           varLimit:            editing.varLimit,
-          goLiveDate:          editing.goLiveDate ?? undefined,
+          goLiveDate:          editing.goLiveDate ? dayjs(editing.goLiveDate) : undefined,
           description:         editing.description ?? undefined,
           isActive:            editing.isActive,
-        });
+        } as unknown as BookInput);
       } else {
         form.setFieldsValue({ isActive: true, bookType: 'TRADING', currencyCode: 'USD' });
       }
@@ -46,12 +48,17 @@ export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
 
   async function submit(closeAfter = true) {
     const values = await form.validateFields();
-    const saved = await save.mutateAsync({ id: editing?.bookId ?? null, input: values });
+    const v = values as unknown as Record<string, Dayjs | undefined>;
+    const input: BookInput = {
+      ...values,
+      goLiveDate: v.goLiveDate ? v.goLiveDate.format('YYYY-MM-DD') : null,
+    };
+    const saved = await save.mutateAsync({ id: editing?.bookId ?? null, input });
     if (closeAfter) onClose(); else onSaved?.(saved);
   }
 
   return (
-    <Drawer
+    <Drawer mask={false} forceRender
       title={editing ? `Edit Book — ${editing.bookCode}` : 'New P&L Book'}
       open={open}
       onClose={onClose}
@@ -104,7 +111,7 @@ export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
             formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
         </Form.Item>
         <Form.Item name="goLiveDate" label="Go-Live Date">
-          <Input placeholder="2026-01-15" style={{ fontFamily: 'monospace', width: 160 }} />
+          <AppDatePicker style={{ width: 160 }} />
         </Form.Item>
         <Form.Item name="description" label="Description">
           <Input.TextArea rows={2} placeholder="Internal description or notes for this book" />

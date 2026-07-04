@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Button, Space, Popconfirm, Tag, Tooltip, Drawer, Form, Input, Select, Switch, InputNumber, Divider, Typography } from 'antd';
+import dayjs, { type Dayjs } from 'dayjs';
 import { StopOutlined, EditOutlined } from '@ant-design/icons';
 import type { ColDef } from 'ag-grid-community';
 import { PageHeader } from '@components/layout/PageHeader';
@@ -10,6 +11,7 @@ import { useTraders, useDeactivateTrader, useSaveTrader } from './hooks';
 import type { Trader, TraderInput } from './types';
 import { COMMODITY_TYPES } from '../desks/types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AppDatePicker } from '@components/smart/AppDatePicker';
 
 const COMMODITY_COLOR: Record<string, string> = {
   OIL: 'volcano', GAS: 'blue', POWER: 'gold', METALS: 'purple', AGRICULTURAL: 'green',
@@ -28,12 +30,14 @@ export function TradersPage() {
   function openEdit(t: Trader) {
     setEditing(t);
     form.resetFields();
-    form.setFieldsValue({ traderCode: t.traderCode, userId: t.userId, legalEntityId: t.legalEntityId, deskId: t.deskId, approverTraderId: t.approverTraderId, commodityTypes: t.commodityTypes, goLiveDate: t.goLiveDate ?? undefined, isActive: t.isActive });
+    form.setFieldsValue({ traderCode: t.traderCode, userId: t.userId, legalEntityId: t.legalEntityId, deskId: t.deskId, approverTraderId: t.approverTraderId, commodityTypes: t.commodityTypes, goLiveDate: t.goLiveDate ? dayjs(t.goLiveDate) : undefined, isActive: t.isActive } as unknown as TraderInput);
     setOpen(true);
   }
   async function submit(closeAfter = true) {
-    const v = await form.validateFields();
-    const saved = await save.mutateAsync({ id: editing?.traderId ?? null, input: v });
+    const values = await form.validateFields();
+    const v = values as unknown as Record<string, Dayjs | undefined>;
+    const input: TraderInput = { ...values, goLiveDate: v.goLiveDate ? v.goLiveDate.format('YYYY-MM-DD') : null };
+    const saved = await save.mutateAsync({ id: editing?.traderId ?? null, input });
     if (closeAfter) setOpen(false); else setEditing(saved);
   }
 
@@ -97,7 +101,7 @@ export function TradersPage() {
         onRefresh={() => { void refetch(); }}
         getRowId={(p) => String(p.data.traderId)} />
 
-      <Drawer title={editing ? `Edit Trader — ${editing.traderCode}` : 'New Trader'} open={open} onClose={() => setOpen(false)} width={520}
+      <Drawer mask={false} forceRender title={editing ? `Edit Trader — ${editing.traderCode}` : 'New Trader'} open={open} onClose={() => setOpen(false)} width={520}
         footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
         <Form form={form} layout="vertical">
           <Form.Item name="traderCode" label={hint('Trader Code', 'Unique alphanumeric identifier used in deal capture, risk reports, and position attribution. Cannot be changed once assigned.', 'JD-OIL-001', 'AAA-NNN-NNN')} rules={[{ required: true }]}>
@@ -120,7 +124,7 @@ export function TradersPage() {
             <InputNumber style={{ width: '100%' }} placeholder="Approver Trader ID (optional)" />
           </Form.Item>
           <Form.Item name="goLiveDate" label={hint('Go-Live Date', 'Date from which this trader can submit live trades. Before this date the account is in setup mode — limits apply but deals are flagged as paper trades.', '2026-01-15', 'YYYY-MM-DD')}>
-            <Input placeholder="2026-01-15" />
+            <AppDatePicker />
           </Form.Item>
           <Form.Item name="isActive" label="Active" valuePropName="checked">
             <Switch />

@@ -87,7 +87,7 @@ export function RinAccountsPage() {
         moduleGroup="rins"
       />
       <SmartGrid columnDefs={colDefs} rowData={data} loading={isLoading} onAdd={openNew} addLabel="New Account" onRefresh={() => { void refetch(); }} getRowId={(p) => String(p.data.accountId)} />
-      <Drawer title={editing ? `Edit — ${editing.accountCode}` : 'New RIN Account'} open={open} onClose={() => setOpen(false)} width={520}
+      <Drawer mask={false} forceRender title={editing ? `Edit — ${editing.accountCode}` : 'New RIN Account'} open={open} onClose={() => setOpen(false)} width={520}
         footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
         <Form form={form} layout="vertical" size="small">
           <Space style={{ width: '100%' }} size={12}>
@@ -99,7 +99,7 @@ export function RinAccountsPage() {
             </Form.Item>
           </Space>
           <Form.Item name="accountName" label="Account Name" rules={[{ required: true }]}>
-            <Input placeholder="SmartETRM Trading — Obligated Party Account" />
+            <Input placeholder="NonameETRM Trading — Obligated Party Account" />
           </Form.Item>
           <Form.Item name="legalEntityId" label="Legal Entity" rules={[{ required: true }]}>
             <Select options={leOpts} showSearch optionFilterProp="label" placeholder="Select entity" />

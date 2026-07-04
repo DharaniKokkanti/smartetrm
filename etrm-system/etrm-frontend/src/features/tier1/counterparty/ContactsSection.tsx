@@ -172,7 +172,7 @@ export function ContactsSection({ items, onChange, entityType = 'COUNTERPARTY' }
         locale={{ emptyText: <Empty description="No contacts added yet" /> }}
       />
 
-      <Modal
+      <Modal mask={false} forceRender
         title={editing ? 'Edit Contact' : 'Add Contact'}
         open={modalOpen}
         onCancel={() => setModalOpen(false)}

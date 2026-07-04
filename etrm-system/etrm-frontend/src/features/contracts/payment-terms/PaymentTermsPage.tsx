@@ -227,7 +227,7 @@ export function PaymentTermsPage() {
         getRowId={(p) => String(p.data.paymentTermId)}
       />
 
-      <Drawer
+      <Drawer mask={false} forceRender
         title={editing ? `Edit — ${editing.termCode}` : 'New Payment Term'}
         open={open}
         onClose={() => setOpen(false)}

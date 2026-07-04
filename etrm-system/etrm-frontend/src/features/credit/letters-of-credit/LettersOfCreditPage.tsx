@@ -13,6 +13,8 @@ import { useTableRows } from '@features/tier2/hooks';
 import { useLettersOfCredit, useSaveLetterOfCredit, useCancelLetterOfCredit } from './hooks';
 import type { LetterOfCredit, LetterOfCreditInput } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AppDatePicker } from '@components/smart/AppDatePicker';
+import dayjs, { type Dayjs } from 'dayjs';
 
 const { Text } = Typography;
 
@@ -56,8 +58,8 @@ export function LettersOfCreditPage() {
     form.setFieldsValue({
       lcType: 'STANDBY', status: 'ACTIVE', lcCurrency: 'USD',
       drawdownAmount: 0, issuedAmount: 0, isEvergreen: false,
-      issueDate: new Date().toISOString().slice(0, 10),
-    });
+      issueDate: dayjs(),
+    } as unknown as LetterOfCreditInput);
     setOpen(true);
   }
 
@@ -65,19 +67,27 @@ export function LettersOfCreditPage() {
     setEditing(r);
     form.setFieldsValue({
       ...r,
+      issueDate: r.issueDate ? dayjs(r.issueDate) : undefined,
+      expiryDate: r.expiryDate ? dayjs(r.expiryDate) : undefined,
       confirmingBankName: r.confirmingBankName ?? undefined,
       issuingBankBic: r.issuingBankBic ?? undefined,
       presentationDeadlineDays: r.presentationDeadlineDays ?? undefined,
       autoRenewalDays: r.autoRenewalDays ?? undefined,
       placeOfExpiry: r.placeOfExpiry ?? undefined,
       applicableLaw: r.applicableLaw ?? undefined,
-    });
+    } as unknown as LetterOfCreditInput);
     setOpen(true);
   }
 
   async function submit(closeAfter = true) {
     const values = await form.validateFields();
-    const saved = await save.mutateAsync({ id: editing?.lcId ?? null, input: values });
+    const v = values as unknown as Record<string, Dayjs | undefined>;
+    const input: LetterOfCreditInput = {
+      ...values,
+      issueDate: v.issueDate ? v.issueDate.format('YYYY-MM-DD') : values.issueDate,
+      expiryDate: v.expiryDate ? v.expiryDate.format('YYYY-MM-DD') : values.expiryDate,
+    };
+    const saved = await save.mutateAsync({ id: editing?.lcId ?? null, input });
     if (closeAfter) setOpen(false); else setEditing(saved);
   }
 
@@ -171,7 +181,7 @@ export function LettersOfCreditPage() {
         getRowId={(p) => String(p.data.lcId)}
       />
 
-      <Drawer
+      <Drawer mask={false} forceRender
         title={editing ? `Edit LC — ${editing.lcReference}` : 'New Letter of Credit'}
         open={open}
         onClose={() => setOpen(false)}
@@ -249,8 +259,8 @@ export function LettersOfCreditPage() {
 
           {sec('Dates')}
           <Row gutter={16}>
-            <Col span={10}><Form.Item name="issueDate" label="Issue Date" rules={[{ required: true }]}><Input placeholder="2026-01-15" /></Form.Item></Col>
-            <Col span={10}><Form.Item name="expiryDate" label="Expiry Date" rules={[{ required: true }]}><Input placeholder="2027-01-14" /></Form.Item></Col>
+            <Col span={10}><Form.Item name="issueDate" label="Issue Date" rules={[{ required: true }]}><AppDatePicker /></Form.Item></Col>
+            <Col span={10}><Form.Item name="expiryDate" label="Expiry Date" rules={[{ required: true }]}><AppDatePicker /></Form.Item></Col>
           </Row>
           <Row gutter={16}>
             <Col span={10}>

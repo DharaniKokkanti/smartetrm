@@ -6,8 +6,7 @@ import {
   Select,
   Segmented,
   Switch,
-  DatePicker,
-  InputNumber,
+    InputNumber,
   Button,
   Space,
   Divider,
@@ -26,6 +25,8 @@ import { useSaveGuarantee } from './hooks';
 import { useLegalEntities } from '@features/tier1/legal-entity/hooks';
 import { useCounterparties } from '@features/tier1/counterparty/hooks';
 import { CURRENCY_LOOKUP } from '@features/tier1/counterparty/staticLookups';
+import { useDraftValues } from '@components/smart/formDraft';
+import { AppDatePicker } from '@components/smart/AppDatePicker';
 
 const DIRECTION_OPTIONS = [
   { label: 'Received — their parent guarantees to us', value: 'RECEIVED' },
@@ -111,6 +112,7 @@ type FormValues = Omit<ParentCompanyGuaranteeInput, 'issueDate' | 'expiryDate'> 
 
 export function GuaranteeFormDrawer({ open, onClose, editing, prefill }: Props) {
   const [form] = Form.useForm<FormValues>();
+  const skipDraftReset = useDraftValues('guarantee-v', form, open, editing);
   const saveGuarantee = useSaveGuarantee();
   const { data: legalEntities } = useLegalEntities();
   const { data: counterparties } = useCounterparties();
@@ -142,6 +144,7 @@ export function GuaranteeFormDrawer({ open, onClose, editing, prefill }: Props) 
 
   useEffect(() => {
     if (!open) return;
+    if (skipDraftReset.current) { if (open) skipDraftReset.current = false; return; }
     // Deliberate: hydrates local role-type state (guarantorType/principalType/
     // beneficiaryType) from the `editing` record when the drawer opens for an
     // existing guarantee, or from `prefill` when opening fresh. This is a
@@ -222,7 +225,7 @@ export function GuaranteeFormDrawer({ open, onClose, editing, prefill }: Props) 
   }
 
   return (
-    <Drawer
+    <Drawer mask={false} forceRender
       title={editing ? `Edit ${editing.pcgReference}` : 'New Parent Company Guarantee'}
       width={560}
       open={open}
@@ -299,7 +302,7 @@ export function GuaranteeFormDrawer({ open, onClose, editing, prefill }: Props) 
         </Space.Compact>
 
         <Form.Item name="issueDate" label="Issue Date" rules={[{ required: true }]}>
-          <DatePicker style={{ width: '100%' }} />
+          <AppDatePicker />
         </Form.Item>
         <Form.Item name="isEvergreen" label="Evergreen (auto-renews)" valuePropName="checked">
           <Switch />
@@ -308,7 +311,7 @@ export function GuaranteeFormDrawer({ open, onClose, editing, prefill }: Props) 
           {({ getFieldValue }) =>
             !getFieldValue('isEvergreen') && (
               <Form.Item name="expiryDate" label="Expiry Date">
-                <DatePicker style={{ width: '100%' }} />
+                <AppDatePicker />
               </Form.Item>
             )
           }
