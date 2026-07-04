@@ -39,7 +39,6 @@ const NAV_ITEMS = [
   {
     key: 'g-credit', icon: <SafetyCertificateOutlined />, label: 'Credit & Risk',
     children: [
-      { key: '/credit',                     icon: <SafetyCertificateOutlined />, label: 'Credit Hub' },
       { key: '/credit/margin-agreements',   icon: <DollarOutlined />,            label: 'Margin Agreements' },
       { key: '/credit/limits',              icon: <AlertOutlined />,             label: 'Credit Limits' },
       { key: '/credit/letters-of-credit',   icon: <BankOutlined />,              label: 'Letters of Credit' },
@@ -95,7 +94,7 @@ const NAV_ITEMS = [
 
 const ALL_KEYS = [
   '/', '/trade/blotter', '/position', '/static-data', '/master-data',
-  '/credit/margin-agreements', '/credit/limits', '/credit/letters-of-credit', '/credit',
+  '/credit/margin-agreements', '/credit/limits', '/credit/letters-of-credit',
   '/pricing/settlement-prices', '/pricing/tas', '/pricing/pricing-rules', '/pricing/price-sources',
   '/pricing/balmo-products', '/pricing/balmo',
   '/bolmo',

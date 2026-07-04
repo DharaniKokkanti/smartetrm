@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { Spin } from 'antd';
 import { AppShell } from '@components/layout/AppShell';
 import { DashboardPage } from '@pages/DashboardPage';
@@ -66,7 +66,6 @@ const RolesPage = lazy1(() => import('@features/admin/roles/RolesPage'), 'RolesP
 const FieldPermissionsPage = lazy1(() => import('@features/admin/field-permissions/FieldPermissionsPage'), 'FieldPermissionsPage');
 
 // Credit & Risk
-const CreditHub = lazy1(() => import('@features/credit/CreditHub'), 'CreditHub');
 const MarginAgreementsPage = lazy1(() => import('@features/credit/margin-agreements/MarginAgreementsPage'), 'MarginAgreementsPage');
 const CreditLimitsPage = lazy1(() => import('@features/credit/credit-limits/CreditLimitsPage'), 'CreditLimitsPage');
 const LettersOfCreditPage = lazy1(() => import('@features/credit/letters-of-credit/LettersOfCreditPage'), 'LettersOfCreditPage');
@@ -167,8 +166,10 @@ export function AppRouter() {
         <Route path="/admin/roles" element={<S><RolesPage /></S>} />
         <Route path="/admin/field-permissions" element={<S><FieldPermissionsPage /></S>} />
 
-        {/* Credit & Risk */}
-        <Route path="/credit" element={<S><CreditHub /></S>} />
+        {/* Credit & Risk — no standalone hub; the Master Data Hub's "Credit &
+            Collateral" group is the single entry point, individual pages are
+            reached directly from the sidebar. */}
+        <Route path="/credit" element={<Navigate to="/master-data" replace />} />
         <Route path="/credit/margin-agreements" element={<S><MarginAgreementsPage /></S>} />
         <Route path="/credit/limits" element={<S><CreditLimitsPage /></S>} />
         <Route path="/credit/letters-of-credit" element={<S><LettersOfCreditPage /></S>} />

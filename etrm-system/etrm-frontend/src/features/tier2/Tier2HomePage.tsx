@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import type { MouseEvent as ReactMouseEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Input, Spin, Empty, Typography } from 'antd';
 import { SearchOutlined, RightOutlined, DownOutlined, LinkOutlined, InfoCircleOutlined } from '@ant-design/icons';
@@ -8,6 +9,17 @@ import { ReferenceDataTable } from './ReferenceDataTable';
 import type { RegistryEntry } from '@models/referenceData';
 
 const { Text, Paragraph } = Typography;
+
+const SIDEBAR_WIDTH_KEY = 'staticdata.sidebarWidth';
+const MIN_SIDEBAR_WIDTH = 180;
+const MAX_SIDEBAR_WIDTH = 480;
+const DEFAULT_SIDEBAR_WIDTH = 220;
+
+function loadSidebarWidth(): number {
+  const raw = Number(localStorage.getItem(SIDEBAR_WIDTH_KEY));
+  if (Number.isFinite(raw) && raw >= MIN_SIDEBAR_WIDTH && raw <= MAX_SIDEBAR_WIDTH) return raw;
+  return DEFAULT_SIDEBAR_WIDTH;
+}
 
 // Canonical sidebar order — mirrors the Master Data Hub's own group order, so
 // a card clicked in the Hub lands in a sidebar group with the same name in
@@ -87,6 +99,48 @@ export function Tier2HomePage() {
   // Set of group names that are collapsed
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
 
+  // Sidebar resize — drag the right edge to widen/narrow, persisted across
+  // sessions. Uses the same ref-based drag pattern as the modal drag handle
+  // (window mousemove/mouseup listeners registered once on mount) so the
+  // resize keeps tracking the cursor even if it moves faster than React
+  // re-renders.
+  const [sidebarWidth, setSidebarWidth] = useState(loadSidebarWidth);
+  const resizingRef = useRef(false);
+  const resizeStartRef = useRef({ mouseX: 0, width: 0 });
+
+  useEffect(() => {
+    function handleMove(e: MouseEvent) {
+      if (!resizingRef.current) return;
+      const { mouseX, width } = resizeStartRef.current;
+      const next = Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, width + (e.clientX - mouseX)));
+      setSidebarWidth(next);
+    }
+    function handleUp() {
+      if (!resizingRef.current) return;
+      resizingRef.current = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      setSidebarWidth((w) => {
+        localStorage.setItem(SIDEBAR_WIDTH_KEY, String(w));
+        return w;
+      });
+    }
+    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('mouseup', handleUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('mouseup', handleUp);
+    };
+  }, []);
+
+  function onResizeHandleMouseDown(e: ReactMouseEvent) {
+    e.preventDefault();
+    resizingRef.current = true;
+    resizeStartRef.current = { mouseX: e.clientX, width: sidebarWidth };
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  }
+
   const allGroupNames = useMemo(
     () => new Set((tables ?? []).filter((t) => t.isEnabled).map((t) => t.moduleGroup)),
     [tables],
@@ -158,85 +212,105 @@ export function Tier2HomePage() {
 
           {/* ── Sidebar ─────────────────────────────────────────────────── */}
           <div style={{
-            width: 220,
+            width: sidebarWidth,
             flexShrink: 0,
+            position: 'relative',
             borderRight: '1px solid #f0f0f0',
             display: 'flex',
             flexDirection: 'column',
-            overflowY: 'auto',
           }}>
-            <div style={{ padding: '10px 10px 6px', position: 'sticky', top: 0, background: '#fff', zIndex: 1 }}>
-              <Input
-                prefix={<SearchOutlined style={{ color: '#bfbfbf', fontSize: 12 }} />}
-                placeholder="Filter tables…"
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-                allowClear
-                size="small"
-              />
-            </div>
+            {/* Drag handle — resizes the sidebar; leaves the main app sidebar untouched.
+                Sits on this non-scrolling wrapper (not the inner overflowY:auto div)
+                so its half-outside overhang isn't clipped by the scroll container. */}
+            <div
+              onMouseDown={onResizeHandleMouseDown}
+              style={{
+                position: 'absolute',
+                top: 0,
+                right: -3,
+                width: 6,
+                height: '100%',
+                cursor: 'col-resize',
+                zIndex: 2,
+              }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#d9d9d9'; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+            />
 
-            <div style={{ flex: 1 }}>
-              {grouped.length === 0 && (
-                <div style={{ padding: '20px 12px', color: '#bfbfbf', fontSize: 12, textAlign: 'center' }}>
-                  No tables match "{filter}"
-                </div>
-              )}
+            <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ padding: '10px 10px 6px', position: 'sticky', top: 0, background: '#fff', zIndex: 1 }}>
+                <Input
+                  prefix={<SearchOutlined style={{ color: '#bfbfbf', fontSize: 12 }} />}
+                  placeholder="Filter tables…"
+                  value={filter}
+                  onChange={(e) => setFilter(e.target.value)}
+                  allowClear
+                  size="small"
+                />
+              </div>
 
-              {grouped.map(([group, items]) => {
-                const isCollapsed = !isFiltering && collapsed.has(group);
-                return (
-                  <div key={group} style={{ marginBottom: 4 }}>
-                    {/* Group header — clickable to expand/collapse */}
-                    <div
-                      onClick={() => !isFiltering && toggleGroup(group)}
-                      style={{
-                        padding: '8px 10px 6px 12px',
-                        fontSize: 11,
-                        fontWeight: 700,
-                        color: '#6b7280',
-                        letterSpacing: '0.5px',
-                        textTransform: 'uppercase',
-                        userSelect: 'none',
-                        cursor: isFiltering ? 'default' : 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 5,
-                      }}
-                      onMouseEnter={(e) => { if (!isFiltering) (e.currentTarget as HTMLElement).style.color = '#374151'; }}
-                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = '#6b7280'; }}
-                    >
-                      {!isFiltering && (
-                        isCollapsed
-                          ? <RightOutlined style={{ fontSize: 9 }} />
-                          : <DownOutlined style={{ fontSize: 9 }} />
-                      )}
-                      {group}
-                      <span style={{
-                        marginLeft: 'auto',
-                        background: '#f0f0f0',
-                        borderRadius: 8,
-                        padding: '0 5px',
-                        fontSize: 10,
-                        fontWeight: 500,
-                        color: '#9ca3af',
-                      }}>
-                        {items.length}
-                      </span>
-                    </div>
-
-                    {/* Items — hidden when group is collapsed */}
-                    {!isCollapsed && items.map((t) => (
-                      <NavItem
-                        key={t.tableName}
-                        label={t.displayName}
-                        active={t.tableName === tableName}
-                        onClick={() => navigate(`/static-data/${t.tableName}`)}
-                      />
-                    ))}
+              <div style={{ flex: 1 }}>
+                {grouped.length === 0 && (
+                  <div style={{ padding: '20px 12px', color: '#bfbfbf', fontSize: 12, textAlign: 'center' }}>
+                    No tables match "{filter}"
                   </div>
-                );
-              })}
+                )}
+
+                {grouped.map(([group, items]) => {
+                  const isCollapsed = !isFiltering && collapsed.has(group);
+                  return (
+                    <div key={group} style={{ marginBottom: 4 }}>
+                      {/* Group header — clickable to expand/collapse */}
+                      <div
+                        onClick={() => !isFiltering && toggleGroup(group)}
+                        style={{
+                          padding: '8px 10px 6px 12px',
+                          fontSize: 11,
+                          fontWeight: 700,
+                          color: '#6b7280',
+                          letterSpacing: '0.5px',
+                          textTransform: 'uppercase',
+                          userSelect: 'none',
+                          cursor: isFiltering ? 'default' : 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 5,
+                        }}
+                        onMouseEnter={(e) => { if (!isFiltering) (e.currentTarget as HTMLElement).style.color = '#374151'; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = '#6b7280'; }}
+                      >
+                        {!isFiltering && (
+                          isCollapsed
+                            ? <RightOutlined style={{ fontSize: 9 }} />
+                            : <DownOutlined style={{ fontSize: 9 }} />
+                        )}
+                        {group}
+                        <span style={{
+                          marginLeft: 'auto',
+                          background: '#f0f0f0',
+                          borderRadius: 8,
+                          padding: '0 5px',
+                          fontSize: 10,
+                          fontWeight: 500,
+                          color: '#9ca3af',
+                        }}>
+                          {items.length}
+                        </span>
+                      </div>
+
+                      {/* Items — hidden when group is collapsed */}
+                      {!isCollapsed && items.map((t) => (
+                        <NavItem
+                          key={t.tableName}
+                          label={t.displayName}
+                          active={t.tableName === tableName}
+                          onClick={() => navigate(`/static-data/${t.tableName}`)}
+                        />
+                      ))}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
