@@ -9,14 +9,14 @@ function col(
   return { name, label, kind, isPrimaryKey, nullable, maxLength, enumValues, foreignKeyTable };
 }
 
-// Canonical 11-value commodity_type vocabulary (matches the real SQL CHECK
-// constraint added in V47 for book/desk/gl_account/trader_commodity_limit,
-// and reused here for freight/demurrage master data) — broader than the
-// `commodity` master table's own 6-value type enum, which predates V47.
-const FREIGHT_COMMODITY_TYPES = [
-  'OIL', 'GAS', 'POWER', 'LNG', 'AGRICULTURAL', 'METALS',
-  'FREIGHT', 'RINS', 'ENVIRONMENTAL', 'MULTI', 'OTHER',
-];
+// V55: commodity_type moved from a hardcoded VARCHAR+CHECK to an INT FK on
+// dbo.lookup_value(lookup_id) (category='commodity_type', seeded in that
+// order: OIL=1, GAS=2, POWER=3, LNG=4, AGRICULTURAL=5, METALS=6, FREIGHT=7,
+// RINS=8, ENVIRONMENTAL=9, MULTI=10, OTHER=11). rowSeed values below use
+// those ids directly. There's no `lookup_value` mock table yet (a pre-
+// existing gap — see the `uomId` placeholder note further down), so these
+// ids aren't independently resolvable to a label in the mock layer; they
+// only need to be stable, non-null identifiers.
 
 // ─── Factory: standard parent-lookup table metadata ───────────────────────────
 // All 13 V17 parent tables share the same column shape:
@@ -648,7 +648,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('commodityId',      'ID',           'number',  false, true,  null),
       col('commodityCode',    'Code',         'string',  false, false, 20),
       col('commodityName',    'Name',         'string',  false, false, 100),
-      col('commodityType',    'Type',         'enum',    false, false, null, ['OIL', 'POWER', 'GAS', 'AGRICULTURAL', 'METALS', 'OTHER']),
+      col('commodityType',    'Type',         'foreign_key', false, false, null, null, 'lookup_value'),
       col('commoditySubtype', 'Subtype',      'enum',    true,  false, null, [
         'CRUDE', 'REFINED', 'NGL', 'CONDENSATE', 'PETROCHEMICAL',
         'PIPELINE_GAS', 'LNG', 'LPG', 'NGL_GAS', 'BIOGAS',
@@ -697,6 +697,17 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',              'Active',                  'boolean', false, false, null),
     ],
   },
+  fx_period: {
+    tableName: 'fx_period', displayName: 'FX Periods / Tenors', primaryKeyColumn: 'fxPeriodId', isTemporal: false,
+    columns: [
+      col('fxPeriodId',  'ID',          'number',  false, true,  null),
+      col('periodCode',  'Period Code', 'string',  false, false, 20),
+      col('periodName',  'Period Name', 'string',  false, false, 100),
+      col('periodType',  'Period Type', 'enum',    false, false, null, ['SPOT', 'STANDARD_TENOR', 'DAILY_FORWARD']),
+      col('daysOffset',  'Days Offset', 'number',  false, false, null),
+      col('isActive',    'Active',      'boolean', false, false, null),
+    ],
+  },
   freight_rate_index: {
     tableName: 'freight_rate_index', displayName: 'Freight Rate Indices', primaryKeyColumn: 'freightRateIndexId', isTemporal: false,
     columns: [
@@ -706,7 +717,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('indexType',            'Index Type',           'enum',        false, false, null, ['BALTIC', 'WORLDSCALE', 'ASSESSED', 'OTHER']),
       col('vesselType',           'Vessel Type',          'string',      true,  false, 30),
       col('routeDescription',     'Route',                'string',      true,  false, 200),
-      col('commodityType',        'Commodity',            'enum',        true,  false, null, FREIGHT_COMMODITY_TYPES),
+      col('commodityType',        'Commodity',            'foreign_key', true,  false, null, null, 'lookup_value'),
       col('currencyId',           'Currency',             'foreign_key', true,  false, null, null, 'currency'),
       col('uomId',                'UoM',                  'number',      true,  false, null),
       col('publicationSource',    'Publication Source',   'string',      true,  false, 100),
@@ -728,7 +739,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('norWifponAllowed',  'NOR — WIFPON',        'boolean', false, false, null),
       col('norWcconAllowed',   'NOR — WCCON',         'boolean', false, false, null),
       col('noticeOfReadinessTurnTimeMins', 'NOR Turn Time (mins)', 'number', false, false, null),
-      col('commodityType',     'Commodity',           'enum',    true,  false, null, FREIGHT_COMMODITY_TYPES),
+      col('commodityType',     'Commodity',           'foreign_key', true,  false, null, null, 'lookup_value'),
       col('description',       'Description',         'string',  true,  false, 300),
       col('isActive',          'Active',              'boolean', false, false, null),
     ],
@@ -742,7 +753,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('demurrageRatePerDay', 'Demurrage $/Day',     'number',      false, false, null),
       col('dispatchRatePerDay',  'Dispatch $/Day',      'number',      true,  false, null),
       col('currencyId',          'Currency',            'foreign_key', false, false, null, null, 'currency'),
-      col('commodityType',       'Commodity',           'enum',        true,  false, null, FREIGHT_COMMODITY_TYPES),
+      col('commodityType',       'Commodity',           'foreign_key', true,  false, null, null, 'lookup_value'),
       col('claimTimeBarDays',    'Claim Time-Bar (days)','number',     true,  false, null),
       col('despatchBasis',       'Despatch Basis',      'enum',        true,  false, null, ['ALL_TIME_SAVED', 'WORKING_TIME_SAVED_ONLY']),
       col('effectiveFrom',       'Effective From',      'date',        false, false, null),
@@ -884,6 +895,8 @@ export const registrySeed: RegistryEntry[] = [
   { registryId: 206, tableName: 'laytime_term_template',  displayName: 'Laytime Term Templates',    moduleGroup: 'Freight & Shipping', subGroup: 'Charter', description: 'Standard laytime clauses — which days count (SHINC/SHEX/WWD), whether laytime is reversible, and the NOR-tendering basis (WIPON/WIBON/WIFPON/WCCON) that determines when laytime starts counting.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
   { registryId: 207, tableName: 'demurrage_dispatch_rate',displayName: 'Demurrage & Dispatch Rates',moduleGroup: 'Freight & Shipping', subGroup: 'Charter', description: 'Standard demurrage/dispatch rates by vessel class and commodity — includes the claim time-bar (days to submit with supporting docs) and despatch basis (all time saved vs. working time only).', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 4 },
   { registryId: 208, tableName: 'laytime_exception_type', displayName: 'Laytime Exception Types',   moduleGroup: 'Freight & Shipping', subGroup: 'Charter', description: 'Standard reasons time is excepted from (or counted against) laytime — weather, strikes, breakdowns, port congestion — used in laytime calculations and demurrage disputes across any vessel-carried commodity.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 5 },
+  // V56 — dedicated FX tenor/period master, linked from fx_rate (not a lookup_value category — needs to scale to 1000+ daily-forward rows)
+  { registryId: 209, tableName: 'fx_period',              displayName: 'FX Periods / Tenors',       moduleGroup: 'Pricing & Rates',    subGroup: 'FX',      description: 'Standard FX tenors (SPOT, 1M-2Y) plus individual daily-forward periods used to build a full FX forward curve. Linked from fx_rate.fx_period_id — scales to 1000+ daily delivery days without bloating the generic lookup table.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: true, isEnabled: true, displayOrder: 6 },
   // V17 parent lookup tables — generated from the simple list above
   ...PARENT_LOOKUP_TABLES.map((t, i) => ({
     registryId:       10 + i,
@@ -914,11 +927,11 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { currencyId: 3, currencyCode: 'EUR', currencyName: 'Euro',           symbol: '€', decimalPlaces: 2, isActive: true },
   ],
   commodity: [
-    { commodityId: 1, commodityCode: 'OIL',    commodityName: 'Oil & Petroleum',     commodityType: 'OIL',          commoditySubtype: 'CRUDE',        defaultUomId: 1, defaultCurrencyId: 1, description: 'Crude oil, refined products, NGL, condensate and petrochemicals. Covers all liquid hydrocarbons from wellhead to end-product.', isActive: true },
-    { commodityId: 2, commodityCode: 'POWER',  commodityName: 'Power & Electricity', commodityType: 'POWER',        commoditySubtype: 'ELECTRICITY',  defaultUomId: 5, defaultCurrencyId: 2, description: 'Electricity generation, transmission, and supply. Includes baseload, peak, renewable, and nuclear power.',                    isActive: true },
-    { commodityId: 3, commodityCode: 'GAS',    commodityName: 'Natural Gas',         commodityType: 'GAS',          commoditySubtype: 'PIPELINE_GAS', defaultUomId: 5, defaultCurrencyId: 2, description: 'Natural gas including pipeline gas, LNG cargoes, LPG, and NGL extraction.',                                                  isActive: true },
-    { commodityId: 4, commodityCode: 'AGRI',   commodityName: 'Agricultural',        commodityType: 'AGRICULTURAL', commoditySubtype: 'GRAINS',       defaultUomId: 4, defaultCurrencyId: 1, description: 'Agricultural commodities — grains, oilseeds, softs, livestock and dairy products.',                                          isActive: true },
-    { commodityId: 5, commodityCode: 'METALS', commodityName: 'Metals & Mining',     commodityType: 'METALS',       commoditySubtype: 'BASE_METAL',   defaultUomId: 4, defaultCurrencyId: 1, description: 'Base metals (copper, aluminium, zinc, lead, nickel, tin), precious metals (gold, silver, platinum), and ferrous metals.',     isActive: true },
+    { commodityId: 1, commodityCode: 'OIL',    commodityName: 'Oil & Petroleum',     commodityType: 1,          commoditySubtype: 'CRUDE',        defaultUomId: 1, defaultCurrencyId: 1, description: 'Crude oil, refined products, NGL, condensate and petrochemicals. Covers all liquid hydrocarbons from wellhead to end-product.', isActive: true },
+    { commodityId: 2, commodityCode: 'POWER',  commodityName: 'Power & Electricity', commodityType: 3,        commoditySubtype: 'ELECTRICITY',  defaultUomId: 5, defaultCurrencyId: 2, description: 'Electricity generation, transmission, and supply. Includes baseload, peak, renewable, and nuclear power.',                    isActive: true },
+    { commodityId: 3, commodityCode: 'GAS',    commodityName: 'Natural Gas',         commodityType: 2,          commoditySubtype: 'PIPELINE_GAS', defaultUomId: 5, defaultCurrencyId: 2, description: 'Natural gas including pipeline gas, LNG cargoes, LPG, and NGL extraction.',                                                  isActive: true },
+    { commodityId: 4, commodityCode: 'AGRI',   commodityName: 'Agricultural',        commodityType: 5, commoditySubtype: 'GRAINS',       defaultUomId: 4, defaultCurrencyId: 1, description: 'Agricultural commodities — grains, oilseeds, softs, livestock and dairy products.',                                          isActive: true },
+    { commodityId: 5, commodityCode: 'METALS', commodityName: 'Metals & Mining',     commodityType: 6,       commoditySubtype: 'BASE_METAL',   defaultUomId: 4, defaultCurrencyId: 1, description: 'Base metals (copper, aluminium, zinc, lead, nickel, tin), precious metals (gold, silver, platinum), and ferrous metals.',     isActive: true },
   ],
   credit_rating: [
     { creditRatingId: 1, agency: 'S&P', rating: 'AAA', numericScore: 1, riskCategory: 'INVESTMENT_GRADE', isActive: true },
@@ -937,20 +950,33 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { charterPartyTypeId: 4, typeCode: 'COA',       typeName: 'Contract of Affreightment',  rateBasis: 'PER_TONNE',  durationBasis: 'CONTRACT_PERIOD', standardFormReference: null,                                    description: 'Commitment to carry multiple cargoes of agreed total quantity over a period, owner nominates vessels per shipment.',            isActive: true },
     { charterPartyTypeId: 5, typeCode: 'WS_VOYAGE', typeName: 'Voyage Charter — Worldscale', rateBasis: 'WORLDSCALE', durationBasis: 'SINGLE_VOYAGE',  standardFormReference: 'ASBATANKVOY',                           description: 'Voyage charter where freight is quoted as a % of the published Worldscale flat rate for the route.',                            isActive: true },
   ],
+  fx_period: [
+    { fxPeriodId: 1,  periodCode: 'SPOT',  periodName: 'Spot Rate',       periodType: 'SPOT',           daysOffset: 0,   isActive: true },
+    { fxPeriodId: 2,  periodCode: '1M',    periodName: '1 Month Forward', periodType: 'STANDARD_TENOR', daysOffset: 30,  isActive: true },
+    { fxPeriodId: 3,  periodCode: '2M',    periodName: '2 Month Forward', periodType: 'STANDARD_TENOR', daysOffset: 60,  isActive: true },
+    { fxPeriodId: 4,  periodCode: '3M',    periodName: '3 Month Forward', periodType: 'STANDARD_TENOR', daysOffset: 90,  isActive: true },
+    { fxPeriodId: 5,  periodCode: '6M',    periodName: '6 Month Forward', periodType: 'STANDARD_TENOR', daysOffset: 180, isActive: true },
+    { fxPeriodId: 6,  periodCode: '9M',    periodName: '9 Month Forward', periodType: 'STANDARD_TENOR', daysOffset: 270, isActive: true },
+    { fxPeriodId: 7,  periodCode: '1Y',    periodName: '1 Year Forward',  periodType: 'STANDARD_TENOR', daysOffset: 365, isActive: true },
+    { fxPeriodId: 8,  periodCode: '2Y',    periodName: '2 Year Forward',  periodType: 'STANDARD_TENOR', daysOffset: 730, isActive: true },
+    { fxPeriodId: 9,  periodCode: 'DAY_1', periodName: 'Day 1 Forward',   periodType: 'DAILY_FORWARD',  daysOffset: 1,   isActive: true },
+    { fxPeriodId: 10, periodCode: 'DAY_2', periodName: 'Day 2 Forward',   periodType: 'DAILY_FORWARD',  daysOffset: 2,   isActive: true },
+    { fxPeriodId: 11, periodCode: 'DAY_3', periodName: 'Day 3 Forward',   periodType: 'DAILY_FORWARD',  daysOffset: 3,   isActive: true },
+  ],
   // currencyId 1 = USD (see currency rowSeed below). uomId 101/102 are
   // placeholders for the new PDAY/WS_PT UoMs added in V54 — there is no `uom`
   // mock table yet (a pre-existing gap: the frontend has no unit_of_measure
   // mock at all), so these numbers aren't cross-referenced against anything;
   // they only need to be non-null to satisfy chk_fri_pricing_rules's intent.
   freight_rate_index: [
-    { freightRateIndexId: 1, indexCode: 'BDTI',         indexName: 'Baltic Dirty Tanker Index',                  indexType: 'BALTIC',   vesselType: null,           routeDescription: null,                    commodityType: 'OIL', currencyId: 1, uomId: 102, publicationSource: 'Baltic Exchange',      publicationFrequency: 'DAILY',  description: 'Composite index tracking crude/dirty product tanker freight rates across major routes.',            isActive: true },
-    { freightRateIndexId: 2, indexCode: 'BCTI',         indexName: 'Baltic Clean Tanker Index',                  indexType: 'BALTIC',   vesselType: null,           routeDescription: null,                    commodityType: 'OIL', currencyId: 1, uomId: 102, publicationSource: 'Baltic Exchange',      publicationFrequency: 'DAILY',  description: 'Composite index tracking clean petroleum product tanker freight rates.',                              isActive: true },
+    { freightRateIndexId: 1, indexCode: 'BDTI',         indexName: 'Baltic Dirty Tanker Index',                  indexType: 'BALTIC',   vesselType: null,           routeDescription: null,                    commodityType: 1, currencyId: 1, uomId: 102, publicationSource: 'Baltic Exchange',      publicationFrequency: 'DAILY',  description: 'Composite index tracking crude/dirty product tanker freight rates across major routes.',            isActive: true },
+    { freightRateIndexId: 2, indexCode: 'BCTI',         indexName: 'Baltic Clean Tanker Index',                  indexType: 'BALTIC',   vesselType: null,           routeDescription: null,                    commodityType: 1, currencyId: 1, uomId: 102, publicationSource: 'Baltic Exchange',      publicationFrequency: 'DAILY',  description: 'Composite index tracking clean petroleum product tanker freight rates.',                              isActive: true },
     { freightRateIndexId: 3, indexCode: 'BDI',          indexName: 'Baltic Dry Index',                           indexType: 'BALTIC',   vesselType: 'BULK_CARRIER', routeDescription: null,                    commodityType: null,  currencyId: 1, uomId: 101, publicationSource: 'Baltic Exchange',      publicationFrequency: 'DAILY',  description: 'Composite dry bulk freight index (Capesize/Panamax/Supramax/Handysize) — prices any dry-bulk cargo (ore, coal, grain), not agriculture-specific.', isActive: true },
     { freightRateIndexId: 4, indexCode: 'BPI',          indexName: 'Baltic Panamax Index',                       indexType: 'BALTIC',   vesselType: 'PANAMAX',      routeDescription: null,                    commodityType: null,  currencyId: 1, uomId: 101, publicationSource: 'Baltic Exchange',      publicationFrequency: 'DAILY',  description: 'Panamax dry bulk freight index.',                                                                     isActive: true },
     { freightRateIndexId: 5, indexCode: 'BSI',          indexName: 'Baltic Supramax Index',                      indexType: 'BALTIC',   vesselType: 'OTHER',        routeDescription: null,                    commodityType: null,  currencyId: 1, uomId: 101, publicationSource: 'Baltic Exchange',      publicationFrequency: 'DAILY',  description: 'Supramax dry bulk freight index.',                                                                    isActive: true },
     { freightRateIndexId: 6, indexCode: 'BHSI',         indexName: 'Baltic Handysize Index',                     indexType: 'BALTIC',   vesselType: 'HANDYSIZE',    routeDescription: null,                    commodityType: null,  currencyId: 1, uomId: 101, publicationSource: 'Baltic Exchange',      publicationFrequency: 'DAILY',  description: 'Handysize dry bulk freight index.',                                                                   isActive: true },
-    { freightRateIndexId: 7, indexCode: 'WS_FLAT_TD3C', indexName: 'Worldscale Flat Rate — TD3C (AG-China VLCC)', indexType: 'WORLDSCALE', vesselType: 'VLCC',       routeDescription: 'Arabian Gulf to China',  commodityType: 'OIL', currencyId: null, uomId: null, publicationSource: 'Worldscale Association', publicationFrequency: 'ANNUAL', description: 'Annually published Worldscale 100 (WS100) flat rate in USD/tonne for the AG-China VLCC benchmark route.', isActive: true },
-    { freightRateIndexId: 8, indexCode: 'SPARK30S',     indexName: 'Spark30S — LNG Freight Assessment (Atlantic)', indexType: 'ASSESSED', vesselType: 'LNG_CARRIER', routeDescription: 'US Gulf-Continent / Atlantic LNG routes', commodityType: 'LNG', currencyId: 1, uomId: 101, publicationSource: 'Spark Commodities', publicationFrequency: 'DAILY', description: 'Daily-assessed LNG spot freight rate in USD/day for a 174,000cbm 2-stroke LNG carrier — the LNG market\'s equivalent of a Baltic index.', isActive: true },
+    { freightRateIndexId: 7, indexCode: 'WS_FLAT_TD3C', indexName: 'Worldscale Flat Rate — TD3C (AG-China VLCC)', indexType: 'WORLDSCALE', vesselType: 'VLCC',       routeDescription: 'Arabian Gulf to China',  commodityType: 1, currencyId: null, uomId: null, publicationSource: 'Worldscale Association', publicationFrequency: 'ANNUAL', description: 'Annually published Worldscale 100 (WS100) flat rate in USD/tonne for the AG-China VLCC benchmark route.', isActive: true },
+    { freightRateIndexId: 8, indexCode: 'SPARK30S',     indexName: 'Spark30S — LNG Freight Assessment (Atlantic)', indexType: 'ASSESSED', vesselType: 'LNG_CARRIER', routeDescription: 'US Gulf-Continent / Atlantic LNG routes', commodityType: 4, currencyId: 1, uomId: 101, publicationSource: 'Spark Commodities', publicationFrequency: 'DAILY', description: 'Daily-assessed LNG spot freight rate in USD/day for a 174,000cbm 2-stroke LNG carrier — the LNG market\'s equivalent of a Baltic index.', isActive: true },
   ],
   laytime_term_template: [
     { laytimeTermId: 1, termCode: 'SHINC',     termName: 'Sundays/Holidays Included',             exclusionBasis: 'SHINC',     isReversible: false, norWiponAllowed: false, norWibonAllowed: false, norWifponAllowed: false, norWcconAllowed: false, noticeOfReadinessTurnTimeMins: 360, commodityType: null,  description: 'All days count against laytime regardless of Sundays or holidays.',                                                            isActive: true },
@@ -960,16 +986,16 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { laytimeTermId: 5, termCode: 'WWD',       termName: 'Weather Working Days',                  exclusionBasis: 'WWD',       isReversible: false, norWiponAllowed: false, norWibonAllowed: false, norWifponAllowed: false, norWcconAllowed: false, noticeOfReadinessTurnTimeMins: 360, commodityType: null,  description: 'Only days/parts of days when weather permits cargo work count against laytime.',                                               isActive: true },
     { laytimeTermId: 6, termCode: 'WWDSHEXUU', termName: 'Weather Working Days, SHEX Unless Used', exclusionBasis: 'WWDSHEXUU', isReversible: false, norWiponAllowed: true,  norWibonAllowed: true,  norWifponAllowed: true,  norWcconAllowed: true,  noticeOfReadinessTurnTimeMins: 360, commodityType: null,  description: 'Combination: weather working days, with Sundays/holidays excluded unless used.',                                                isActive: true },
     { laytimeTermId: 7, termCode: 'WWD_REV',   termName: 'Weather Working Days — Reversible',     exclusionBasis: 'WWD',       isReversible: true,  norWiponAllowed: true,  norWibonAllowed: true,  norWifponAllowed: true,  norWcconAllowed: true,  noticeOfReadinessTurnTimeMins: 360, commodityType: null,  description: 'Weather working days with load and discharge laytime allowances pooled (reversible).',                                          isActive: true },
-    { laytimeTermId: 8, termCode: 'LNG_SHINC', termName: 'LNG Standard — SHINC, Non-Reversible',  exclusionBasis: 'SHINC',     isReversible: false, norWiponAllowed: true,  norWibonAllowed: true,  norWifponAllowed: true,  norWcconAllowed: true,  noticeOfReadinessTurnTimeMins: 360, commodityType: 'LNG', description: 'Standard LNG carrier laytime convention: continuous SHINC counting (LNG terminals operate 24/7) with the full NOR bundle. Laytime/demurrage must additionally account for boil-off gas during port stays.', isActive: true },
+    { laytimeTermId: 8, termCode: 'LNG_SHINC', termName: 'LNG Standard — SHINC, Non-Reversible',  exclusionBasis: 'SHINC',     isReversible: false, norWiponAllowed: true,  norWibonAllowed: true,  norWifponAllowed: true,  norWcconAllowed: true,  noticeOfReadinessTurnTimeMins: 360, commodityType: 4, description: 'Standard LNG carrier laytime convention: continuous SHINC counting (LNG terminals operate 24/7) with the full NOR bundle. Laytime/demurrage must additionally account for boil-off gas during port stays.', isActive: true },
   ],
   demurrage_dispatch_rate: [
-    { demurrageRateId: 1, vesselType: 'VLCC',         charterPartyTypeId: 1, demurrageRatePerDay: 45000, dispatchRatePerDay: 22500, currencyId: 1, commodityType: 'OIL',    claimTimeBarDays: 90, despatchBasis: 'ALL_TIME_SAVED', effectiveFrom: '2026-01-01', effectiveTo: null, notes: 'Indicative default — confirm against fixture recap before use.', isActive: true },
-    { demurrageRateId: 2, vesselType: 'SUEZMAX',      charterPartyTypeId: 1, demurrageRatePerDay: 32000, dispatchRatePerDay: 16000, currencyId: 1, commodityType: 'OIL',    claimTimeBarDays: 90, despatchBasis: 'ALL_TIME_SAVED', effectiveFrom: '2026-01-01', effectiveTo: null, notes: 'Indicative default — confirm against fixture recap before use.', isActive: true },
-    { demurrageRateId: 3, vesselType: 'AFRAMAX',      charterPartyTypeId: 1, demurrageRatePerDay: 25000, dispatchRatePerDay: 12500, currencyId: 1, commodityType: 'OIL',    claimTimeBarDays: 90, despatchBasis: 'ALL_TIME_SAVED', effectiveFrom: '2026-01-01', effectiveTo: null, notes: 'Indicative default — confirm against fixture recap before use.', isActive: true },
-    { demurrageRateId: 4, vesselType: 'PANAMAX',      charterPartyTypeId: 1, demurrageRatePerDay: 18000, dispatchRatePerDay: 9000,  currencyId: 1, commodityType: 'OIL',    claimTimeBarDays: 90, despatchBasis: 'ALL_TIME_SAVED', effectiveFrom: '2026-01-01', effectiveTo: null, notes: 'Indicative default — confirm against fixture recap before use.', isActive: true },
-    { demurrageRateId: 5, vesselType: 'MR_TANKER',    charterPartyTypeId: 1, demurrageRatePerDay: 12000, dispatchRatePerDay: 6000,  currencyId: 1, commodityType: 'OIL',    claimTimeBarDays: 90, despatchBasis: 'ALL_TIME_SAVED', effectiveFrom: '2026-01-01', effectiveTo: null, notes: 'Indicative default — confirm against fixture recap before use.', isActive: true },
-    { demurrageRateId: 6, vesselType: 'LNG_CARRIER',  charterPartyTypeId: 2, demurrageRatePerDay: 100000, dispatchRatePerDay: 50000, currencyId: 1, commodityType: 'LNG',   claimTimeBarDays: 90, despatchBasis: 'ALL_TIME_SAVED', effectiveFrom: '2026-01-01', effectiveTo: null, notes: 'Indicative default — confirm against fixture recap before use.', isActive: true },
-    { demurrageRateId: 7, vesselType: 'BULK_CARRIER', charterPartyTypeId: 1, demurrageRatePerDay: 18000, dispatchRatePerDay: 9000,  currencyId: 1, commodityType: 'METALS', claimTimeBarDays: 90, despatchBasis: 'ALL_TIME_SAVED', effectiveFrom: '2026-01-01', effectiveTo: null, notes: 'Indicative default — confirm against fixture recap before use.', isActive: true },
+    { demurrageRateId: 1, vesselType: 'VLCC',         charterPartyTypeId: 1, demurrageRatePerDay: 45000, dispatchRatePerDay: 22500, currencyId: 1, commodityType: 1,    claimTimeBarDays: 90, despatchBasis: 'ALL_TIME_SAVED', effectiveFrom: '2026-01-01', effectiveTo: null, notes: 'Indicative default — confirm against fixture recap before use.', isActive: true },
+    { demurrageRateId: 2, vesselType: 'SUEZMAX',      charterPartyTypeId: 1, demurrageRatePerDay: 32000, dispatchRatePerDay: 16000, currencyId: 1, commodityType: 1,    claimTimeBarDays: 90, despatchBasis: 'ALL_TIME_SAVED', effectiveFrom: '2026-01-01', effectiveTo: null, notes: 'Indicative default — confirm against fixture recap before use.', isActive: true },
+    { demurrageRateId: 3, vesselType: 'AFRAMAX',      charterPartyTypeId: 1, demurrageRatePerDay: 25000, dispatchRatePerDay: 12500, currencyId: 1, commodityType: 1,    claimTimeBarDays: 90, despatchBasis: 'ALL_TIME_SAVED', effectiveFrom: '2026-01-01', effectiveTo: null, notes: 'Indicative default — confirm against fixture recap before use.', isActive: true },
+    { demurrageRateId: 4, vesselType: 'PANAMAX',      charterPartyTypeId: 1, demurrageRatePerDay: 18000, dispatchRatePerDay: 9000,  currencyId: 1, commodityType: 1,    claimTimeBarDays: 90, despatchBasis: 'ALL_TIME_SAVED', effectiveFrom: '2026-01-01', effectiveTo: null, notes: 'Indicative default — confirm against fixture recap before use.', isActive: true },
+    { demurrageRateId: 5, vesselType: 'MR_TANKER',    charterPartyTypeId: 1, demurrageRatePerDay: 12000, dispatchRatePerDay: 6000,  currencyId: 1, commodityType: 1,    claimTimeBarDays: 90, despatchBasis: 'ALL_TIME_SAVED', effectiveFrom: '2026-01-01', effectiveTo: null, notes: 'Indicative default — confirm against fixture recap before use.', isActive: true },
+    { demurrageRateId: 6, vesselType: 'LNG_CARRIER',  charterPartyTypeId: 2, demurrageRatePerDay: 100000, dispatchRatePerDay: 50000, currencyId: 1, commodityType: 4,   claimTimeBarDays: 90, despatchBasis: 'ALL_TIME_SAVED', effectiveFrom: '2026-01-01', effectiveTo: null, notes: 'Indicative default — confirm against fixture recap before use.', isActive: true },
+    { demurrageRateId: 7, vesselType: 'BULK_CARRIER', charterPartyTypeId: 1, demurrageRatePerDay: 18000, dispatchRatePerDay: 9000,  currencyId: 1, commodityType: 6, claimTimeBarDays: 90, despatchBasis: 'ALL_TIME_SAVED', effectiveFrom: '2026-01-01', effectiveTo: null, notes: 'Indicative default — confirm against fixture recap before use.', isActive: true },
   ],
   laytime_exception_type: [
     { exceptionTypeId: 1,  exceptionCode: 'WEATHER',                exceptionName: 'Adverse Weather',                  defaultCountsAgainstLaytime: false, isWeatherRelated: true,  description: 'Cargo work suspended due to weather (rain, high seas, wind) — excepted under Weather Working Days (WWD) templates.',                                    isActive: true },
