@@ -16,8 +16,8 @@ import { AppDatePicker } from '@components/smart/AppDatePicker';
 const TYPE_COLOR: Record<VesselType, string> = {
   VLCC: 'blue', SUEZMAX: 'geekblue', AFRAMAX: 'purple', PANAMAX: 'cyan',
   MR: 'teal', HANDYSIZE: 'lime', LNG_CARRIER: 'gold', LPG_CARRIER: 'orange',
-  PRODUCT_TANKER: 'green', CHEMICAL_TANKER: 'volcano', BUNKER_VESSEL: 'default',
-  FSRU: 'magenta', FPSO: 'red',
+  PRODUCT_TANKER: 'green', CHEMICAL_TANKER: 'volcano', BULK_CARRIER: 'brown',
+  BUNKER_VESSEL: 'default', FSRU: 'magenta', FPSO: 'red',
 };
 
 const STATUS_COLOR: Record<VesselStatusCode, string> = {
@@ -33,6 +33,7 @@ export function VesselsPage() {
   const [editing, setEditing] = useState<Vessel | null>(null);
   const [form] = Form.useForm<VesselInput>();
   useFormDraft('logistics-vessels', { form, open, setOpen, editing, setEditing });
+  const watchedVesselType = Form.useWatch('vesselType', form);
 
   function openNew() { setEditing(null); form.resetFields(); form.setFieldValue('isActive', true); form.setFieldValue('statusCode', 'ACTIVE'); setOpen(true); }
   function openEdit(v: Vessel) {
@@ -44,6 +45,8 @@ export function VesselsPage() {
       vettingExpiry: v.vettingExpiry ? (dayjs(v.vettingExpiry) as unknown as string) : undefined,
       sireInspectionDate: v.sireInspectionDate ? (dayjs(v.sireInspectionDate) as unknown as string) : undefined,
       cdiBerthStatus: v.cdiBerthStatus ?? undefined, statusCode: v.statusCode, isActive: v.isActive,
+      grainCapacityCbm: v.grainCapacityCbm ?? undefined, baleCapacityCbm: v.baleCapacityCbm ?? undefined,
+      guaranteedBoilOffRatePctPerDay: v.guaranteedBoilOffRatePctPerDay ?? undefined, heelCapacityCbm: v.heelCapacityCbm ?? undefined,
     });
     setOpen(true);
   }
@@ -119,6 +122,26 @@ export function VesselsPage() {
               <InputNumber style={{ width: '100%' }} placeholder="160000" formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
             </Form.Item>
           </Space>
+          {watchedVesselType === 'BULK_CARRIER' && (
+            <Space style={{ width: '100%', gap: 12 }}>
+              <Form.Item name="grainCapacityCbm" label={hint('Grain Capacity (CBM)', 'Cargo hold capacity for free-flowing dry-bulk cargo (grain, most ores) — determines whether the vessel can lift the contractual metals/agri cargo quantity.', '198000')} style={{ flex: 1 }}>
+                <InputNumber style={{ width: '100%' }} placeholder="198000" />
+              </Form.Item>
+              <Form.Item name="baleCapacityCbm" label={hint('Bale Capacity (CBM)', 'Cargo hold capacity for packed/bagged dry-bulk cargo — always less than or equal to grain capacity.', '189500')} style={{ flex: 1 }}>
+                <InputNumber style={{ width: '100%' }} placeholder="189500" />
+              </Form.Item>
+            </Space>
+          )}
+          {watchedVesselType === 'LNG_CARRIER' && (
+            <Space style={{ width: '100%', gap: 12 }}>
+              <Form.Item name="guaranteedBoilOffRatePctPerDay" label={hint('Guaranteed Boil-Off Rate (%/day)', 'Contractually guaranteed maximum daily boil-off rate — typically around 0.10-0.15%/day for modern LNG carriers. Drives BOG allowance in the charter party.', '0.10')} style={{ flex: 1 }}>
+                <InputNumber style={{ width: '100%' }} step={0.01} placeholder="0.10" />
+              </Form.Item>
+              <Form.Item name="heelCapacityCbm" label={hint('Heel Capacity (CBM)', 'Minimum LNG volume retained on board between voyages to keep cargo tanks cold and avoid a full re-cooldown before the next loading.', '3000')} style={{ flex: 1 }}>
+                <InputNumber style={{ width: '100%' }} placeholder="3000" />
+              </Form.Item>
+            </Space>
+          )}
           <Space style={{ width: '100%', gap: 12 }}>
             <Form.Item name="flag" label={hint('Flag State', 'ISO 3166-1 alpha-2 country code of vessel registry. Determines which maritime law governs the vessel. Common flags: LR (Liberia), MH (Marshall Islands), PA (Panama), BS (Bahamas).', 'LR')} rules={[{ required: true }]} style={{ flex: 1 }}>
               <Input placeholder="LR" maxLength={2} style={{ fontFamily: 'monospace', textTransform: 'uppercase' }} />

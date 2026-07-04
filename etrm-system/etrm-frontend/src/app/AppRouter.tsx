@@ -70,14 +70,12 @@ const MarginAgreementsPage = lazy1(() => import('@features/credit/margin-agreeme
 const CreditLimitsPage = lazy1(() => import('@features/credit/credit-limits/CreditLimitsPage'), 'CreditLimitsPage');
 const LettersOfCreditPage = lazy1(() => import('@features/credit/letters-of-credit/LettersOfCreditPage'), 'LettersOfCreditPage');
 
-const RinsHub = lazy1(() => import('@features/rins/RinsHub'), 'RinsHub');
 const FuelCategoriesPage = lazy1(() => import('@features/rins/fuel-categories/FuelCategoriesPage'), 'FuelCategoriesPage');
 const RinAccountsPage = lazy1(() => import('@features/rins/rin-accounts/RinAccountsPage'), 'RinAccountsPage');
 const RinTransactionsPage = lazy1(() => import('@features/rins/rin-transactions/RinTransactionsPage'), 'RinTransactionsPage');
 const RinInventoryPage = lazy1(() => import('@features/rins/rin-inventory/RinInventoryPage'), 'RinInventoryPage');
 const RinObligationsPage = lazy1(() => import('@features/rins/rin-obligations/RinObligationsPage'), 'RinObligationsPage');
 
-const EnvironmentalHub = lazy1(() => import('@features/environmental/EnvironmentalHub'), 'EnvironmentalHub');
 const EmissionSchemesPage = lazy1(() => import('@features/environmental/emission-schemes/EmissionSchemesPage'), 'EmissionSchemesPage');
 const EnvironmentalProductsPage = lazy1(() => import('@features/environmental/environmental-products/EnvironmentalProductsPage'), 'EnvironmentalProductsPage');
 const CarbonRegistriesPage = lazy1(() => import('@features/environmental/carbon-registries/CarbonRegistriesPage'), 'CarbonRegistriesPage');
@@ -174,16 +172,20 @@ export function AppRouter() {
         <Route path="/credit/limits" element={<S><CreditLimitsPage /></S>} />
         <Route path="/credit/letters-of-credit" element={<S><LettersOfCreditPage /></S>} />
 
-        {/* RINs — Renewable Fuel Standard */}
-        <Route path="/rins" element={<S><RinsHub /></S>} />
+        {/* RINs — Renewable Fuel Standard — no standalone hub; the Master Data
+            Hub's "RIN & Renewable Fuels" group is the entry point, individual
+            pages are reached directly from the sidebar (same treatment as Credit & Risk). */}
+        <Route path="/rins" element={<Navigate to="/master-data" replace />} />
         <Route path="/rins/fuel-categories" element={<S><FuelCategoriesPage /></S>} />
         <Route path="/rins/accounts" element={<S><RinAccountsPage /></S>} />
         <Route path="/rins/transactions" element={<S><RinTransactionsPage /></S>} />
         <Route path="/rins/inventory" element={<S><RinInventoryPage /></S>} />
         <Route path="/rins/obligations" element={<S><RinObligationsPage /></S>} />
 
-        {/* Carbon & Environmental */}
-        <Route path="/environmental" element={<S><EnvironmentalHub /></S>} />
+        {/* Carbon & Environmental — no standalone hub; the Master Data Hub's
+            "Carbon & Environmental" group is the entry point, individual
+            pages are reached directly from the sidebar (same treatment as Credit & Risk). */}
+        <Route path="/environmental" element={<Navigate to="/master-data" replace />} />
         <Route path="/environmental/schemes" element={<S><EmissionSchemesPage /></S>} />
         <Route path="/environmental/products" element={<S><EnvironmentalProductsPage /></S>} />
         <Route path="/environmental/registries" element={<S><CarbonRegistriesPage /></S>} />

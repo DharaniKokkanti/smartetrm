@@ -64,7 +64,6 @@ const NAV_ITEMS = [
   {
     key: 'g-regulatory', icon: <AuditOutlined />, label: 'Regulatory',
     children: [
-      { key: '/rins',                  icon: <AuditOutlined />,         label: 'RINs Hub' },
       { key: '/rins/fuel-categories',  icon: <TagsOutlined />,          label: 'Fuel Categories' },
       { key: '/rins/accounts',         icon: <IdcardOutlined />,        label: 'RIN Accounts' },
       { key: '/rins/transactions',     icon: <SwapOutlined />,          label: 'RIN Transactions' },
@@ -75,7 +74,6 @@ const NAV_ITEMS = [
   {
     key: 'g-environmental', icon: <CloudOutlined />, label: 'Environmental',
     children: [
-      { key: '/environmental',             icon: <CloudOutlined />,         label: 'Environmental Hub' },
       { key: '/environmental/schemes',     icon: <ApartmentOutlined />,     label: 'Emission Schemes' },
       { key: '/environmental/products',    icon: <GlobalOutlined />,        label: 'Env. Products' },
       { key: '/environmental/registries',  icon: <BankOutlined />,          label: 'Carbon Registries' },
@@ -98,8 +96,8 @@ const ALL_KEYS = [
   '/pricing/settlement-prices', '/pricing/tas', '/pricing/pricing-rules', '/pricing/price-sources',
   '/pricing/balmo-products', '/pricing/balmo',
   '/bolmo',
-  '/rins/fuel-categories', '/rins/accounts', '/rins/transactions', '/rins/inventory', '/rins/obligations', '/rins',
-  '/environmental/schemes', '/environmental/products', '/environmental/registries', '/environmental/obligations', '/environmental',
+  '/rins/fuel-categories', '/rins/accounts', '/rins/transactions', '/rins/inventory', '/rins/obligations',
+  '/environmental/schemes', '/environmental/products', '/environmental/registries', '/environmental/obligations',
   '/finance/gl-accounts',
   '/admin/users', '/admin/roles', '/admin/field-permissions',
 ];

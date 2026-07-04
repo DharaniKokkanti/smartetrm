@@ -9,6 +9,15 @@ function col(
   return { name, label, kind, isPrimaryKey, nullable, maxLength, enumValues, foreignKeyTable };
 }
 
+// Canonical 11-value commodity_type vocabulary (matches the real SQL CHECK
+// constraint added in V47 for book/desk/gl_account/trader_commodity_limit,
+// and reused here for freight/demurrage master data) — broader than the
+// `commodity` master table's own 6-value type enum, which predates V47.
+const FREIGHT_COMMODITY_TYPES = [
+  'OIL', 'GAS', 'POWER', 'LNG', 'AGRICULTURAL', 'METALS',
+  'FREIGHT', 'RINS', 'ENVIRONMENTAL', 'MULTI', 'OTHER',
+];
+
 // ─── Factory: standard parent-lookup table metadata ───────────────────────────
 // All 13 V17 parent tables share the same column shape:
 //   {pk}  |  typeCode  |  typeName  |  description  |  sortOrder  |  isActive
@@ -678,12 +687,80 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
   charter_party_type: {
     tableName: 'charter_party_type', displayName: 'Charter Party Types', primaryKeyColumn: 'charterPartyTypeId', isTemporal: false,
     columns: [
-      col('charterPartyTypeId', 'ID',             'number',  false, true,  null),
-      col('typeCode',           'Type Code',      'string',  false, false, 20),
-      col('typeName',           'Type Name',      'string',  false, false, 100),
-      col('rateBasis',          'Rate Basis',     'enum',    false, false, null, ['PER_DAY', 'PER_TONNE', 'LUMPSUM', 'PER_CBM', 'WORLDSCALE']),
-      col('durationBasis',      'Duration Basis', 'enum',    false, false, null, ['SINGLE_VOYAGE', 'TIME_PERIOD', 'BAREBOAT_PERIOD', 'CONTRACT_PERIOD']),
-      col('isActive',           'Active',         'boolean', false, false, null),
+      col('charterPartyTypeId',    'ID',                      'number',  false, true,  null),
+      col('typeCode',              'Type Code',               'string',  false, false, 20),
+      col('typeName',              'Type Name',               'string',  false, false, 100),
+      col('rateBasis',             'Rate Basis',              'enum',    false, false, null, ['PER_DAY', 'PER_TONNE', 'LUMPSUM', 'PER_CBM', 'WORLDSCALE']),
+      col('durationBasis',         'Duration Basis',          'enum',    false, false, null, ['SINGLE_VOYAGE', 'TIME_PERIOD', 'BAREBOAT_PERIOD', 'CONTRACT_PERIOD']),
+      col('standardFormReference', 'Standard Form Reference', 'string',  true,  false, 100),
+      col('description',           'Description',             'string',  true,  false, 300),
+      col('isActive',              'Active',                  'boolean', false, false, null),
+    ],
+  },
+  freight_rate_index: {
+    tableName: 'freight_rate_index', displayName: 'Freight Rate Indices', primaryKeyColumn: 'freightRateIndexId', isTemporal: false,
+    columns: [
+      col('freightRateIndexId',   'ID',                   'number',      false, true,  null),
+      col('indexCode',            'Index Code',           'string',      false, false, 30),
+      col('indexName',            'Index Name',           'string',      false, false, 200),
+      col('indexType',            'Index Type',           'enum',        false, false, null, ['BALTIC', 'WORLDSCALE', 'ASSESSED', 'OTHER']),
+      col('vesselType',           'Vessel Type',          'string',      true,  false, 30),
+      col('routeDescription',     'Route',                'string',      true,  false, 200),
+      col('commodityType',        'Commodity',            'enum',        true,  false, null, FREIGHT_COMMODITY_TYPES),
+      col('currencyId',           'Currency',             'foreign_key', true,  false, null, null, 'currency'),
+      col('uomId',                'UoM',                  'number',      true,  false, null),
+      col('publicationSource',    'Publication Source',   'string',      true,  false, 100),
+      col('publicationFrequency', 'Publication Frequency','enum',        true,  false, null, ['DAILY', 'WEEKLY', 'ANNUAL']),
+      col('description',          'Description',          'string',      true,  false, 300),
+      col('isActive',             'Active',               'boolean',     false, false, null),
+    ],
+  },
+  laytime_term_template: {
+    tableName: 'laytime_term_template', displayName: 'Laytime Term Templates', primaryKeyColumn: 'laytimeTermId', isTemporal: false,
+    columns: [
+      col('laytimeTermId',     'ID',                  'number',  false, true,  null),
+      col('termCode',          'Term Code',           'string',  false, false, 20),
+      col('termName',          'Term Name',           'string',  false, false, 150),
+      col('exclusionBasis',    'Exclusion Basis',     'enum',    false, false, null, ['SHINC', 'SHEX', 'SHEXEIU', 'SHEXUU', 'WWD', 'WWDSHEXUU', 'FHEX']),
+      col('isReversible',      'Reversible',          'boolean', false, false, null),
+      col('norWiponAllowed',   'NOR — WIPON',         'boolean', false, false, null),
+      col('norWibonAllowed',   'NOR — WIBON',         'boolean', false, false, null),
+      col('norWifponAllowed',  'NOR — WIFPON',        'boolean', false, false, null),
+      col('norWcconAllowed',   'NOR — WCCON',         'boolean', false, false, null),
+      col('noticeOfReadinessTurnTimeMins', 'NOR Turn Time (mins)', 'number', false, false, null),
+      col('commodityType',     'Commodity',           'enum',    true,  false, null, FREIGHT_COMMODITY_TYPES),
+      col('description',       'Description',         'string',  true,  false, 300),
+      col('isActive',          'Active',              'boolean', false, false, null),
+    ],
+  },
+  demurrage_dispatch_rate: {
+    tableName: 'demurrage_dispatch_rate', displayName: 'Demurrage & Dispatch Rates', primaryKeyColumn: 'demurrageRateId', isTemporal: false,
+    columns: [
+      col('demurrageRateId',     'ID',                  'number',      false, true,  null),
+      col('vesselType',          'Vessel Type',         'string',      true,  false, 30),
+      col('charterPartyTypeId',  'Charter Party Type',  'foreign_key', true,  false, null, null, 'charter_party_type'),
+      col('demurrageRatePerDay', 'Demurrage $/Day',     'number',      false, false, null),
+      col('dispatchRatePerDay',  'Dispatch $/Day',      'number',      true,  false, null),
+      col('currencyId',          'Currency',            'foreign_key', false, false, null, null, 'currency'),
+      col('commodityType',       'Commodity',           'enum',        true,  false, null, FREIGHT_COMMODITY_TYPES),
+      col('claimTimeBarDays',    'Claim Time-Bar (days)','number',     true,  false, null),
+      col('despatchBasis',       'Despatch Basis',      'enum',        true,  false, null, ['ALL_TIME_SAVED', 'WORKING_TIME_SAVED_ONLY']),
+      col('effectiveFrom',       'Effective From',      'date',        false, false, null),
+      col('effectiveTo',         'Effective To',        'date',        true,  false, null),
+      col('notes',               'Notes',               'string',      true,  false, 500),
+      col('isActive',            'Active',              'boolean',     false, false, null),
+    ],
+  },
+  laytime_exception_type: {
+    tableName: 'laytime_exception_type', displayName: 'Laytime Exception Types', primaryKeyColumn: 'exceptionTypeId', isTemporal: false,
+    columns: [
+      col('exceptionTypeId',              'ID',                    'number',  false, true,  null),
+      col('exceptionCode',                'Code',                  'string',  false, false, 30),
+      col('exceptionName',                'Name',                  'string',  false, false, 150),
+      col('defaultCountsAgainstLaytime',  'Counts vs. Laytime',    'boolean', false, false, null),
+      col('isWeatherRelated',             'Weather-Related',       'boolean', false, false, null),
+      col('description',                  'Description',           'string',  true,  false, 300),
+      col('isActive',                     'Active',                'boolean', false, false, null),
     ],
   },
   load_shape_template: {
@@ -802,6 +879,11 @@ export const registrySeed: RegistryEntry[] = [
   { registryId: 202, tableName: 'load_shape_component',  displayName: 'Load Shape Components',  moduleGroup: 'Power & Energy', subGroup: 'Markets', description: 'Nested shape structure — composite parent shapes built from weighted child shapes, optionally scoped to a seasonal month window (e.g. ATC = Peak + Off-Peak).',           allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 5 },
   { registryId: 203, tableName: 'energy_footprint',      displayName: 'Energy Footprints',      moduleGroup: 'Power & Energy', subGroup: 'Assets',  description: 'Distributed asset portfolios and networks traded as one unit — solar portfolios, EV charging networks, battery fleets, demand-response aggregations.',                     allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 6 },
   { registryId: 204, tableName: 'energy_footprint_site', displayName: 'Energy Footprint Sites', moduleGroup: 'Power & Energy', subGroup: 'Assets',  description: 'Member sites of an energy footprint — per-site location, settlement zone, capacity, and technology detail (solar array, EV charging hub, battery unit).',                  allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 7 },
+  // V53 — freight/demurrage master data enhancement (works across oil, LNG, dry-bulk/metals — NOT power, which doesn't move by vessel)
+  { registryId: 205, tableName: 'freight_rate_index',     displayName: 'Freight Rate Indices',      moduleGroup: 'Freight & Shipping', subGroup: 'Charter', description: 'Freight benchmarks — Baltic dry-bulk indices (any dry cargo: ore, coal, grain), Worldscale tanker flat rates, and Spark30S for LNG. Used to set/escalate time charter hire or benchmark voyage freight.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
+  { registryId: 206, tableName: 'laytime_term_template',  displayName: 'Laytime Term Templates',    moduleGroup: 'Freight & Shipping', subGroup: 'Charter', description: 'Standard laytime clauses — which days count (SHINC/SHEX/WWD), whether laytime is reversible, and the NOR-tendering basis (WIPON/WIBON/WIFPON/WCCON) that determines when laytime starts counting.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
+  { registryId: 207, tableName: 'demurrage_dispatch_rate',displayName: 'Demurrage & Dispatch Rates',moduleGroup: 'Freight & Shipping', subGroup: 'Charter', description: 'Standard demurrage/dispatch rates by vessel class and commodity — includes the claim time-bar (days to submit with supporting docs) and despatch basis (all time saved vs. working time only).', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 4 },
+  { registryId: 208, tableName: 'laytime_exception_type', displayName: 'Laytime Exception Types',   moduleGroup: 'Freight & Shipping', subGroup: 'Charter', description: 'Standard reasons time is excepted from (or counted against) laytime — weather, strikes, breakdowns, port congestion — used in laytime calculations and demurrage disputes across any vessel-carried commodity.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 5 },
   // V17 parent lookup tables — generated from the simple list above
   ...PARENT_LOOKUP_TABLES.map((t, i) => ({
     registryId:       10 + i,
@@ -849,8 +931,58 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { incotermId: 3, code: 'DDP', name: 'Delivered Duty Paid',        transportMode: 'ANY',                 versionYear: 2020, isActive: true },
   ],
   charter_party_type: [
-    { charterPartyTypeId: 1, typeCode: 'VOYAGE', typeName: 'Voyage Charter', rateBasis: 'PER_TONNE', durationBasis: 'SINGLE_VOYAGE', isActive: true },
-    { charterPartyTypeId: 2, typeCode: 'TC',     typeName: 'Time Charter',   rateBasis: 'PER_DAY',   durationBasis: 'TIME_PERIOD',   isActive: true },
+    { charterPartyTypeId: 1, typeCode: 'VOYAGE',    typeName: 'Voyage Charter',             rateBasis: 'PER_TONNE',  durationBasis: 'SINGLE_VOYAGE',   standardFormReference: 'ASBATANKVOY / GENCON / LNGVOY (BIMCO)', description: 'Single voyage, freight per tonne or lumpsum, owner bears voyage costs and risk.',                                              isActive: true },
+    { charterPartyTypeId: 2, typeCode: 'TC',        typeName: 'Time Charter',               rateBasis: 'PER_DAY',    durationBasis: 'TIME_PERIOD',     standardFormReference: 'SHELLTIME4 / NYPE',                     description: 'Vessel hired for a fixed period; charterer directs voyages and pays bunkers/port costs; owner paid daily hire.',                isActive: true },
+    { charterPartyTypeId: 3, typeCode: 'BAREBOAT',  typeName: 'Bareboat / Demise Charter',  rateBasis: 'PER_DAY',    durationBasis: 'BAREBOAT_PERIOD', standardFormReference: 'BARECON',                               description: 'Charterer takes full operational control including crewing; owner provides vessel only.',                                      isActive: true },
+    { charterPartyTypeId: 4, typeCode: 'COA',       typeName: 'Contract of Affreightment',  rateBasis: 'PER_TONNE',  durationBasis: 'CONTRACT_PERIOD', standardFormReference: null,                                    description: 'Commitment to carry multiple cargoes of agreed total quantity over a period, owner nominates vessels per shipment.',            isActive: true },
+    { charterPartyTypeId: 5, typeCode: 'WS_VOYAGE', typeName: 'Voyage Charter — Worldscale', rateBasis: 'WORLDSCALE', durationBasis: 'SINGLE_VOYAGE',  standardFormReference: 'ASBATANKVOY',                           description: 'Voyage charter where freight is quoted as a % of the published Worldscale flat rate for the route.',                            isActive: true },
+  ],
+  // currencyId 1 = USD (see currency rowSeed below). uomId 101/102 are
+  // placeholders for the new PDAY/WS_PT UoMs added in V54 — there is no `uom`
+  // mock table yet (a pre-existing gap: the frontend has no unit_of_measure
+  // mock at all), so these numbers aren't cross-referenced against anything;
+  // they only need to be non-null to satisfy chk_fri_pricing_rules's intent.
+  freight_rate_index: [
+    { freightRateIndexId: 1, indexCode: 'BDTI',         indexName: 'Baltic Dirty Tanker Index',                  indexType: 'BALTIC',   vesselType: null,           routeDescription: null,                    commodityType: 'OIL', currencyId: 1, uomId: 102, publicationSource: 'Baltic Exchange',      publicationFrequency: 'DAILY',  description: 'Composite index tracking crude/dirty product tanker freight rates across major routes.',            isActive: true },
+    { freightRateIndexId: 2, indexCode: 'BCTI',         indexName: 'Baltic Clean Tanker Index',                  indexType: 'BALTIC',   vesselType: null,           routeDescription: null,                    commodityType: 'OIL', currencyId: 1, uomId: 102, publicationSource: 'Baltic Exchange',      publicationFrequency: 'DAILY',  description: 'Composite index tracking clean petroleum product tanker freight rates.',                              isActive: true },
+    { freightRateIndexId: 3, indexCode: 'BDI',          indexName: 'Baltic Dry Index',                           indexType: 'BALTIC',   vesselType: 'BULK_CARRIER', routeDescription: null,                    commodityType: null,  currencyId: 1, uomId: 101, publicationSource: 'Baltic Exchange',      publicationFrequency: 'DAILY',  description: 'Composite dry bulk freight index (Capesize/Panamax/Supramax/Handysize) — prices any dry-bulk cargo (ore, coal, grain), not agriculture-specific.', isActive: true },
+    { freightRateIndexId: 4, indexCode: 'BPI',          indexName: 'Baltic Panamax Index',                       indexType: 'BALTIC',   vesselType: 'PANAMAX',      routeDescription: null,                    commodityType: null,  currencyId: 1, uomId: 101, publicationSource: 'Baltic Exchange',      publicationFrequency: 'DAILY',  description: 'Panamax dry bulk freight index.',                                                                     isActive: true },
+    { freightRateIndexId: 5, indexCode: 'BSI',          indexName: 'Baltic Supramax Index',                      indexType: 'BALTIC',   vesselType: 'OTHER',        routeDescription: null,                    commodityType: null,  currencyId: 1, uomId: 101, publicationSource: 'Baltic Exchange',      publicationFrequency: 'DAILY',  description: 'Supramax dry bulk freight index.',                                                                    isActive: true },
+    { freightRateIndexId: 6, indexCode: 'BHSI',         indexName: 'Baltic Handysize Index',                     indexType: 'BALTIC',   vesselType: 'HANDYSIZE',    routeDescription: null,                    commodityType: null,  currencyId: 1, uomId: 101, publicationSource: 'Baltic Exchange',      publicationFrequency: 'DAILY',  description: 'Handysize dry bulk freight index.',                                                                   isActive: true },
+    { freightRateIndexId: 7, indexCode: 'WS_FLAT_TD3C', indexName: 'Worldscale Flat Rate — TD3C (AG-China VLCC)', indexType: 'WORLDSCALE', vesselType: 'VLCC',       routeDescription: 'Arabian Gulf to China',  commodityType: 'OIL', currencyId: null, uomId: null, publicationSource: 'Worldscale Association', publicationFrequency: 'ANNUAL', description: 'Annually published Worldscale 100 (WS100) flat rate in USD/tonne for the AG-China VLCC benchmark route.', isActive: true },
+    { freightRateIndexId: 8, indexCode: 'SPARK30S',     indexName: 'Spark30S — LNG Freight Assessment (Atlantic)', indexType: 'ASSESSED', vesselType: 'LNG_CARRIER', routeDescription: 'US Gulf-Continent / Atlantic LNG routes', commodityType: 'LNG', currencyId: 1, uomId: 101, publicationSource: 'Spark Commodities', publicationFrequency: 'DAILY', description: 'Daily-assessed LNG spot freight rate in USD/day for a 174,000cbm 2-stroke LNG carrier — the LNG market\'s equivalent of a Baltic index.', isActive: true },
+  ],
+  laytime_term_template: [
+    { laytimeTermId: 1, termCode: 'SHINC',     termName: 'Sundays/Holidays Included',             exclusionBasis: 'SHINC',     isReversible: false, norWiponAllowed: false, norWibonAllowed: false, norWifponAllowed: false, norWcconAllowed: false, noticeOfReadinessTurnTimeMins: 360, commodityType: null,  description: 'All days count against laytime regardless of Sundays or holidays.',                                                            isActive: true },
+    { laytimeTermId: 2, termCode: 'SHEX',      termName: 'Sundays/Holidays Excluded',             exclusionBasis: 'SHEX',      isReversible: false, norWiponAllowed: true,  norWibonAllowed: true,  norWifponAllowed: true,  norWcconAllowed: true,  noticeOfReadinessTurnTimeMins: 360, commodityType: null,  description: 'Sundays and holidays do not count against laytime.',                                                                            isActive: true },
+    { laytimeTermId: 3, termCode: 'SHEXEIU',   termName: 'SHEX Even If Used',                     exclusionBasis: 'SHEXEIU',   isReversible: false, norWiponAllowed: true,  norWibonAllowed: true,  norWifponAllowed: true,  norWcconAllowed: true,  noticeOfReadinessTurnTimeMins: 360, commodityType: null,  description: 'Sundays/holidays excluded from laytime even if cargo work actually takes place.',                                               isActive: true },
+    { laytimeTermId: 4, termCode: 'SHEXUU',    termName: 'SHEX Unless Used',                      exclusionBasis: 'SHEXUU',    isReversible: false, norWiponAllowed: true,  norWibonAllowed: true,  norWifponAllowed: true,  norWcconAllowed: true,  noticeOfReadinessTurnTimeMins: 360, commodityType: null,  description: 'Sundays/holidays excluded from laytime unless cargo work actually takes place, in which case time used counts.',                isActive: true },
+    { laytimeTermId: 5, termCode: 'WWD',       termName: 'Weather Working Days',                  exclusionBasis: 'WWD',       isReversible: false, norWiponAllowed: false, norWibonAllowed: false, norWifponAllowed: false, norWcconAllowed: false, noticeOfReadinessTurnTimeMins: 360, commodityType: null,  description: 'Only days/parts of days when weather permits cargo work count against laytime.',                                               isActive: true },
+    { laytimeTermId: 6, termCode: 'WWDSHEXUU', termName: 'Weather Working Days, SHEX Unless Used', exclusionBasis: 'WWDSHEXUU', isReversible: false, norWiponAllowed: true,  norWibonAllowed: true,  norWifponAllowed: true,  norWcconAllowed: true,  noticeOfReadinessTurnTimeMins: 360, commodityType: null,  description: 'Combination: weather working days, with Sundays/holidays excluded unless used.',                                                isActive: true },
+    { laytimeTermId: 7, termCode: 'WWD_REV',   termName: 'Weather Working Days — Reversible',     exclusionBasis: 'WWD',       isReversible: true,  norWiponAllowed: true,  norWibonAllowed: true,  norWifponAllowed: true,  norWcconAllowed: true,  noticeOfReadinessTurnTimeMins: 360, commodityType: null,  description: 'Weather working days with load and discharge laytime allowances pooled (reversible).',                                          isActive: true },
+    { laytimeTermId: 8, termCode: 'LNG_SHINC', termName: 'LNG Standard — SHINC, Non-Reversible',  exclusionBasis: 'SHINC',     isReversible: false, norWiponAllowed: true,  norWibonAllowed: true,  norWifponAllowed: true,  norWcconAllowed: true,  noticeOfReadinessTurnTimeMins: 360, commodityType: 'LNG', description: 'Standard LNG carrier laytime convention: continuous SHINC counting (LNG terminals operate 24/7) with the full NOR bundle. Laytime/demurrage must additionally account for boil-off gas during port stays.', isActive: true },
+  ],
+  demurrage_dispatch_rate: [
+    { demurrageRateId: 1, vesselType: 'VLCC',         charterPartyTypeId: 1, demurrageRatePerDay: 45000, dispatchRatePerDay: 22500, currencyId: 1, commodityType: 'OIL',    claimTimeBarDays: 90, despatchBasis: 'ALL_TIME_SAVED', effectiveFrom: '2026-01-01', effectiveTo: null, notes: 'Indicative default — confirm against fixture recap before use.', isActive: true },
+    { demurrageRateId: 2, vesselType: 'SUEZMAX',      charterPartyTypeId: 1, demurrageRatePerDay: 32000, dispatchRatePerDay: 16000, currencyId: 1, commodityType: 'OIL',    claimTimeBarDays: 90, despatchBasis: 'ALL_TIME_SAVED', effectiveFrom: '2026-01-01', effectiveTo: null, notes: 'Indicative default — confirm against fixture recap before use.', isActive: true },
+    { demurrageRateId: 3, vesselType: 'AFRAMAX',      charterPartyTypeId: 1, demurrageRatePerDay: 25000, dispatchRatePerDay: 12500, currencyId: 1, commodityType: 'OIL',    claimTimeBarDays: 90, despatchBasis: 'ALL_TIME_SAVED', effectiveFrom: '2026-01-01', effectiveTo: null, notes: 'Indicative default — confirm against fixture recap before use.', isActive: true },
+    { demurrageRateId: 4, vesselType: 'PANAMAX',      charterPartyTypeId: 1, demurrageRatePerDay: 18000, dispatchRatePerDay: 9000,  currencyId: 1, commodityType: 'OIL',    claimTimeBarDays: 90, despatchBasis: 'ALL_TIME_SAVED', effectiveFrom: '2026-01-01', effectiveTo: null, notes: 'Indicative default — confirm against fixture recap before use.', isActive: true },
+    { demurrageRateId: 5, vesselType: 'MR_TANKER',    charterPartyTypeId: 1, demurrageRatePerDay: 12000, dispatchRatePerDay: 6000,  currencyId: 1, commodityType: 'OIL',    claimTimeBarDays: 90, despatchBasis: 'ALL_TIME_SAVED', effectiveFrom: '2026-01-01', effectiveTo: null, notes: 'Indicative default — confirm against fixture recap before use.', isActive: true },
+    { demurrageRateId: 6, vesselType: 'LNG_CARRIER',  charterPartyTypeId: 2, demurrageRatePerDay: 100000, dispatchRatePerDay: 50000, currencyId: 1, commodityType: 'LNG',   claimTimeBarDays: 90, despatchBasis: 'ALL_TIME_SAVED', effectiveFrom: '2026-01-01', effectiveTo: null, notes: 'Indicative default — confirm against fixture recap before use.', isActive: true },
+    { demurrageRateId: 7, vesselType: 'BULK_CARRIER', charterPartyTypeId: 1, demurrageRatePerDay: 18000, dispatchRatePerDay: 9000,  currencyId: 1, commodityType: 'METALS', claimTimeBarDays: 90, despatchBasis: 'ALL_TIME_SAVED', effectiveFrom: '2026-01-01', effectiveTo: null, notes: 'Indicative default — confirm against fixture recap before use.', isActive: true },
+  ],
+  laytime_exception_type: [
+    { exceptionTypeId: 1,  exceptionCode: 'WEATHER',                exceptionName: 'Adverse Weather',                  defaultCountsAgainstLaytime: false, isWeatherRelated: true,  description: 'Cargo work suspended due to weather (rain, high seas, wind) — excepted under Weather Working Days (WWD) templates.',                                    isActive: true },
+    { exceptionTypeId: 2,  exceptionCode: 'STRIKE',                 exceptionName: 'Strike / Labour Action',           defaultCountsAgainstLaytime: false, isWeatherRelated: false, description: 'Cargo work stopped by a strike at the port, terminal, or aboard the vessel.',                                                                          isActive: true },
+    { exceptionTypeId: 3,  exceptionCode: 'BREAKDOWN',               exceptionName: 'Equipment Breakdown',              defaultCountsAgainstLaytime: false, isWeatherRelated: false, description: 'Ship\'s gear, shore crane, pump, or loading arm breakdown halting cargo operations.',                                                                   isActive: true },
+    { exceptionTypeId: 4,  exceptionCode: 'AWAITING_BERTH',           exceptionName: 'Awaiting Berth',                    defaultCountsAgainstLaytime: true,  isWeatherRelated: false, description: 'Vessel waiting for a berth to become available after NOR tender — counts against laytime unless the charter party is berth (not port) charter.',       isActive: true },
+    { exceptionTypeId: 5,  exceptionCode: 'AWAITING_INSTRUCTIONS',     exceptionName: 'Awaiting Charterer Instructions',   defaultCountsAgainstLaytime: true,  isWeatherRelated: false, description: 'Vessel idle awaiting discharge/loading instructions from the charterer or receiver.',                                                                 isActive: true },
+    { exceptionTypeId: 6,  exceptionCode: 'HOLIDAY',                   exceptionName: 'Sunday / Holiday',                   defaultCountsAgainstLaytime: false, isWeatherRelated: false, description: 'Sunday or officially recognised holiday — excepted under SHEX-family templates, counts under SHINC.',                                                isActive: true },
+    { exceptionTypeId: 7,  exceptionCode: 'PORT_CONGESTION',            exceptionName: 'Port Congestion',                    defaultCountsAgainstLaytime: true,  isWeatherRelated: false, description: 'General port congestion delaying berthing or cargo operations, not attributable to either party.',                                                    isActive: true },
+    { exceptionTypeId: 8,  exceptionCode: 'INSPECTION_DELAY',            exceptionName: 'Inspection / Survey Delay',           defaultCountsAgainstLaytime: false, isWeatherRelated: false, description: 'Delay for customs, quality, quantity, or regulatory inspection/survey before cargo work can proceed.',                                              isActive: true },
+    { exceptionTypeId: 9,  exceptionCode: 'BOG_MANAGEMENT',               exceptionName: 'Boil-Off Gas Management',              defaultCountsAgainstLaytime: false, isWeatherRelated: false, description: 'LNG-specific: time spent managing boil-off gas beyond the guaranteed rate, cooldown, or heel adjustment at the load/discharge port.',                 isActive: true },
+    { exceptionTypeId: 10, exceptionCode: 'FORCE_MAJEURE',                exceptionName: 'Force Majeure',                        defaultCountsAgainstLaytime: false, isWeatherRelated: false, description: 'War, blockade, pandemic-related port closure, or other force majeure event outside either party\'s control.',                                        isActive: true },
+    { exceptionTypeId: 11, exceptionCode: 'OTHER',                        exceptionName: 'Other',                                defaultCountsAgainstLaytime: true,  isWeatherRelated: false, description: 'Other exception reason — see notes on the specific laytime/demurrage record.',                                                                       isActive: true },
   ],
   load_shape_template: [
     { loadShapeId: 1, shapeCode: 'BASELOAD',   shapeName: 'Baseload (7x24)',             shapeType: 'BASELOAD', startHour: 0,    endHour: 24,   intervalMinutes: 60, isComposite: false, isActive: true },
