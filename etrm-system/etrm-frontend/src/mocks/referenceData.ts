@@ -693,9 +693,11 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('shapeCode',   'Shape Code', 'string',  false, false, 30),
       col('shapeName',   'Shape Name', 'string',  false, false, 150),
       col('shapeType',   'Shape Type', 'enum',    false, false, null, ['BASELOAD', 'PEAK', 'OFFPEAK', 'CUSTOM']),
-      col('startHour',   'Start Hour', 'number',  true,  false, null),
-      col('endHour',     'End Hour',   'number',  true,  false, null),
-      col('isActive',    'Active',     'boolean', false, false, null),
+      col('startHour',        'Start Hour',         'number',  true,  false, null),
+      col('endHour',          'End Hour',           'number',  true,  false, null),
+      col('intervalMinutes',  'Interval (Minutes)', 'number',  false, false, null),
+      col('isComposite',      'Composite',          'boolean', false, false, null),
+      col('isActive',         'Active',             'boolean', false, false, null),
     ],
   },
   balancing_authority: {
@@ -720,6 +722,62 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',             'Active',              'boolean',     false, false, null),
     ],
   },
+  load_shape_interval: {
+    tableName: 'load_shape_interval', displayName: 'Load Shape Intervals', primaryKeyColumn: 'shapeIntervalId', isTemporal: false,
+    columns: [
+      col('shapeIntervalId', 'ID',              'number',      false, true,  null),
+      col('loadShapeId',     'Load Shape',      'foreign_key', false, false, null, null, 'load_shape_template'),
+      col('dayType',         'Day Type',        'enum',        false, false, null, ['ALL', 'WEEKDAYS', 'WEEKENDS', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY', 'HOLIDAY']),
+      col('intervalNo',      'Interval No',     'number',      false, false, null),
+      col('intervalFactor',  'Interval Factor', 'number',      false, false, null),
+    ],
+  },
+  load_shape_component: {
+    tableName: 'load_shape_component', displayName: 'Load Shape Components', primaryKeyColumn: 'shapeComponentId', isTemporal: false,
+    columns: [
+      col('shapeComponentId',  'ID',            'number',      false, true,  null),
+      col('parentLoadShapeId', 'Parent Shape',  'foreign_key', false, false, null, null, 'load_shape_template'),
+      col('childLoadShapeId',  'Child Shape',   'foreign_key', false, false, null, null, 'load_shape_template'),
+      col('weightFactor',      'Weight Factor', 'number',      false, false, null),
+      col('monthFrom',         'Month From',    'number',      true,  false, null),
+      col('monthTo',           'Month To',      'number',      true,  false, null),
+      col('sequenceNo',        'Sequence',      'number',      false, false, null),
+    ],
+  },
+  energy_footprint: {
+    tableName: 'energy_footprint', displayName: 'Energy Footprints', primaryKeyColumn: 'energyFootprintId', isTemporal: false,
+    columns: [
+      col('energyFootprintId',    'ID',                  'number',      false, true,  null),
+      col('footprintCode',        'Code',                'string',      false, false, 30),
+      col('footprintName',        'Name',                'string',      false, false, 200),
+      col('footprintType',        'Footprint Type',      'enum',        false, false, null, ['SOLAR_PORTFOLIO', 'WIND_PORTFOLIO', 'EV_CHARGING_NETWORK', 'BATTERY_FLEET', 'DEMAND_RESPONSE', 'MICROGRID', 'HYBRID']),
+      col('flowDirection',        'Flow Direction',      'enum',        false, false, null, ['GENERATION', 'LOAD', 'BIDIRECTIONAL']),
+      col('balancingAuthorityId', 'Balancing Authority', 'foreign_key', true,  false, null, null, 'balancing_authority'),
+      col('defaultZoneId',        'Default Zone',        'foreign_key', true,  false, null, null, 'transmission_zone'),
+      col('totalCapacityMw',      'Capacity (MW)',       'number',      true,  false, null),
+      col('defaultLoadShapeId',   'Default Load Shape',  'foreign_key', true,  false, null, null, 'load_shape_template'),
+      col('isAggregatedDispatch', 'Aggregated Dispatch', 'boolean',     false, false, null),
+      col('isActive',             'Active',              'boolean',     false, false, null),
+    ],
+  },
+  energy_footprint_site: {
+    tableName: 'energy_footprint_site', displayName: 'Energy Footprint Sites', primaryKeyColumn: 'footprintSiteId', isTemporal: false,
+    columns: [
+      col('footprintSiteId',    'ID',                 'number',      false, true,  null),
+      col('energyFootprintId',  'Footprint',          'foreign_key', false, false, null, null, 'energy_footprint'),
+      col('siteCode',           'Site Code',          'string',      false, false, 30),
+      col('siteName',           'Site Name',          'string',      false, false, 200),
+      col('siteType',           'Site Type',          'enum',        false, false, null, ['SOLAR_ARRAY', 'ROOFTOP_SOLAR', 'WIND_TURBINE_GROUP', 'EV_CHARGING_HUB', 'EV_DEPOT', 'BATTERY_UNIT', 'CURTAILABLE_LOAD', 'OTHER']),
+      col('zoneId',             'Zone',               'foreign_key', true,  false, null, null, 'transmission_zone'),
+      col('capacityMw',         'Capacity (MW)',      'number',      false, false, null),
+      col('storageCapacityMwh', 'Storage (MWh)',      'number',      true,  false, null),
+      col('chargerCount',       'Charger Count',      'number',      true,  false, null),
+      col('maxChargerKw',       'Max Charger (kW)',   'number',      true,  false, null),
+      col('connectorStandard',  'Connector Standard', 'enum',        true,  false, null, ['CCS', 'CHADEMO', 'NACS', 'TYPE2', 'MIXED']),
+      col('technology',         'Technology',         'string',      true,  false, 50),
+      col('isActive',           'Active',             'boolean',     false, false, null),
+    ],
+  },
 };
 
 // ─── Exports ──────────────────────────────────────────────────────────────────
@@ -739,6 +797,11 @@ export const registrySeed: RegistryEntry[] = [
   { registryId: 6, tableName: 'load_shape_template', displayName: 'Load Shape Templates', moduleGroup: 'Power',     subGroup: 'Markets',           description: 'Standard electricity delivery profiles — Baseload (7×24), Peak (5×16 or 6×16), Off-peak, and user-defined shapes. Templates constrain the hours delivered under a power supply contract.',               allowCreate: true,  allowEdit: true,  allowDelete: true,  allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
   { registryId: 7, tableName: 'balancing_authority', displayName: 'Balancing Authorities',moduleGroup: 'Power',     subGroup: 'Markets',           description: 'Grid operators (ISOs/RTOs and utilities) responsible for maintaining real-time balance between supply and demand within their control area — PJM, ERCOT, CAISO, and others.',                        allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
   { registryId: 8, tableName: 'transmission_zone',   displayName: 'Transmission Zones',   moduleGroup: 'Power',     subGroup: 'Grid',              description: 'Pricing and scheduling zones within a balancing authority area — hubs, load zones, and LMP nodes. Each zone has its own congestion and loss components for locational marginal pricing.',            allowCreate: true,  allowEdit: true,  allowDelete: true,  allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
+  // V51 — nested shape structure + distributed energy footprints (ids above the 10+i parent-lookup block)
+  { registryId: 201, tableName: 'load_shape_interval',   displayName: 'Load Shape Intervals',   moduleGroup: 'Power', subGroup: 'Markets', description: 'Per-interval MW weighting under a load shape template — the hourly (or 15/30-min) profile behind shaped products such as solar generation or EV charging demand curves.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 4 },
+  { registryId: 202, tableName: 'load_shape_component',  displayName: 'Load Shape Components',  moduleGroup: 'Power', subGroup: 'Markets', description: 'Nested shape structure — composite parent shapes built from weighted child shapes, optionally scoped to a seasonal month window (e.g. ATC = Peak + Off-Peak).',           allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 5 },
+  { registryId: 203, tableName: 'energy_footprint',      displayName: 'Energy Footprints',      moduleGroup: 'Power', subGroup: 'Assets',  description: 'Distributed asset portfolios and networks traded as one unit — solar portfolios, EV charging networks, battery fleets, demand-response aggregations.',                     allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 6 },
+  { registryId: 204, tableName: 'energy_footprint_site', displayName: 'Energy Footprint Sites', moduleGroup: 'Power', subGroup: 'Assets',  description: 'Member sites of an energy footprint — per-site location, settlement zone, capacity, and technology detail (solar array, EV charging hub, battery unit).',                  allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 7 },
   // V17 parent lookup tables — generated from the simple list above
   ...PARENT_LOOKUP_TABLES.map((t, i) => ({
     registryId:       10 + i,
@@ -790,8 +853,34 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { charterPartyTypeId: 2, typeCode: 'TC',     typeName: 'Time Charter',   rateBasis: 'PER_DAY',   durationBasis: 'TIME_PERIOD',   isActive: true },
   ],
   load_shape_template: [
-    { loadShapeId: 1, shapeCode: 'BASELOAD', shapeName: 'Baseload (7x24)', shapeType: 'BASELOAD', startHour: 0,  endHour: 24, isActive: true },
-    { loadShapeId: 2, shapeCode: 'PEAK_US',  shapeName: 'US Peak (5x16)',  shapeType: 'PEAK',     startHour: 7,  endHour: 23, isActive: true },
+    { loadShapeId: 1, shapeCode: 'BASELOAD',   shapeName: 'Baseload (7x24)',             shapeType: 'BASELOAD', startHour: 0,    endHour: 24,   intervalMinutes: 60, isComposite: false, isActive: true },
+    { loadShapeId: 2, shapeCode: 'PEAK_US',    shapeName: 'US Peak (5x16)',              shapeType: 'PEAK',     startHour: 7,    endHour: 23,   intervalMinutes: 60, isComposite: false, isActive: true },
+    { loadShapeId: 3, shapeCode: 'OFFPEAK_US', shapeName: 'US Off-Peak',                 shapeType: 'OFFPEAK',  startHour: 23,   endHour: 7,    intervalMinutes: 60, isComposite: false, isActive: true },
+    { loadShapeId: 4, shapeCode: 'SOLAR_PV',   shapeName: 'Solar PV Generation Shape',   shapeType: 'CUSTOM',   startHour: null, endHour: null, intervalMinutes: 60, isComposite: false, isActive: true },
+    { loadShapeId: 5, shapeCode: 'EV_NIGHT',   shapeName: 'EV Overnight Charging Shape', shapeType: 'CUSTOM',   startHour: null, endHour: null, intervalMinutes: 60, isComposite: false, isActive: true },
+    { loadShapeId: 6, shapeCode: 'ATC_US',     shapeName: 'US Around-the-Clock',         shapeType: 'CUSTOM',   startHour: null, endHour: null, intervalMinutes: 60, isComposite: true,  isActive: true },
+  ],
+  load_shape_interval: [
+    { shapeIntervalId: 1, loadShapeId: 4, dayType: 'ALL', intervalNo: 9,  intervalFactor: 0.7 },
+    { shapeIntervalId: 2, loadShapeId: 4, dayType: 'ALL', intervalNo: 12, intervalFactor: 1.0 },
+    { shapeIntervalId: 3, loadShapeId: 4, dayType: 'ALL', intervalNo: 16, intervalFactor: 0.4 },
+    { shapeIntervalId: 4, loadShapeId: 5, dayType: 'ALL', intervalNo: 2,  intervalFactor: 1.0 },
+    { shapeIntervalId: 5, loadShapeId: 5, dayType: 'ALL', intervalNo: 12, intervalFactor: 0.15 },
+    { shapeIntervalId: 6, loadShapeId: 5, dayType: 'ALL', intervalNo: 22, intervalFactor: 0.75 },
+  ],
+  load_shape_component: [
+    { shapeComponentId: 1, parentLoadShapeId: 6, childLoadShapeId: 2, weightFactor: 1, monthFrom: null, monthTo: null, sequenceNo: 1 },
+    { shapeComponentId: 2, parentLoadShapeId: 6, childLoadShapeId: 3, weightFactor: 1, monthFrom: null, monthTo: null, sequenceNo: 2 },
+  ],
+  energy_footprint: [
+    { energyFootprintId: 1, footprintCode: 'SOLAR_CA_01', footprintName: 'California Distributed Solar Portfolio', footprintType: 'SOLAR_PORTFOLIO',     flowDirection: 'GENERATION', balancingAuthorityId: null, defaultZoneId: null, totalCapacityMw: 120, defaultLoadShapeId: 4, isAggregatedDispatch: true,  isActive: true },
+    { energyFootprintId: 2, footprintCode: 'EVNET_GB_01', footprintName: 'GB Motorway Fast-Charging Network',      footprintType: 'EV_CHARGING_NETWORK', flowDirection: 'LOAD',       balancingAuthorityId: null, defaultZoneId: null, totalCapacityMw: 45,  defaultLoadShapeId: 5, isAggregatedDispatch: false, isActive: true },
+  ],
+  energy_footprint_site: [
+    { footprintSiteId: 1, energyFootprintId: 1, siteCode: 'SC-FRESNO-1',  siteName: 'Fresno Ground-Mount Array',   siteType: 'SOLAR_ARRAY',     zoneId: null, capacityMw: 60, storageCapacityMwh: null, chargerCount: null, maxChargerKw: null, connectorStandard: null,  technology: 'TRACKER_PV',  isActive: true },
+    { footprintSiteId: 2, energyFootprintId: 1, siteCode: 'SC-KERN-1',    siteName: 'Kern County Bifacial Array',  siteType: 'SOLAR_ARRAY',     zoneId: null, capacityMw: 45, storageCapacityMwh: null, chargerCount: null, maxChargerKw: null, connectorStandard: null,  technology: 'BIFACIAL_PV', isActive: true },
+    { footprintSiteId: 3, energyFootprintId: 2, siteCode: 'EV-M1-JCT15',  siteName: 'M1 Junction 15 Charging Hub', siteType: 'EV_CHARGING_HUB', zoneId: null, capacityMw: 12, storageCapacityMwh: null, chargerCount: 32,   maxChargerKw: 350,  connectorStandard: 'CCS', technology: 'DC_FAST',     isActive: true },
+    { footprintSiteId: 4, energyFootprintId: 2, siteCode: 'EV-LDN-DEPOT', siteName: 'London Bus Depot',            siteType: 'EV_DEPOT',        zoneId: null, capacityMw: 23, storageCapacityMwh: null, chargerCount: 80,   maxChargerKw: 150,  connectorStandard: 'TYPE2', technology: 'DC_FAST',   isActive: true },
   ],
   balancing_authority: [
     { balancingAuthorityId: 1, baCode: 'PJM',   baName: 'PJM Interconnection',                  countryCode: 'US', marketType: 'RTO', isActive: true },
