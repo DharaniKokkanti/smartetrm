@@ -20,6 +20,9 @@ const Tier2HomePage = lazy1(() => import('@features/tier2/Tier2HomePage'), 'Tier
 const LegalEntityListPage = lazy1(() => import('@features/tier1/legal-entity/LegalEntityListPage'), 'LegalEntityListPage');
 const CounterpartyListPage = lazy1(() => import('@features/tier1/counterparty/CounterpartyListPage'), 'CounterpartyListPage');
 const CounterpartyFormPage = lazy1(() => import('@features/tier1/counterparty/CounterpartyFormPage'), 'CounterpartyFormPage');
+const NettingAgreementsPage = lazy1(() => import('@features/counterparties/netting-agreements/NettingAgreementsPage'), 'NettingAgreementsPage');
+const CommercialTermsPage = lazy1(() => import('@features/counterparties/commercial-terms/CommercialTermsPage'), 'CommercialTermsPage');
+const GtcAgreementsPage = lazy1(() => import('@features/counterparties/gtc-agreements/GtcAgreementsPage'), 'GtcAgreementsPage');
 
 // Organization
 const DesksPage = lazy1(() => import('@features/organization/desks/DesksPage'), 'DesksPage');
@@ -67,6 +70,18 @@ const FieldPermissionsPage = lazy1(() => import('@features/admin/field-permissio
 
 // Credit & Risk
 const MarginAgreementsPage = lazy1(() => import('@features/credit/margin-agreements/MarginAgreementsPage'), 'MarginAgreementsPage');
+const BankGuaranteesPage = lazy1(() => import('@features/credit/bank-guarantees/BankGuaranteesPage'), 'BankGuaranteesPage');
+const InsurancePoliciesPage = lazy1(() => import('@features/credit/insurance-policies/InsurancePoliciesPage'), 'InsurancePoliciesPage');
+const MarginAccountsPage = lazy1(() => import('@features/credit/margin-accounts/MarginAccountsPage'), 'MarginAccountsPage');
+const CollateralPage = lazy1(() => import('@features/credit/collateral/CollateralPage'), 'CollateralPage');
+const VesselCertificatesPage = lazy1(() => import('@features/logistics/vessel-certificates/VesselCertificatesPage'), 'VesselCertificatesPage');
+const RailcarsPage = lazy1(() => import('@features/logistics/railcars/RailcarsPage'), 'RailcarsPage');
+const ContainersPage = lazy1(() => import('@features/logistics/containers/ContainersPage'), 'ContainersPage');
+const TanksPage = lazy1(() => import('@features/logistics/tanks/TanksPage'), 'TanksPage');
+const PipelineSegmentsPage = lazy1(() => import('@features/logistics/pipeline-segments/PipelineSegmentsPage'), 'PipelineSegmentsPage');
+const PipelineTariffsPage = lazy1(() => import('@features/logistics/pipeline-tariffs/PipelineTariffsPage'), 'PipelineTariffsPage');
+const FormulaTemplatesPage = lazy1(() => import('@features/pricing/formula-templates/FormulaTemplatesPage'), 'FormulaTemplatesPage');
+const RegulatoryObligationsPage = lazy1(() => import('@features/contracts/regulatory-obligations/RegulatoryObligationsPage'), 'RegulatoryObligationsPage');
 const CreditLimitsPage = lazy1(() => import('@features/credit/credit-limits/CreditLimitsPage'), 'CreditLimitsPage');
 const LettersOfCreditPage = lazy1(() => import('@features/credit/letters-of-credit/LettersOfCreditPage'), 'LettersOfCreditPage');
 
@@ -124,6 +139,9 @@ export function AppRouter() {
         <Route path="/tier1/legal-entity" element={<S><LegalEntityListPage /></S>} />
         <Route path="/tier1/counterparty" element={<S><CounterpartyListPage /></S>} />
         <Route path="/tier1/counterparty/:id" element={<S><CounterpartyFormPage /></S>} />
+        <Route path="/counterparties/netting-agreements" element={<S><NettingAgreementsPage /></S>} />
+        <Route path="/counterparties/commercial-terms" element={<S><CommercialTermsPage /></S>} />
+        <Route path="/counterparties/gtc-agreements" element={<S><GtcAgreementsPage /></S>} />
         <Route path="/tier1" element={<S><Tier1Placeholder /></S>} />
 
         {/* Markets */}
@@ -148,6 +166,7 @@ export function AppRouter() {
         <Route path="/pricing/tas" element={<S><TasDashboardPage /></S>} />
         <Route path="/pricing/balmo-products" element={<S><BalmoProductsPage /></S>} />
         <Route path="/pricing/balmo" element={<S><BalmoDashboardPage /></S>} />
+        <Route path="/pricing/formula-templates" element={<S><FormulaTemplatesPage /></S>} />
 
         {/* BOLMO */}
         <Route path="/bolmo" element={<S><BolmoAgreementsPage /></S>} />
@@ -169,6 +188,16 @@ export function AppRouter() {
             reached directly from the sidebar. */}
         <Route path="/credit" element={<Navigate to="/master-data" replace />} />
         <Route path="/credit/margin-agreements" element={<S><MarginAgreementsPage /></S>} />
+        <Route path="/credit/bank-guarantees" element={<S><BankGuaranteesPage /></S>} />
+        <Route path="/credit/insurance" element={<S><InsurancePoliciesPage /></S>} />
+        <Route path="/credit/margin-accounts" element={<S><MarginAccountsPage /></S>} />
+        <Route path="/credit/collateral" element={<S><CollateralPage /></S>} />
+        <Route path="/logistics/vessel-certs" element={<S><VesselCertificatesPage /></S>} />
+        <Route path="/logistics/railcars" element={<S><RailcarsPage /></S>} />
+        <Route path="/logistics/containers" element={<S><ContainersPage /></S>} />
+        <Route path="/logistics/tanks" element={<S><TanksPage /></S>} />
+        <Route path="/logistics/pipeline-segments" element={<S><PipelineSegmentsPage /></S>} />
+        <Route path="/logistics/pipeline-tariffs" element={<S><PipelineTariffsPage /></S>} />
         <Route path="/credit/limits" element={<S><CreditLimitsPage /></S>} />
         <Route path="/credit/letters-of-credit" element={<S><LettersOfCreditPage /></S>} />
 
@@ -199,6 +228,7 @@ export function AppRouter() {
         <Route path="/contracts/payment-methods" element={<S><PaymentMethodsPage /></S>} />
         <Route path="/contracts/gtcs" element={<S><GtcsPage /></S>} />
         <Route path="/contracts/broker-fee-agreements" element={<S><BrokerFeeAgreementsPage /></S>} />
+        <Route path="/compliance/obligations" element={<S><RegulatoryObligationsPage /></S>} />
 
         {/* Logistics (new) */}
         <Route path="/logistics/trucks" element={<S><TrucksPage /></S>} />

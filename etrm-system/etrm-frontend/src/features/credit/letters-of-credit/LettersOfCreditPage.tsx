@@ -234,8 +234,8 @@ export function LettersOfCreditPage() {
           {sec('Amount & Currency')}
           <Row gutter={16}>
             <Col span={10}>
-              <Form.Item name="lcAmount" label="LC Face Value" rules={[{ required: true }]}>
-                <InputNumber style={{ width: '100%' }} placeholder="10000000" formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} parser={(v) => v?.replace(/,/g, '') as unknown as number} />
+              <Form.Item name="lcAmount" label="LC Face Value" rules={[{ required: true }, { type: 'number', min: 0, message: 'Must be 0 or more' }]}>
+                <InputNumber style={{ width: '100%' }} placeholder="10000000" min={0 as number} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} parser={(v) => v?.replace(/,/g, '') as unknown as number} />
               </Form.Item>
             </Col>
             <Col span={6}>
@@ -244,15 +244,23 @@ export function LettersOfCreditPage() {
               </Form.Item>
             </Col>
             <Col span={8}>
-              <Form.Item name="drawdownAmount" label={hint('Drawdown to Date', 'Cumulative amount already drawn. 0 for a fresh LC.')}>
-                <InputNumber style={{ width: '100%' }} placeholder="0" formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} parser={(v) => v?.replace(/,/g, '') as unknown as number} />
+              <Form.Item
+                name="drawdownAmount"
+                label={hint('Drawdown to Date', 'Cumulative amount already drawn. 0 for a fresh LC.')}
+                rules={[{ type: 'number', min: 0, message: 'Must be 0 or more' }]}
+              >
+                <InputNumber style={{ width: '100%' }} placeholder="0" min={0 as number} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} parser={(v) => v?.replace(/,/g, '') as unknown as number} />
               </Form.Item>
             </Col>
           </Row>
           <Row gutter={16}>
             <Col span={14}>
-              <Form.Item name="issuedAmount" label={hint('Issued Amount', 'For revolving LCs the total issued amount may exceed the face value.')} >
-                <InputNumber style={{ width: '100%' }} placeholder="same as LC amount" formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} parser={(v) => v?.replace(/,/g, '') as unknown as number} />
+              <Form.Item
+                name="issuedAmount"
+                label={hint('Issued Amount', 'For revolving LCs the total issued amount may exceed the face value.')}
+                rules={[{ type: 'number', min: 0, message: 'Must be 0 or more' }]}
+              >
+                <InputNumber style={{ width: '100%' }} placeholder="same as LC amount" min={0 as number} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} parser={(v) => v?.replace(/,/g, '') as unknown as number} />
               </Form.Item>
             </Col>
           </Row>
@@ -260,12 +268,34 @@ export function LettersOfCreditPage() {
           {sec('Dates')}
           <Row gutter={16}>
             <Col span={10}><Form.Item name="issueDate" label="Issue Date" rules={[{ required: true }]}><AppDatePicker /></Form.Item></Col>
-            <Col span={10}><Form.Item name="expiryDate" label="Expiry Date" rules={[{ required: true }]}><AppDatePicker /></Form.Item></Col>
+            <Col span={10}>
+              <Form.Item
+                name="expiryDate"
+                label="Expiry Date"
+                dependencies={['issueDate']}
+                rules={[
+                  { required: true },
+                  ({ getFieldValue }) => ({
+                    validator(_, value) {
+                      const issued = getFieldValue('issueDate');
+                      if (!value || !issued || !value.isBefore(issued)) return Promise.resolve();
+                      return Promise.reject(new Error('Expiry date must be on or after the issue date'));
+                    },
+                  }),
+                ]}
+              >
+                <AppDatePicker />
+              </Form.Item>
+            </Col>
           </Row>
           <Row gutter={16}>
             <Col span={10}>
-              <Form.Item name="presentationDeadlineDays" label={hint('Presentation Deadline', 'Days before expiry within which documents must be presented.')}>
-                <InputNumber style={{ width: '100%' }} placeholder="21" suffix="days" />
+              <Form.Item
+                name="presentationDeadlineDays"
+                label={hint('Presentation Deadline', 'Days before expiry within which documents must be presented.')}
+                rules={[{ type: 'number', min: 0, message: 'Must be 0 or more' }]}
+              >
+                <InputNumber style={{ width: '100%' }} placeholder="21" min={0} suffix="days" />
               </Form.Item>
             </Col>
             <Col span={8}>
@@ -283,8 +313,12 @@ export function LettersOfCreditPage() {
               </Form.Item>
             </Col>
             <Col span={10}>
-              <Form.Item name="autoRenewalDays" label={hint('Renewal Notice Window', 'Days before expiry to cancel; otherwise auto-renews. Typically 30–90 days.')}>
-                <InputNumber style={{ width: '100%' }} placeholder="60" suffix="days before expiry" />
+              <Form.Item
+                name="autoRenewalDays"
+                label={hint('Renewal Notice Window', 'Days before expiry to cancel; otherwise auto-renews. Typically 30–90 days.')}
+                rules={[{ type: 'number', min: 0, message: 'Must be 0 or more' }]}
+              >
+                <InputNumber style={{ width: '100%' }} placeholder="60" min={0} suffix="days before expiry" />
               </Form.Item>
             </Col>
           </Row>

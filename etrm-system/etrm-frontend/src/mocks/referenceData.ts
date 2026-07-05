@@ -283,15 +283,11 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
       { transportDocumentTypeId: 7, typeCode: 'DELIVERY_NOTE',         typeName: 'Delivery Note',          description: 'Road or rail delivery confirmation note',                        sortOrder: 7, isActive: true },
     ],
   },
-  {
-    name: 'transmission_right_type', label: 'Transmission Right Types', pk: 'transmissionRightTypeId', group: 'Power & Energy', order: 4,
-    subGroup: 'Grid', description: 'Types of transmission rights that grant or hedge capacity on electricity grids — Financial (FTR), Physical (PTR), and Auction (ATR) rights. Required for cross-border and inter-zone power positions.',
-    rows: [
-      { transmissionRightTypeId: 1, typeCode: 'FTR', typeName: 'FTR (Financial)', description: 'Financial transmission right — hedges against congestion costs without physical flow', sortOrder: 1, isActive: true },
-      { transmissionRightTypeId: 2, typeCode: 'PTR', typeName: 'PTR (Physical)',  description: 'Physical transmission right — grants actual cross-border or inter-zone capacity',    sortOrder: 2, isActive: true },
-      { transmissionRightTypeId: 3, typeCode: 'ATR', typeName: 'ATR (Auction)',   description: 'Auction transmission right — explicit capacity acquired via coordinated auction',    sortOrder: 3, isActive: true },
-    ],
-  },
+  // transmission_right_type moved out of this simple-lookup list (V65) — the
+  // real V12 backend schema is richer than the {code,name,description,sortOrder}
+  // shape (FK to balancing_authority, two enum columns), and this entry's old
+  // seed data (FTR/PTR/ATR) didn't even match the real seeded codes (FTR/CRR/
+  // TCC) — see the full TABLE_DEFS entry further down instead.
   // ── Payment Term calculation lookups ──────────────────────────────────────
   {
     name: 'base_date_event_type', label: 'Base Date Event Types', pk: 'baseDateEventTypeId', group: 'Contract & Legal', order: 4,
@@ -917,6 +913,372 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',           'Active',             'boolean',     false, false, null),
     ],
   },
+
+  // V65 — Power registry orphans: these tables have real V11/V12 schemas and
+  // seed data but were never registered/mocked as Static Data — a pure
+  // "link it correctly" gap, not new schema. location_id/owner_counterparty_id
+  // FKs on generation_asset are omitted from the mock (same simplification
+  // transmission_zone's own location_id already accepted) since `location`/
+  // `counterparty` aren't in this file's rowSeed — flagged here rather than
+  // silently faked.
+  interconnector: {
+    tableName: 'interconnector', displayName: 'Interconnectors', primaryKeyColumn: 'interconnectorId', isTemporal: false,
+    columns: [
+      col('interconnectorId',   'ID',                  'number',      false, true,  null),
+      col('interconnectorCode', 'Code',                'string',      false, false, 30),
+      col('interconnectorName', 'Name',                'string',      false, false, 200),
+      col('fromZoneId',         'From Zone',           'foreign_key', false, false, null, null, 'transmission_zone'),
+      col('toZoneId',           'To Zone',             'foreign_key', false, false, null, null, 'transmission_zone'),
+      col('capacityMw',         'Capacity (MW)',       'number',      true,  false, null),
+      col('directionType',      'Direction',           'enum',        false, false, null, ['UNIDIRECTIONAL', 'BIDIRECTIONAL']),
+      col('operator',           'Operator',            'string',      true,  false, 200),
+      col('isActive',           'Active',              'boolean',     false, false, null),
+    ],
+  },
+  generation_asset: {
+    tableName: 'generation_asset', displayName: 'Generation Assets', primaryKeyColumn: 'generationAssetId', isTemporal: false,
+    columns: [
+      col('generationAssetId',    'ID',                  'number',      false, true,  null),
+      col('assetCode',            'Asset Code',          'string',      false, false, 30),
+      col('assetName',            'Asset Name',          'string',      false, false, 200),
+      col('balancingAuthorityId', 'Balancing Authority', 'foreign_key', true,  false, null, null, 'balancing_authority'),
+      col('zoneId',               'Zone',                'foreign_key', true,  false, null, null, 'transmission_zone'),
+      col('fuelType',             'Fuel Type',           'enum',        false, false, null, ['GAS', 'COAL', 'NUCLEAR', 'HYDRO', 'WIND', 'SOLAR', 'BIOMASS', 'OIL', 'STORAGE', 'OTHER']),
+      col('technology',           'Technology',          'string',      true,  false, 50),
+      col('nameplateCapacityMw',  'Nameplate Capacity (MW)', 'number',  false, false, null),
+      col('commissioningDate',    'Commissioning Date',   'date',      true,  false, null),
+      col('decommissioningDate',  'Decommissioning Date', 'date',      true,  false, null),
+      col('isActive',             'Active',              'boolean',     false, false, null),
+    ],
+  },
+  power_product_detail: {
+    tableName: 'power_product_detail', displayName: 'Power Product Detail', primaryKeyColumn: 'productId', isTemporal: false,
+    columns: [
+      col('productId',                  'Product',             'foreign_key', false, true,  null, null, 'product'),
+      col('defaultLoadShapeId',         'Default Load Shape',  'foreign_key', true,  false, null, null, 'load_shape_template'),
+      col('voltageLevel',               'Voltage Level',       'enum',        true,  false, null, ['LOW', 'MEDIUM', 'HIGH', 'EXTRA_HIGH']),
+      col('settlementPointType',        'Settlement Point',    'enum',        true,  false, null, ['NODE', 'ZONE', 'HUB', 'SYSTEM']),
+      col('defaultBalancingAuthorityId','Default Balancing Authority', 'foreign_key', true, false, null, null, 'balancing_authority'),
+      col('defaultZoneId',              'Default Zone',        'foreign_key', true,  false, null, null, 'transmission_zone'),
+      col('isAncillaryService',         'Ancillary Service',   'boolean',     false, false, null),
+      col('notes',                      'Notes',               'string',      true,  false, 500),
+    ],
+  },
+  transmission_right_type: {
+    tableName: 'transmission_right_type', displayName: 'Transmission Right Types', primaryKeyColumn: 'rightTypeId', isTemporal: false,
+    columns: [
+      col('rightTypeId',              'ID',                    'number',      false, true,  null),
+      col('typeCode',                  'Code',                  'string',      false, false, 10),
+      col('typeName',                    'Name',                  'string',      false, false, 100),
+      col('homeBalancingAuthorityId',      'Home Balancing Authority', 'foreign_key', true, false, null, null, 'balancing_authority'),
+      col('settlementBasis',                'Settlement Basis',      'enum',        false, false, null, ['DA_LMP_DIFFERENCE', 'RT_LMP_DIFFERENCE']),
+      col('allocationMethod',                 'Allocation Method',     'enum',        false, false, null, ['AUCTION', 'ARR_ALLOCATION', 'BILATERAL_TRANSFER']),
+      col('description',                        'Description',           'string',      true,  false, 300),
+      col('isActive',                             'Active',                'boolean',     false, false, null),
+    ],
+  },
+
+  // Lightweight `product` entry — NOT registered as its own Static Data tab
+  // (Products already has its own dedicated page/store in etrmHandlers.ts;
+  // duplicating that here would violate "single source of GUI"). Exists
+  // purely so FK columns pointing at product_id (power_product_detail, and
+  // any future 1:1 product-extension table) can resolve a real label instead
+  // of a raw id.
+  product: {
+    tableName: 'product', displayName: 'Products', primaryKeyColumn: 'productId', isTemporal: false,
+    columns: [
+      col('productId',   'ID',   'number', false, true,  null),
+      col('productCode', 'Code', 'string', false, false, 30),
+      col('productName', 'Name', 'string', false, false, 200),
+    ],
+  },
+
+  // Lightweight `storage_facility` mirror — same rationale as `product` above.
+  // Field name is `facilityId` (the real backend PK) even though the
+  // dedicated Storage Facilities page's own store calls it `storageId` —
+  // this mirror exists only so lng_terminal_detail.facility_id resolves to a
+  // real label, not to duplicate that page.
+  storage_facility: {
+    tableName: 'storage_facility', displayName: 'Storage Facilities', primaryKeyColumn: 'facilityId', isTemporal: false,
+    columns: [
+      col('facilityId',   'ID',   'number', false, true,  null),
+      col('facilityCode', 'Code', 'string', false, false, 30),
+      col('facilityName', 'Name', 'string', false, false, 200),
+    ],
+  },
+
+  // V66 — LNG terminal capacity detail, 1:1 extension of storage_facility
+  // (only populated for facility_type = 'LNG_TANK' rows).
+  lng_terminal_detail: {
+    tableName: 'lng_terminal_detail', displayName: 'LNG Terminal Detail', primaryKeyColumn: 'facilityId', isTemporal: false,
+    columns: [
+      col('facilityId',               'Storage Facility',        'foreign_key', false, true,  null, null, 'storage_facility'),
+      col('terminalType',             'Terminal Type',           'enum',        false, false, null, ['IMPORT_REGAS', 'EXPORT_LIQUEFACTION', 'FSRU', 'DUAL']),
+      col('regasCapacityMmscmd',      'Regas Capacity (mmscm/d)', 'number',     true,  false, null),
+      col('liquefactionCapacityMtpa', 'Liquefaction Capacity (MTPA)', 'number', true,  false, null),
+      col('storageCapacityCbm',       'Storage Capacity (CBM)',  'number',      true,  false, null),
+      col('numStorageTanks',          'Storage Tanks',           'number',      true,  false, null),
+      col('numBerths',                'Berths',                 'number',      true,  false, null),
+      col('minCargoSizeCbm',          'Min Cargo Size (CBM)',    'number',      true,  false, null),
+      col('maxCargoSizeCbm',          'Max Cargo Size (CBM)',    'number',      true,  false, null),
+      col('notes',                    'Notes',                   'string',      true,  false, 500),
+    ],
+  },
+
+  // V67 — commodity_grade_standard: named grade tiers with a discount/premium
+  // schedule vs. the contract par grade, linked from commodity_family.
+  commodity_grade_standard: {
+    tableName: 'commodity_grade_standard', displayName: 'Commodity Grade Standards', primaryKeyColumn: 'gradeStandardId', isTemporal: false,
+    columns: [
+      col('gradeStandardId',        'ID',                    'number',      false, true,  null),
+      // V69: rescoped from commodity_family_id to product_id — real exchange
+      // grade differential schedules are per listed contract (CBOT Corn's
+      // schedule differs from CBOT Wheat's, even though both are GRAINS).
+      col('productId',              'Product',               'foreign_key', false, false, null, null, 'product'),
+      col('issuingBody',            'Issuing Body',          'string',      false, false, 50),
+      col('gradeCode',              'Grade Code',            'string',      false, false, 30),
+      col('gradeName',              'Grade Name',            'string',      false, false, 150),
+      col('isParGrade',             'Par Grade',             'boolean',     false, false, null),
+      col('priceAdjustmentPerUom',  'Price Adjustment',      'number',      false, false, null),
+      col('adjustmentCurrencyCode', 'Adjustment Currency',   'string',      true,  false, 3),
+      col('adjustmentUomCode',      'Adjustment UoM',        'string',      true,  false, 20),
+      col('description',            'Description',           'string',     true,  false, 500),
+      col('isActive',               'Active',                'boolean',     false, false, null),
+    ],
+  },
+
+  // V68 — metal_brand: LME-style approved brand register (producer + metal
+  // form), the real mechanism determining what physical metal is deliverable
+  // against an exchange contract — replaces the previous boolean-only flag.
+  metal_brand: {
+    tableName: 'metal_brand', displayName: 'Metal Brand Register', primaryKeyColumn: 'metalBrandId', isTemporal: false,
+    columns: [
+      col('metalBrandId',       'ID',                'number',      false, true,  null),
+      col('commodityFamilyId',  'Commodity Family',  'foreign_key', false, false, null, null, 'commodity_family'),
+      col('brandCode',          'Brand Code',        'string',      false, false, 30),
+      col('brandName',          'Brand Name',        'string',      false, false, 150),
+      col('producerName',       'Producer',          'string',      true,  false, 200),
+      col('metalForm',          'Metal Form',        'enum',        false, false, null, ['CATHODE', 'CATHODE_FULL_PLATE', 'INGOT', 'WIRE_ROD', 'PIG', 'BAR', 'GRANULES', 'BRIQUETTE', 'SLAB', 'OTHER']),
+      col('countryOfOrigin',    'Country of Origin', 'string',      true,  false, 2),
+      col('approvalDate',       'Approval Date',     'date',        true,  false, null),
+      col('delistingDate',      'Delisting Date',    'date',        true,  false, null),
+      col('isActive',           'Active',            'boolean',     false, false, null),
+    ],
+  },
+
+  // Lightweight `counterparty` mirror — same rationale as `product`/
+  // `storage_facility` above: counterparty has its own dedicated feature
+  // module/store, not this file's rowSeed, so this exists purely for FK
+  // label resolution (insurance_provider.counterparty_id, transport_operator
+  // .counterparty_id), not to duplicate the Counterparty page.
+  counterparty: {
+    tableName: 'counterparty', displayName: 'Counterparties', primaryKeyColumn: 'counterpartyId', isTemporal: false,
+    columns: [
+      col('counterpartyId', 'ID',   'number', false, true,  null),
+      col('cpCode',         'Code', 'string', false, false, 20),
+      col('legalName',      'Name', 'string', false, false, 300),
+    ],
+  },
+
+  // V70 — genuine Static Data registry orphans found during a whole-project
+  // master-data review: real backend tables (with real seed data) that had
+  // no dedicated page and no frontend mock at all. All four already appear
+  // in MasterDataHub.tsx's `live: false` backlog — confirmed planned, not an
+  // overlooked concept.
+  insurance_provider: {
+    tableName: 'insurance_provider', displayName: 'Insurance Providers', primaryKeyColumn: 'providerId', isTemporal: false,
+    columns: [
+      col('providerId',      'ID',                'number',      false, true,  null),
+      col('providerCode',    'Code',              'string',      false, false, 20),
+      col('providerName',    'Name',              'string',      false, false, 200),
+      col('providerType',    'Provider Type',     'enum',        false, false, null, ['PI_CLUB', 'UNDERWRITER', 'INSURER', 'BROKER', 'REINSURER']),
+      col('countryCode',     'Country',           'string',      true,  false, 2),
+      col('creditRatingId',  'Credit Rating',     'foreign_key', true,  false, null, null, 'credit_rating'),
+      col('counterpartyId',  'Counterparty',      'foreign_key', true,  false, null, null, 'counterparty'),
+      col('isActive',        'Active',            'boolean',     false, false, null),
+      col('notes',           'Notes',             'string',      true,  false, 300),
+    ],
+  },
+  interest_rate_index: {
+    tableName: 'interest_rate_index', displayName: 'Interest Rate Indices', primaryKeyColumn: 'rateIndexId', isTemporal: false,
+    columns: [
+      col('rateIndexId',         'ID',                  'number',      false, true,  null),
+      col('indexCode',           'Code',                'string',      false, false, 20),
+      col('indexName',           'Name',                'string',      false, false, 200),
+      col('currencyId',          'Currency',            'foreign_key', false, false, null, null, 'currency'),
+      col('tenor',                'Tenor',               'string',      true,  false, 20),
+      col('dayCountConvention',   'Day Count Convention','enum',        false, false, null, ['ACT_360', 'ACT_365', 'ACT_ACT', '30_360', 'ACT_365F']),
+      col('compounding',           'Compounding',         'enum',        false, false, null, ['SIMPLE', 'COMPOUNDED', 'OVERNIGHT_COMPOUNDED']),
+      col('publicationSource',      'Publication Source',  'string',      true,  false, 100),
+      col('isRfrr',                   'Risk-Free Rate',      'boolean',     false, false, null),
+      col('isActive',                   'Active',              'boolean',     false, false, null),
+      col('description',                  'Description',         'string',      true,  false, 300),
+    ],
+  },
+  regulatory_report_type: {
+    tableName: 'regulatory_report_type', displayName: 'Regulatory Report Types', primaryKeyColumn: 'reportTypeId', isTemporal: false,
+    columns: [
+      col('reportTypeId',       'ID',                 'number',  false, true,  null),
+      col('reportCode',         'Code',               'string',  false, false, 30),
+      col('reportName',         'Name',               'string',  false, false, 200),
+      col('regulation',         'Regulation',         'enum',    false, false, null, ['EMIR', 'REMIT', 'CFTC', 'DODD_FRANK', 'MIFID2', 'SFTR', 'UK_EMIR', 'ASIC', 'MAS', 'INTERNAL', 'OTHER']),
+      col('jurisdiction',       'Jurisdiction',       'string',  true,  false, 2),
+      col('submissionTarget',   'Submission Target',  'string',  true,  false, 100),
+      col('reportingDeadline',  'Reporting Deadline',  'string', true,  false, 100),
+      col('reportFormat',        'Report Format',       'string', true,  false, 20),
+      col('isMandatory',           'Mandatory',           'boolean', false, false, null),
+      col('isActive',                'Active',              'boolean', false, false, null),
+      col('description',                'Description',         'string',  true,  false, 500),
+    ],
+  },
+  transport_operator: {
+    tableName: 'transport_operator', displayName: 'Transport Operators', primaryKeyColumn: 'operatorId', isTemporal: false,
+    columns: [
+      col('operatorId',      'ID',            'number',      false, true,  null),
+      col('operatorCode',    'Code',          'string',      false, false, 20),
+      col('operatorName',    'Name',          'string',      false, false, 200),
+      col('operatorType',    'Operator Type', 'enum',        false, false, null, ['SHIPPING_LINE', 'SHIP_MANAGER', 'HAULIER', 'RAIL_OPERATOR', 'PIPELINE_TSO', 'TERMINAL_OP', 'MULTI_MODAL', 'OTHER']),
+      col('motTypeId',       'MOT Type',      'foreign_key', true,  false, null, null, 'mot_type'),
+      col('countryCode',     'Country',       'string',      true,  false, 2),
+      col('counterpartyId',  'Counterparty',  'foreign_key', true,  false, null, null, 'counterparty'),
+      col('isActive',        'Active',        'boolean',     false, false, null),
+      col('notes',           'Notes',         'string',      true,  false, 500),
+    ],
+  },
+
+  // V71 — genuine registry orphans deliberately excluded from MasterDataHub's
+  // plan initially, investigated and confirmed worth adding: collateral_type
+  // connects to a known gap (margin_agreement.eligible_collateral is free
+  // text); event_category/event_type and external_system have real schemas
+  // but no consumer yet (no notification engine / integrations built) — added
+  // as plain reference data ahead of those features.
+  collateral_type: {
+    tableName: 'collateral_type', displayName: 'Collateral Types', primaryKeyColumn: 'collateralTypeId', isTemporal: false,
+    columns: [
+      col('collateralTypeId',   'ID',                'number',  false, true,  null),
+      col('typeCode',           'Code',              'string',  false, false, 30),
+      col('typeName',           'Name',              'string',  false, false, 100),
+      col('assetClass',         'Asset Class',       'enum',    false, false, null, ['CASH', 'GOVERNMENT_BOND', 'CORPORATE_BOND', 'EQUITY', 'LETTER_OF_CREDIT', 'BANK_GUARANTEE', 'COMMODITY', 'OTHER']),
+      col('standardHaircutPct', 'Standard Haircut %', 'number', false, false, null),
+      col('isActive',           'Active',            'boolean', false, false, null),
+      col('description',        'Description',       'string',  true,  false, 300),
+    ],
+  },
+  event_category: {
+    tableName: 'event_category', displayName: 'Event Categories', primaryKeyColumn: 'categoryId', isTemporal: false,
+    columns: [
+      col('categoryId',   'ID',          'number',  false, true,  null),
+      col('categoryCode', 'Code',        'string',  false, false, 30),
+      col('categoryName', 'Name',        'string',  false, false, 100),
+      col('description',  'Description', 'string',  true,  false, 300),
+      col('isActive',     'Active',      'boolean', false, false, null),
+    ],
+  },
+  event_type: {
+    tableName: 'event_type', displayName: 'Event Types', primaryKeyColumn: 'eventTypeId', isTemporal: false,
+    columns: [
+      col('eventTypeId',           'ID',                  'number',      false, true,  null),
+      col('categoryId',            'Category',            'foreign_key', false, false, null, null, 'event_category'),
+      col('eventCode',             'Code',                'string',      false, false, 50),
+      col('eventName',             'Name',                'string',      false, false, 200),
+      col('entityType',            'Entity Type',         'enum',        false, false, null, ['TRADE', 'POSITION', 'DELIVERY', 'NOMINATION', 'SETTLEMENT', 'INVOICE', 'PAYMENT', 'RISK', 'CREDIT', 'MARGIN', 'MARKET_DATA', 'SYSTEM', 'USER', 'COUNTERPARTY', 'VESSEL', 'PIPELINE', 'OTHER']),
+      col('severity',              'Severity',            'enum',        false, false, null, ['INFO', 'WARNING', 'ALERT', 'CRITICAL', 'BREACH']),
+      col('requiresAction',        'Requires Action',     'boolean',     false, false, null),
+      col('requiresApproval',      'Requires Approval',   'boolean',     false, false, null),
+      col('triggersNotification',  'Triggers Notification', 'boolean',   false, false, null),
+      col('slaMinutes',            'SLA (Minutes)',       'number',      true,  false, null),
+      col('isReportable',          'Reportable',          'boolean',     false, false, null),
+      col('isActive',              'Active',              'boolean',     false, false, null),
+      col('description',           'Description',         'string',      true,  false, 500),
+    ],
+  },
+  external_system: {
+    tableName: 'external_system', displayName: 'External Systems', primaryKeyColumn: 'externalSystemId', isTemporal: false,
+    columns: [
+      col('externalSystemId', 'ID',             'number',  false, true,  null),
+      col('systemCode',       'Code',           'string',  false, false, 30),
+      col('systemName',       'Name',           'string',  false, false, 150),
+      col('systemType',       'System Type',    'enum',    false, false, null, ['MARKET_DATA', 'ERP', 'CTRM', 'SHIPPING', 'BANK', 'REGULATORY', 'RISK', 'AIS_TRACKING', 'OTHER']),
+      col('vendorName',       'Vendor',         'string',  true,  false, 150),
+      col('connectionType',   'Connection Type', 'enum',   true,  false, null, ['API', 'SFTP', 'FILE', 'MANUAL', 'MESSAGE_QUEUE']),
+      col('baseUrl',          'Base URL',       'string',  true,  false, 500),
+      col('ownerTeam',        'Owner Team',     'string',  true,  false, 100),
+      col('isActive',         'Active',         'boolean', false, false, null),
+      col('notes',            'Notes',          'string',  true,  false, 500),
+    ],
+  },
+
+  // V72 — credit_term: reusable reference template (not counterparty-scoped
+  // itself — no counterparty_id column), same role as payment_term. Assigned
+  // to a counterparty via cp_commercial_terms.credit_term_id.
+  credit_term: {
+    tableName: 'credit_term', displayName: 'Credit Terms', primaryKeyColumn: 'creditTermId', isTemporal: false,
+    columns: [
+      col('creditTermId',        'ID',                    'number',  false, true,  null),
+      col('termCode',            'Code',                  'string',  false, false, 30),
+      col('termName',            'Name',                  'string',  false, false, 200),
+      col('creditPeriodDays',    'Credit Period (Days)',  'number',  false, false, null),
+      col('collateralType',      'Collateral Type',       'enum',    true,  false, null, ['NONE', 'CASH', 'LETTER_OF_CREDIT', 'PARENT_GUARANTEE', 'BANK_GUARANTEE', 'PLEDGE', 'OTHER']),
+      col('marginCallThreshold', 'Margin Call Threshold', 'number',  true,  false, null),
+      col('marginCallCurrency',  'Margin Call Currency',  'string',  false, false, 3),
+      col('nettingEligible',     'Netting Eligible',      'boolean', false, false, null),
+      col('requiresIsda',        'Requires ISDA',         'boolean', false, false, null),
+      col('description',         'Description',           'string', true,  false, 500),
+      col('isActive',            'Active',                'boolean', false, false, null),
+    ],
+  },
+
+  // Lightweight holiday_calendar mirror — same FK-resolution-only rationale
+  // as product/storage_facility/counterparty above (has its own dedicated
+  // HolidayCalendarsPage.tsx, not registered here).
+  holiday_calendar: {
+    tableName: 'holiday_calendar', displayName: 'Holiday Calendars', primaryKeyColumn: 'calendarId', isTemporal: false,
+    columns: [
+      col('calendarId',   'ID',   'number', false, true,  null),
+      col('calendarCode', 'Code', 'string', false, false, 20),
+      col('calendarName', 'Name', 'string', false, false, 200),
+    ],
+  },
+
+  // V73 — fx_rate, settlement_calendar, trade_repository: flat reference/
+  // bridge tables (no real workflow), fit the generic Static Data mechanism.
+  fx_rate: {
+    tableName: 'fx_rate', displayName: 'FX Rates', primaryKeyColumn: 'fxRateId', isTemporal: false,
+    columns: [
+      col('fxRateId',        'ID',              'number',      false, true,  null),
+      col('fromCurrencyId',  'From Currency',   'foreign_key', false, false, null, null, 'currency'),
+      col('toCurrencyId',    'To Currency',     'foreign_key', false, false, null, null, 'currency'),
+      col('rate',            'Rate',            'number',      false, false, null),
+      col('rateDate',        'Rate Date',       'date',        false, false, null),
+      col('rateType',        'Rate Type',       'enum',        false, false, null, ['EOD', 'INTRADAY', 'SETTLEMENT', 'FIXING', 'MID']),
+      col('source',          'Source',          'string',      true,  false, 50),
+    ],
+  },
+  settlement_calendar: {
+    tableName: 'settlement_calendar', displayName: 'Settlement Calendars', primaryKeyColumn: 'scId', isTemporal: false,
+    columns: [
+      col('scId',        'ID',              'number',      false, true,  null),
+      col('productId',   'Product',         'foreign_key', false, false, null, null, 'product'),
+      col('calendarId',  'Holiday Calendar','foreign_key', false, false, null, null, 'holiday_calendar'),
+      col('priority',    'Priority',        'number',      false, false, null),
+      col('isActive',    'Active',          'boolean',     false, false, null),
+    ],
+  },
+  trade_repository: {
+    tableName: 'trade_repository', displayName: 'Trade Repositories', primaryKeyColumn: 'repositoryId', isTemporal: false,
+    columns: [
+      col('repositoryId',    'ID',              'number',      false, true,  null),
+      col('repositoryCode',  'Code',            'string',      false, false, 20),
+      col('repositoryName',  'Name',            'string',      false, false, 200),
+      col('regulation',      'Regulation',      'enum',        false, false, null, ['EMIR', 'REMIT', 'CFTC', 'DODD_FRANK', 'MIFID2', 'SFTR', 'UK_EMIR', 'ASIC', 'MAS', 'INTERNAL', 'OTHER']),
+      col('jurisdiction',    'Jurisdiction',    'string',      true,  false, 2),
+      col('operatorCpId',    'Operator',        'foreign_key', true,  false, null, null, 'counterparty'),
+      col('submissionUrl',   'Submission URL',  'string',      true,  false, 300),
+      col('submissionFormat','Submission Format','enum',       true,  false, null, ['XML', 'REST', 'SFTP']),
+      col('isActive',        'Active',          'boolean',     false, false, null),
+      col('notes',           'Notes',           'string',      true,  false, 300),
+    ],
+  },
 };
 
 // ─── Exports ──────────────────────────────────────────────────────────────────
@@ -954,6 +1316,33 @@ export const registrySeed: RegistryEntry[] = [
   { registryId: 211, tableName: 'reporting_group',        displayName: 'Reporting Groups',          moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Per-report classification groups (Position Reporting, VaR/Risk, Settlement/GL) — a product can sit in a different group per reporting context. Assigned to products via the Products page "Reporting Groups" tab.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 4 },
   // V63 — lookup_value: the generic category+code+display_name table (only REPORTING_CLASSIFICATION_TYPE rows seeded here so far)
   { registryId: 212, tableName: 'lookup_value',           displayName: 'Lookup Values',             moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Generic category/code/display-name reference table. Only the Reporting Classification Type category is populated here — add rows under a new "category" value to introduce a new axis for Reporting Groups.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 5 },
+  // V65 — Power registry orphans: real V11/V12 tables/seed data that were never registered, found during an LNG/Power/Agri/Metals master-data review
+  { registryId: 213, tableName: 'interconnector',         displayName: 'Interconnectors',           moduleGroup: 'Power & Energy',     subGroup: 'Grid',           description: 'Cross-zone / cross-border transmission links between two transmission zones — the grid-capacity equivalent of a freight route. Directional or bidirectional, with a rated MW capacity.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 8 },
+  { registryId: 214, tableName: 'generation_asset',       displayName: 'Generation Assets',         moduleGroup: 'Power & Energy',     subGroup: 'Assets',         description: 'Plant-level technical master data — fuel type, technology, nameplate capacity, and ownership. The power equivalent of `vessel` for oil shipping.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 9 },
+  { registryId: 215, tableName: 'power_product_detail',   displayName: 'Power Product Detail',      moduleGroup: 'Power & Energy',     subGroup: 'Markets',        description: '1:1 power-specific extension of a product — default load shape, voltage level, settlement point type (node/zone/hub/system), and whether it is an ancillary-service product.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 10 },
+  { registryId: 216, tableName: 'transmission_right_type',displayName: 'Transmission Right Types',  moduleGroup: 'Power & Energy',     subGroup: 'Grid',           description: 'Regional terminology for the same financial transmission-right instrument — FTR (PJM/MISO), CRR (CAISO/ERCOT), TCC (NYISO) — with its settlement basis and allocation method.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 11 },
+  // V66 — lng_terminal_detail: 1:1 LNG extension of storage_facility (send-out/liquefaction capacity, berths, cargo lot size range)
+  { registryId: 217, tableName: 'lng_terminal_detail',    displayName: 'LNG Terminal Detail',       moduleGroup: 'Freight & Shipping', subGroup: 'Charter',        description: 'Terminal-level LNG capacity data — regasification send-out rate (import) or liquefaction nameplate (export) in MTPA, storage tank/berth count, and the acceptable cargo-lot size range for scheduling.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 6 },
+  // V67 — commodity_grade_standard: named grade tiers (e.g. USDA No. 2 Yellow Corn) with a discount/premium schedule vs. the contract par grade
+  { registryId: 218, tableName: 'commodity_grade_standard', displayName: 'Commodity Grade Standards', moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Named grade tiers for a specific product/contract (e.g. CBOT Corn\'s USDA No. 2 Yellow par grade) and the flat price adjustment vs. par for delivering an alternate grade. Scoped per product, not per commodity family — real exchange differential schedules are contract-specific (Corn\'s schedule differs from Wheat\'s). Selectable per order in the Trade Blotter to auto-populate a price adjustment.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 6 },
+  // V68 — metal_brand: LME-style approved brand register (producer + metal form) — the real mechanism determining what physical metal is deliverable
+  { registryId: 219, tableName: 'metal_brand',              displayName: 'Metal Brand Register',      moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Exchange-approved producer brands by metal form (cathode, ingot, wire rod, etc.) — only brands on this list may be placed on warrant and delivered against an exchange contract.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 7 },
+  // V70 — genuine registry orphans found via a whole-project master-data review (all four already in MasterDataHub.tsx's live:false backlog)
+  { registryId: 220, tableName: 'insurance_provider',       displayName: 'Insurance Providers',        moduleGroup: 'Credit & Collateral',   subGroup: 'Insurance',   description: 'Insurance companies, P&I clubs, and underwriters — Lloyd\'s syndicates, AIG, Zurich, Euler Hermes — with contact and credit rating, for cargo/credit/political-risk coverage.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 8 },
+  { registryId: 221, tableName: 'interest_rate_index',      displayName: 'Interest Rate Indices',      moduleGroup: 'Pricing & Rates',       subGroup: 'FX',          description: 'Reference rate indices (SOFR, EURIBOR, SONIA) with day-count/compounding conventions — used for financing costs, late-payment interest, and commodity-linked structures.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 7 },
+  { registryId: 222, tableName: 'regulatory_report_type',   displayName: 'Regulatory Report Types',    moduleGroup: 'Sanctions & Regulatory Reporting', subGroup: 'Reporting', description: 'Regulatory report type definitions — EMIR, REMIT, CFTC, MiFID II — with submission target and reporting deadline, driving which reports a trade requires.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
+  { registryId: 223, tableName: 'transport_operator',       displayName: 'Transport Operators',        moduleGroup: 'Logistics & Delivery',  subGroup: 'Transport',   description: 'Haulage companies, rail/pipeline operators, ship managers, and terminal operators — coverage area, primary transport mode, and commodity approvals.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 9 },
+  // V71 — collateral_type (connects to a known margin_agreement gap), event_category/event_type and external_system (real schema, no consumer built yet)
+  { registryId: 224, tableName: 'collateral_type', displayName: 'Collateral Types', moduleGroup: 'Credit & Collateral',   subGroup: 'Collateral', description: 'Eligible collateral asset classes and their standard haircut % — cash, government/corporate bonds, letters of credit, bank guarantees. Reference for margin agreement collateral eligibility.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 10 },
+  { registryId: 225, tableName: 'event_category',  displayName: 'Event Categories', moduleGroup: 'Organization & Users', subGroup: 'System',     description: 'Top-level classification for system workflow/lifecycle events — Trade, Delivery, Settlement, Risk, Credit, Market Data, Regulatory.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 10 },
+  { registryId: 226, tableName: 'event_type',      displayName: 'Event Types',     moduleGroup: 'Organization & Users', subGroup: 'System',     description: 'Full catalogue of system event codes with severity, SLA, and workflow flags (requires action/approval, triggers notification) — drives the notification engine and audit trail.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 11 },
+  { registryId: 227, tableName: 'external_system', displayName: 'External Systems', moduleGroup: 'Organization & Users', subGroup: 'System',    description: 'Integration endpoints — market data vendors, ERP, CTRM, shipping, bank, regulatory systems — for the polymorphic external_system_mapping crosswalk.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 12 },
+  // V72 — credit_term: reusable credit-facility term template, referenced by cp_commercial_terms
+  { registryId: 228, tableName: 'credit_term', displayName: 'Credit Terms', moduleGroup: 'Counterparties & Agreements', subGroup: 'Terms', description: 'Reusable credit facility terms — credit period, required collateral type, margin call threshold, netting eligibility. Assigned to a counterparty via CP Commercial Terms.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
+  // V73 — fx_rate, settlement_calendar, trade_repository
+  { registryId: 229, tableName: 'fx_rate',             displayName: 'FX Rates',             moduleGroup: 'Pricing & Rates',                  subGroup: 'FX',        description: 'Daily FX rates per currency pair — EOD, intraday, settlement, fixing, or mid. Used for P&L revaluation and cross-currency settlement.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: true, isEnabled: true, displayOrder: 8 },
+  { registryId: 230, tableName: 'settlement_calendar', displayName: 'Settlement Calendars', moduleGroup: 'Products & Markets',                subGroup: 'Classification', description: 'Which holiday calendars apply to a product\'s settlement date calculation — a product may use multiple (e.g. UK + US bank holidays), with a priority order.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 8 },
+  { registryId: 231, tableName: 'trade_repository',    displayName: 'Trade Repositories',   moduleGroup: 'Sanctions & Regulatory Reporting', subGroup: 'Reporting', description: 'Approved trade repositories for regulatory reporting submission — DTCC, REGIS-TR, ICE TVEL — by regime with submission format and endpoint.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
   // V17 parent lookup tables — generated from the simple list above
   ...PARENT_LOOKUP_TABLES.map((t, i) => ({
     registryId:       10 + i,
@@ -1145,6 +1534,154 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { zoneId: 4, balancingAuthorityId: 2, zoneCode: 'ERCOT_HOUSTON', zoneName: 'ERCOT Houston Hub', zoneType: 'HUB',   isActive: true },
     { zoneId: 5, balancingAuthorityId: 6, zoneCode: 'GSP_A',      zoneName: 'GSP Group _A',    zoneType: 'GSP_GROUP', isActive: true },
     { zoneId: 6, balancingAuthorityId: 6, zoneCode: 'GSP_B',      zoneName: 'GSP Group _B',    zoneType: 'GSP_GROUP', isActive: true },
+  ],
+  // V65 — Power registry orphans
+  interconnector: [
+    { interconnectorId: 1, interconnectorCode: 'PJM-MISO-01', interconnectorName: 'PJM–MISO Interface', fromZoneId: 1, toZoneId: 2, capacityMw: 3500, directionType: 'BIDIRECTIONAL', operator: 'PJM/MISO Joint Operating Agreement', isActive: true },
+    { interconnectorId: 2, interconnectorCode: 'ERCOT-DC-TIE', interconnectorName: 'ERCOT North–Houston DC Tie', fromZoneId: 3, toZoneId: 4, capacityMw: 600, directionType: 'BIDIRECTIONAL', operator: 'ERCOT', isActive: true },
+    { interconnectorId: 3, interconnectorCode: 'IFA2', interconnectorName: 'IFA2 (GB–France)', fromZoneId: 5, toZoneId: 6, capacityMw: 1000, directionType: 'BIDIRECTIONAL', operator: 'National Grid / RTE', isActive: true },
+  ],
+  generation_asset: [
+    { generationAssetId: 1, assetCode: 'PJM-DRESDEN-NUC', assetName: 'Dresden Nuclear Station', balancingAuthorityId: 1, zoneId: 1, fuelType: 'NUCLEAR', technology: 'PWR_REACTOR', nameplateCapacityMw: 1800, commissioningDate: '1970-04-01', decommissioningDate: null, isActive: true },
+    { generationAssetId: 2, assetCode: 'ERCOT-PANHANDLE-WIND', assetName: 'Texas Panhandle Wind Farm', balancingAuthorityId: 2, zoneId: 3, fuelType: 'WIND', technology: 'ONSHORE_WIND', nameplateCapacityMw: 500, commissioningDate: '2018-09-01', decommissioningDate: null, isActive: true },
+    { generationAssetId: 3, assetCode: 'CAISO-MOJAVE-SOLAR', assetName: 'Mojave Desert Solar Array', balancingAuthorityId: 3, zoneId: null, fuelType: 'SOLAR', technology: 'PV', nameplateCapacityMw: 280, commissioningDate: '2015-06-01', decommissioningDate: null, isActive: true },
+    { generationAssetId: 4, assetCode: 'NGESO-DRAX-BIOMASS', assetName: 'Drax Power Station (Biomass Units)', balancingAuthorityId: 6, zoneId: 5, fuelType: 'BIOMASS', technology: 'CCGT', nameplateCapacityMw: 2600, commissioningDate: '1986-01-01', decommissioningDate: null, isActive: true },
+  ],
+  power_product_detail: [
+    { productId: 8, defaultLoadShapeId: 1, voltageLevel: 'HIGH', settlementPointType: 'HUB', defaultBalancingAuthorityId: 6, defaultZoneId: 5, isAncillaryService: false, notes: 'EEX German Power Baseload — settles at the GSP Group _A hub.' },
+  ],
+  transmission_right_type: [
+    { rightTypeId: 1, typeCode: 'FTR', typeName: 'Financial Transmission Right', homeBalancingAuthorityId: 1, settlementBasis: 'DA_LMP_DIFFERENCE', allocationMethod: 'AUCTION', description: 'PJM/MISO terminology. Hedges day-ahead LMP spread between a source and sink point.', isActive: true },
+    { rightTypeId: 2, typeCode: 'CRR', typeName: 'Congestion Revenue Right',      homeBalancingAuthorityId: 3, settlementBasis: 'DA_LMP_DIFFERENCE', allocationMethod: 'AUCTION', description: 'CAISO/ERCOT terminology for the same economic instrument as an FTR.', isActive: true },
+    { rightTypeId: 3, typeCode: 'TCC', typeName: 'Transmission Congestion Contract', homeBalancingAuthorityId: 5, settlementBasis: 'DA_LMP_DIFFERENCE', allocationMethod: 'AUCTION', description: 'NYISO terminology for the same economic instrument as an FTR.', isActive: true },
+  ],
+  // Lightweight product mirror for FK label resolution — see the metadataSeed comment above.
+  product: [
+    { productId: 1,  productCode: 'BRENT-CRUDE',   productName: 'Brent Crude Oil' },
+    { productId: 2,  productCode: 'WTI-CRUDE',     productName: 'West Texas Intermediate' },
+    { productId: 3,  productCode: 'BRENT-FUTURES', productName: 'Brent Crude Futures' },
+    { productId: 4,  productCode: 'TTF-GAS',       productName: 'TTF Natural Gas' },
+    { productId: 5,  productCode: 'NBP-GAS',       productName: 'NBP Natural Gas' },
+    { productId: 6,  productCode: 'LME-COPPER',    productName: 'LME Grade A Copper' },
+    { productId: 7,  productCode: 'LME-ALUMINIUM', productName: 'LME Primary Aluminium' },
+    { productId: 8,  productCode: 'EEX-DE-POWER',  productName: 'EEX German Power Baseload' },
+    { productId: 9,  productCode: 'ICE-BRENT-OPT', productName: 'ICE Brent Crude Options' },
+    { productId: 10, productCode: 'HEATING-OIL',   productName: 'Gas Oil / Heating Oil' },
+    { productId: 11, productCode: 'JKM-LNG',       productName: 'JKM LNG Japan/Korea' },
+    { productId: 12, productCode: 'CBOT-CORN',     productName: 'CBOT Corn Futures' },
+    { productId: 13, productCode: 'ULSD-10PPM',    productName: 'Ultra-Low Sulphur Diesel 10ppm' },
+    { productId: 14, productCode: 'ETHANOL',       productName: 'Fuel Ethanol (Denatured, Industrial Grade)' },
+    { productId: 15, productCode: 'GAS97-BLEND',   productName: 'Gasoline 97 E3 (ULSD/Ethanol Blend)' },
+    { productId: 16, productCode: 'WHEAT-EU',      productName: 'Euronext Milling Wheat (EU)' },
+  ],
+  // Lightweight storage_facility mirror — real facilityId 4 = GATE-LNG-RTM (the
+  // only LNG_TANK-type row in the dedicated Storage Facilities store).
+  storage_facility: [
+    { facilityId: 1, facilityCode: 'CUSHING-T1',     facilityName: 'Cushing Tank Farm T-1' },
+    { facilityId: 2, facilityCode: 'HUMBLY-GROVE',   facilityName: 'Humbly Grove Gas Storage' },
+    { facilityId: 3, facilityCode: 'BERGERMEER-NL',  facilityName: 'Bergermeer Gas Storage' },
+    { facilityId: 4, facilityCode: 'GATE-LNG-RTM',   facilityName: 'Gate LNG Terminal Rotterdam' },
+    { facilityId: 5, facilityCode: 'LME-METRO-DT',   facilityName: 'Metro Detroit LME Approved Warehouse' },
+    { facilityId: 6, facilityCode: 'SULLOM-STORAGE', facilityName: 'Sullom Voe Crude Storage Tanks' },
+  ],
+  lng_terminal_detail: [
+    { facilityId: 4, terminalType: 'IMPORT_REGAS', regasCapacityMmscmd: 28.0, liquefactionCapacityMtpa: null, storageCapacityCbm: 540000, numStorageTanks: 3, numBerths: 2, minCargoSizeCbm: 90000, maxCargoSizeCbm: 217000, notes: 'Gate Terminal Rotterdam — one of the largest LNG import terminals in NW Europe, expandable send-out capacity.' },
+  ],
+  commodity_grade_standard: [
+    { gradeStandardId: 1, productId: 12, issuingBody: 'USDA', gradeCode: 'US_NO_2_YELLOW_CORN', gradeName: 'US No. 2 Yellow Corn', isParGrade: true,  priceAdjustmentPerUom: 0.00,  adjustmentCurrencyCode: 'USD', adjustmentUomCode: 'BUSHEL', description: 'CBOT contract par grade — max 5% damaged kernels, 3% foreign material, 15.5% moisture, test weight 54 lb/bu minimum.', isActive: true },
+    { gradeStandardId: 2, productId: 12, issuingBody: 'USDA', gradeCode: 'US_NO_3_YELLOW_CORN', gradeName: 'US No. 3 Yellow Corn', isParGrade: false, priceAdjustmentPerUom: -0.04, adjustmentCurrencyCode: 'USD', adjustmentUomCode: 'BUSHEL', description: 'Deliverable at a fixed discount to par — max 7% damaged kernels, test weight 52 lb/bu minimum.', isActive: true },
+    { gradeStandardId: 3, productId: 12, issuingBody: 'USDA', gradeCode: 'US_NO_1_YELLOW_CORN', gradeName: 'US No. 1 Yellow Corn', isParGrade: false, priceAdjustmentPerUom: 0.02,  adjustmentCurrencyCode: 'USD', adjustmentUomCode: 'BUSHEL', description: 'Deliverable at a premium to par — max 3% damaged kernels, test weight 56 lb/bu minimum.', isActive: true },
+  ],
+  metal_brand: [
+    { metalBrandId: 1, commodityFamilyId: 6, brandCode: 'CODELCO-CU', brandName: 'Codelco Grade A Cathode', producerName: 'Corporación Nacional del Cobre de Chile', metalForm: 'CATHODE_FULL_PLATE', countryOfOrigin: 'CL', approvalDate: '1990-01-01', delistingDate: null, isActive: true },
+    { metalBrandId: 2, commodityFamilyId: 6, brandCode: 'KGHM-CU',    brandName: 'KGHM Grade A Cathode',     producerName: 'KGHM Polska Miedz S.A.',                     metalForm: 'CATHODE',            countryOfOrigin: 'PL', approvalDate: '1995-06-01', delistingDate: null, isActive: true },
+    { metalBrandId: 3, commodityFamilyId: 6, brandCode: 'ASARCO-CU',  brandName: 'Asarco Grade A Cathode',   producerName: 'ASARCO LLC',                                  metalForm: 'CATHODE',            countryOfOrigin: 'US', approvalDate: '1988-03-01', delistingDate: null, isActive: true },
+  ],
+  // Lightweight counterparty mirror — real ids from counterpartyData.ts
+  counterparty: [
+    { counterpartyId: 1, cpCode: 'SHELLTR',  legalName: 'Shell Trading International Ltd' },
+    { counterpartyId: 2, cpCode: 'GLENCORE', legalName: 'Glencore International AG' },
+    { counterpartyId: 3, cpCode: 'SHELLPLC', legalName: 'Shell plc' },
+  ],
+  insurance_provider: [
+    { providerId: 1, providerCode: 'LLOYDS-SYN', providerName: "Lloyd's of London (Syndicate 2623)", providerType: 'UNDERWRITER', countryCode: 'GB', creditRatingId: 1, counterpartyId: null, isActive: true, notes: 'Marine cargo and P&I risks — subscribes via broker slip.' },
+    { providerId: 2, providerCode: 'NORTH-PANDI', providerName: 'North of England P&I Association', providerType: 'PI_CLUB', countryCode: 'GB', creditRatingId: 2, counterpartyId: null, isActive: true, notes: 'Protection & Indemnity cover for chartered/owned tonnage.' },
+    { providerId: 3, providerCode: 'AIG-MARINE', providerName: 'AIG Marine Insurance', providerType: 'INSURER', countryCode: 'US', creditRatingId: 2, counterpartyId: null, isActive: true, notes: 'Cargo and political risk insurer.' },
+    { providerId: 4, providerCode: 'EULER-HERMES', providerName: 'Euler Hermes (Allianz Trade)', providerType: 'INSURER', countryCode: 'FR', creditRatingId: 2, counterpartyId: null, isActive: true, notes: 'Trade credit insurance provider.' },
+  ],
+  interest_rate_index: [
+    { rateIndexId: 1, indexCode: 'SOFR',       indexName: 'Secured Overnight Financing Rate',    currencyId: 1, tenor: 'OVERNIGHT', dayCountConvention: 'ACT_360', compounding: 'OVERNIGHT_COMPOUNDED', publicationSource: 'NY Fed',    isRfrr: true,  isActive: true, description: 'US risk-free rate — replaced USD LIBOR.' },
+    { rateIndexId: 2, indexCode: 'SOFR_3M',    indexName: 'SOFR Term 3 Month',                   currencyId: 1, tenor: '3M',        dayCountConvention: 'ACT_360', compounding: 'SIMPLE',                publicationSource: 'CME Group', isRfrr: true,  isActive: true, description: 'Forward-looking term SOFR, 3-month tenor.' },
+    { rateIndexId: 3, indexCode: 'EURIBOR_3M', indexName: 'Euro Interbank Offered Rate 3 Month', currencyId: 3, tenor: '3M',        dayCountConvention: 'ACT_360', compounding: 'SIMPLE',                publicationSource: 'EMMI',      isRfrr: false, isActive: true, description: 'Eurozone interbank offered rate, 3-month tenor.' },
+    { rateIndexId: 4, indexCode: 'SONIA',      indexName: 'Sterling Overnight Index Average',    currencyId: 2, tenor: 'OVERNIGHT', dayCountConvention: 'ACT_365', compounding: 'OVERNIGHT_COMPOUNDED', publicationSource: 'Bank of England', isRfrr: true, isActive: true, description: 'GBP risk-free rate — replaced GBP LIBOR.' },
+  ],
+  regulatory_report_type: [
+    { reportTypeId: 1, reportCode: 'EMIR_TRADE',    reportName: 'EMIR Trade Report',                  regulation: 'EMIR',    jurisdiction: 'EU', submissionTarget: 'Trade Repository', reportingDeadline: 'T+1 business day', reportFormat: 'XML', isMandatory: true, isActive: true, description: 'European Market Infrastructure Regulation trade-level report.' },
+    { reportTypeId: 2, reportCode: 'REMIT_TABLE1',  reportName: 'REMIT Table 1 — Standard Contract',  regulation: 'REMIT',   jurisdiction: 'EU', submissionTarget: 'ACER ARIS',        reportingDeadline: 'T+1 business day', reportFormat: 'XML', isMandatory: true, isActive: true, description: 'Standard wholesale energy contract report under REMIT.' },
+    { reportTypeId: 3, reportCode: 'UK_EMIR_TRADE', reportName: 'UK EMIR Trade Report',               regulation: 'UK_EMIR', jurisdiction: 'GB', submissionTarget: 'UK Trade Repository', reportingDeadline: 'T+1 business day', reportFormat: 'XML', isMandatory: true, isActive: true, description: 'UK post-Brexit EMIR-equivalent trade report.' },
+    { reportTypeId: 4, reportCode: 'CFTC_SWAP',     reportName: 'CFTC Swap Data Report',              regulation: 'CFTC',    jurisdiction: 'US', submissionTarget: 'DTCC SDR',          reportingDeadline: 'T+1 business day', reportFormat: 'XML', isMandatory: true, isActive: true, description: 'US CFTC swap data reporting to a registered swap data repository.' },
+  ],
+  transport_operator: [
+    { operatorId: 1, operatorCode: 'MAERSK-TANKERS', operatorName: 'Maersk Tankers',        operatorType: 'SHIPPING_LINE',  motTypeId: 1, countryCode: 'DK', counterpartyId: null, isActive: true, notes: 'Product/chemical tanker owner-operator.' },
+    { operatorId: 2, operatorCode: 'NORTHWARD-RAIL',  operatorName: 'Northward Rail Freight', operatorType: 'RAIL_OPERATOR', motTypeId: 4, countryCode: 'US', counterpartyId: null, isActive: true, notes: 'Unit-train bulk rail operator for grain and refined products.' },
+    { operatorId: 3, operatorCode: 'RHINE-BARGE',     operatorName: 'Rhine Barge Logistics',  operatorType: 'HAULIER',       motTypeId: 5, countryCode: 'NL', counterpartyId: null, isActive: true, notes: 'Inland waterway barge operator, ARA region.' },
+  ],
+  collateral_type: [
+    { collateralTypeId: 1, typeCode: 'CASH_USD', typeName: 'Cash USD',                    assetClass: 'CASH',             standardHaircutPct: 0.0,  isActive: true, description: 'USD cash collateral.' },
+    { collateralTypeId: 2, typeCode: 'CASH_EUR', typeName: 'Cash EUR',                    assetClass: 'CASH',             standardHaircutPct: 0.0,  isActive: true, description: 'EUR cash collateral.' },
+    { collateralTypeId: 3, typeCode: 'GOV_US',   typeName: 'US Treasury Bonds',           assetClass: 'GOVERNMENT_BOND',  standardHaircutPct: 2.0,  isActive: true, description: 'US Government securities.' },
+    { collateralTypeId: 4, typeCode: 'GOV_UK',   typeName: 'UK Gilts',                    assetClass: 'GOVERNMENT_BOND',  standardHaircutPct: 2.0,  isActive: true, description: 'UK Government securities.' },
+    { collateralTypeId: 5, typeCode: 'CORP_IG',  typeName: 'Investment Grade Corp Bonds', assetClass: 'CORPORATE_BOND',   standardHaircutPct: 10.0, isActive: true, description: 'BBB- or above rated corporate bonds.' },
+    { collateralTypeId: 6, typeCode: 'LC',       typeName: 'Letter of Credit',            assetClass: 'LETTER_OF_CREDIT', standardHaircutPct: 0.0,  isActive: true, description: 'Bank-issued letter of credit.' },
+    { collateralTypeId: 7, typeCode: 'BG',       typeName: 'Bank Guarantee',              assetClass: 'BANK_GUARANTEE',   standardHaircutPct: 0.0,  isActive: true, description: 'Bank-issued guarantee.' },
+  ],
+  event_category: [
+    { categoryId: 1, categoryCode: 'TRADE',       categoryName: 'Trade Lifecycle',      description: 'Events related to trade creation and lifecycle',       isActive: true },
+    { categoryId: 2, categoryCode: 'DELIVERY',    categoryName: 'Delivery & Logistics', description: 'Physical delivery and logistics events',                isActive: true },
+    { categoryId: 3, categoryCode: 'SETTLEMENT',  categoryName: 'Settlement & Payment', description: 'Settlement, invoicing, and payment events',             isActive: true },
+    { categoryId: 4, categoryCode: 'RISK',        categoryName: 'Risk Management',      description: 'Risk limit, VaR, and exposure events',                   isActive: true },
+    { categoryId: 5, categoryCode: 'CREDIT',      categoryName: 'Credit & Collateral',  description: 'Credit limit, margin call, and collateral events',      isActive: true },
+    { categoryId: 6, categoryCode: 'MARKET_DATA', categoryName: 'Market Data',          description: 'Curve loading, fixing, and data quality events',        isActive: true },
+    { categoryId: 7, categoryCode: 'REGULATORY',  categoryName: 'Regulatory',           description: 'Regulatory reporting and compliance events',            isActive: true },
+  ],
+  event_type: [
+    { eventTypeId: 1, categoryId: 1, eventCode: 'TRADE_CREATED',   eventName: 'Trade Created',                   entityType: 'TRADE',  severity: 'INFO',    requiresAction: false, requiresApproval: false, triggersNotification: true,  slaMinutes: null, isReportable: true,  isActive: true, description: null },
+    { eventTypeId: 2, categoryId: 1, eventCode: 'TRADE_AMENDED',   eventName: 'Trade Amended',                   entityType: 'TRADE',  severity: 'INFO',    requiresAction: false, requiresApproval: true,  triggersNotification: true,  slaMinutes: null, isReportable: true,  isActive: true, description: null },
+    { eventTypeId: 3, categoryId: 1, eventCode: 'TRADE_CANCELLED', eventName: 'Trade Cancelled',                 entityType: 'TRADE',  severity: 'WARNING', requiresAction: false, requiresApproval: true,  triggersNotification: true,  slaMinutes: null, isReportable: true,  isActive: true, description: null },
+    { eventTypeId: 4, categoryId: 1, eventCode: 'TRADE_CONFIRMED', eventName: 'Trade Confirmed by Counterparty', entityType: 'TRADE',  severity: 'INFO',    requiresAction: false, requiresApproval: false, triggersNotification: true,  slaMinutes: null, isReportable: false, isActive: true, description: null },
+    { eventTypeId: 5, categoryId: 5, eventCode: 'MARGIN_CALL_ISSUED', eventName: 'Margin Call Issued',           entityType: 'MARGIN', severity: 'ALERT',   requiresAction: true,  requiresApproval: false, triggersNotification: true,  slaMinutes: 1440, isReportable: false, isActive: true, description: 'Raised when exposure crosses the CSA threshold.' },
+    { eventTypeId: 6, categoryId: 4, eventCode: 'CREDIT_LIMIT_BREACH', eventName: 'Credit Limit Breach',         entityType: 'CREDIT', severity: 'BREACH',  requiresAction: true,  requiresApproval: false, triggersNotification: true,  slaMinutes: 60,   isReportable: false, isActive: true, description: 'Utilisation exceeds the credit limit\'s critical threshold.' },
+  ],
+  external_system: [
+    { externalSystemId: 1, systemCode: 'BLOOMBERG', systemName: 'Bloomberg Terminal',    systemType: 'MARKET_DATA', vendorName: 'Bloomberg L.P.',    connectionType: 'API',      baseUrl: null, ownerTeam: 'Market Data', isActive: true, notes: 'Real-time and historical price feed.' },
+    { externalSystemId: 2, systemCode: 'SAP_ERP',   systemName: 'SAP ERP',               systemType: 'ERP',        vendorName: 'SAP SE',            connectionType: 'API',      baseUrl: null, ownerTeam: 'Finance',     isActive: true, notes: 'GL posting and invoicing integration.' },
+    { externalSystemId: 3, systemCode: 'DTCC_GTR',  systemName: 'DTCC Global Trade Repository', systemType: 'REGULATORY', vendorName: 'DTCC',       connectionType: 'SFTP',     baseUrl: null, ownerTeam: 'Compliance',  isActive: true, notes: 'EMIR/Dodd-Frank trade repository submission.' },
+  ],
+  credit_term: [
+    { creditTermId: 1, termCode: 'STANDARD_30',  termName: 'Standard 30-Day Unsecured', creditPeriodDays: 30, collateralType: 'NONE',             marginCallThreshold: null,    marginCallCurrency: 'USD', nettingEligible: false, requiresIsda: false, description: 'Default unsecured credit facility for investment-grade counterparties.', isActive: true },
+    { creditTermId: 2, termCode: 'ISDA_CSA_STD', termName: 'ISDA/CSA Standard Margined', creditPeriodDays: 2,  collateralType: 'CASH',             marginCallThreshold: 250000,  marginCallCurrency: 'USD', nettingEligible: true,  requiresIsda: true,  description: 'Daily-margined facility under an ISDA Master Agreement + CSA.', isActive: true },
+    { creditTermId: 3, termCode: 'LC_BACKED',     termName: 'Letter of Credit Backed',   creditPeriodDays: 0,  collateralType: 'LETTER_OF_CREDIT', marginCallThreshold: null,    marginCallCurrency: 'USD', nettingEligible: false, requiresIsda: false, description: 'Fully secured by a standby or documentary LC — no open credit exposure.', isActive: true },
+    { creditTermId: 4, termCode: 'PARENT_GUAR',   termName: 'Parent Guarantee Backed',   creditPeriodDays: 30, collateralType: 'PARENT_GUARANTEE', marginCallThreshold: null,    marginCallCurrency: 'USD', nettingEligible: false, requiresIsda: false, description: 'Credit period extended on the strength of a parent company guarantee.', isActive: true },
+  ],
+  holiday_calendar: [
+    { calendarId: 1, calendarCode: 'LON',   calendarName: 'London Banking Days' },
+    { calendarId: 2, calendarCode: 'NYC',   calendarName: 'New York Federal Reserve' },
+    { calendarId: 3, calendarCode: 'NYMEX', calendarName: 'NYMEX Exchange Calendar' },
+    { calendarId: 4, calendarCode: 'LME',   calendarName: 'London Metal Exchange' },
+    { calendarId: 5, calendarCode: 'ECB',   calendarName: 'ECB Target Calendar' },
+  ],
+  fx_rate: [
+    { fxRateId: 1, fromCurrencyId: 3, toCurrencyId: 1, rate: 1.0850, rateDate: '2026-07-04', rateType: 'EOD', source: 'ECB' },
+    { fxRateId: 2, fromCurrencyId: 2, toCurrencyId: 1, rate: 1.2650, rateDate: '2026-07-04', rateType: 'EOD', source: 'BLOOMBERG' },
+  ],
+  settlement_calendar: [
+    { scId: 1, productId: 1, calendarId: 2, priority: 1, isActive: true },
+    { scId: 2, productId: 4, calendarId: 5, priority: 1, isActive: true },
+  ],
+  trade_repository: [
+    { repositoryId: 1, repositoryCode: 'DTCC-GTR', repositoryName: 'DTCC Global Trade Repository', regulation: 'EMIR', jurisdiction: 'EU', operatorCpId: null, submissionUrl: null, submissionFormat: 'XML', isActive: true, notes: null },
+    { repositoryId: 2, repositoryCode: 'REGIS-TR', repositoryName: 'REGIS-TR', regulation: 'EMIR', jurisdiction: 'EU', operatorCpId: null, submissionUrl: null, submissionFormat: 'XML', isActive: true, notes: null },
+    { repositoryId: 3, repositoryCode: 'ICE-TVEL', repositoryName: 'ICE Trade Vault Europe', regulation: 'UK_EMIR', jurisdiction: 'GB', operatorCpId: null, submissionUrl: null, submissionFormat: 'REST', isActive: true, notes: null },
   ],
   // V17 parent lookup tables — rows come from the simple list above
   ...Object.fromEntries(PARENT_LOOKUP_TABLES.map((t) => [t.name, t.rows])),

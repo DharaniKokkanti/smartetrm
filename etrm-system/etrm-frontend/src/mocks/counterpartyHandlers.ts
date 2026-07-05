@@ -26,7 +26,12 @@ import type {
   TaxRegistration,
 } from '@features/tier1/counterparty/types';
 
-const cpStore: Counterparty[] = [...counterpartySeed];
+// Exported (matching legalEntityStore's convention in handlers.ts) so other
+// mock handler files can denormalize against the real, live counterparty
+// list instead of duplicating/staling it — see the CRITICAL note on the two
+// legal-entity mock stores; the same real-vs-shadow distinction applies here
+// against this file's counterpartiesRef shadow array in etrmHandlers.ts.
+export const cpStore: Counterparty[] = [...counterpartySeed];
 const contactPool: Contact[] = [...contactPoolSeed];
 const contactAssignments: ContactAssignment[] = [...contactAssignmentSeed];
 const bankAccountStore: BankAccount[] = [...bankAccountSeed];

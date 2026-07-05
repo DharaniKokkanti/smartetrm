@@ -566,6 +566,39 @@ function EnvironmentalSection() {
 }
 
 // ─── Price adjustments (physical legs) ───────────────────────────────────────
+/** A product's published grade differential schedule (dbo.commodity_grade_standard,
+ *  V67/V69) — scoped per product/contract, since real exchange schedules are
+ *  contract-specific (CBOT Corn's differs from CBOT Wheat's, even though both
+ *  are grains). Picking a grade here auto-adds a price adjustment row instead
+ *  of the trader having to know/type the published differential by hand. */
+function GradeDeliveredSelect({ onPick }: { onPick: (grade: Record<string, unknown>) => void }) {
+  const productId = Form.useWatch('productId') as number | undefined;
+  const { data: gradeRows = [] } = useTableRows('commodity_grade_standard');
+  const grades = (gradeRows as Record<string, unknown>[]).filter(
+    (g) => g.productId === productId && g.isActive,
+  );
+  if (!productId || grades.length === 0) return null;
+  return (
+    <div style={{ marginBottom: 8 }}>
+      <Select
+        placeholder="Grade delivered — auto-fill adjustment"
+        style={{ width: 320 }}
+        size="small"
+        showSearch
+        optionFilterProp="label"
+        options={grades.map((g) => ({
+          value: g.gradeStandardId as number,
+          label: `${g.gradeName as string}${g.isParGrade ? ' (par)' : ` (${(g.priceAdjustmentPerUom as number) >= 0 ? '+' : ''}${g.priceAdjustmentPerUom}/${g.adjustmentUomCode as string})`}`,
+        }))}
+        onChange={(id) => {
+          const g = grades.find((x) => x.gradeStandardId === id);
+          if (g) onPick(g);
+        }}
+      />
+    </div>
+  );
+}
+
 function PriceAdjustmentsSection({ currencyOpts, uomOpts }: { currencyOpts: SelectOpt[]; uomOpts: SelectOpt[] }) {
   return (
     <>
@@ -573,8 +606,22 @@ function PriceAdjustmentsSection({ currencyOpts, uomOpts }: { currencyOpts: Sele
       <Form.List name="priceAdjustments">
         {(fields, { add, remove }) => (
           <>
+            <GradeDeliveredSelect
+              onPick={(g) => {
+                const value = g.priceAdjustmentPerUom as number;
+                add({
+                  adjustmentType: value >= 0 ? 'QUALITY_PREMIUM' : 'QUALITY_DISCOUNT',
+                  adjustmentValue: value,
+                  adjustmentCurrency: g.adjustmentCurrencyCode ?? 'USD',
+                  adjustmentUomCode: g.adjustmentUomCode ?? null,
+                  gradeStandardId: g.gradeStandardId,
+                  notes: `Grade delivered: ${g.gradeName as string} (${g.issuingBody as string})`,
+                });
+              }}
+            />
             {fields.map(({ key, name }) => (
               <Row gutter={8} key={key} style={{ marginBottom: 6 }} align="middle">
+                <Form.Item name={[name, 'gradeStandardId']} hidden><Input /></Form.Item>
                 <Col span={5}>
                   <Form.Item name={[name, 'adjustmentType']} rules={[{ required: true, message: 'Type required' }]} style={{ marginBottom: 0 }}>
                     <Select
@@ -615,7 +662,7 @@ function PriceAdjustmentsSection({ currencyOpts, uomOpts }: { currencyOpts: Sele
               </Row>
             ))}
             <Button
-              type="dashed" onClick={() => add({ adjustmentType: null, adjustmentValue: null, adjustmentCurrency: 'USD', adjustmentUomCode: null, notes: null })}
+              type="dashed" onClick={() => add({ adjustmentType: null, adjustmentValue: null, adjustmentCurrency: 'USD', adjustmentUomCode: null, gradeStandardId: null, notes: null })}
               icon={<PlusOutlined />} size="small" style={{ marginTop: 4 }}
             >
               Add Adjustment

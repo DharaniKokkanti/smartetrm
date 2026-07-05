@@ -213,8 +213,12 @@ export function MarginAgreementsPage() {
           {sec('Threshold Amounts')}
           <Row gutter={8}>
             <Col span={14}>
-              <Form.Item name="thresholdAmount" label={hint('Our Threshold', 'If MTM exposure > this amount, counterparty must post collateral to us.')} rules={[{ required: true }]}>
-                <InputNumber style={{ width: '100%' }} placeholder="0" formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} parser={(v) => v?.replace(/,/g, '') as unknown as number} />
+              <Form.Item
+                name="thresholdAmount"
+                label={hint('Our Threshold', 'If MTM exposure > this amount, counterparty must post collateral to us.')}
+                rules={[{ required: true }, { type: 'number', min: 0, message: 'Must be 0 or more' }]}
+              >
+                <InputNumber style={{ width: '100%' }} placeholder="0" min={0 as number} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} parser={(v) => v?.replace(/,/g, '') as unknown as number} />
               </Form.Item>
             </Col>
             <Col span={10}>
@@ -225,8 +229,12 @@ export function MarginAgreementsPage() {
           </Row>
           <Row gutter={8}>
             <Col span={14}>
-              <Form.Item name="cpThresholdAmount" label={hint('CP Threshold', 'If MTM exposure < −this amount, we must post collateral to counterparty.')} rules={[{ required: true }]}>
-                <InputNumber style={{ width: '100%' }} placeholder="0" formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} parser={(v) => v?.replace(/,/g, '') as unknown as number} />
+              <Form.Item
+                name="cpThresholdAmount"
+                label={hint('CP Threshold', 'If MTM exposure < −this amount, we must post collateral to counterparty.')}
+                rules={[{ required: true }, { type: 'number', min: 0, message: 'Must be 0 or more' }]}
+              >
+                <InputNumber style={{ width: '100%' }} placeholder="0" min={0 as number} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} parser={(v) => v?.replace(/,/g, '') as unknown as number} />
               </Form.Item>
             </Col>
             <Col span={10}>
@@ -239,8 +247,12 @@ export function MarginAgreementsPage() {
           {sec('Transfer Rules')}
           <Row gutter={8}>
             <Col span={14}>
-              <Form.Item name="mtaAmount" label={hint('MTA — Minimum Transfer Amount', 'Collateral call only triggered if call amount > MTA. Prevents small / frequent calls.')} rules={[{ required: true }]}>
-                <InputNumber style={{ width: '100%' }} placeholder="100000" formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} parser={(v) => v?.replace(/,/g, '') as unknown as number} />
+              <Form.Item
+                name="mtaAmount"
+                label={hint('MTA — Minimum Transfer Amount', 'Collateral call only triggered if call amount > MTA. Prevents small / frequent calls.')}
+                rules={[{ required: true }, { type: 'number', min: 0, message: 'Must be 0 or more' }]}
+              >
+                <InputNumber style={{ width: '100%' }} placeholder="100000" min={0 as number} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} parser={(v) => v?.replace(/,/g, '') as unknown as number} />
               </Form.Item>
             </Col>
             <Col span={10}>
@@ -251,8 +263,12 @@ export function MarginAgreementsPage() {
           </Row>
           <Row gutter={8}>
             <Col span={14}>
-              <Form.Item name="roundingAmount" label={hint('Rounding Amount', 'Call amount is rounded to nearest multiple of this value — typically USD 1,000.')}>
-                <InputNumber style={{ width: '100%' }} placeholder="1000" />
+              <Form.Item
+                name="roundingAmount"
+                label={hint('Rounding Amount', 'Call amount is rounded to nearest multiple of this value — typically USD 1,000.')}
+                rules={[{ type: 'number', min: 0, message: 'Must be 0 or more' }]}
+              >
+                <InputNumber style={{ width: '100%' }} placeholder="1000" min={0} />
               </Form.Item>
             </Col>
             <Col span={10}>
@@ -265,8 +281,12 @@ export function MarginAgreementsPage() {
           {sec('Independent Amount (Initial Margin)')}
           <Row gutter={8}>
             <Col span={14}>
-              <Form.Item name="independentAmount" label={hint('Independent Amount', 'Upfront margin posted regardless of MTM. Used for riskier counterparties.')}>
-                <InputNumber style={{ width: '100%' }} placeholder="0 (none)" formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} parser={(v) => v?.replace(/,/g, '') as unknown as number} />
+              <Form.Item
+                name="independentAmount"
+                label={hint('Independent Amount', 'Upfront margin posted regardless of MTM. Used for riskier counterparties.')}
+                rules={[{ type: 'number', min: 0, message: 'Must be 0 or more' }]}
+              >
+                <InputNumber style={{ width: '100%' }} placeholder="0 (none)" min={0 as number} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} parser={(v) => v?.replace(/,/g, '') as unknown as number} />
               </Form.Item>
             </Col>
             <Col span={10}>
@@ -287,7 +307,24 @@ export function MarginAgreementsPage() {
           {sec('Dates & Status')}
           <Row gutter={16}>
             <Col span={10}><Form.Item name="effectiveDate" label="Effective Date" rules={[{ required: true }]}><AppDatePicker /></Form.Item></Col>
-            <Col span={10}><Form.Item name="expiryDate" label={hint('Expiry Date', 'Leave blank for perpetual / no fixed term.')}><AppDatePicker placeholder="Perpetual" /></Form.Item></Col>
+            <Col span={10}>
+              <Form.Item
+                name="expiryDate"
+                label={hint('Expiry Date', 'Leave blank for perpetual / no fixed term.')}
+                dependencies={['effectiveDate']}
+                rules={[
+                  ({ getFieldValue }) => ({
+                    validator(_, value) {
+                      const eff = getFieldValue('effectiveDate');
+                      if (!value || !eff || !value.isBefore(eff)) return Promise.resolve();
+                      return Promise.reject(new Error('Expiry date must be on or after the effective date'));
+                    },
+                  }),
+                ]}
+              >
+                <AppDatePicker placeholder="Perpetual" />
+              </Form.Item>
+            </Col>
           </Row>
           <Form.Item name="notes" label="Notes">
             <Input.TextArea rows={2} placeholder="Any additional terms or internal notes..." />

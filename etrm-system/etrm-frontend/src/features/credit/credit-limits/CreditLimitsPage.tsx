@@ -315,8 +315,8 @@ export function CreditLimitsPage() {
           {sec('Limit & Collateral')}
           <Row gutter={12}>
             <Col span={10}>
-              <Form.Item name="limitAmount" label="Limit Amount" rules={[{ required: true }]}>
-                <InputNumber<number> style={{ width: '100%' }} placeholder="50,000,000" {...numFmt} />
+              <Form.Item name="limitAmount" label="Limit Amount" rules={[{ required: true }, { type: 'number', min: 0, message: 'Must be 0 or more' }]}>
+                <InputNumber<number> style={{ width: '100%' }} placeholder="50,000,000" min={0} {...numFmt} />
               </Form.Item>
             </Col>
             <Col span={6}>
@@ -325,15 +325,23 @@ export function CreditLimitsPage() {
               </Form.Item>
             </Col>
             <Col span={8}>
-              <Form.Item name="usedAmount" label={hint('Used', 'Current utilisation — auto-updated by the exposure engine; 0 for new limits.')}>
-                <InputNumber<number> style={{ width: '100%' }} placeholder="0" {...numFmt} />
+              <Form.Item
+                name="usedAmount"
+                label={hint('Used', 'Current utilisation — auto-updated by the exposure engine; 0 for new limits.')}
+                rules={[{ type: 'number', min: 0, message: 'Must be 0 or more' }]}
+              >
+                <InputNumber<number> style={{ width: '100%' }} placeholder="0" min={0} {...numFmt} />
               </Form.Item>
             </Col>
           </Row>
           <Row gutter={12}>
             <Col span={10}>
-              <Form.Item name="collateralOffset" label={hint('Collateral Offset', 'Value of LCs / parent guarantees held — increases effective capacity.')}>
-                <InputNumber<number> style={{ width: '100%' }} placeholder="0" {...numFmt} />
+              <Form.Item
+                name="collateralOffset"
+                label={hint('Collateral Offset', 'Value of LCs / parent guarantees held — increases effective capacity.')}
+                rules={[{ type: 'number', min: 0, message: 'Must be 0 or more' }]}
+              >
+                <InputNumber<number> style={{ width: '100%' }} placeholder="0" min={0} {...numFmt} />
               </Form.Item>
             </Col>
             <Col span={14}>
@@ -344,8 +352,12 @@ export function CreditLimitsPage() {
           </Row>
           <Row gutter={12}>
             <Col span={10}>
-              <Form.Item name="tempUpliftAmount" label={hint('Temp Uplift', 'Temporary increase on top of the limit — e.g. for a seasonal cargo programme. Falls away at expiry.')}>
-                <InputNumber<number> style={{ width: '100%' }} placeholder="—" {...numFmt} />
+              <Form.Item
+                name="tempUpliftAmount"
+                label={hint('Temp Uplift', 'Temporary increase on top of the limit — e.g. for a seasonal cargo programme. Falls away at expiry.')}
+                rules={[{ type: 'number', min: 0, message: 'Must be 0 or more' }]}
+              >
+                <InputNumber<number> style={{ width: '100%' }} placeholder="—" min={0} {...numFmt} />
               </Form.Item>
             </Col>
             <Col span={8}>
@@ -363,7 +375,24 @@ export function CreditLimitsPage() {
           {sec('Validity')}
           <Row gutter={12}>
             <Col span={10}><Form.Item name="effectiveDate" label="Effective Date" rules={[{ required: true }]}><AppDatePicker /></Form.Item></Col>
-            <Col span={10}><Form.Item name="expiryDate" label={hint('Expiry Date', 'Leave blank for evergreen / no fixed term.')}><AppDatePicker /></Form.Item></Col>
+            <Col span={10}>
+              <Form.Item
+                name="expiryDate"
+                label={hint('Expiry Date', 'Leave blank for evergreen / no fixed term.')}
+                dependencies={['effectiveDate']}
+                rules={[
+                  ({ getFieldValue }) => ({
+                    validator(_, value) {
+                      const eff = getFieldValue('effectiveDate');
+                      if (!value || !eff || !value.isBefore(eff)) return Promise.resolve();
+                      return Promise.reject(new Error('Expiry date must be on or after the effective date'));
+                    },
+                  }),
+                ]}
+              >
+                <AppDatePicker />
+              </Form.Item>
+            </Col>
           </Row>
 
           </Col>
@@ -494,13 +523,17 @@ export function CreditLimitsPage() {
                       </Form.Item>
                     </Col>
                     <Col span={5}>
-                      <Form.Item name={[name, 'subLimitAmount']} rules={[{ required: true, message: 'Amount required' }]} style={{ marginBottom: 0 }}>
-                        <InputNumber<number> placeholder="Sub-limit" style={{ width: '100%' }} {...numFmt} />
+                      <Form.Item
+                        name={[name, 'subLimitAmount']}
+                        rules={[{ required: true, message: 'Amount required' }, { type: 'number', min: 0, message: 'Must be 0 or more' }]}
+                        style={{ marginBottom: 0 }}
+                      >
+                        <InputNumber<number> placeholder="Sub-limit" style={{ width: '100%' }} min={0} {...numFmt} />
                       </Form.Item>
                     </Col>
                     <Col span={4}>
-                      <Form.Item name={[name, 'usedAmount']} style={{ marginBottom: 0 }}>
-                        <InputNumber<number> placeholder="Used" style={{ width: '100%' }} {...numFmt} />
+                      <Form.Item name={[name, 'usedAmount']} rules={[{ type: 'number', min: 0, message: 'Must be 0 or more' }]} style={{ marginBottom: 0 }}>
+                        <InputNumber<number> placeholder="Used" style={{ width: '100%' }} min={0} {...numFmt} />
                       </Form.Item>
                     </Col>
                     <Col span={3}>

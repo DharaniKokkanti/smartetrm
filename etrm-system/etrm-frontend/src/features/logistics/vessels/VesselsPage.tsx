@@ -134,8 +134,13 @@ export function VesselsPage() {
           )}
           {watchedVesselType === 'LNG_CARRIER' && (
             <Space style={{ width: '100%', gap: 12 }}>
-              <Form.Item name="guaranteedBoilOffRatePctPerDay" label={hint('Guaranteed Boil-Off Rate (%/day)', 'Contractually guaranteed maximum daily boil-off rate — typically around 0.10-0.15%/day for modern LNG carriers. Drives BOG allowance in the charter party.', '0.10')} style={{ flex: 1 }}>
-                <InputNumber style={{ width: '100%' }} step={0.01} placeholder="0.10" />
+              <Form.Item
+                name="guaranteedBoilOffRatePctPerDay"
+                label={hint('Guaranteed Boil-Off Rate (%/day)', 'Contractually guaranteed maximum daily boil-off rate — typically around 0.10-0.15%/day for modern LNG carriers. Drives BOG allowance in the charter party.', '0.10')}
+                style={{ flex: 1 }}
+                rules={[{ type: 'number', min: 0, max: 5, message: 'Must be between 0 and 5%/day' }]}
+              >
+                <InputNumber style={{ width: '100%' }} step={0.01} min={0} max={5} placeholder="0.10" />
               </Form.Item>
               <Form.Item name="heelCapacityCbm" label={hint('Heel Capacity (CBM)', 'Minimum LNG volume retained on board between voyages to keep cargo tanks cold and avoid a full re-cooldown before the next loading.', '3000')} style={{ flex: 1 }}>
                 <InputNumber style={{ width: '100%' }} placeholder="3000" />

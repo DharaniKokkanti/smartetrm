@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { App as AntApp } from 'antd';
 import {
   fetchModules, fetchFunctions,
   fetchRoles, fetchRole, createRole, updateRole,
@@ -6,6 +7,7 @@ import {
   fetchAllAssignments, assignRole, approveAssignment, rejectAssignment, revokeAssignment,
 } from './api';
 import type { UserRoleInput } from './types';
+import type { ProblemDetail } from '@services/api';
 
 // ── Static reference ──────────────────────────────────────────────────────────
 export function useModules() {
@@ -33,41 +35,51 @@ function rolesKey() { return { queryKey: ['roles'] }; }
 
 export function useCreateRole() {
   const qc = useQueryClient();
+  const { message } = AntApp.useApp();
   return useMutation({
     mutationFn: (input: UserRoleInput) => createRole(input),
     onSuccess: () => qc.invalidateQueries(rolesKey()),
+    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Create role failed.'),
   });
 }
 
 export function useUpdateRole() {
   const qc = useQueryClient();
+  const { message } = AntApp.useApp();
   return useMutation({
     mutationFn: ({ id, input }: { id: number; input: UserRoleInput }) => updateRole(id, input),
     onSuccess: () => qc.invalidateQueries(rolesKey()),
+    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Update role failed.'),
   });
 }
 
 export function useSubmitRole() {
   const qc = useQueryClient();
+  const { message } = AntApp.useApp();
   return useMutation({
     mutationFn: (id: number) => submitRole(id),
     onSuccess: () => qc.invalidateQueries(rolesKey()),
+    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Submit failed.'),
   });
 }
 
 export function useApproveRole() {
   const qc = useQueryClient();
+  const { message } = AntApp.useApp();
   return useMutation({
     mutationFn: (id: number) => approveRole(id),
     onSuccess: () => qc.invalidateQueries(rolesKey()),
+    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Approve failed.'),
   });
 }
 
 export function useRejectRole() {
   const qc = useQueryClient();
+  const { message } = AntApp.useApp();
   return useMutation({
     mutationFn: ({ id, reason }: { id: number; reason: string }) => rejectRole(id, reason),
     onSuccess: () => qc.invalidateQueries(rolesKey()),
+    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Reject failed.'),
   });
 }
 
@@ -78,34 +90,42 @@ export function useAssignments() {
 
 export function useAssignRole() {
   const qc = useQueryClient();
+  const { message } = AntApp.useApp();
   return useMutation({
     mutationFn: ({ userId, roleId }: { userId: number; roleId: number }) => assignRole(userId, roleId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['role-assignments'] }),
+    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Assign role failed.'),
   });
 }
 
 export function useApproveAssignment() {
   const qc = useQueryClient();
+  const { message } = AntApp.useApp();
   return useMutation({
     mutationFn: (assignmentId: number) => approveAssignment(assignmentId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['role-assignments'] }),
+    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Approve failed.'),
   });
 }
 
 export function useRejectAssignment() {
   const qc = useQueryClient();
+  const { message } = AntApp.useApp();
   return useMutation({
     mutationFn: ({ assignmentId, reason }: { assignmentId: number; reason: string }) =>
       rejectAssignment(assignmentId, reason),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['role-assignments'] }),
+    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Reject failed.'),
   });
 }
 
 export function useRevokeAssignment() {
   const qc = useQueryClient();
+  const { message } = AntApp.useApp();
   return useMutation({
     mutationFn: ({ userId, assignmentId }: { userId: number; assignmentId: number }) =>
       revokeAssignment(userId, assignmentId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['role-assignments'] }),
+    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Revoke failed.'),
   });
 }

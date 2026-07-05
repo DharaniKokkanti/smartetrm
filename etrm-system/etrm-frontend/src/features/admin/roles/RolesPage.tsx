@@ -16,8 +16,9 @@ import {
 } from './hooks';
 import { useDraftState, useDraftValues } from '@components/smart/formDraft';
 import { hint } from '@components/smart/FieldHint';
+import { PageHeader } from '@components/layout/PageHeader';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 // ── Status helpers ────────────────────────────────────────────────────────────
 const STATUS_COLOR: Record<RoleStatus, string> = {
@@ -257,7 +258,7 @@ export function RolesPage() {
   const { data: roles = [], isLoading: rolesLoading } = useRoles();
   const { data: modules = [] } = useModules();
   const { data: functions = [] } = useFunctions();
-  const { data: assignments = [] } = useAssignments();
+  const { data: assignments = [], isLoading: assignmentsLoading } = useAssignments();
 
   const submitRole = useSubmitRole();
   const approveRole = useApproveRole();
@@ -407,17 +408,16 @@ export function RolesPage() {
 
   return (
     <div style={{ maxWidth: 1100 }}>
-      <Row align="middle" style={{ marginBottom: 20 }}>
-        <Col flex={1}>
-          <Title level={4} style={{ margin: 0 }}>Role Management</Title>
-          <Text type="secondary">Define custom roles, configure function permissions, and manage user role assignments.</Text>
-        </Col>
-        <Col>
+      <PageHeader
+        title="Role Management"
+        description="Define custom roles, configure function permissions, and manage user role assignments."
+        moduleGroup="admin"
+        extra={
           <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
             Create Role
           </Button>
-        </Col>
-      </Row>
+        }
+      />
 
       {(pendingRoles.length > 0 || pendingAssignments.length > 0) && (
         <Alert
@@ -466,6 +466,7 @@ export function RolesPage() {
                 columns={assignmentColumns}
                 dataSource={assignments}
                 rowKey="assignmentId"
+                loading={assignmentsLoading}
                 size="small"
                 pagination={{ pageSize: 15, showSizeChanger: false }}
               />

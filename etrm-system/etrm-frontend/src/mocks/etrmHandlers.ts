@@ -6,6 +6,8 @@
  */
 import { http, HttpResponse } from 'msw';
 import { legalEntityStore } from './handlers';
+import { cpStore } from './counterpartyHandlers';
+import { rowSeed as referenceRowSeed } from './referenceData';
 
 const API = '/api/v1';
 function problem(status: number, title: string, detail: string) {
@@ -439,6 +441,213 @@ const brokerFeeAgreementsStore: unknown[] = [
   { agreementId: 6, brokerId: 6, brokerCode: 'TULLETT',   brokerName: 'Tullett Prebon',               agreementCode: 'TULLETT-METALS-2026', description: 'Tullett Prebon metals brokerage. LME copper, aluminium, zinc, nickel. Cash and 3-month contracts.',                  commodityType: 'METALS', productId: null, productName: null, tradeType: null,       feeType: 'PER_LOT',       feeRate: 1.000000, feeCurrencyCode: 'USD', uomCode: 'MT',    payPeriod: 'MONTHLY',   paymentDueDays: 30, minimumFee: 2000.00, maximumFee: null,     effectiveFrom: '2026-01-01', effectiveTo: null, isActive: true, createdAt: '2026-01-01T00:00:00Z' },
   { agreementId: 7, brokerId: 1, brokerCode: 'ICAP',      brokerName: 'ICAP Energy',                  agreementCode: 'ICAP-OIL-FIN-2026',   description: 'ICAP Energy financial OTC rate. Applies to Brent and WTI OTC swap and CFD trades only. Higher rate than physical.',  commodityType: 'OIL',    productId: null, productName: null, tradeType: 'FINANCIAL', feeType: 'PCT_NOTIONAL',  feeRate: 0.000400, feeCurrencyCode: 'USD', uomCode: null,   payPeriod: 'MONTHLY',   paymentDueDays: 30, minimumFee: null,    maximumFee: null,     effectiveFrom: '2026-01-01', effectiveTo: null, isActive: true, createdAt: '2026-01-01T00:00:00Z' },
   { agreementId: 8, brokerId: 7, brokerCode: 'SPARK',     brokerName: 'Spark Commodities',            agreementCode: 'SPARK-LNG-2026',      description: 'Spark Commodities electronic LNG platform. JKM spot, FOB Atlantic, DES regas. Pure electronic.',                      commodityType: 'LNG',    productId: null, productName: null, tradeType: null,       feeType: 'PER_LOT',       feeRate: 0.010000, feeCurrencyCode: 'USD', uomCode: 'MMBTU', payPeriod: 'MONTHLY',   paymentDueDays: 30, minimumFee: null,    maximumFee: 5000.00, effectiveFrom: '2026-01-01', effectiveTo: null, isActive: true, createdAt: '2026-01-01T00:00:00Z' },
+];
+
+// ─── COUNTERPARTIES — NETTING AGREEMENTS ─────────────────────────────────────
+function computeNettingAgreement(input: Record<string, unknown>): Record<string, unknown> {
+  const le = (legalEntityStore as unknown as Array<Record<string, unknown>>).find((e) => e['legalEntityId'] === input['legalEntityId']);
+  const cp = (cpStore as unknown as Array<Record<string, unknown>>).find((c) => c['counterpartyId'] === input['counterpartyId']);
+  return { ...input, legalEntityName: le?.['entityName'] ?? null, counterpartyName: cp?.['legalName'] ?? null };
+}
+const nettingAgreementsStore: unknown[] = [
+  { nettingId: 1, legalEntityId: 1, legalEntityName: 'Acme Trading UK Limited', counterpartyId: 1, counterpartyName: 'Shell Trading International Ltd', agreementType: 'ISDA_2002', agreementRef: 'ISDA-ACMEUK-SHELLTR-2024', effectiveDate: '2024-01-15', terminationDate: null, isActive: true, notes: '2002 ISDA Master Agreement with 2013 CSA — see margin agreement CSA-SHELL-2024.', createdAt: '2024-01-15T00:00:00Z' },
+  { nettingId: 2, legalEntityId: 1, legalEntityName: 'Acme Trading UK Limited', counterpartyId: 2, counterpartyName: 'Glencore International AG', agreementType: 'EFET', agreementRef: 'EFET-ACMEUK-GLEN-2023', effectiveDate: '2023-09-01', terminationDate: null, isActive: true, notes: 'EFET General Agreement — European gas/power physical and financial delivery.', createdAt: '2023-09-01T00:00:00Z' },
+];
+
+// ─── COUNTERPARTIES — CP COMMERCIAL TERMS ────────────────────────────────────
+function computeCpCommercialTerms(input: Record<string, unknown>): Record<string, unknown> {
+  const le = (legalEntityStore as unknown as Array<Record<string, unknown>>).find((e) => e['legalEntityId'] === input['legalEntityId']);
+  const cp = (cpStore as unknown as Array<Record<string, unknown>>).find((c) => c['counterpartyId'] === input['counterpartyId']);
+  const pt = (paymentTermsStore as Array<Record<string, unknown>>).find((t) => t['paymentTermId'] === input['paymentTermId']);
+  const ct = (referenceRowSeed.credit_term as unknown as Array<Record<string, unknown>>).find((t) => t['creditTermId'] === input['creditTermId']);
+  return {
+    ...input,
+    legalEntityName: le?.['entityName'] ?? null,
+    counterpartyName: cp?.['legalName'] ?? null,
+    paymentTermName: pt?.['termName'] ?? null,
+    creditTermName: ct?.['termName'] ?? null,
+  };
+}
+const cpCommercialTermsStore: unknown[] = [
+  { cpTermsId: 1, counterpartyId: 1, counterpartyName: 'Shell Trading International Ltd', legalEntityId: 1, legalEntityName: 'Acme Trading UK Limited', paymentTermId: 1, paymentTermName: 'Net 30 Calendar Days', creditTermId: 2, creditTermName: 'ISDA/CSA Standard Margined', defaultCurrencyId: 1, defaultIncotermId: null, commodityType: null, effectiveDate: '2024-01-15', expiryDate: null, isActive: true, notes: null, createdAt: '2024-01-15T00:00:00Z', updatedAt: '2024-01-15T00:00:00Z' },
+  { cpTermsId: 2, counterpartyId: 2, counterpartyName: 'Glencore International AG', legalEntityId: 1, legalEntityName: 'Acme Trading UK Limited', paymentTermId: 1, paymentTermName: 'Net 30 Calendar Days', creditTermId: 1, creditTermName: 'Standard 30-Day Unsecured', defaultCurrencyId: 1, defaultIncotermId: null, commodityType: 'METALS', effectiveDate: '2023-09-01', expiryDate: null, isActive: true, notes: 'Metals-specific terms — separate from any other commodity terms with the same counterparty.', createdAt: '2023-09-01T00:00:00Z', updatedAt: '2023-09-01T00:00:00Z' },
+];
+
+// ─── COUNTERPARTIES — CP GTC AGREEMENTS ──────────────────────────────────────
+function computeCpGtcAgreement(input: Record<string, unknown>): Record<string, unknown> {
+  const le = (legalEntityStore as unknown as Array<Record<string, unknown>>).find((e) => e['legalEntityId'] === input['legalEntityId']);
+  const cp = (cpStore as unknown as Array<Record<string, unknown>>).find((c) => c['counterpartyId'] === input['counterpartyId']);
+  const gtc = (gtcsStore as Array<Record<string, unknown>>).find((g) => g['gtcId'] === input['gtcId']);
+  return {
+    ...input,
+    legalEntityName: le?.['entityName'] ?? null,
+    counterpartyName: cp?.['legalName'] ?? null,
+    gtcName: gtc?.['gtcName'] ?? null,
+    gtcVersion: gtc?.['version'] ?? null,
+  };
+}
+const cpGtcAgreementsStore: unknown[] = [
+  { cpGtcId: 1, counterpartyId: 1, counterpartyName: 'Shell Trading International Ltd', legalEntityId: 1, legalEntityName: 'Acme Trading UK Limited', gtcId: 1, gtcName: 'BP Standard Crude Oil GTCs 2020', gtcVersion: '2020-v3', signedDate: '2024-01-10', effectiveDate: '2024-01-15', expiryDate: null, isActive: true, notes: null, createdAt: '2024-01-10T00:00:00Z' },
+  { cpGtcId: 2, counterpartyId: 2, counterpartyName: 'Glencore International AG', legalEntityId: 1, legalEntityName: 'Acme Trading UK Limited', gtcId: 3, gtcName: 'LME Contract Rules & Regulations 2021', gtcVersion: '2021-v1', signedDate: '2023-08-20', effectiveDate: '2023-09-01', expiryDate: null, isActive: true, notes: null, createdAt: '2023-08-20T00:00:00Z' },
+];
+
+// ─── CREDIT — BANK GUARANTEES ─────────────────────────────────────────────────
+function computeBankGuarantee(input: Record<string, unknown>): Record<string, unknown> {
+  const bank = (cpStore as unknown as Array<Record<string, unknown>>).find((c) => c['counterpartyId'] === input['issuingBankId']);
+  const principal = (legalEntityStore as unknown as Array<Record<string, unknown>>).find((e) => e['legalEntityId'] === input['principalEntityId']);
+  const beneficiary = (cpStore as unknown as Array<Record<string, unknown>>).find((c) => c['counterpartyId'] === input['beneficiaryCpId']);
+  const ccy = (referenceRowSeed.currency as unknown as Array<Record<string, unknown>>).find((c) => c['currencyId'] === input['currencyId']);
+  return {
+    ...input,
+    issuingBankName: bank?.['legalName'] ?? null,
+    principalEntityName: principal?.['entityName'] ?? null,
+    beneficiaryCpName: beneficiary?.['legalName'] ?? null,
+    currencyCode: ccy?.['currencyCode'] ?? null,
+  };
+}
+const bankGuaranteesStore: unknown[] = [
+  { bgId: 1, bgNumber: 'BG-2024-0012', bgType: 'PERFORMANCE', issuingBankId: 1, issuingBankName: 'Shell Trading International Ltd', principalEntityId: 1, principalEntityName: 'Acme Trading UK Limited', beneficiaryCpId: 2, beneficiaryCpName: 'Glencore International AG', currencyId: 1, currencyCode: 'USD', guaranteeAmount: 5000000, issueDate: '2024-06-01', expiryDate: '2027-06-01', claimPeriodDays: 30, bgStatus: 'ISSUED', amountCalled: 0, notes: 'Performance guarantee for annual supply contract.', createdAt: '2024-06-01T00:00:00Z', updatedAt: '2024-06-01T00:00:00Z' },
+];
+
+// ─── CREDIT — INSURANCE POLICIES ─────────────────────────────────────────────
+function computeInsurancePolicy(input: Record<string, unknown>): Record<string, unknown> {
+  const provider = (referenceRowSeed.insurance_provider as unknown as Array<Record<string, unknown>>).find((p) => p['providerId'] === input['providerId']);
+  const le = (legalEntityStore as unknown as Array<Record<string, unknown>>).find((e) => e['legalEntityId'] === input['legalEntityId']);
+  const ccy = (referenceRowSeed.currency as unknown as Array<Record<string, unknown>>).find((c) => c['currencyId'] === input['currencyId']);
+  return {
+    ...input,
+    providerName: provider?.['providerName'] ?? null,
+    legalEntityName: le?.['entityName'] ?? null,
+    currencyCode: ccy?.['currencyCode'] ?? null,
+  };
+}
+const insurancePoliciesStore: unknown[] = [
+  { policyId: 1, providerId: 1, providerName: "Lloyd's of London (Syndicate 2623)", legalEntityId: 1, legalEntityName: 'Acme Trading UK Limited', policyNumber: 'LLD-2026-CARGO-001', policyType: 'CARGO', insuredEntityType: null, insuredEntityId: null, currencyId: 1, currencyCode: 'USD', sumInsured: 50000000, deductible: 100000, premiumAmount: 125000, premiumCurrencyId: 1, premiumFrequency: 'ANNUAL', inceptionDate: '2026-01-01', expiryDate: '2026-12-31', policyStatus: 'ACTIVE', notes: 'Blanket cargo cover for physical crude/product cargoes.', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
+];
+
+// ─── CREDIT — MARGIN ACCOUNTS ─────────────────────────────────────────────────
+function computeMarginAccount(input: Record<string, unknown>): Record<string, unknown> {
+  const le = (legalEntityStore as unknown as Array<Record<string, unknown>>).find((e) => e['legalEntityId'] === input['legalEntityId']);
+  const market = (marketsStore as Array<Record<string, unknown>>).find((m) => m['marketId'] === input['marketId']);
+  const broker = (cpStore as unknown as Array<Record<string, unknown>>).find((c) => c['counterpartyId'] === input['clearingBrokerId']);
+  const ccy = (referenceRowSeed.currency as unknown as Array<Record<string, unknown>>).find((c) => c['currencyId'] === input['currencyId']);
+  return {
+    ...input,
+    legalEntityName: le?.['entityName'] ?? null,
+    marketName: market?.['marketName'] ?? null,
+    clearingBrokerName: broker?.['legalName'] ?? null,
+    currencyCode: ccy?.['currencyCode'] ?? null,
+  };
+}
+const marginAccountsStore: unknown[] = [
+  { marginAccountId: 1, legalEntityId: 1, legalEntityName: 'Acme Trading UK Limited', marketId: 1, marketName: 'ICE Brent', accountRef: 'ICE-ACMEUK-001', accountType: 'HOUSE', clearingBrokerId: null, clearingBrokerName: null, currencyId: 1, currencyCode: 'USD', initialMargin: 2500000, variationMargin: -180000, excessMargin: 320000, marginLimit: 10000000, isActive: true, notes: null, createdAt: '2024-01-01T00:00:00Z' },
+];
+
+// ─── CREDIT — COLLATERAL ──────────────────────────────────────────────────────
+function computeCollateral(input: Record<string, unknown>): Record<string, unknown> {
+  const ct = (referenceRowSeed.collateral_type as unknown as Array<Record<string, unknown>>).find((t) => t['collateralTypeId'] === input['collateralTypeId']);
+  const le = (legalEntityStore as unknown as Array<Record<string, unknown>>).find((e) => e['legalEntityId'] === input['legalEntityId']);
+  const cp = (cpStore as unknown as Array<Record<string, unknown>>).find((c) => c['counterpartyId'] === input['counterpartyId']);
+  const ccy = (referenceRowSeed.currency as unknown as Array<Record<string, unknown>>).find((c) => c['currencyId'] === input['currencyId']);
+  return {
+    ...input,
+    collateralTypeName: ct?.['typeName'] ?? null,
+    legalEntityName: le?.['entityName'] ?? null,
+    counterpartyName: cp?.['legalName'] ?? null,
+    currencyCode: ccy?.['currencyCode'] ?? null,
+  };
+}
+const collateralStore: unknown[] = [
+  { collateralId: 1, collateralTypeId: 1, collateralTypeName: 'Cash USD', direction: 'RECEIVED', securedEntityType: 'COUNTERPARTY', securedEntityId: 2, legalEntityId: 1, legalEntityName: 'Acme Trading UK Limited', counterpartyId: 2, counterpartyName: 'Glencore International AG', currencyId: 1, currencyCode: 'USD', faceValue: 1000000, marketValue: 1000000, haircutPct: 0, instrumentIsin: null, instrumentDesc: null, lcId: null, bgId: null, postingDate: '2024-07-01', maturityDate: null, returnDate: null, status: 'ACTIVE', notes: 'Independent amount under PLEDGE-GLENCORE-24 margin agreement.', createdAt: '2024-07-01T00:00:00Z', updatedAt: '2024-07-01T00:00:00Z' },
+];
+
+// ─── LOGISTICS — VESSEL CERTIFICATES ─────────────────────────────────────────
+function computeVesselCertificate(input: Record<string, unknown>): Record<string, unknown> {
+  const vessel = (vesselsStore as Array<Record<string, unknown>>).find((v) => v['vesselId'] === input['vesselId']);
+  return { ...input, vesselName: vessel?.['vesselName'] ?? null };
+}
+const vesselCertificatesStore: unknown[] = [
+  { certId: 1, vesselId: 1, vesselName: 'NORDIC LUNA', certType: 'SIRE', certNumber: 'SIRE-2025-9741060', issuingBody: 'OCIMF', issueDate: '2025-09-15', expiryDate: '2026-09-15', isCurrent: true, notes: null, createdAt: '2025-09-15T00:00:00Z' },
+  { certId: 2, vesselId: 1, vesselName: 'NORDIC LUNA', certType: 'CLASS_CERT', certNumber: 'DNV-CL-9741060', issuingBody: 'DNV', issueDate: '2021-06-01', expiryDate: '2026-06-01', isCurrent: true, notes: null, createdAt: '2021-06-01T00:00:00Z' },
+];
+
+// ─── LOGISTICS — RAILCARS ─────────────────────────────────────────────────────
+function computeRailcar(input: Record<string, unknown>): Record<string, unknown> {
+  const op = (referenceRowSeed.transport_operator as unknown as Array<Record<string, unknown>>).find((o) => o['operatorId'] === input['operatorId']);
+  return { ...input, operatorName: op?.['operatorName'] ?? null };
+}
+const railcarsStore: unknown[] = [
+  { railcarId: 1, carNumber: 'TILX 483920', carType: 'TANK_CAR', operatorId: 2, operatorName: 'Northward Rail Freight', capacityLitres: 113000, capacityMt: 90, dotClass: 'DOT-117', aarClass: 'T112', approvedCommodities: 'ETHANOL,HEATING-OIL', lastTestDate: '2025-03-01', nextTestDate: '2035-03-01', certExpiry: '2035-03-01', homeRailroad: 'BNSF', countryCode: 'US', isActive: true, notes: null, createdAt: '2024-01-01T00:00:00Z' },
+];
+
+// ─── LOGISTICS — CONTAINERS ───────────────────────────────────────────────────
+function computeContainer(input: Record<string, unknown>): Record<string, unknown> {
+  const op = (referenceRowSeed.transport_operator as unknown as Array<Record<string, unknown>>).find((o) => o['operatorId'] === input['operatorId']);
+  return { ...input, operatorName: op?.['operatorName'] ?? null };
+}
+const containersStore: unknown[] = [
+  { containerId: 1, containerNumber: 'TTNU1234567', containerType: 'ISO_TANK', operatorId: 3, operatorName: 'Rhine Barge Logistics', capacityLitres: 24000, capacityMt: 22, tareWeightKg: 3800, maxGrossWeightKg: 36000, unApproval: 'T11', approvedCommodities: 'ETHANOL', cscPlateExpiry: '2030-01-01', lastInspectionDate: '2025-01-01', nextInspectionDate: '2030-01-01', isActive: true, notes: null, createdAt: '2024-01-01T00:00:00Z' },
+];
+
+// ─── LOGISTICS — TANKS ────────────────────────────────────────────────────────
+function computeTank(input: Record<string, unknown>): Record<string, unknown> {
+  const facility = (referenceRowSeed.storage_facility as unknown as Array<Record<string, unknown>>).find((f) => f['facilityId'] === input['facilityId']);
+  const product = (referenceRowSeed.product as unknown as Array<Record<string, unknown>>).find((p) => p['productId'] === input['primaryProductId']);
+  return { ...input, facilityName: facility?.['facilityName'] ?? null, primaryProductName: product?.['productName'] ?? null };
+}
+const tanksStore: unknown[] = [
+  { tankId: 1, facilityId: 1, facilityName: 'Cushing Tank Farm T-1', tankNumber: 'T-101', tankName: 'Crude Storage Tank 1', tankType: 'FLOATING_ROOF', commodityType: 'OIL', primaryProductId: 2, primaryProductName: 'West Texas Intermediate', nominalCapacityM3: 159000, workingCapacityM3: 151000, heelVolumeM3: 800, diameterM: 60, heightM: 18, isHeated: false, maxTempCelsius: null, hasMetering: true, meterRef: 'MTR-101', tankStatus: 'IN_SERVICE', isActive: true, notes: null, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+];
+
+// ─── LOGISTICS — PIPELINE SEGMENTS ────────────────────────────────────────────
+function computePipelineSegment(input: Record<string, unknown>): Record<string, unknown> {
+  const pipeline = (pipelinesStore as Array<Record<string, unknown>>).find((p) => p['pipelineId'] === input['pipelineId']);
+  return { ...input, pipelineName: pipeline?.['pipelineName'] ?? null };
+}
+const pipelineSegmentsStore: unknown[] = [
+  { segmentId: 1, pipelineId: 4, pipelineName: 'Capline Crude Pipeline', fromPointCode: 'ST-JAMES-LA', toPointCode: 'PATOKA-IL', segmentCode: 'CAPLINE-SEG1', segmentName: 'St. James to Patoka Main Line', lengthKm: 1321, diameterMm: 1016, maxOperatingPressure: 70, forwardCapacity: 1200000, reverseCapacity: null, tariffZone: 'ZONE_1', operationalStatus: 'IN_SERVICE', isActive: true, notes: null },
+];
+
+// ─── LOGISTICS — PIPELINE TARIFFS ─────────────────────────────────────────────
+function computePipelineTariff(input: Record<string, unknown>): Record<string, unknown> {
+  const pipeline = (pipelinesStore as Array<Record<string, unknown>>).find((p) => p['pipelineId'] === input['pipelineId']);
+  const product = (referenceRowSeed.product as unknown as Array<Record<string, unknown>>).find((p) => p['productId'] === input['productId']);
+  const ccy = (referenceRowSeed.currency as unknown as Array<Record<string, unknown>>).find((c) => c['currencyId'] === input['currencyId']);
+  const uom = (uomStore as Array<Record<string, unknown>>).find((u) => u['uomId'] === input['rateUomId']);
+  return {
+    ...input,
+    pipelineName: pipeline?.['pipelineName'] ?? null,
+    productName: product?.['productName'] ?? null,
+    currencyCode: ccy?.['currencyCode'] ?? null,
+    rateUomCode: uom?.['uomCode'] ?? null,
+  };
+}
+const pipelineTariffsStore: unknown[] = [
+  { tariffId: 1, pipelineId: 4, pipelineName: 'Capline Crude Pipeline', fromPointCode: 'ST-JAMES-LA', toPointCode: 'PATOKA-IL', productId: 2, productName: 'West Texas Intermediate', tariffType: 'FIRM', capacityType: 'ENTRY_EXIT', currencyId: 1, currencyCode: 'USD', rate: 0.85, rateUomId: 1, rateUomCode: 'BBL', season: 'ALL', effectiveFrom: '2024-01-01', effectiveTo: null, regulatoryRef: 'FERC-CAPLINE-2024', isActive: true, notes: null },
+];
+
+// ─── PRICING — FORMULA TEMPLATES ─────────────────────────────────────────────
+const formulaTemplatesStore: unknown[] = [
+  { templateId: 1, commodityType: 'OIL', templateCode: 'DTD-BRENT-DIFF', templateName: 'Dated Brent + Differential', formulaType: 'DIFFERENTIAL', formulaExpression: 'DTD_BRENT + DIFFERENTIAL', averagingType: 'DAILY', averagingPeriodType: 'PRICING_PERIOD', fxConversionRequired: false, fxFixingType: null, description: 'Standard dated Brent plus/minus a fixed differential — the default crude pricing structure.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { templateId: 2, commodityType: 'LNG', templateCode: 'JCC-SLOPE', templateName: 'JCC Slope-Linked', formulaType: 'INDEX', formulaExpression: 'JCC * 0.1485 + CONSTANT', averagingType: 'MONTHLY_AVERAGE', averagingPeriodType: 'DELIVERY_MONTH', fxConversionRequired: true, fxFixingType: 'AVERAGE', description: 'JCC slope formula common in long-term LNG SPAs, converted from JPY.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { templateId: 3, commodityType: 'GAS', templateCode: 'TTF-FM-AVG', templateName: 'TTF Front-Month Average', formulaType: 'AVERAGE', formulaExpression: 'AVG(TTF_FRONT_MONTH)', averagingType: 'DAILY', averagingPeriodType: 'DELIVERY_MONTH', fxConversionRequired: false, fxFixingType: null, description: 'Daily average of the TTF front-month contract over the delivery month.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+];
+
+// ─── COMPLIANCE — REGULATORY OBLIGATIONS ─────────────────────────────────────
+function computeRegulatoryObligation(input: Record<string, unknown>): Record<string, unknown> {
+  const le = (legalEntityStore as unknown as Array<Record<string, unknown>>).find((e) => e['legalEntityId'] === input['legalEntityId']);
+  const rt = (referenceRowSeed.regulatory_report_type as unknown as Array<Record<string, unknown>>).find((t) => t['reportTypeId'] === input['reportTypeId']);
+  const rep = (legalEntityStore as unknown as Array<Record<string, unknown>>).find((e) => e['legalEntityId'] === input['reportingEntityId']);
+  return {
+    ...input,
+    legalEntityName: le?.['entityName'] ?? null,
+    reportTypeName: rt?.['reportName'] ?? null,
+    reportingEntityName: rep?.['entityName'] ?? null,
+  };
+}
+const regulatoryObligationsStore: unknown[] = [
+  { obligationId: 1, legalEntityId: 1, legalEntityName: 'Acme Trading UK Limited', reportTypeId: 3, reportTypeName: 'UK EMIR Trade Report', obligationType: 'FULL', applicableCommodities: null, reportingEntityId: null, reportingEntityName: null, registrationRef: 'LEI-213800ABCXYZ12345', registeredDate: '2018-01-03', effectiveFrom: '2018-01-03', effectiveTo: null, isActive: true, notes: null, createdAt: '2024-01-01T00:00:00Z' },
+  { obligationId: 2, legalEntityId: 2, legalEntityName: 'Acme Trading US Inc.', reportTypeId: 4, reportTypeName: 'CFTC Swap Data Report', obligationType: 'DELEGATED', applicableCommodities: null, reportingEntityId: 1, reportingEntityName: 'Acme Trading UK Limited', registrationRef: 'LEI-549300XYZ98765432', registeredDate: '2019-05-14', effectiveFrom: '2019-05-14', effectiveTo: null, isActive: true, notes: 'Reporting delegated to UK entity under group arrangement.', createdAt: '2024-01-01T00:00:00Z' },
 ];
 
 // ─── CREDIT — MARGIN AGREEMENTS ──────────────────────────────────────────────
@@ -1973,6 +2182,245 @@ export const etrmHandlers = [
   // ─── CREDIT — Margin Agreements ──────────────────────────────────────────────
   ...crudHandlers('credit/margin-agreements', marginAgreementsStore as Array<Record<string, unknown>>, 'marginAgreementId'),
 
+  // ─── CREDIT — Bank Guarantees ─────────────────────────────────────────────────
+  http.post(`${API}/credit/bank-guarantees`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const maxId = (bankGuaranteesStore as Array<Record<string, unknown>>).reduce((m, r) => Math.max(m, Number(r['bgId'])), 0);
+    const row = { ...computeBankGuarantee(input), bgId: maxId + 1, createdAt: now(), updatedAt: now() };
+    bankGuaranteesStore.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/credit/bank-guarantees/:id`, async ({ params, request }) => {
+    const s = bankGuaranteesStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['bgId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Bank guarantee ${String(params.id)} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    s[idx] = { ...s[idx], ...computeBankGuarantee({ ...s[idx], ...input }), updatedAt: now() };
+    return HttpResponse.json(s[idx]);
+  }),
+  ...crudHandlers('credit/bank-guarantees', bankGuaranteesStore as Array<Record<string, unknown>>, 'bgId'),
+
+  // ─── CREDIT — Insurance Policies ──────────────────────────────────────────────
+  http.post(`${API}/credit/insurance-policies`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const maxId = (insurancePoliciesStore as Array<Record<string, unknown>>).reduce((m, r) => Math.max(m, Number(r['policyId'])), 0);
+    const row = { ...computeInsurancePolicy(input), policyId: maxId + 1, createdAt: now(), updatedAt: now() };
+    insurancePoliciesStore.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/credit/insurance-policies/:id`, async ({ params, request }) => {
+    const s = insurancePoliciesStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['policyId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Insurance policy ${String(params.id)} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    s[idx] = { ...s[idx], ...computeInsurancePolicy({ ...s[idx], ...input }), updatedAt: now() };
+    return HttpResponse.json(s[idx]);
+  }),
+  ...crudHandlers('credit/insurance-policies', insurancePoliciesStore as Array<Record<string, unknown>>, 'policyId'),
+
+  // ─── CREDIT — Margin Accounts ─────────────────────────────────────────────────
+  http.post(`${API}/credit/margin-accounts`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const maxId = (marginAccountsStore as Array<Record<string, unknown>>).reduce((m, r) => Math.max(m, Number(r['marginAccountId'])), 0);
+    const row = { ...computeMarginAccount(input), marginAccountId: maxId + 1, createdAt: now() };
+    marginAccountsStore.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/credit/margin-accounts/:id`, async ({ params, request }) => {
+    const s = marginAccountsStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['marginAccountId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Margin account ${String(params.id)} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    s[idx] = { ...s[idx], ...computeMarginAccount({ ...s[idx], ...input }) };
+    return HttpResponse.json(s[idx]);
+  }),
+  ...crudHandlers('credit/margin-accounts', marginAccountsStore as Array<Record<string, unknown>>, 'marginAccountId'),
+
+  // ─── CREDIT — Collateral ──────────────────────────────────────────────────────
+  http.post(`${API}/credit/collateral`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const maxId = (collateralStore as Array<Record<string, unknown>>).reduce((m, r) => Math.max(m, Number(r['collateralId'])), 0);
+    const row = { ...computeCollateral(input), collateralId: maxId + 1, createdAt: now(), updatedAt: now() };
+    collateralStore.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/credit/collateral/:id`, async ({ params, request }) => {
+    const s = collateralStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['collateralId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Collateral ${String(params.id)} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    s[idx] = { ...s[idx], ...computeCollateral({ ...s[idx], ...input }), updatedAt: now() };
+    return HttpResponse.json(s[idx]);
+  }),
+  ...crudHandlers('credit/collateral', collateralStore as Array<Record<string, unknown>>, 'collateralId'),
+
+  // ─── LOGISTICS — Vessel Certificates ──────────────────────────────────────────
+  http.post(`${API}/logistics/vessel-certificates`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const maxId = (vesselCertificatesStore as Array<Record<string, unknown>>).reduce((m, r) => Math.max(m, Number(r['certId'])), 0);
+    const row = { ...computeVesselCertificate(input), certId: maxId + 1, createdAt: now() };
+    vesselCertificatesStore.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/logistics/vessel-certificates/:id`, async ({ params, request }) => {
+    const s = vesselCertificatesStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['certId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Vessel certificate ${String(params.id)} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    s[idx] = { ...s[idx], ...computeVesselCertificate({ ...s[idx], ...input }) };
+    return HttpResponse.json(s[idx]);
+  }),
+  ...crudHandlers('logistics/vessel-certificates', vesselCertificatesStore as Array<Record<string, unknown>>, 'certId'),
+
+  // ─── LOGISTICS — Railcars ──────────────────────────────────────────────────────
+  http.post(`${API}/logistics/railcars`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const maxId = (railcarsStore as Array<Record<string, unknown>>).reduce((m, r) => Math.max(m, Number(r['railcarId'])), 0);
+    const row = { ...computeRailcar(input), railcarId: maxId + 1, createdAt: now() };
+    railcarsStore.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/logistics/railcars/:id`, async ({ params, request }) => {
+    const s = railcarsStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['railcarId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Railcar ${String(params.id)} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    s[idx] = { ...s[idx], ...computeRailcar({ ...s[idx], ...input }) };
+    return HttpResponse.json(s[idx]);
+  }),
+  ...crudHandlers('logistics/railcars', railcarsStore as Array<Record<string, unknown>>, 'railcarId'),
+
+  // ─── LOGISTICS — Containers ─────────────────────────────────────────────────────
+  http.post(`${API}/logistics/containers`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const maxId = (containersStore as Array<Record<string, unknown>>).reduce((m, r) => Math.max(m, Number(r['containerId'])), 0);
+    const row = { ...computeContainer(input), containerId: maxId + 1, createdAt: now() };
+    containersStore.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/logistics/containers/:id`, async ({ params, request }) => {
+    const s = containersStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['containerId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Container ${String(params.id)} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    s[idx] = { ...s[idx], ...computeContainer({ ...s[idx], ...input }) };
+    return HttpResponse.json(s[idx]);
+  }),
+  ...crudHandlers('logistics/containers', containersStore as Array<Record<string, unknown>>, 'containerId'),
+
+  // ─── LOGISTICS — Tanks ──────────────────────────────────────────────────────────
+  http.post(`${API}/logistics/tanks`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const maxId = (tanksStore as Array<Record<string, unknown>>).reduce((m, r) => Math.max(m, Number(r['tankId'])), 0);
+    const row = { ...computeTank(input), tankId: maxId + 1, createdAt: now(), updatedAt: now() };
+    tanksStore.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/logistics/tanks/:id`, async ({ params, request }) => {
+    const s = tanksStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['tankId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Tank ${String(params.id)} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    s[idx] = { ...s[idx], ...computeTank({ ...s[idx], ...input }), updatedAt: now() };
+    return HttpResponse.json(s[idx]);
+  }),
+  ...crudHandlers('logistics/tanks', tanksStore as Array<Record<string, unknown>>, 'tankId'),
+
+  // ─── LOGISTICS — Pipeline Segments ──────────────────────────────────────────────
+  http.post(`${API}/logistics/pipeline-segments`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const maxId = (pipelineSegmentsStore as Array<Record<string, unknown>>).reduce((m, r) => Math.max(m, Number(r['segmentId'])), 0);
+    const row = { ...computePipelineSegment(input), segmentId: maxId + 1 };
+    pipelineSegmentsStore.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/logistics/pipeline-segments/:id`, async ({ params, request }) => {
+    const s = pipelineSegmentsStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['segmentId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Pipeline segment ${String(params.id)} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    s[idx] = { ...s[idx], ...computePipelineSegment({ ...s[idx], ...input }) };
+    return HttpResponse.json(s[idx]);
+  }),
+  ...crudHandlers('logistics/pipeline-segments', pipelineSegmentsStore as Array<Record<string, unknown>>, 'segmentId'),
+
+  // ─── LOGISTICS — Pipeline Tariffs ────────────────────────────────────────────────
+  http.post(`${API}/logistics/pipeline-tariffs`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const maxId = (pipelineTariffsStore as Array<Record<string, unknown>>).reduce((m, r) => Math.max(m, Number(r['tariffId'])), 0);
+    const row = { ...computePipelineTariff(input), tariffId: maxId + 1 };
+    pipelineTariffsStore.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/logistics/pipeline-tariffs/:id`, async ({ params, request }) => {
+    const s = pipelineTariffsStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['tariffId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Pipeline tariff ${String(params.id)} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    s[idx] = { ...s[idx], ...computePipelineTariff({ ...s[idx], ...input }) };
+    return HttpResponse.json(s[idx]);
+  }),
+  ...crudHandlers('logistics/pipeline-tariffs', pipelineTariffsStore as Array<Record<string, unknown>>, 'tariffId'),
+
+  // ─── COUNTERPARTIES — Netting Agreements ─────────────────────────────────────
+  // Custom POST/PUT (before crudHandlers) to denormalize legalEntityName/
+  // counterpartyName against the REAL legalEntityStore/counterpartyStore
+  // (not this file's internal counterpartiesRef shadow array — see the
+  // CRITICAL note on the two legal-entity mock stores; the same shadow-vs-
+  // real distinction applies to counterparties).
+  http.post(`${API}/counterparties/netting-agreements`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const maxId = (nettingAgreementsStore as Array<Record<string, unknown>>).reduce((m, r) => Math.max(m, Number(r['nettingId'])), 0);
+    const row = { ...computeNettingAgreement(input), nettingId: maxId + 1, createdAt: now() };
+    nettingAgreementsStore.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/counterparties/netting-agreements/:id`, async ({ params, request }) => {
+    const s = nettingAgreementsStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['nettingId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Netting agreement ${String(params.id)} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    s[idx] = { ...s[idx], ...computeNettingAgreement({ ...s[idx], ...input }) };
+    return HttpResponse.json(s[idx]);
+  }),
+  ...crudHandlers('counterparties/netting-agreements', nettingAgreementsStore as Array<Record<string, unknown>>, 'nettingId'),
+
+  // ─── COUNTERPARTIES — CP Commercial Terms ────────────────────────────────────
+  http.post(`${API}/counterparties/commercial-terms`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const maxId = (cpCommercialTermsStore as Array<Record<string, unknown>>).reduce((m, r) => Math.max(m, Number(r['cpTermsId'])), 0);
+    const row = { ...computeCpCommercialTerms(input), cpTermsId: maxId + 1, createdAt: now(), updatedAt: now() };
+    cpCommercialTermsStore.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/counterparties/commercial-terms/:id`, async ({ params, request }) => {
+    const s = cpCommercialTermsStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['cpTermsId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Commercial terms ${String(params.id)} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    s[idx] = { ...s[idx], ...computeCpCommercialTerms({ ...s[idx], ...input }), updatedAt: now() };
+    return HttpResponse.json(s[idx]);
+  }),
+  ...crudHandlers('counterparties/commercial-terms', cpCommercialTermsStore as Array<Record<string, unknown>>, 'cpTermsId'),
+
+  // ─── COUNTERPARTIES — CP GTC Agreements ──────────────────────────────────────
+  http.post(`${API}/counterparties/gtc-agreements`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const maxId = (cpGtcAgreementsStore as Array<Record<string, unknown>>).reduce((m, r) => Math.max(m, Number(r['cpGtcId'])), 0);
+    const row = { ...computeCpGtcAgreement(input), cpGtcId: maxId + 1, createdAt: now() };
+    cpGtcAgreementsStore.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/counterparties/gtc-agreements/:id`, async ({ params, request }) => {
+    const s = cpGtcAgreementsStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['cpGtcId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `GTC agreement ${String(params.id)} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    s[idx] = { ...s[idx], ...computeCpGtcAgreement({ ...s[idx], ...input }) };
+    return HttpResponse.json(s[idx]);
+  }),
+  ...crudHandlers('counterparties/gtc-agreements', cpGtcAgreementsStore as Array<Record<string, unknown>>, 'cpGtcId'),
+
   // ─── CREDIT — Credit Limits ───────────────────────────────────────────────────
   // Custom POST/PUT (registered before crudHandlers so they win): denormalize
   // counterparty name/country + analyst name, compute availability/utilisation/
@@ -2314,4 +2762,40 @@ export const etrmHandlers = [
     (rinObligationsStore as Array<Record<string, unknown>>)[idx] = { ...(rinObligationsStore as Array<Record<string, unknown>>)[idx], ...input, shortfallQuantity: req - ret, updatedAt: now() };
     return HttpResponse.json((rinObligationsStore as Array<Record<string, unknown>>)[idx]);
   }),
+
+  // ─── PRICING — Formula Templates ─────────────────────────────────────────────
+  http.post(`${API}/pricing/formula-templates`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const maxId = (formulaTemplatesStore as Array<Record<string, unknown>>).reduce((m, r) => Math.max(m, Number(r['templateId'])), 0);
+    const row = { ...input, templateId: maxId + 1, createdAt: now() };
+    formulaTemplatesStore.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/pricing/formula-templates/:id`, async ({ params, request }) => {
+    const s = formulaTemplatesStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['templateId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Formula template ${String(params.id)} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    s[idx] = { ...s[idx], ...input };
+    return HttpResponse.json(s[idx]);
+  }),
+  ...crudHandlers('pricing/formula-templates', formulaTemplatesStore as Array<Record<string, unknown>>, 'templateId'),
+
+  // ─── COMPLIANCE — Regulatory Obligations ─────────────────────────────────────
+  http.post(`${API}/compliance/obligations`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const maxId = (regulatoryObligationsStore as Array<Record<string, unknown>>).reduce((m, r) => Math.max(m, Number(r['obligationId'])), 0);
+    const row = { ...computeRegulatoryObligation(input), obligationId: maxId + 1, createdAt: now() };
+    regulatoryObligationsStore.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/compliance/obligations/:id`, async ({ params, request }) => {
+    const s = regulatoryObligationsStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['obligationId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Regulatory obligation ${String(params.id)} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    s[idx] = { ...s[idx], ...computeRegulatoryObligation({ ...s[idx], ...input }) };
+    return HttpResponse.json(s[idx]);
+  }),
+  ...crudHandlers('compliance/obligations', regulatoryObligationsStore as Array<Record<string, unknown>>, 'obligationId'),
 ];
