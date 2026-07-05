@@ -8,6 +8,7 @@ import type {
   Address,
   AddressAssignment,
   PolymorphicEntityType,
+  TaxRegistration,
 } from './types';
 
 const BASE = '/counterparties';
@@ -141,12 +142,37 @@ export async function deactivateContactAssignment(entityContactId: number): Prom
   await apiClient.patch(`/entity-contacts/${entityContactId}/deactivate`);
 }
 
+// ── Tax registrations (dbo.tax_registration) ──────────────────────────────────
+// Polymorphic like addresses/contacts (entity_type + entity_id), no pool
+// concept — each registration belongs to exactly one entity.
+
+export async function fetchEntityTaxRegistrations(entityType: PolymorphicEntityType, entityId: number): Promise<TaxRegistration[]> {
+  const { data } = await apiClient.get<TaxRegistration[]>(
+    `/entity-tax-registrations?entityType=${entityType}&entityId=${entityId}`,
+  );
+  return data;
+}
+
+export async function saveTaxRegistrationAssignment(reg: TaxRegistration): Promise<TaxRegistration> {
+  if (reg.taxRegId !== null) {
+    const { data } = await apiClient.put<TaxRegistration>(`/entity-tax-registrations/${reg.taxRegId}`, reg);
+    return data;
+  }
+  const { data } = await apiClient.post<TaxRegistration>('/entity-tax-registrations', reg);
+  return data;
+}
+
+export async function deactivateTaxRegistrationAssignment(taxRegId: number): Promise<void> {
+  await apiClient.patch(`/entity-tax-registrations/${taxRegId}/deactivate`);
+}
+
 /** Fetch a counterparty's full child record set in parallel. */
 export async function fetchCounterpartyChildren(cpId: number) {
-  const [contacts, bankAccounts, addresses] = await Promise.all([
+  const [contacts, bankAccounts, addresses, taxRegistrations] = await Promise.all([
     fetchEntityContacts('COUNTERPARTY', cpId),
     apiClient.get<BankAccount[]>(`${BASE}/${cpId}/bank-accounts`).then((r) => r.data),
     fetchEntityAddresses('COUNTERPARTY', cpId),
+    fetchEntityTaxRegistrations('COUNTERPARTY', cpId),
   ]);
-  return { contacts, bankAccounts, addresses };
+  return { contacts, bankAccounts, addresses, taxRegistrations };
 }

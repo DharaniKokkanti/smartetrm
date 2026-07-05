@@ -642,24 +642,75 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',      'Active',         'boolean', false, false, null),
     ],
   },
+  // V58 dropped commodity_type (redundant 1:1 self-tag). V59/this session's
+  // cleanup also removes commoditySubtype/defaultUomId/defaultCurrencyId —
+  // none of these were ever real SQL columns (checked: dbo.commodity in
+  // 01_master_data_foundation.sql only ever had commodity_id/code/name/
+  // description/is_active — the subtype+defaults were frontend-only mock
+  // additions with no backing schema, and nothing outside this file read
+  // them). The category/grouping concept they were standing in for is now
+  // properly `commodity_family` (V59), linked to `product`, not sitting on
+  // `commodity`. `commodity` stays exactly what it's for: the unique list of
+  // top-level commodity types this ETRM supports — nothing else.
   commodity: {
     tableName: 'commodity', displayName: 'Commodities', primaryKeyColumn: 'commodityId', isTemporal: false,
     columns: [
       col('commodityId',      'ID',           'number',  false, true,  null),
       col('commodityCode',    'Code',         'string',  false, false, 20),
       col('commodityName',    'Name',         'string',  false, false, 100),
-      col('commodityType',    'Type',         'foreign_key', false, false, null, null, 'lookup_value'),
-      col('commoditySubtype', 'Subtype',      'enum',    true,  false, null, [
-        'CRUDE', 'REFINED', 'NGL', 'CONDENSATE', 'PETROCHEMICAL',
-        'PIPELINE_GAS', 'LNG', 'LPG', 'NGL_GAS', 'BIOGAS',
-        'ELECTRICITY', 'RENEWABLE', 'NUCLEAR',
-        'GRAINS', 'OILSEEDS', 'SOFTS', 'LIVESTOCK', 'DAIRY',
-        'BASE_METAL', 'PRECIOUS_METAL', 'FERROUS', 'MINOR_METAL', 'OTHER',
-      ]),
-      col('defaultUomId',     'Default UoM',  'number',  true,  false, null),
-      col('defaultCurrencyId','Default CCY',  'number',  true,  false, null),
       col('description',      'Description',  'string',  true,  false, 500),
       col('isActive',         'Active',       'boolean', false, false, null),
+    ],
+  },
+  commodity_family: {
+    tableName: 'commodity_family', displayName: 'Commodity Families', primaryKeyColumn: 'commodityFamilyId', isTemporal: false,
+    columns: [
+      col('commodityFamilyId', 'ID',          'number',      false, true,  null),
+      col('commodityId',       'Commodity',   'foreign_key', false, false, null, null, 'commodity'),
+      col('familyCode',        'Family Code', 'string',      false, false, 30),
+      col('familyName',        'Family Name', 'string',      false, false, 100),
+      // V61 — locked to a fixed list (was free text in V59; user reconsidered
+      // and wanted a closed dropdown, not typeable text, to prevent drift).
+      col('familyType',        'Family Type', 'enum',        true,  false, 30,
+        ['CRUDE', 'REFINED', 'PETROCHEMICAL', 'PIPELINE_GAS', 'LNG', 'BASE_METAL', 'PRECIOUS_METAL', 'GRAIN', 'ELECTRICITY']),
+      col('description',       'Description', 'string',      true,  false, 500),
+      col('isActive',          'Active',      'boolean',     false, false, null),
+    ],
+  },
+  // V63 — dbo.lookup_value: the generic category+code+display_name table used
+  // across many small enums in this schema (was never mocked on the frontend
+  // before — every prior lookup_value-backed FK used its own hardcoded
+  // id->label array instead, e.g. desks/types.ts's COMMODITY_TYPE_LOOKUP).
+  // Only the REPORTING_CLASSIFICATION_TYPE rows are seeded here — this does
+  // NOT attempt to backfill every other category already hardcoded elsewhere.
+  lookup_value: {
+    tableName: 'lookup_value', displayName: 'Lookup Values', primaryKeyColumn: 'lookupId', isTemporal: false,
+    columns: [
+      col('lookupId',     'ID',           'number',  false, true,  null),
+      col('category',     'Category',     'string',  false, false, 50),
+      col('code',         'Code',         'string',  false, false, 50),
+      col('displayName',  'Display Name', 'string',  false, false, 200),
+      col('sortOrder',    'Sort Order',   'number',  true,  false, null),
+      col('isActive',     'Active',       'boolean', false, false, null),
+    ],
+  },
+  // V60/V63 — independent per-report classification axes (Position, VaR,
+  // Settlement/GL...), separate from commodity_family. classification_type
+  // was originally a plain unconstrained string (V60); V63 converted it to a
+  // proper lookup_value FK since more axes will likely be added over time and
+  // the user wanted a managed list, not free text. group_code was dropped —
+  // a product is assigned directly to a named reporting_group row, no short
+  // code was ever needed for that. Products are linked via the
+  // product_reporting_group bridge table (managed from the Products page's
+  // "Reporting Groups" tab, not here).
+  reporting_group: {
+    tableName: 'reporting_group', displayName: 'Reporting Groups', primaryKeyColumn: 'reportingGroupId', isTemporal: false,
+    columns: [
+      col('reportingGroupId',    'ID',             'number',      false, true,  null),
+      col('classificationTypeId','Classification', 'foreign_key', false, false, null, null, 'lookup_value'),
+      col('groupName',           'Group Name',     'string',      false, false, 100),
+      col('description',         'Description',    'string',      true,  false, 500),
+      col('isActive',            'Active',         'boolean',     false, false, null),
     ],
   },
   credit_rating: {
@@ -897,6 +948,12 @@ export const registrySeed: RegistryEntry[] = [
   { registryId: 208, tableName: 'laytime_exception_type', displayName: 'Laytime Exception Types',   moduleGroup: 'Freight & Shipping', subGroup: 'Charter', description: 'Standard reasons time is excepted from (or counted against) laytime — weather, strikes, breakdowns, port congestion — used in laytime calculations and demurrage disputes across any vessel-carried commodity.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 5 },
   // V56 — dedicated FX tenor/period master, linked from fx_rate (not a lookup_value category — needs to scale to 1000+ daily-forward rows)
   { registryId: 209, tableName: 'fx_period',              displayName: 'FX Periods / Tenors',       moduleGroup: 'Pricing & Rates',    subGroup: 'FX',      description: 'Standard FX tenors (SPOT, 1M-2Y) plus individual daily-forward periods used to build a full FX forward curve. Linked from fx_rate.fx_period_id — scales to 1000+ daily delivery days without bloating the generic lookup table.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: true, isEnabled: true, displayOrder: 6 },
+  // V59 — commodity_family: the missing middle tier between commodity (sector) and product (instrument), replacing product.product_family's raw unconstrained string
+  { registryId: 210, tableName: 'commodity_family',       displayName: 'Commodity Families',        moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Grouping of similar products beneath a commodity — e.g. Crude Oil vs Refined Products under Oil, Base vs Precious Metals under Metals. Linked from product.commodity_family_id.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
+  // V60 — reporting_group: independent per-report classification axes (Position, VaR, Settlement/GL) — a product's group can differ per reporting context, unlike commodity_family which is a single taxonomy
+  { registryId: 211, tableName: 'reporting_group',        displayName: 'Reporting Groups',          moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Per-report classification groups (Position Reporting, VaR/Risk, Settlement/GL) — a product can sit in a different group per reporting context. Assigned to products via the Products page "Reporting Groups" tab.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 4 },
+  // V63 — lookup_value: the generic category+code+display_name table (only REPORTING_CLASSIFICATION_TYPE rows seeded here so far)
+  { registryId: 212, tableName: 'lookup_value',           displayName: 'Lookup Values',             moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Generic category/code/display-name reference table. Only the Reporting Classification Type category is populated here — add rows under a new "category" value to introduce a new axis for Reporting Groups.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 5 },
   // V17 parent lookup tables — generated from the simple list above
   ...PARENT_LOOKUP_TABLES.map((t, i) => ({
     registryId:       10 + i,
@@ -927,11 +984,43 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { currencyId: 3, currencyCode: 'EUR', currencyName: 'Euro',           symbol: '€', decimalPlaces: 2, isActive: true },
   ],
   commodity: [
-    { commodityId: 1, commodityCode: 'OIL',    commodityName: 'Oil & Petroleum',     commodityType: 1,          commoditySubtype: 'CRUDE',        defaultUomId: 1, defaultCurrencyId: 1, description: 'Crude oil, refined products, NGL, condensate and petrochemicals. Covers all liquid hydrocarbons from wellhead to end-product.', isActive: true },
-    { commodityId: 2, commodityCode: 'POWER',  commodityName: 'Power & Electricity', commodityType: 3,        commoditySubtype: 'ELECTRICITY',  defaultUomId: 5, defaultCurrencyId: 2, description: 'Electricity generation, transmission, and supply. Includes baseload, peak, renewable, and nuclear power.',                    isActive: true },
-    { commodityId: 3, commodityCode: 'GAS',    commodityName: 'Natural Gas',         commodityType: 2,          commoditySubtype: 'PIPELINE_GAS', defaultUomId: 5, defaultCurrencyId: 2, description: 'Natural gas including pipeline gas, LNG cargoes, LPG, and NGL extraction.',                                                  isActive: true },
-    { commodityId: 4, commodityCode: 'AGRI',   commodityName: 'Agricultural',        commodityType: 5, commoditySubtype: 'GRAINS',       defaultUomId: 4, defaultCurrencyId: 1, description: 'Agricultural commodities — grains, oilseeds, softs, livestock and dairy products.',                                          isActive: true },
-    { commodityId: 5, commodityCode: 'METALS', commodityName: 'Metals & Mining',     commodityType: 6,       commoditySubtype: 'BASE_METAL',   defaultUomId: 4, defaultCurrencyId: 1, description: 'Base metals (copper, aluminium, zinc, lead, nickel, tin), precious metals (gold, silver, platinum), and ferrous metals.',     isActive: true },
+    { commodityId: 1, commodityCode: 'OIL',    commodityName: 'Oil & Petroleum',     description: 'Crude oil, refined products, NGL, condensate and petrochemicals. Covers all liquid hydrocarbons from wellhead to end-product.', isActive: true },
+    { commodityId: 2, commodityCode: 'POWER',  commodityName: 'Power & Electricity', description: 'Electricity generation, transmission, and supply. Includes baseload, peak, renewable, and nuclear power.',                    isActive: true },
+    { commodityId: 3, commodityCode: 'GAS',    commodityName: 'Natural Gas',         description: 'Natural gas including pipeline gas, LNG cargoes, LPG, and NGL extraction.',                                                  isActive: true },
+    { commodityId: 4, commodityCode: 'AGRI',   commodityName: 'Agricultural',        description: 'Agricultural commodities — grains, oilseeds, softs, livestock and dairy products.',                                          isActive: true },
+    { commodityId: 5, commodityCode: 'METALS', commodityName: 'Metals & Mining',     description: 'Base metals (copper, aluminium, zinc, lead, nickel, tin), precious metals (gold, silver, platinum), and ferrous metals.',     isActive: true },
+  ],
+  // commodityId: 1=OIL, 2=POWER, 3=GAS, 4=AGRI, 5=METALS (see commodity rowSeed above)
+  commodity_family: [
+    { commodityFamilyId: 1, commodityId: 1, familyCode: 'CRUDE_OIL',        familyName: 'Crude Oil',             familyType: 'CRUDE',         description: 'Unrefined crude — Brent, WTI, Urals, Dubai and other physical/financial crude benchmarks.',        isActive: true },
+    { commodityFamilyId: 2, commodityId: 1, familyCode: 'REFINED_PRODUCTS', familyName: 'Refined Products',      familyType: 'REFINED',       description: 'Refined petroleum products — gasoline, diesel/gasoil, jet fuel, fuel oil.',                        isActive: true },
+    { commodityFamilyId: 3, commodityId: 1, familyCode: 'PETROCHEMICAL',    familyName: 'Petrochemicals',        familyType: 'PETROCHEMICAL', description: 'Naphtha and other petrochemical feedstocks.',                                                      isActive: true },
+    { commodityFamilyId: 4, commodityId: 3, familyCode: 'NATURAL_GAS',      familyName: 'Natural Gas',           familyType: 'PIPELINE_GAS',  description: 'Pipeline-delivered natural gas — TTF, NBP, Henry Hub and similar hub products.',                   isActive: true },
+    { commodityFamilyId: 5, commodityId: 3, familyCode: 'LNG',              familyName: 'Liquefied Natural Gas', familyType: 'LNG',           description: 'Liquefied natural gas cargoes — JKM and other LNG benchmarks.',                                    isActive: true },
+    { commodityFamilyId: 6, commodityId: 5, familyCode: 'BASE_METALS',      familyName: 'Base Metals',           familyType: 'BASE_METAL',    description: 'Non-ferrous industrial metals — copper, aluminium, zinc, lead, nickel, tin.',                     isActive: true },
+    { commodityFamilyId: 7, commodityId: 5, familyCode: 'PRECIOUS_METALS',  familyName: 'Precious Metals',       familyType: 'PRECIOUS_METAL',description: 'Gold, silver, platinum, palladium.',                                                              isActive: true },
+    { commodityFamilyId: 8, commodityId: 4, familyCode: 'GRAINS',           familyName: 'Grains',                familyType: 'GRAIN',         description: 'Corn, wheat, soybeans and other grain/oilseed products.',                                          isActive: true },
+    { commodityFamilyId: 9, commodityId: 2, familyCode: 'POWER',            familyName: 'Power Generation',      familyType: 'ELECTRICITY',   description: 'Wholesale electricity — baseload, peak, and off-peak power products.',                            isActive: true },
+  ],
+  // lookupId: 1=POSITION, 2=VAR, 3=SETTLEMENT (see lookup_value rowSeed below)
+  reporting_group: [
+    { reportingGroupId: 1,  classificationTypeId: 1, groupName: 'Light Distillates',       description: 'Diesel, gasoline, jet fuel — position reports grouped by refined product slate.', isActive: true },
+    { reportingGroupId: 2,  classificationTypeId: 1, groupName: 'Crude Oil',               description: 'Crude and crude futures position reporting bucket.',            isActive: true },
+    { reportingGroupId: 3,  classificationTypeId: 1, groupName: 'Natural Gas',             description: 'Pipeline gas and LNG position reporting bucket.',               isActive: true },
+    { reportingGroupId: 4,  classificationTypeId: 1, groupName: 'Power',                   description: 'Wholesale electricity position reporting bucket.',              isActive: true },
+    { reportingGroupId: 5,  classificationTypeId: 1, groupName: 'Metals',                  description: 'Base and precious metals position reporting bucket.',           isActive: true },
+    { reportingGroupId: 6,  classificationTypeId: 1, groupName: 'Agricultural',            description: 'Grains and softs position reporting bucket.',                   isActive: true },
+    { reportingGroupId: 7,  classificationTypeId: 2, groupName: 'Energy Risk Class',       description: 'VaR risk class covering oil, gas, and power products.',         isActive: true },
+    { reportingGroupId: 8,  classificationTypeId: 2, groupName: 'Metals Risk Class',       description: 'VaR risk class covering base and precious metals.',             isActive: true },
+    { reportingGroupId: 9,  classificationTypeId: 2, groupName: 'Agricultural Risk Class', description: 'VaR risk class covering grains and softs.',                     isActive: true },
+    { reportingGroupId: 10, classificationTypeId: 3, groupName: 'GL — Energy',             description: 'Settlement/invoicing GL posting group for oil, gas, and power products.', isActive: true },
+    { reportingGroupId: 11, classificationTypeId: 3, groupName: 'GL — Metals',             description: 'Settlement/invoicing GL posting group for metals products.',    isActive: true },
+    { reportingGroupId: 12, classificationTypeId: 3, groupName: 'GL — Agricultural',       description: 'Settlement/invoicing GL posting group for agricultural products.', isActive: true },
+  ],
+  lookup_value: [
+    { lookupId: 1, category: 'REPORTING_CLASSIFICATION_TYPE', code: 'POSITION',   displayName: 'Position Reporting', sortOrder: 1, isActive: true },
+    { lookupId: 2, category: 'REPORTING_CLASSIFICATION_TYPE', code: 'VAR',        displayName: 'VaR / Risk',          sortOrder: 2, isActive: true },
+    { lookupId: 3, category: 'REPORTING_CLASSIFICATION_TYPE', code: 'SETTLEMENT', displayName: 'Settlement / GL',     sortOrder: 3, isActive: true },
   ],
   credit_rating: [
     { creditRatingId: 1, agency: 'S&P', rating: 'AAA', numericScore: 1, riskCategory: 'INVESTMENT_GRADE', isActive: true },

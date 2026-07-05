@@ -3,22 +3,14 @@ import type { CommodityType } from '@features/organization/desks/types';
 export const SETTLEMENT_TYPES = ['PHYSICAL', 'FINANCIAL', 'OPTIONS', 'SWAP'] as const;
 export type SettlementType = (typeof SETTLEMENT_TYPES)[number];
 
-export const PRODUCT_FAMILIES = [
-  'CRUDE_OIL', 'REFINED_PRODUCTS', 'NGL_CONDENSATE', 'PETROCHEMICAL',
-  'NATURAL_GAS', 'LNG', 'LPG',
-  'ELECTRICITY', 'RENEWABLE_POWER',
-  'BASE_METALS', 'PRECIOUS_METALS', 'FERROUS',
-  'GRAINS', 'OILSEEDS', 'SOFTS', 'LIVESTOCK',
-  'OTHER',
-] as const;
-export type ProductFamily = (typeof PRODUCT_FAMILIES)[number];
-
 export interface Product {
   productId: number;
   productCode: string;
   productName: string;
+  // Resolves to a broad CommodityType via desks/types.ts's resolver against
+  // the real `commodity` master data — no separate stored field (V59
+  // cleanup: this used to duplicate commodityId as a redundant string).
   commodityId: number;
-  commodityType: CommodityType;
   settlementType: SettlementType;
   defaultPricingTypeCode: string;
   defaultUomCode: string;
@@ -28,7 +20,9 @@ export interface Product {
   minQuantity: number | null;
   maxQuantity: number | null;
   gradeCode: string | null;
-  productFamily: ProductFamily | null;
+  // FK to dbo.commodity_family(commodity_family_id) — replaces the old raw
+  // productFamily string (V59). Null = not assigned to a family.
+  commodityFamilyId: number | null;
   bloombergTicker: string | null;
   reutersRic: string | null;
   plattsCode: string | null;
@@ -60,6 +54,28 @@ export interface Product {
 }
 
 export type ProductInput = Omit<Product, 'productId' | 'createdAt' | 'updatedAt'>;
+
+// ── Commodity resolver (Product.commodityId → broad CommodityType) ────────────
+// Shared between ProductsPage.tsx and BrokerFeeAgreementsPage.tsx: both filter
+// products by a broad commodity type derived from the real `commodity` master
+// data, not a stored duplicate field (removed in V59 cleanup).
+
+export type CommodityRow = { commodityId: number; commodityCode: string; commodityName: string };
+
+const COMMODITY_CODE_TO_TYPE: Partial<Record<string, CommodityType>> = {
+  OIL: 'OIL', POWER: 'POWER', GAS: 'GAS', AGRI: 'AGRICULTURAL', METALS: 'METALS',
+};
+
+export function resolveCommodityType(rows: CommodityRow[], id: number | null | undefined): CommodityType | undefined {
+  if (id == null) return undefined;
+  const code = rows.find((r) => r.commodityId === id)?.commodityCode;
+  return code ? COMMODITY_CODE_TO_TYPE[code] : undefined;
+}
+
+export function resolveCommodityName(rows: CommodityRow[], id: number | null | undefined): string {
+  if (id == null) return '—';
+  return rows.find((r) => r.commodityId === id)?.commodityName ?? `#${id}`;
+}
 
 // ── Price index link (product_price_index bridge table) ───────────────────────
 
@@ -187,3 +203,32 @@ export interface SpecParameter {
   dataType: 'DECIMAL' | 'BOOLEAN' | 'TEXT';
   decimalPlaces: number;
 }
+
+// ── Reporting groups (reporting_group / product_reporting_group) ──────────────
+// Independent per-report classification axes for a product — Position
+// Reporting, VaR/Risk, Settlement/GL, etc. Separate from commodityFamilyId:
+// a product can belong to a different group per reporting context (V60).
+// classificationTypeId is a lookup_value FK (V63 — was free text in V60; a
+// managed list since more axes will likely be added over time). No group
+// code — a product is assigned directly to a named reporting_group row.
+
+export interface ReportingGroup {
+  reportingGroupId: number;
+  classificationTypeId: number;
+  groupName: string;
+  description: string | null;
+  isActive: boolean;
+}
+
+export interface ProductReportingGroup {
+  productReportingGroupId: number;
+  productId: number;
+  reportingGroupId: number;
+  classificationTypeId: number;
+  classificationTypeCode: string;
+  groupName: string;
+}
+
+export type ProductReportingGroupInput = {
+  reportingGroupId: number;
+};

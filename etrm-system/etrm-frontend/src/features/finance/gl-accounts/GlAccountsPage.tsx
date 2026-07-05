@@ -7,7 +7,7 @@ import { SmartGrid } from '@components/smart/SmartGrid';
 import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import { useTableRows } from '@features/tier2/hooks';
-import { COMMODITY_TYPES } from '@features/organization/desks/types';
+import { COMMODITY_TYPE_LOOKUP, commodityLabel } from '@features/organization/desks/types';
 import { useLegalEntities } from '@features/tier1/legal-entity/hooks';
 import { useBooks } from '@features/organization/books/hooks';
 import { useCurrencies } from '@features/reference/currencies/hooks';
@@ -97,7 +97,7 @@ export function GlAccountsPage() {
     { field: 'legalEntityCode', headerName: 'Booking Company', width: 140, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? 'All entities' },
     { field: 'bookCode', headerName: 'Book', width: 130, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },
     { field: 'parentAccountCode', headerName: 'Parent Account', width: 130, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },
-    { field: 'commodityType', headerName: 'Commodity', width: 110, valueFormatter: (p) => p.value ?? 'All' },
+    { field: 'commodityType', headerName: 'Commodity', width: 110, valueFormatter: (p) => p.value != null ? commodityLabel(p.value) : 'All' },
     { field: 'currencyCode', headerName: 'Currency', width: 95, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },
     { field: 'costCenter',    headerName: 'Cost Centre', width: 120, valueFormatter: (p) => p.value ?? '—' },
     { field: 'externalGlCode', headerName: 'External GL Code', width: 130, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },
@@ -162,7 +162,7 @@ export function GlAccountsPage() {
           </Space>
           <Space style={{ width: '100%' }} size={12}>
             <Form.Item name="commodityType" label={hint('Commodity Scope', 'Leave blank if this account applies to all commodities.')} style={{ flex: 1 }}>
-              <Select allowClear placeholder="All commodities" options={COMMODITY_TYPES.map((c) => ({ value: c, label: c }))} />
+              <Select allowClear placeholder="All commodities" options={COMMODITY_TYPE_LOOKUP.map((l) => ({ value: l.lookupId, label: l.label }))} />
             </Form.Item>
             <Form.Item name="costCenter" label={hint('Cost Centre', 'Internal cost centre code — TRADING, OPERATIONS, RISK.')} style={{ flex: 1 }}>
               <Input placeholder="TRADING" style={{ fontFamily: 'monospace' }} />

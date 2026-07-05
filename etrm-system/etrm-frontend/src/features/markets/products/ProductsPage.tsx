@@ -21,18 +21,22 @@ import {
   useProductMarkets, useProductSpecTemplates, useAddSpecTemplate, useSpecValues,
   useProductBlendComponents, useAddBlendComponent, useRemoveBlendComponent,
   useSpecParameters, useAddSpecValue, useUpdateSpecValue, useDeleteSpecValue,
+  useProductReportingGroups, useAssignReportingGroup, useRemoveReportingGroup,
 } from './hooks';
 import { useUomConversions } from '@features/reference/uom-conversions/hooks';
 import { usePriceIndices } from '@features/markets/price-indices/hooks';
 import {
-  SETTLEMENT_TYPES, PRODUCT_FAMILIES,
+  SETTLEMENT_TYPES,
   type Product, type ProductInput, type SettlementType,
   type ProductPriceIndex, type ProductMarketLink, type IndexRole,
   type ProductSpecTemplate, type ProductSpecValue, type BlendComponent,
   type BoundDirection, type ParameterCategory, type SpecParameter,
+  type CommodityRow, resolveCommodityType, resolveCommodityName,
+  type ReportingGroup, type ProductReportingGroup,
 } from './types';
-import { COMMODITY_TYPES, type CommodityType } from '@features/organization/desks/types';
+import type { CommodityType } from '@features/organization/desks/types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { useTableRows } from '@features/tier2/hooks';
 
 // ── Static maps ───────────────────────────────────────────────────────────────
 
@@ -195,6 +199,118 @@ function MarketsTab({ productId }: { productId: number }) {
         rowKey="marketProductId"
         pagination={false}
         locale={{ emptyText: 'Not listed on any market.' }}
+      />
+    </div>
+  );
+}
+
+// ── Reporting Groups tab ────────────────────────────────────────────────────────
+// Independent per-report classification axes (Position, VaR, Settlement/GL) —
+// separate from commodityFamilyId, since a product needs a different group per
+// reporting context, not one shared taxonomy (V60).
+
+const CLASSIFICATION_COLOR: Record<string, string> = {
+  POSITION: 'blue', VAR: 'volcano', SETTLEMENT: 'green',
+};
+
+type LookupValueRow = { lookupId: number; category: string; code: string; displayName: string; isActive: boolean };
+
+function ReportingGroupsTab({ productId }: { productId: number }) {
+  const { data = [], isLoading } = useProductReportingGroups(productId);
+  const { data: allGroups = [] } = useTableRows('reporting_group');
+  const { data: allLookups = [] } = useTableRows('lookup_value');
+  const groups = allGroups as unknown as ReportingGroup[];
+  const classificationTypes = (allLookups as unknown as LookupValueRow[])
+    .filter((l) => l.category === 'REPORTING_CLASSIFICATION_TYPE' && l.isActive);
+  const assign = useAssignReportingGroup(productId);
+  const remove = useRemoveReportingGroup(productId);
+  const [showAssign, setShowAssign] = useState(false);
+  const [selectedClassificationId, setSelectedClassificationId] = useState<number | undefined>();
+  const [selectedGroupId, setSelectedGroupId] = useState<number | undefined>();
+
+  const assignedIds = new Set((data as ProductReportingGroup[]).map((r) => r.reportingGroupId));
+  const classificationOptions = classificationTypes.map((l) => ({ value: l.lookupId, label: l.displayName }));
+  const groupOptions = groups
+    .filter((g) => g.isActive && g.classificationTypeId === selectedClassificationId && !assignedIds.has(g.reportingGroupId))
+    .map((g) => ({ value: g.reportingGroupId, label: g.groupName }));
+
+  function openAssign() {
+    setSelectedClassificationId(undefined);
+    setSelectedGroupId(undefined);
+    setShowAssign(true);
+  }
+
+  async function submitAssign() {
+    if (selectedGroupId == null) return;
+    await assign.mutateAsync({ reportingGroupId: selectedGroupId });
+    setSelectedClassificationId(undefined);
+    setSelectedGroupId(undefined);
+    setShowAssign(false);
+  }
+
+  const cols: ColumnsType<ProductReportingGroup> = [
+    {
+      title: 'Classification', dataIndex: 'classificationTypeCode', width: 130,
+      render: (v: string) => <Tag color={CLASSIFICATION_COLOR[v] ?? 'default'}>{v}</Tag>,
+    },
+    { title: 'Group Name', dataIndex: 'groupName', ellipsis: true },
+    {
+      title: '', width: 60, align: 'center' as const,
+      render: (_: unknown, r: ProductReportingGroup) => (
+        <Popconfirm title="Remove this reporting group?" onConfirm={() => remove.mutate(r.productReportingGroupId)}
+          okText="Remove" okButtonProps={{ danger: true }}>
+          <Button type="text" size="small" danger icon={<DeleteOutlined />} />
+        </Popconfirm>
+      ),
+    },
+  ];
+
+  return (
+    <div>
+      <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+          Per-report classification — the group this product sits in for Position, VaR/Risk, and
+          Settlement/GL reporting. Independent per axis; add new axes in Static Data → Reporting Groups.
+        </Typography.Text>
+        <Button size="small" icon={<LinkOutlined />} onClick={() => (showAssign ? setShowAssign(false) : openAssign())}>
+          Assign Group
+        </Button>
+      </div>
+
+      {showAssign && (
+        <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8, padding: 16, marginBottom: 16 }}>
+          <Space>
+            <Select
+              placeholder="Classification type…"
+              options={classificationOptions}
+              value={selectedClassificationId}
+              onChange={(v) => { setSelectedClassificationId(v); setSelectedGroupId(undefined); }}
+              style={{ width: 180 }}
+            />
+            <Select
+              showSearch
+              placeholder={selectedClassificationId == null ? 'Select classification first' : 'Search groups…'}
+              options={groupOptions}
+              optionFilterProp="label"
+              value={selectedGroupId}
+              onChange={setSelectedGroupId}
+              disabled={selectedClassificationId == null}
+              style={{ width: 220 }}
+            />
+            <Button type="primary" size="small" onClick={() => { void submitAssign(); }} loading={assign.isPending} disabled={selectedGroupId == null}>Add</Button>
+            <Button size="small" onClick={() => setShowAssign(false)}>Cancel</Button>
+          </Space>
+        </div>
+      )}
+
+      <Table
+        size="small"
+        columns={cols}
+        dataSource={data}
+        loading={isLoading}
+        rowKey="productReportingGroupId"
+        pagination={false}
+        locale={{ emptyText: 'No reporting groups assigned yet.' }}
       />
     </div>
   );
@@ -507,6 +623,9 @@ function SpecsTab({ product, isBlend }: { product: Product; isBlend: boolean }) 
     isBlend ? product.productId : null,
   );
   const { data: allProducts = [] } = useProducts();
+  const { data: commodityRows = [] } = useTableRows('commodity');
+  const commodities = commodityRows as CommodityRow[];
+  const productCommodityType = resolveCommodityType(commodities, product.commodityId) ?? 'OTHER';
   const addComp    = useAddBlendComponent(product.productId);
   const removeComp = useRemoveBlendComponent(product.productId);
   const addTemplate = useAddSpecTemplate(product.productId);
@@ -537,7 +656,7 @@ function SpecsTab({ product, isBlend }: { product: Product; isBlend: boolean }) 
     await addTemplate.mutateAsync({
       templateCode:  v.templateCode,
       templateName:  v.templateName,
-      commodityType: product.commodityType,
+      commodityType: productCommodityType,
       isDefault:     v.isDefault ?? false,
       issuingBody:   v.issuingBody ?? null,
       standardRef:   v.standardRef ?? null,
@@ -678,7 +797,7 @@ function SpecsTab({ product, isBlend }: { product: Product; isBlend: boolean }) 
                       <Typography.Text style={{ fontSize: 11, color: '#6b7280' }}>{t.notes}</Typography.Text>
                     )}
                   </Space>
-                  <SpecTemplateValues templateId={t.templateId} commodityType={product.commodityType} />
+                  <SpecTemplateValues templateId={t.templateId} commodityType={productCommodityType} />
                 </div>
               ),
             }))}
@@ -742,9 +861,20 @@ export function ProductsPage() {
   const [form] = Form.useForm<ProductInput>();
   useFormDraft('markets-products', { form, open: drawerOpen, setOpen: setDrawerOpen, editing, setEditing });
 
+  type CommodityFamilyRow = { commodityFamilyId: number; commodityId: number; familyCode: string; familyName: string; isActive: boolean };
+  const { data: commodityFamilyRows = [] } = useTableRows('commodity_family');
+  const commodityFamilies = commodityFamilyRows as CommodityFamilyRow[];
+  function familyLabel(id: number | null | undefined): string {
+    if (id == null) return '—';
+    return commodityFamilies.find((f) => f.commodityFamilyId === id)?.familyName ?? `#${id}`;
+  }
+
+  const { data: commodityRows = [] } = useTableRows('commodity');
+  const commodities = commodityRows as CommodityRow[];
+
   const filtered = useMemo(
-    () => (data ?? []).filter((p) => activeCommodity === 'ALL' || p.commodityType === activeCommodity),
-    [data, activeCommodity],
+    () => (data ?? []).filter((p) => activeCommodity === 'ALL' || resolveCommodityType(commodities, p.commodityId) === activeCommodity),
+    [data, activeCommodity, commodities],
   );
 
   function openNew() {
@@ -762,14 +892,13 @@ export function ProductsPage() {
       productCode:            p.productCode,
       productName:            p.productName,
       commodityId:            p.commodityId,
-      commodityType:          p.commodityType,
       settlementType:         p.settlementType,
       defaultPricingTypeCode: p.defaultPricingTypeCode,
       defaultUomCode:         p.defaultUomCode,
       defaultCurrencyCode:    p.defaultCurrencyCode ?? undefined,
       defaultIncotermCode:    p.defaultIncotermCode ?? undefined,
       gradeCode:              p.gradeCode ?? undefined,
-      productFamily:          p.productFamily ?? undefined,
+      commodityFamilyId:      p.commodityFamilyId ?? undefined,
       bloombergTicker:        p.bloombergTicker ?? undefined,
       reutersRic:             p.reutersRic ?? undefined,
       plattsCode:             p.plattsCode ?? undefined,
@@ -796,13 +925,16 @@ export function ProductsPage() {
 
   async function submit(closeAfter = true) {
     const v = await form.validateFields();
+    if (v.productCode) v.productCode = v.productCode.toUpperCase();
     const saved = await save.mutateAsync({ id: editing?.productId ?? null, input: v });
     setEditing(saved);
     if (closeAfter) setDrawerOpen(false);
   }
 
   const isBlendWatched          = Form.useWatch('isBlend', form);
-  const commodityTypeWatched    = Form.useWatch('commodityType', form) as CommodityType | undefined;
+  const commodityIdWatched      = Form.useWatch('commodityId', form) as number | undefined;
+  const commodityTypeWatched    = resolveCommodityType(commodities, commodityIdWatched);
+  const familyOptionsForCommodity = commodityFamilies.filter((f) => f.commodityId === commodityIdWatched);
   const defaultUomWatched       = Form.useWatch('defaultUomCode', form) as string | undefined;
   const densityEstimateWatched  = Form.useWatch('densityEstimateKgM3', form) as number | undefined;
   const densityBaseWatched      = Form.useWatch('densityBaseKgM3', form) as number | undefined;
@@ -830,15 +962,18 @@ export function ProductsPage() {
     { field: 'productCode', headerName: 'Code', cellClass: 'cell-mono', width: 160, pinned: 'left' },
     { field: 'productName', headerName: 'Product', flex: 1.4, minWidth: 200 },
     {
-      field: 'commodityType', headerName: 'Commodity', width: 115,
-      cellRenderer: (p: { value: CommodityType }) => <Tag color={COMMODITY_COLOR[p.value]}>{p.value}</Tag>,
+      field: 'commodityId', headerName: 'Commodity', width: 115,
+      cellRenderer: (p: { value: number }) => {
+        const type = resolveCommodityType(commodities, p.value);
+        return type ? <Tag color={COMMODITY_COLOR[type]}>{type}</Tag> : <Tag>{resolveCommodityName(commodities, p.value)}</Tag>;
+      },
     },
     {
       field: 'settlementType', headerName: 'Settlement', width: 115,
       cellRenderer: (p: { value: SettlementType }) => <Tag color={SETTLE_COLOR[p.value]}>{p.value}</Tag>,
     },
-    { field: 'productFamily',   headerName: 'Family',   width: 160,
-      valueFormatter: (p) => (p.value as string | null)?.replace(/_/g, ' ') ?? '—' },
+    { field: 'commodityFamilyId', headerName: 'Family',   width: 160,
+      valueFormatter: (p) => familyLabel(p.value as number | null) },
     { field: 'gradeCode',       headerName: 'Grade',    width: 120,
       valueFormatter: (p) => (p.value as string | null)?.replace(/_/g, ' ') ?? '—' },
     { field: 'defaultUomCode',  headerName: 'UoM',      width: 85, cellClass: 'cell-mono' },
@@ -880,7 +1015,7 @@ export function ProductsPage() {
         </Space>
       ),
     },
-  ], [deactivate]);
+  ], [deactivate, commodityFamilies, commodities]);
 
   const tabItems = [
     {
@@ -892,27 +1027,34 @@ export function ProductsPage() {
           <Space style={{ width: '100%' }} size={12}>
             <Form.Item name="productCode" label={hint('Product Code', 'Unique identifier. Convention: COMMODITY-GRADE or COMMODITY-PRODUCT.', 'OIL-DATED-BRENT')}
               style={{ flex: 1 }} rules={[{ required: true }]}>
-              <Input placeholder="OIL-DATED-BRENT" style={{ fontFamily: 'monospace' }} />
+              <Input
+                placeholder="OIL-DATED-BRENT"
+                style={{ fontFamily: 'monospace', textTransform: 'uppercase' }}
+                onChange={(e) => { e.target.value = e.target.value.toUpperCase(); }}
+              />
             </Form.Item>
-            <Form.Item name="commodityType" label="Commodity Type" style={{ flex: 1 }} rules={[{ required: true }]}>
-              <Select options={COMMODITY_TYPES.map((c) => ({ label: c, value: c }))} />
+            <Form.Item name="commodityId" label={hint('Commodity', 'The commodity master record this product belongs to.', 'Oil & Petroleum')} style={{ flex: 1 }} rules={[{ required: true }]}>
+              <Select
+                options={commodities.map((c) => ({ label: c.commodityName, value: c.commodityId }))}
+                showSearch optionFilterProp="label"
+              />
             </Form.Item>
           </Space>
           <Form.Item name="productName" label={hint('Product Name', 'Human-readable name as shown on trade confirmations and invoices.', 'Dated Brent Crude')} rules={[{ required: true }]}>
             <Input placeholder="Dated Brent Crude" />
           </Form.Item>
           <Space style={{ width: '100%' }} size={12}>
-            <Form.Item name="productFamily" label={hint('Product Family', 'High-level grouping within commodity — e.g. CRUDE_OIL, NATURAL_GAS, BASE_METALS.', 'CRUDE_OIL')} style={{ flex: 1 }}>
-              <Select options={PRODUCT_FAMILIES.map((f) => ({ label: f.replace(/_/g, ' '), value: f }))} showSearch allowClear />
+            <Form.Item name="commodityFamilyId" label={hint('Commodity Family', 'Grouping of similar products beneath the selected commodity — e.g. Crude Oil vs Refined Products under Oil. Select a commodity above first.', 'Crude Oil')} style={{ flex: 1 }}>
+              <Select
+                options={familyOptionsForCommodity.map((f) => ({ label: f.familyName, value: f.commodityFamilyId }))}
+                showSearch optionFilterProp="label" allowClear
+                placeholder={commodityIdWatched == null ? 'Select a commodity first' : 'Select family'}
+              />
             </Form.Item>
             <Form.Item name="gradeCode" label={hint('Grade / Spec', 'Product grade or specification class — e.g. LIGHT_SWEET, HEAVY_SOUR, GRADE_A.', 'LIGHT_SWEET')} style={{ flex: 1 }}>
               <Input placeholder="LIGHT_SWEET" style={{ fontFamily: 'monospace' }} />
             </Form.Item>
           </Space>
-          <Form.Item name="commodityId" label={hint('Commodity ID', 'References the commodity master record for this product.', '1')} rules={[{ required: true }]}>
-            <InputNumber style={{ width: 120 }} placeholder="1" min={1} />
-          </Form.Item>
-
           {/* ── Settlement & Pricing ──────────────────────────────────────── */}
           <Divider orientation="left" orientationMargin={0} style={{ fontSize: 12, color: '#6b7280', marginBottom: 12 }}>
             Settlement & Pricing Defaults
@@ -1212,6 +1354,12 @@ export function ProductsPage() {
       ),
       disabled: editing === null,
       children: editing ? <SpecsTab product={editing} isBlend={isBlendWatched ?? editing.isBlend} /> : null,
+    },
+    {
+      key: 'reporting-groups',
+      label: <Space><ApartmentOutlined />Reporting Groups</Space>,
+      disabled: editing === null,
+      children: editing ? <ReportingGroupsTab productId={editing.productId} /> : null,
     },
   ];
 

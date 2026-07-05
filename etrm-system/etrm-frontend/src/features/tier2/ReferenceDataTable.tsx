@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { MouseEvent as ReactMouseEvent } from 'react';
+import { useQueries } from '@tanstack/react-query';
 import {
   Button,
   Space,
@@ -21,8 +22,39 @@ import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 import type { RegistryEntry, ColumnMetadata, ReferenceDataRow } from '@models/referenceData';
 import { useTableMetadata, useTableRows, useSaveRow, useDeleteRow } from './hooks';
+import { referenceDataApi } from './api';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
+
+/** Column-name fragments that count as a "code/short-name" field — always
+ *  stored uppercase, even if the user types lowercase. Codes with a stricter
+ *  ISO format (currency, country) get their own pattern validation below on
+ *  top of this. */
+function isCodeColumn(name: string): boolean {
+  return /code$/i.test(name);
+}
+
+/** Builds a human-readable option label for a foreign-key row without a
+ *  per-table label-column convention hardcoded anywhere — looks for the
+ *  target table's own `*Code`/`*Name` columns (the near-universal pattern
+ *  across this app's reference tables) and falls back to the row's id. */
+function fkOptionLabel(row: ReferenceDataRow, fallbackId: number): string {
+  const nameKey = Object.keys(row).find((k) => /name$/i.test(k));
+  const codeKey = Object.keys(row).find((k) => /code$/i.test(k));
+  const name = nameKey ? row[nameKey] : undefined;
+  const code = codeKey ? row[codeKey] : undefined;
+  if (code != null && name != null) return `${code} — ${name}`;
+  if (name != null) return String(name);
+  if (code != null) return String(code);
+  return `#${fallbackId}`;
+}
+
+/** Every table in this app follows `<camelCase table name>Id` for its own
+ *  primary key (commodityId, commodityFamilyId, reportingGroupId, ...) — used
+ *  here to read a FK target row's id without a second metadata fetch. */
+function primaryKeyFieldFor(tableName: string): string {
+  return tableName.replace(/_([a-z0-9])/g, (_, c: string) => c.toUpperCase()) + 'Id';
+}
 
 interface Props {
   table: RegistryEntry;
@@ -52,24 +84,32 @@ function isoRules(col: ColumnMetadata) {
 
 /** Renders the right input control for a column purely from its metadata
  *  kind — this is the mechanism that lets one component cover every Tier 2
- *  table instead of hand-writing a form per table. */
-function fieldControl(col: ColumnMetadata) {
+ *  table instead of hand-writing a form per table. `fkOptions` carries the
+ *  already-fetched target-table rows for any `foreign_key` column, keyed by
+ *  the column's `foreignKeyTable`. */
+function fieldControl(col: ColumnMetadata, fkOptions: Record<string, { value: number; label: string }[]>) {
   switch (col.kind) {
     case 'boolean':
       return <Switch />;
     case 'number':
-    case 'foreign_key':
-      // FK columns render as a plain numeric id input in v1 — resolving a
-      // human-readable label requires either a label-column convention in
-      // the metadata contract or a dedicated lookup endpoint, neither of
-      // which exists yet. Flagged here rather than silently faked.
       return <InputNumber style={{ width: '100%' }} />;
+    case 'foreign_key': {
+      const options = col.foreignKeyTable ? fkOptions[col.foreignKeyTable] ?? [] : [];
+      return (
+        <Select
+          showSearch
+          optionFilterProp="label"
+          options={options}
+          placeholder={`Select ${col.label.toLowerCase()}…`}
+        />
+      );
+    }
     case 'date':
       return <AppDatePicker />;
     case 'enum':
       return <Select options={(col.enumValues ?? []).map((v) => ({ label: v, value: v }))} />;
     default: {
-      const isCodeCol = ISO_4217_COLS.has(col.name) || ISO_3166_COLS.has(col.name);
+      const isCodeCol = ISO_4217_COLS.has(col.name) || ISO_3166_COLS.has(col.name) || isCodeColumn(col.name);
       return (
         <Input
           maxLength={col.maxLength ?? undefined}
@@ -141,6 +181,41 @@ export function ReferenceDataTable({ table }: Props) {
     [metadata],
   );
 
+  // FK columns render as a searchable Select, not a raw id input — fetch
+  // every distinct target table referenced by this table's FK columns in one
+  // batch (useQueries handles the variable-length list safely; this
+  // component remounts per table via Tier2HomePage's `key`, so the list is
+  // stable for the component's lifetime).
+  const fkTables = useMemo(
+    () => Array.from(new Set(editableColumns.filter((c) => c.kind === 'foreign_key' && c.foreignKeyTable).map((c) => c.foreignKeyTable as string))),
+    [editableColumns],
+  );
+  const fkResults = useQueries({
+    queries: fkTables.map((t) => ({
+      queryKey: ['reference-data', t, 'rows'],
+      queryFn: () => referenceDataApi.listRows(t),
+    })),
+  });
+  // Fetch each FK target's own metadata too — its primaryKeyColumn isn't
+  // always <camelCase table name>Id (e.g. lookup_value's PK is lookupId, not
+  // lookupValueId), so read the real value rather than guessing.
+  const fkMetaResults = useQueries({
+    queries: fkTables.map((t) => ({
+      queryKey: ['reference-data', t, 'metadata'],
+      queryFn: () => referenceDataApi.getMetadata(t),
+      staleTime: 10 * 60_000,
+    })),
+  });
+  const fkOptions = useMemo(() => {
+    const map: Record<string, { value: number; label: string }[]> = {};
+    fkTables.forEach((t, i) => {
+      const targetRows = (fkResults[i]?.data ?? []) as ReferenceDataRow[];
+      const pkField = fkMetaResults[i]?.data?.primaryKeyColumn ?? primaryKeyFieldFor(t);
+      map[t] = targetRows.map((r) => ({ value: r[pkField] as number, label: fkOptionLabel(r, r[pkField] as number) }));
+    });
+    return map;
+  }, [fkTables, fkResults, fkMetaResults]);
+
   if (loadingMeta) return <Spin />;
   if (!metadata) {
     return <Alert type="error" message="Could not load table metadata." showIcon />;
@@ -177,6 +252,11 @@ export function ReferenceDataTable({ table }: Props) {
       if (col.kind === 'date' && v && typeof v === 'object' && 'format' in v) {
         payload[col.name] = (v as dayjs.Dayjs).format('YYYY-MM-DD');
       }
+      // Defensive uppercase at save time, not just on keystroke — covers
+      // paste, IME input, and any other path that bypasses onChange.
+      if (typeof v === 'string' && (ISO_4217_COLS.has(col.name) || ISO_3166_COLS.has(col.name) || isCodeColumn(col.name))) {
+        payload[col.name] = v.toUpperCase();
+      }
     }
     await saveRow.mutateAsync({ id: editingId, row: payload });
     if (closeAfter) { setModalOpen(false); } else { form.resetFields(); setEditingId(null); }
@@ -191,6 +271,10 @@ export function ReferenceDataTable({ table }: Props) {
         if (col.kind === 'boolean')
           return <Tag color={value ? 'success' : 'default'}>{value ? 'Yes' : 'No'}</Tag>;
         if (value === null || value === undefined || value === '') return '—';
+        if (col.kind === 'foreign_key' && col.foreignKeyTable) {
+          const opt = fkOptions[col.foreignKeyTable]?.find((o) => o.value === value);
+          return opt ? opt.label : String(value);
+        }
         return String(value);
       },
     })),
@@ -301,7 +385,7 @@ export function ReferenceDataTable({ table }: Props) {
                 ...isoRules(col),
               ]}
             >
-              {fieldControl(col)}
+              {fieldControl(col, fkOptions)}
             </Form.Item>
           ))}
         </Form>

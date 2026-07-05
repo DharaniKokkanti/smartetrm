@@ -1,4 +1,4 @@
-import type { Counterparty, Address, AddressAssignment, Contact, ContactAssignment, BankAccount } from '@features/tier1/counterparty/types';
+import type { Counterparty, Address, AddressAssignment, Contact, ContactAssignment, BankAccount, TaxRegistration } from '@features/tier1/counterparty/types';
 
 let nextCpId = 4;
 let nextContactId = 4;
@@ -6,6 +6,7 @@ let nextBankAccountId = 3;
 let nextAddressId = 4;
 let nextAddressAssignmentId = 5;
 let nextContactAssignmentId = 5;
+let nextTaxRegId = 3;
 
 export const counterpartySeed: Counterparty[] = [
   {
@@ -24,6 +25,8 @@ export const counterpartySeed: Counterparty[] = [
     defaultCurrencyId: 1,
     isIntercompany: false,
     internalEntityId: null,
+    parentInd: true,
+    parentCounterpartyId: 3,
     isActive: true,
     kycStatus: 'APPROVED',
     kycApprovedDate: '2026-01-15',
@@ -52,6 +55,8 @@ export const counterpartySeed: Counterparty[] = [
     defaultCurrencyId: 1,
     isIntercompany: false,
     internalEntityId: null,
+    parentInd: false,
+    parentCounterpartyId: null,
     isActive: true,
     kycStatus: 'REVIEW',
     kycApprovedDate: '2025-11-01',
@@ -80,6 +85,8 @@ export const counterpartySeed: Counterparty[] = [
     defaultCurrencyId: 1,
     isIntercompany: false,
     internalEntityId: null,
+    parentInd: false,
+    parentCounterpartyId: null,
     isActive: true,
     kycStatus: 'APPROVED',
     kycApprovedDate: '2026-01-15',
@@ -337,9 +344,45 @@ export const bankAccountSeed: BankAccount[] = [
   },
 ];
 
+export const taxRegistrationSeed: TaxRegistration[] = [
+  {
+    taxRegId: 1,
+    _localId: 'seed-tr1',
+    entityType: 'COUNTERPARTY',
+    entityId: 1,
+    taxType: 'VAT',
+    taxId: 'GB123456789',
+    jurisdiction: 'GB',
+    issuingAuthority: 'HMRC',
+    registrationDate: '2010-04-01',
+    validFrom: '2010-04-01',
+    validTo: null,
+    isPrimary: true,
+    isActive: true,
+    notes: null,
+  },
+  {
+    taxRegId: 2,
+    _localId: 'seed-tr2',
+    entityType: 'COUNTERPARTY',
+    entityId: 2,
+    taxType: 'VAT',
+    taxId: 'CHE-123.456.789',
+    jurisdiction: 'CH',
+    issuingAuthority: 'FTA',
+    registrationDate: '2005-01-01',
+    validFrom: '2005-01-01',
+    validTo: null,
+    isPrimary: true,
+    isActive: true,
+    notes: null,
+  },
+];
+
 export function nextCounterpartyId(): number { return nextCpId++; }
 export function nextContactRecordId(): number { return nextContactId++; }
 export function nextBankAccountRecordId(): number { return nextBankAccountId++; }
+export function nextTaxRegistrationId(): number { return nextTaxRegId++; }
 export function nextAddressId_(): number { return nextAddressId++; }
 export function nextAddressAssignmentId_(): number { return nextAddressAssignmentId++; }
 export function nextContactAssignmentId_(): number { return nextContactAssignmentId++; }

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Space, Popconfirm, Tag, Drawer, Form, Input, Select, Switch } from 'antd';
+import { Button, Space, Popconfirm, Tag, Drawer, Form, Input, InputNumber, Select, Switch, TimePicker } from 'antd';
 import { EditOutlined, StopOutlined } from '@ant-design/icons';
 import type { ColDef } from 'ag-grid-community';
 import dayjs from 'dayjs';
@@ -8,7 +8,10 @@ import { SmartGrid } from '@components/smart/SmartGrid';
 import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import { usePeriods, useSavePeriod, useDeactivatePeriod } from './hooks';
-import { PERIOD_TYPES, PERIOD_STATUS_CODES, type Period, type PeriodInput, type PeriodType, type PeriodStatusCode } from './types';
+import {
+  PERIOD_TYPES, PERIOD_STATUS_CODES, COMMODITY_TYPES, LOAD_TYPES, GAS_DAY_TYPES,
+  type Period, type PeriodInput, type PeriodType, type PeriodStatusCode,
+} from './types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 
@@ -29,6 +32,7 @@ export function PeriodsPage() {
   const [editing, setEditing] = useState<Period | null>(null);
   const [form] = Form.useForm<PeriodInput>();
   useFormDraft('calendar-periods', { form, open, setOpen, editing, setEditing });
+  const watchedCommodityType = Form.useWatch('commodityType', form);
 
   function openNew() { setEditing(null); form.resetFields(); form.setFieldValue('isActive', true); form.setFieldValue('statusCode', 'OPEN'); setOpen(true); }
   function openEdit(p: Period) {
@@ -39,6 +43,10 @@ export function PeriodsPage() {
       deliveryStartDate: p.deliveryStartDate ? dayjs(p.deliveryStartDate) as unknown as string : undefined,
       deliveryEndDate: p.deliveryEndDate ? dayjs(p.deliveryEndDate) as unknown as string : undefined,
       pricingCalendarCode: p.pricingCalendarCode ?? undefined, settlementCalendarCode: p.settlementCalendarCode ?? undefined,
+      commodityType: p.commodityType ?? undefined, loadType: p.loadType ?? undefined, gasDayType: p.gasDayType ?? undefined,
+      startTimeUtc: p.startTimeUtc ? dayjs(p.startTimeUtc, 'HH:mm') as unknown as string : undefined,
+      endTimeUtc: p.endTimeUtc ? dayjs(p.endTimeUtc, 'HH:mm') as unknown as string : undefined,
+      cropYearOffsetMonths: p.cropYearOffsetMonths ?? undefined,
       statusCode: p.statusCode, isActive: p.isActive,
     });
     setOpen(true);
@@ -51,6 +59,12 @@ export function PeriodsPage() {
       endDate: dayjs(v.endDate as unknown as dayjs.Dayjs).format('YYYY-MM-DD'),
       deliveryStartDate: v.deliveryStartDate ? dayjs(v.deliveryStartDate as unknown as dayjs.Dayjs).format('YYYY-MM-DD') : null,
       deliveryEndDate: v.deliveryEndDate ? dayjs(v.deliveryEndDate as unknown as dayjs.Dayjs).format('YYYY-MM-DD') : null,
+      commodityType: v.commodityType ?? null,
+      loadType: v.commodityType === 'POWER' ? (v.loadType ?? null) : null,
+      gasDayType: v.commodityType === 'GAS' ? (v.gasDayType ?? null) : null,
+      startTimeUtc: v.commodityType === 'POWER' && v.startTimeUtc ? dayjs(v.startTimeUtc as unknown as dayjs.Dayjs).format('HH:mm') : null,
+      endTimeUtc: v.commodityType === 'POWER' && v.endTimeUtc ? dayjs(v.endTimeUtc as unknown as dayjs.Dayjs).format('HH:mm') : null,
+      cropYearOffsetMonths: v.commodityType === 'AGRICULTURAL' ? (v.cropYearOffsetMonths ?? null) : null,
     };
     const saved = await save.mutateAsync({ id: editing?.periodId ?? null, input });
     if (closeAfter) setOpen(false); else setEditing(saved);
@@ -68,6 +82,15 @@ export function PeriodsPage() {
     { field: 'pricingCalendarCode', headerName: 'Pricing Cal', width: 120, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—',
       tooltipValueGetter: () => 'Holiday calendar used to determine pricing days. Only non-holiday business days count for price averaging.' },
     { field: 'settlementCalendarCode', headerName: 'Settlement Cal', width: 130, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },
+    { field: 'commodityType', headerName: 'Commodity', width: 110, valueFormatter: (p) => p.value ?? 'All',
+      tooltipValueGetter: () => 'Which commodity this period applies to. Blank/All = applies across every commodity (most calendar/quarterly/annual periods).' },
+    { field: 'loadType', headerName: 'Load Type', width: 100, valueFormatter: (p) => p.value ?? '—',
+      tooltipValueGetter: () => 'Power-specific sub-period: BASE (all hours), PEAK, OFF_PEAK, EXTENDED_PEAK, OVERNIGHT.' },
+    { field: 'startTimeUtc', headerName: 'Hours (UTC)', width: 110,
+      valueFormatter: (p) => p.data?.startTimeUtc ? `${p.data.startTimeUtc}–${p.data.endTimeUtc ?? '24:00'}` : '—',
+      tooltipValueGetter: () => 'Exact hourly/sub-hourly block for physical power — EEX blocks, PJM hourly nodes. Blank = standard full-day period, not an hourly slice.' },
+    { field: 'cropYearOffsetMonths', headerName: 'Crop Yr Start', width: 110, valueFormatter: (p) => p.value != null ? `Month ${p.value}` : '—',
+      tooltipValueGetter: () => 'Agri crop-year alignment — the calendar month the physical marketing year starts (e.g. 9 = September for US corn/soybean).' },
     { field: 'statusCode', headerName: 'Status', width: 100, cellRenderer: (p: { value: PeriodStatusCode }) => <Tag color={STATUS_COLOR[p.value] ?? 'default'}>{p.value}</Tag> },
     { field: 'isActive', headerName: 'Active', width: 90, cellRenderer: (p: { value: boolean }) => <ActiveTag active={p.value} /> },
     {
@@ -126,6 +149,34 @@ export function PeriodsPage() {
               <Input placeholder="NYC" style={{ fontFamily: 'monospace' }} />
             </Form.Item>
           </Space>
+          <Form.Item name="commodityType" label={hint('Commodity', 'Which commodity this period applies to. Leave blank for periods that apply across every commodity (most calendar/quarterly/annual periods) — only set this for a commodity-specific period like a power load block or an agri crop year.')}>
+            <Select allowClear options={COMMODITY_TYPES.map((c) => ({ label: c, value: c }))} />
+          </Form.Item>
+          {watchedCommodityType === 'POWER' && (
+            <>
+              <Form.Item name="loadType" label={hint('Load Type', 'BASE: all hours (00:00-24:00). PEAK/OFF_PEAK/EXTENDED_PEAK: market-defined sub-daily blocks. OVERNIGHT: overnight hours.', 'PEAK')}>
+                <Select allowClear options={LOAD_TYPES.map((l) => ({ label: l, value: l }))} />
+              </Form.Item>
+              <Space style={{ width: '100%', gap: 12 }}>
+                <Form.Item name="startTimeUtc" label={hint('Block Start (UTC)', 'Exact start time for this hourly/sub-hourly power block — e.g. EEX peak block 07:00-19:00, or a single delivery hour for PJM hourly nodes.', '07:00')} style={{ flex: 1 }}>
+                  <TimePicker format="HH:mm" style={{ width: '100%' }} />
+                </Form.Item>
+                <Form.Item name="endTimeUtc" label={hint('Block End (UTC)', 'Exact end time for this block. Leave blank if this period is a standard full calendar/gas day rather than an hourly slice.', '19:00')} style={{ flex: 1 }}>
+                  <TimePicker format="HH:mm" style={{ width: '100%' }} />
+                </Form.Item>
+              </Space>
+            </>
+          )}
+          {watchedCommodityType === 'GAS' && (
+            <Form.Item name="gasDayType" label={hint('Gas Day Type', 'GAS_DAY: standard 06:00-06:00 gas day. WITHIN_DAY: intraday gas. DAY_AHEAD: next gas day. WEEKEND: weekend gas day convention.', 'GAS_DAY')}>
+              <Select allowClear options={GAS_DAY_TYPES.map((g) => ({ label: g, value: g }))} />
+            </Form.Item>
+          )}
+          {watchedCommodityType === 'AGRICULTURAL' && (
+            <Form.Item name="cropYearOffsetMonths" label={hint('Crop Year Start Month', 'Calendar month (1-12) the physical marketing year starts — does not align with a calendar/CAL year block. E.g. 9 = September for US corn/soybean crop year.', '9 (September)')}>
+              <InputNumber style={{ width: '100%' }} min={1} max={12} />
+            </Form.Item>
+          )}
           <Form.Item name="statusCode" label={hint('Period Status', 'OPEN: active, trades can reference this period. CLOSED: pricing complete, final prices set. LOCKED: closed and financially settled, no edits. ARCHIVED: historical record only.')} rules={[{ required: true }]}>
             <Select options={PERIOD_STATUS_CODES.map((s) => ({ label: s, value: s }))} />
           </Form.Item>

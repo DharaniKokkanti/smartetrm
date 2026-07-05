@@ -12,6 +12,7 @@ import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import { useBrokers } from '@features/organization/brokers/hooks';
 import { useProducts } from '@features/markets/products/hooks';
+import { type CommodityRow, resolveCommodityType } from '@features/markets/products/types';
 import { useBrokerFeeAgreements, useSaveBrokerFeeAgreement, useDeactivateBrokerFeeAgreement } from './hooks';
 import {
   FEE_TYPES, PAY_PERIODS, BFA_COMMODITY_TYPES,
@@ -19,6 +20,7 @@ import {
   type BrokerFeeAgreement, type BrokerFeeAgreementInput, type FeeType, type PayPeriod,
 } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { useTableRows } from '@features/tier2/hooks';
 
 const { Text } = Typography;
 
@@ -54,9 +56,12 @@ export function BrokerFeeAgreementsPage() {
   const [form] = Form.useForm<BrokerFeeAgreementInput>();
   useFormDraft('contracts-bfa', { form, open, setOpen, editing, setEditing });
 
+  const { data: commodityRows = [] } = useTableRows('commodity');
+  const commodities = commodityRows as CommodityRow[];
+
   const filteredProducts = useMemo(
-    () => products.filter((p) => !selectedCommodity || p.commodityType === selectedCommodity),
-    [products, selectedCommodity],
+    () => products.filter((p) => !selectedCommodity || resolveCommodityType(commodities, p.commodityId) === selectedCommodity),
+    [products, commodities, selectedCommodity],
   );
 
   function openNew() {

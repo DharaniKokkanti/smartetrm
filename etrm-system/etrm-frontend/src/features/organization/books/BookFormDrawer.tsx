@@ -3,7 +3,7 @@ import { Drawer, Form, Input, Select, Button, Space, Switch, InputNumber } from 
 import dayjs, { type Dayjs } from 'dayjs';
 import { useSaveBook } from './hooks';
 import { BOOK_TYPES, type Book, type BookInput } from './types';
-import { COMMODITY_TYPES } from '../desks/types';
+import { COMMODITY_TYPE_LOOKUP } from '../desks/types';
 import { useDraftValues } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 
@@ -89,7 +89,7 @@ export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
         </Form.Item>
         <Form.Item name="commodityType" label="Commodity Type">
           <Select allowClear placeholder="Leave blank for multi-commodity"
-            options={COMMODITY_TYPES.map((c) => ({ label: c, value: c }))} />
+            options={COMMODITY_TYPE_LOOKUP.map((l) => ({ label: l.label, value: l.lookupId }))} />
         </Form.Item>
         <Form.Item name="currencyCode" label="Base Currency" rules={[{ required: true }]}>
           <Select options={['USD', 'EUR', 'GBP', 'JPY', 'CAD', 'SGD'].map((c) => ({ label: c, value: c }))}

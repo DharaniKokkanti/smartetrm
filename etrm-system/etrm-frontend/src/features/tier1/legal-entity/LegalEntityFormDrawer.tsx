@@ -9,8 +9,12 @@ import { useCreateLegalEntity, useUpdateLegalEntity, useLegalEntities } from './
 import { EntityGuaranteesPanel } from '@features/tier1/guarantee/EntityGuaranteesPanel';
 import { AddressesSection } from '@features/tier1/counterparty/AddressesSection';
 import { ContactsSection } from '@features/tier1/counterparty/ContactsSection';
-import type { AddressAssignment, ContactAssignment } from '@features/tier1/counterparty/types';
-import { fetchEntityAddresses, fetchEntityContacts, saveAddressAssignment, saveContactAssignment } from '@features/tier1/counterparty/api';
+import { TaxRegistrationsSection } from '@features/tier1/counterparty/TaxRegistrationsSection';
+import type { AddressAssignment, ContactAssignment, TaxRegistration } from '@features/tier1/counterparty/types';
+import {
+  fetchEntityAddresses, fetchEntityContacts, fetchEntityTaxRegistrations,
+  saveAddressAssignment, saveContactAssignment, saveTaxRegistrationAssignment,
+} from '@features/tier1/counterparty/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { useDraftValues } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
@@ -37,6 +41,7 @@ export function LegalEntityFormDrawer({ open, onClose, editing, onSaved }: Props
 
   const [addresses, setAddresses] = useState<AddressAssignment[]>([]);
   const [contacts, setContacts] = useState<ContactAssignment[]>([]);
+  const [taxRegistrations, setTaxRegistrations] = useState<TaxRegistration[]>([]);
   const [loadingChildren, setLoadingChildren] = useState(false);
 
   useEffect(() => {
@@ -50,16 +55,19 @@ export function LegalEntityFormDrawer({ open, onClose, editing, onSaved }: Props
       Promise.all([
         fetchEntityAddresses('LEGAL_ENTITY', editing.legalEntityId),
         fetchEntityContacts('LEGAL_ENTITY', editing.legalEntityId),
+        fetchEntityTaxRegistrations('LEGAL_ENTITY', editing.legalEntityId),
       ])
-        .then(([addrs, contacts]) => {
+        .then(([addrs, contacts, taxRegs]) => {
           setAddresses(addrs.map((a) => ({ ...a, _localId: `srv-ea-${a.entityAddressId}` })));
           setContacts(contacts.map((c) => ({ ...c, _localId: `srv-ec-${c.entityContactId}` })));
+          setTaxRegistrations(taxRegs.map((t) => ({ ...t, _localId: `srv-tr-${t.taxRegId}` })));
         })
         .finally(() => setLoadingChildren(false));
     } else if (open) {
       form.resetFields();
       setAddresses([]);
       setContacts([]);
+      setTaxRegistrations([]);
     }
   }, [open, editing, form]);
 
@@ -67,10 +75,15 @@ export function LegalEntityFormDrawer({ open, onClose, editing, onSaved }: Props
     .filter((e) => e.legalEntityId !== editing?.legalEntityId)
     .map((e) => ({ label: `${e.entityCode} — ${e.entityName}`, value: e.legalEntityId }));
 
+  const parentIndWatched = Form.useWatch('parentInd', form);
+
   async function handleSubmit(closeAfter = true) {
     const values = await form.validateFields();
     const input: LegalEntityInput = {
       ...values,
+      // Keep parentEntityId consistent with parentInd — mirrors the DB's
+      // chk_le_parent_ind_consistency CHECK (V62).
+      parentEntityId: values.parentInd ? values.parentEntityId : null,
       goLiveDate: values.goLiveDate ? values.goLiveDate.format('YYYY-MM-DD') : null,
     };
 
@@ -83,6 +96,7 @@ export function LegalEntityFormDrawer({ open, onClose, editing, onSaved }: Props
     await Promise.allSettled([
       ...addresses.map((a) => saveAddressAssignment({ ...a, entityType: 'LEGAL_ENTITY', entityId: leId })),
       ...contacts.map((c) => saveContactAssignment({ ...c, entityType: 'LEGAL_ENTITY', entityId: leId })),
+      ...taxRegistrations.map((t) => saveTaxRegistrationAssignment({ ...t, entityType: 'LEGAL_ENTITY', entityId: leId })),
     ]);
 
     queryClient.invalidateQueries({ queryKey: ['address-pool'] });
@@ -112,7 +126,7 @@ export function LegalEntityFormDrawer({ open, onClose, editing, onSaved }: Props
             key: 'details',
             label: 'Details',
             children: (
-              <Form form={form} layout="vertical" initialValues={{ isInternal: true, baseCurrency: 'USD' }}>
+              <Form form={form} layout="vertical" initialValues={{ isInternal: true, baseCurrency: 'USD', parentInd: false }}>
                 <Form.Item name="entityCode" label="Entity Code" rules={[{ required: true, message: 'Required' }, { max: 20 }]}>
                   <Input placeholder="e.g. ACME-UK" disabled={!!editing} />
                 </Form.Item>
@@ -128,8 +142,16 @@ export function LegalEntityFormDrawer({ open, onClose, editing, onSaved }: Props
                 <Form.Item name="entityType" label="Entity Type" rules={[{ required: true, message: 'Required' }]}>
                   <Select options={ENTITY_TYPE_OPTIONS} placeholder="Select type" />
                 </Form.Item>
+                <Form.Item name="parentInd" label="Has Parent Entity" valuePropName="checked">
+                  <Switch onChange={(checked) => { if (!checked) form.setFieldValue('parentEntityId', null); }} />
+                </Form.Item>
                 <Form.Item name="parentEntityId" label="Parent Entity">
-                  <Select options={parentOptions} placeholder="None — top of hierarchy" allowClear showSearch optionFilterProp="label" />
+                  <Select
+                    options={parentOptions}
+                    placeholder={parentIndWatched ? 'Select parent entity' : 'Enable "Has Parent Entity" first'}
+                    disabled={!parentIndWatched}
+                    allowClear showSearch optionFilterProp="label"
+                  />
                 </Form.Item>
 
                 <Divider style={{ margin: '8px 0 16px' }} />
@@ -187,6 +209,19 @@ export function LegalEntityFormDrawer({ open, onClose, editing, onSaved }: Props
               <Spin style={{ display: 'block', marginTop: 40 }} />
             ) : (
               <AddressesSection items={addresses} onChange={setAddresses} entityType="LEGAL_ENTITY" />
+            ),
+          },
+          {
+            key: 'tax',
+            label: (
+              <Badge count={taxRegistrations.filter((t) => t.isActive).length} showZero color="default">
+                Tax Registrations
+              </Badge>
+            ),
+            children: loadingChildren ? (
+              <Spin style={{ display: 'block', marginTop: 40 }} />
+            ) : (
+              <TaxRegistrationsSection items={taxRegistrations} onChange={setTaxRegistrations} entityType="LEGAL_ENTITY" />
             ),
           },
           {

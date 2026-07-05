@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Drawer, Form, Input, Select, Button, Space, Switch } from 'antd';
 import { useSaveDesk } from './hooks';
-import { COMMODITY_TYPES, type Desk, type DeskInput } from './types';
+import { COMMODITY_TYPE_LOOKUP, type Desk, type DeskInput } from './types';
 import { useDraftValues } from '@components/smart/formDraft';
 
 interface Props {
@@ -67,7 +67,7 @@ export function DeskFormDrawer({ open, editing, onClose, onSaved }: Props) {
         </Form.Item>
         <Form.Item name="commodityType" label="Commodity Type">
           <Select allowClear placeholder="Multi-commodity if blank">
-            {COMMODITY_TYPES.map((c) => <Select.Option key={c} value={c}>{c}</Select.Option>)}
+            {COMMODITY_TYPE_LOOKUP.map((l) => <Select.Option key={l.lookupId} value={l.lookupId}>{l.label}</Select.Option>)}
           </Select>
         </Form.Item>
         <Form.Item name="headTraderId" label="Head Trader (ID)">

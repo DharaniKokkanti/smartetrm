@@ -5,6 +5,7 @@ import type {
   ProductSpecTemplate, ProductSpecValue,
   BlendComponent, BlendComponentInput,
   SpecParameter,
+  ProductReportingGroup, ProductReportingGroupInput,
 } from './types';
 import type { CommodityType } from '@features/organization/desks/types';
 
@@ -53,4 +54,13 @@ export const productBlendApi = {
     apiClient.post<BlendComponent>(`/products/${productId}/blend-components`, input).then((r) => r.data),
   removeComponent: (productId: number, blendComponentId: number) =>
     apiClient.delete(`/products/${productId}/blend-components/${blendComponentId}`),
+};
+
+export const productReportingGroupApi = {
+  list: (productId: number) =>
+    apiClient.get<ProductReportingGroup[]>(`/products/${productId}/reporting-groups`).then((r) => r.data),
+  assign: (productId: number, input: ProductReportingGroupInput) =>
+    apiClient.post<ProductReportingGroup>(`/products/${productId}/reporting-groups`, input).then((r) => r.data),
+  remove: (productId: number, productReportingGroupId: number) =>
+    apiClient.delete(`/products/${productId}/reporting-groups/${productReportingGroupId}`),
 };

@@ -42,10 +42,10 @@ function IndexLinksDrawer({ source, onClose }: { source: PriceSource; onClose: (
   const [editing, setEditing] = useState<PriceIndexSource | null>(null);
   const [form] = Form.useForm<PriceIndexSourceInput>();
 
-  function openAdd() { setEditing(null); form.resetFields(); form.setFieldsValue({ priceSourceId: source.priceSourceId, priceMultiplier: 1, priceOffset: 0, isActive: true, effectiveFrom: dayjs().format('YYYY-MM-DD') as unknown as string }); setAddOpen(true); }
+  function openAdd() { setEditing(null); form.resetFields(); form.setFieldsValue({ priceSourceId: source.priceSourceId, priceMultiplier: 1, priceOffset: 0, calculationSequence: 1, isActive: true, effectiveFrom: dayjs().format('YYYY-MM-DD') as unknown as string }); setAddOpen(true); }
   function openEdit(l: PriceIndexSource) {
     setEditing(l);
-    form.setFieldsValue({ priceIndexId: l.priceIndexId, priceSourceId: l.priceSourceId, sourceRole: l.sourceRole, sourceFieldCode: l.sourceFieldCode ?? undefined, sourceTicker: l.sourceTicker ?? undefined, priceMultiplier: l.priceMultiplier, priceOffset: l.priceOffset, effectiveFrom: dayjs(l.effectiveFrom) as unknown as string, effectiveTo: l.effectiveTo ? dayjs(l.effectiveTo) as unknown as string : undefined, isActive: l.isActive });
+    form.setFieldsValue({ priceIndexId: l.priceIndexId, priceSourceId: l.priceSourceId, sourceRole: l.sourceRole, sourceFieldCode: l.sourceFieldCode ?? undefined, sourceTicker: l.sourceTicker ?? undefined, priceMultiplier: l.priceMultiplier, priceOffset: l.priceOffset, calculationSequence: l.calculationSequence, effectiveFrom: dayjs(l.effectiveFrom) as unknown as string, effectiveTo: l.effectiveTo ? dayjs(l.effectiveTo) as unknown as string : undefined, isActive: l.isActive });
     setAddOpen(true);
   }
   async function submit(closeAfter = true) {
@@ -82,6 +82,8 @@ function IndexLinksDrawer({ source, onClose }: { source: PriceSource; onClose: (
           { title: 'Field Code', dataIndex: 'sourceFieldCode', width: 110, render: (v: string | null) => v ? <code style={{ fontFamily: 'monospace', fontSize: 11 }}>{v}</code> : '—' },
           { title: 'Ticker', dataIndex: 'sourceTicker', width: 110, render: (v: string | null) => v ? <code style={{ fontFamily: 'monospace', fontSize: 11 }}>{v}</code> : '—' },
           { title: 'Multiplier', dataIndex: 'priceMultiplier', width: 90, render: (v: number) => v === 1 ? '—' : v },
+          { title: 'Seq', dataIndex: 'calculationSequence', width: 60,
+            render: (v: number) => <span title="Evaluation order for multi-component / formula indices">{v}</span> },
           { title: 'From', dataIndex: 'effectiveFrom', width: 90, render: (v: string) => dayjs(v).format('DD MMM YY') },
           { title: 'Active', dataIndex: 'isActive', width: 70, render: (v: boolean) => <ActiveTag active={v} /> },
           {
@@ -123,6 +125,9 @@ function IndexLinksDrawer({ source, onClose }: { source: PriceSource; onClose: (
               </Form.Item>
               <Form.Item name="priceOffset" label={hint('Price Offset', 'Add this constant to the raw price after multiplier is applied. Used for basis adjustments — e.g. source gives FOB price, you need CIF: add freight component.', '0 (most cases)')} style={{ flex: 1 }}>
                 <InputNumber style={{ width: '100%' }} step={0.01} />
+              </Form.Item>
+              <Form.Item name="calculationSequence" label={hint('Calculation Sequence', 'Evaluation order across the multiple source rows for one price index — lets you build a composite/formula index (e.g. sequence 1 = 50% Platts Brent, sequence 2 = 50% Argus Brent, or a base index followed by a differential).', '1 (single-source index), 1 and 2 (two-component composite)')} rules={[{ required: true }]} style={{ flex: 1 }}>
+                <InputNumber style={{ width: '100%' }} min={1} />
               </Form.Item>
             </Space>
             <Space style={{ width: '100%', gap: 12 }}>

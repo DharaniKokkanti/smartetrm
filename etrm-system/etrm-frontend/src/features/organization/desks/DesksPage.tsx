@@ -6,7 +6,7 @@ import { PageHeader } from '@components/layout/PageHeader';
 import { SmartGrid } from '@components/smart/SmartGrid';
 import { ActiveTag } from '@components/smart/StatusTag';
 import { useDesks, useDeactivateDesk } from './hooks';
-import type { Desk } from './types';
+import { commodityLabel, type Desk } from './types';
 import { DeskFormDrawer } from './DeskFormDrawer';
 import { useDraftState } from '@components/smart/formDraft';
 
@@ -25,8 +25,8 @@ export function DesksPage() {
       field: 'commodityType',
       headerName: 'Commodity',
       width: 130,
-      cellRenderer: (p: { value: string | null }) =>
-        p.value ? <Tag>{p.value}</Tag> : <Tag color="default">MULTI</Tag>,
+      cellRenderer: (p: { value: number | null }) =>
+        p.value != null ? <Tag>{commodityLabel(p.value)}</Tag> : <Tag color="default">MULTI</Tag>,
     },
     { field: 'headTraderName', headerName: 'Head Trader', width: 160, valueFormatter: (p) => p.value ?? '—' },
     {

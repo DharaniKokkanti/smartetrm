@@ -6,14 +6,15 @@ import {
 } from 'antd';
 import dayjs from 'dayjs';
 import { PageHeader } from '@components/layout/PageHeader';
-import type { AddressAssignment, BankAccount, ContactAssignment, CounterpartyInput } from './types';
+import type { AddressAssignment, BankAccount, ContactAssignment, CounterpartyInput, TaxRegistration } from './types';
 import { CURRENCY_LOOKUP, CREDIT_RATING_LOOKUP } from './staticLookups';
-import { useCounterparty, useCounterpartyChildren, useSaveCounterpartyDraft } from './hooks';
+import { useCounterparty, useCounterparties, useCounterpartyChildren, useSaveCounterpartyDraft } from './hooks';
 import { useCustomConfigOptions } from './configLookups';
 import { useLegalEntities } from '@features/tier1/legal-entity/hooks';
 import { ContactsSection } from './ContactsSection';
 import { BankAccountsSection } from './BankAccountsSection';
 import { AddressesSection } from './AddressesSection';
+import { TaxRegistrationsSection } from './TaxRegistrationsSection';
 import { EntityGuaranteesPanel } from '@features/tier1/guarantee/EntityGuaranteesPanel';
 import { usePageFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
@@ -38,6 +39,7 @@ export function CounterpartyFormPage() {
   const { data: existing, isLoading: loadingCore } = useCounterparty(cpId);
   const { data: existingChildren, isLoading: loadingChildren } = useCounterpartyChildren(cpId);
   const { data: legalEntities } = useLegalEntities();
+  const { data: counterparties } = useCounterparties();
   const saveDraft = useSaveCounterpartyDraft();
   const { data: cpTypeOptions = [], isLoading: loadingCpTypes } = useCustomConfigOptions('COUNTERPARTY_TYPE');
   const { data: kycStatusOptions = [], isLoading: loadingKycStatus } = useCustomConfigOptions('KYC_STATUS');
@@ -45,17 +47,19 @@ export function CounterpartyFormPage() {
   const [contacts, setContacts] = useState<ContactAssignment[]>([]);
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [addresses, setAddresses] = useState<AddressAssignment[]>([]);
+  const [taxRegistrations, setTaxRegistrations] = useState<TaxRegistration[]>([]);
 
   const activeRef = useRef(true);
   const { skipFormSyncRef, skipExtraSyncRef } = usePageFormDraft('counterparty', {
     form: coreForm,
     recordId: cpId,
     activeRef,
-    extra: () => ({ contacts, bankAccounts, addresses }),
+    extra: () => ({ contacts, bankAccounts, addresses, taxRegistrations }),
     onRestore: (_values, extra) => {
       setContacts((extra?.contacts as ContactAssignment[] | undefined) ?? []);
       setBankAccounts((extra?.bankAccounts as BankAccount[] | undefined) ?? []);
       setAddresses((extra?.addresses as AddressAssignment[] | undefined) ?? []);
+      setTaxRegistrations((extra?.taxRegistrations as TaxRegistration[] | undefined) ?? []);
     },
     meta: () => ({
       route: isNew ? '/tier1/counterparty/new' : `/tier1/counterparty/${cpId}`,
@@ -83,6 +87,7 @@ export function CounterpartyFormPage() {
       setContacts(existingChildren.contacts.map((c) => ({ ...c, _localId: `srv-ec-${c.entityContactId}` })));
       setBankAccounts(existingChildren.bankAccounts.map((b) => ({ ...b, _localId: `srv-b-${b.bankAccountId}` })));
       setAddresses(existingChildren.addresses.map((a) => ({ ...a, _localId: `srv-ea-${a.entityAddressId}` })));
+      setTaxRegistrations(existingChildren.taxRegistrations.map((t) => ({ ...t, _localId: `srv-tr-${t.taxRegId}` })));
     }
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [existingChildren, skipExtraSyncRef]);
@@ -91,17 +96,26 @@ export function CounterpartyFormPage() {
     () => (legalEntities ?? []).map((e) => ({ label: `${e.entityCode} — ${e.entityName}`, value: e.legalEntityId })),
     [legalEntities],
   );
+  const parentCounterpartyOptions = useMemo(
+    () => (counterparties ?? [])
+      .filter((c) => c.counterpartyId !== cpId)
+      .map((c) => ({ label: `${c.cpCode} — ${c.legalName}`, value: c.counterpartyId })),
+    [counterparties, cpId],
+  );
 
   async function handleSave() {
     const values = await coreForm.validateFields();
     const core: CounterpartyInput = {
       ...values,
+      // Keep parentCounterpartyId consistent with parentInd — mirrors the
+      // DB's chk_cp_parent_ind_consistency CHECK (V62).
+      parentCounterpartyId: values.parentInd ? values.parentCounterpartyId : null,
       creditReviewDate: values.creditReviewDate ? values.creditReviewDate.format('YYYY-MM-DD') : null,
       kycApprovedDate: values.kycApprovedDate ? values.kycApprovedDate.format('YYYY-MM-DD') : null,
       kycExpiryDate: values.kycExpiryDate ? values.kycExpiryDate.format('YYYY-MM-DD') : null,
       onboardedDate: values.onboardedDate ? values.onboardedDate.format('YYYY-MM-DD') : null,
     };
-    const result = await saveDraft.mutateAsync({ id: cpId, draft: { core, contacts, bankAccounts, addresses } });
+    const result = await saveDraft.mutateAsync({ id: cpId, draft: { core, contacts, bankAccounts, addresses, taxRegistrations } });
     activeRef.current = false;
     navigate(`/tier1/counterparty/${result.parent.counterpartyId}`, { replace: true });
   }
@@ -123,7 +137,7 @@ export function CounterpartyFormPage() {
       />
 
       {loading ? <Spin /> : (
-        <Form form={coreForm} layout="vertical" initialValues={{ cpType: 'TRADER', jurisdiction: '', creditLimitCurrency: 'USD', settlementDays: 2, kycStatus: 'PENDING', isIntercompany: false }}>
+        <Form form={coreForm} layout="vertical" initialValues={{ cpType: 'TRADER', jurisdiction: '', creditLimitCurrency: 'USD', settlementDays: 2, kycStatus: 'PENDING', isIntercompany: false, parentInd: false }}>
           <Tabs defaultActiveKey="core" items={[
             {
               key: 'core', label: 'Core',
@@ -154,6 +168,21 @@ export function CounterpartyFormPage() {
                         </Form.Item>
                       )
                     }
+                  </Form.Item>
+                  <Form.Item name="parentInd" label="Has Parent Company" valuePropName="checked">
+                    <Switch onChange={(checked) => { if (!checked) coreForm.setFieldValue('parentCounterpartyId', null); }} />
+                  </Form.Item>
+                  <Form.Item noStyle shouldUpdate={(prev, cur) => prev.parentInd !== cur.parentInd}>
+                    {({ getFieldValue }) => (
+                      <Form.Item name="parentCounterpartyId" label="Parent Counterparty" rules={[{ required: !!getFieldValue('parentInd') }]}>
+                        <Select
+                          options={parentCounterpartyOptions}
+                          placeholder={getFieldValue('parentInd') ? 'Select parent counterparty' : 'Enable "Has Parent Company" first'}
+                          disabled={!getFieldValue('parentInd')}
+                          allowClear showSearch optionFilterProp="label"
+                        />
+                      </Form.Item>
+                    )}
                   </Form.Item>
                   <Form.Item name="notes" label="Notes"><Input.TextArea rows={3} maxLength={1000} showCount /></Form.Item>
                 </div>
@@ -204,6 +233,11 @@ export function CounterpartyFormPage() {
               key: 'address',
               label: <Badge count={addresses.filter((a) => a.isActive).length} showZero color="default">Addresses</Badge>,
               children: <AddressesSection items={addresses} onChange={setAddresses} entityType="COUNTERPARTY" />,
+            },
+            {
+              key: 'tax',
+              label: <Badge count={taxRegistrations.filter((t) => t.isActive).length} showZero color="default">Tax Registrations</Badge>,
+              children: <TaxRegistrationsSection items={taxRegistrations} onChange={setTaxRegistrations} entityType="COUNTERPARTY" />,
             },
             {
               key: 'guarantees', label: 'Guarantees',

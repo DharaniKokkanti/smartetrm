@@ -1,7 +1,6 @@
-import type { CommodityType } from '../desks/types';
-
+// FK to lookup_value(lookup_id), category='commodity_type' — see organization/desks/types.ts COMMODITY_TYPE_LOOKUP.
 export interface TraderCommodityLimit {
-  commodityType: CommodityType;
+  commodityType: number;
   dailyTradeLimit: number;
   singleTradeLimit: number;
   positionLimit: number;
@@ -20,7 +19,7 @@ export interface Trader {
   deskName: string;
   approverTraderId: number | null;
   approverName: string | null;
-  commodityTypes: CommodityType[];
+  commodityTypes: number[];
   commodityLimits: TraderCommodityLimit[];
   goLiveDate: string | null;
   isActive: boolean;

@@ -40,6 +40,7 @@ export interface PriceIndexSource {
   sourceTicker: string | null;
   priceMultiplier: number;
   priceOffset: number;
+  calculationSequence: number;
   effectiveFrom: string;
   effectiveTo: string | null;
   isActive: boolean;

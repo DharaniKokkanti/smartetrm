@@ -21,6 +21,9 @@ export interface LegalEntity {
   shortName: string;
   leiCode: string | null;
   entityType: EntityType;
+  /** True when this entity has a parent — gates whether parentEntityId may
+   *  be populated (V62: added alongside a CHECK enforcing the two agree). */
+  parentInd: boolean;
   parentEntityId: number | null;
   jurisdiction: string; // CHAR(2)
   incorporationCountry: string | null; // CHAR(2)

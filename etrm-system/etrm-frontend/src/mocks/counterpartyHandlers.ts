@@ -6,12 +6,14 @@ import {
   bankAccountSeed,
   addressPoolSeed,
   addressAssignmentSeed,
+  taxRegistrationSeed,
   nextCounterpartyId,
   nextContactRecordId,
   nextBankAccountRecordId,
   nextAddressId_,
   nextAddressAssignmentId_,
   nextContactAssignmentId_,
+  nextTaxRegistrationId,
 } from './counterpartyData';
 import type {
   Counterparty,
@@ -21,6 +23,7 @@ import type {
   BankAccount,
   Address,
   AddressAssignment,
+  TaxRegistration,
 } from '@features/tier1/counterparty/types';
 
 const cpStore: Counterparty[] = [...counterpartySeed];
@@ -29,6 +32,7 @@ const contactAssignments: ContactAssignment[] = [...contactAssignmentSeed];
 const bankAccountStore: BankAccount[] = [...bankAccountSeed];
 const addressPool: Address[] = [...addressPoolSeed];
 const addressAssignments: AddressAssignment[] = [...addressAssignmentSeed];
+const taxRegistrationStore: TaxRegistration[] = [...taxRegistrationSeed];
 
 const API = '/api/v1';
 
@@ -275,5 +279,35 @@ export const counterpartyHandlers = [
     const body = (await request.json()) as Omit<BankAccount, 'bankAccountId' | '_localId'>;
     bankAccountStore[idx] = { ...bankAccountStore[idx], ...body };
     return HttpResponse.json(bankAccountStore[idx]);
+  }),
+
+  // ── Tax registrations (dbo.tax_registration) — polymorphic, no pool ───────
+  http.get(`${API}/entity-tax-registrations`, ({ request }) => {
+    const url = new URL(request.url);
+    const entityType = url.searchParams.get('entityType');
+    const entityId = Number(url.searchParams.get('entityId'));
+    return HttpResponse.json(
+      taxRegistrationStore.filter(
+        (t) => t.entityType === entityType && t.entityId === entityId && t.isActive,
+      ),
+    );
+  }),
+  http.post(`${API}/entity-tax-registrations`, async ({ request }) => {
+    const body = (await request.json()) as Omit<TaxRegistration, 'taxRegId' | '_localId'>;
+    const record: TaxRegistration = { ...body, taxRegId: nextTaxRegistrationId(), _localId: '' };
+    taxRegistrationStore.push(record);
+    return HttpResponse.json(record, { status: 201 });
+  }),
+  http.put(`${API}/entity-tax-registrations/:id`, async ({ params, request }) => {
+    const idx = taxRegistrationStore.findIndex((t) => t.taxRegId === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', 'Tax registration not found.');
+    const body = (await request.json()) as Partial<TaxRegistration>;
+    taxRegistrationStore[idx] = { ...taxRegistrationStore[idx], ...body };
+    return HttpResponse.json(taxRegistrationStore[idx]);
+  }),
+  http.patch(`${API}/entity-tax-registrations/:id/deactivate`, ({ params }) => {
+    const idx = taxRegistrationStore.findIndex((t) => t.taxRegId === Number(params.id));
+    if (idx !== -1) taxRegistrationStore[idx] = { ...taxRegistrationStore[idx], isActive: false };
+    return new HttpResponse(null, { status: 204 });
   }),
 ];

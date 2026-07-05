@@ -7,6 +7,7 @@ import {
   fetchCounterpartyChildren,
   saveAddressAssignment,
   saveContactAssignment,
+  saveTaxRegistrationAssignment,
 } from './api';
 import type { CounterpartyDraft } from './types';
 import type { ProblemDetail } from '@services/api';
@@ -105,6 +106,14 @@ export function useSaveCounterpartyDraft() {
           else await counterpartyApi.bankAccounts.update(cpId, bankAccountId, payload);
         } catch {
           errors.push(`Bank account "${account.accountName}" failed to save.`);
+        }
+      }
+
+      for (const reg of draft.taxRegistrations) {
+        try {
+          await saveTaxRegistrationAssignment({ ...reg, entityType: 'COUNTERPARTY', entityId: cpId });
+        } catch {
+          errors.push(`Tax registration "${reg.taxType} ${reg.taxId}" failed to save.`);
         }
       }
 

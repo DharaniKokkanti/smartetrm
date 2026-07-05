@@ -9,8 +9,16 @@ const API = '/api/v1';
 const stores: Record<string, ReferenceDataRow[]> = Object.fromEntries(
   Object.entries(rowSeed).map(([table, rows]) => [table, rows.map((r) => ({ ...r }))]),
 );
+// Next id = MAX(existing id) + 1, not rows.length + 1 — the row-count version
+// silently collides the moment any table's seed ids have a gap (a row
+// removed from the seed, or ids not seeded as an exact contiguous 1..N run).
+function maxIdOf(table: string, rows: ReferenceDataRow[]): number {
+  const pk = metadataSeed[table]?.primaryKeyColumn;
+  if (!pk) return rows.length; // no metadata yet — fall back to row count, same as before
+  return rows.reduce((max, r) => Math.max(max, Number(r[pk]) || 0), 0);
+}
 const nextIdByTable: Record<string, number> = Object.fromEntries(
-  Object.entries(rowSeed).map(([table, rows]) => [table, rows.length + 1]),
+  Object.entries(rowSeed).map(([table, rows]) => [table, maxIdOf(table, rows) + 1]),
 );
 
 function problem(status: number, title: string, detail: string) {

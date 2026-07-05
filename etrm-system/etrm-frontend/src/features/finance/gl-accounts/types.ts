@@ -1,5 +1,3 @@
-import type { CommodityType } from '@features/organization/desks/types';
-
 export type NormalBalance = 'DEBIT' | 'CREDIT';
 
 export interface GlAccount {
@@ -7,7 +5,8 @@ export interface GlAccount {
   accountCode: string;
   accountName: string;
   accountType: string;
-  commodityType: CommodityType | null;
+  // FK to lookup_value(lookup_id), category='commodity_type' — see organization/desks/types.ts COMMODITY_TYPE_LOOKUP.
+  commodityType: number | null;
   costCenter: string | null;
   description: string | null;
   /** Booking company this account belongs to — null = shared/corporate account applying across all entities. */

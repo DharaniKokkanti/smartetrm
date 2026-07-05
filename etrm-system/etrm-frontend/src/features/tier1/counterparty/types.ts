@@ -22,6 +22,12 @@ export interface Counterparty {
   defaultCurrencyId: number | null;
   isIntercompany: boolean;
   internalEntityId: number | null;
+  /** True when this counterparty has a parent company — gates whether
+   *  parentCounterpartyId may be populated (V62: added alongside a CHECK
+   *  enforcing the two agree; this self-referencing FK is net new — there
+   *  was no parent-company concept on counterparty before). */
+  parentInd: boolean;
+  parentCounterpartyId: number | null;
   isActive: boolean;
   kycStatus: KycStatus;
   kycApprovedDate: string | null;
@@ -131,10 +137,37 @@ export interface BankAccount {
   notes: string | null;
 }
 
+// ── Tax registration (dbo.tax_registration) ────────────────────────────────────
+// Shared VAT/tax-ID registration for LEGAL_ENTITY and COUNTERPARTY — this was
+// an unbuilt placeholder (Master Data Hub card marked live:false) until now;
+// the user asked for a VAT/organization ID field on counterparty, and this
+// existing polymorphic table (not a new flat column) is the correct home.
+
+export const TAX_TYPES = ['VAT', 'GST', 'EIN', 'UTR', 'TIN', 'ABN', 'SIREN', 'KVKK', 'OTHER'] as const;
+export type TaxType = (typeof TAX_TYPES)[number];
+
+export interface TaxRegistration {
+  taxRegId: number | null;
+  _localId: string;
+  entityType: PolymorphicEntityType;
+  entityId: number;
+  taxType: TaxType;
+  taxId: string;
+  jurisdiction: string; // ISO 2
+  issuingAuthority: string | null;
+  registrationDate: string | null;
+  validFrom: string | null;
+  validTo: string | null;
+  isPrimary: boolean;
+  isActive: boolean;
+  notes: string | null;
+}
+
 /** Everything needed to render + save the counterparty form in one place. */
 export interface CounterpartyDraft {
   core: CounterpartyInput;
   contacts: ContactAssignment[];
   bankAccounts: BankAccount[];
   addresses: AddressAssignment[];
+  taxRegistrations: TaxRegistration[];
 }

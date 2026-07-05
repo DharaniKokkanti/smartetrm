@@ -6,6 +6,7 @@ import { PageHeader } from '@components/layout/PageHeader';
 import { SmartGrid } from '@components/smart/SmartGrid';
 import { ActiveTag } from '@components/smart/StatusTag';
 import { useBooks, useDeactivateBook } from './hooks';
+import { commodityLabel } from '../desks/types';
 import type { Book, BookType } from './types';
 import { BookFormDrawer } from './BookFormDrawer';
 import { useDraftState } from '@components/smart/formDraft';
@@ -38,7 +39,7 @@ export function BooksPage() {
     { field: 'deskCode', headerName: 'Desk', width: 130, cellClass: 'cell-mono' },
     { field: 'legalEntityCode', headerName: 'Entity', width: 110, cellClass: 'cell-mono' },
     { field: 'commodityType', headerName: 'Commodity', width: 120,
-      cellRenderer: (p: { value: string | null }) => p.value ? <Tag>{p.value}</Tag> : <Tag color="default">MULTI</Tag> },
+      cellRenderer: (p: { value: number | null }) => p.value != null ? <Tag>{commodityLabel(p.value)}</Tag> : <Tag color="default">MULTI</Tag> },
     { field: 'responsibleTraderName', headerName: 'Trader', width: 150, valueFormatter: (p) => p.value ?? '—' },
     {
       field: 'positionLimit',

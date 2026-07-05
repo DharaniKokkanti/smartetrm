@@ -105,6 +105,7 @@ export async function parseLegalEntityUpload(
       shortName,
       leiCode,
       entityType: (errors.length ? entityType : (entityType as (typeof ENTITY_TYPES)[number])) as never,
+      parentInd: parentEntityId !== null,
       parentEntityId,
       jurisdiction,
       incorporationCountry,

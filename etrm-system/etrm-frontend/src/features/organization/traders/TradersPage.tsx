@@ -9,10 +9,14 @@ import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import { useTraders, useDeactivateTrader, useSaveTrader } from './hooks';
 import type { Trader, TraderInput } from './types';
-import { COMMODITY_TYPES } from '../desks/types';
+import { COMMODITY_TYPE_LOOKUP, commodityLabel, commodityCodeById } from '../desks/types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 
+// Keyed by CommodityType code (not lookup_id) — resolve the id to its code
+// via commodityCodeById() first, same as the rest of this codebase's
+// pre-existing convention of coloring by a handful of common commodities
+// and leaving the rest (LNG/FREIGHT/RINS/ENVIRONMENTAL/MULTI/OTHER) uncolored.
 const COMMODITY_COLOR: Record<string, string> = {
   OIL: 'volcano', GAS: 'blue', POWER: 'gold', METALS: 'purple', AGRICULTURAL: 'green',
 };
@@ -50,7 +54,10 @@ export function TradersPage() {
     {
       field: 'commodityTypes', headerName: 'Commodities', width: 260, sortable: false,
       tooltipValueGetter: () => 'Commodities this trader is authorised to trade — separate limits apply per commodity',
-      cellRenderer: (p: { value: string[] }) => p.value?.map((c) => <Tag key={c} color={COMMODITY_COLOR[c]}>{c}</Tag>),
+      cellRenderer: (p: { value: number[] }) => p.value?.map((id) => {
+        const code = commodityCodeById(id);
+        return <Tag key={id} color={code ? COMMODITY_COLOR[code] : undefined}>{commodityLabel(id)}</Tag>;
+      }),
     },
     {
       headerName: 'Trade Limits', width: 200, sortable: false, filter: false,
@@ -60,7 +67,7 @@ export function TradersPage() {
           p.data.commodityLimits.length === 0 ? 'No limits configured' :
           <div>{p.data.commodityLimits.map((l) => (
             <div key={l.commodityType} style={{ fontSize: 11, marginBottom: 2 }}>
-              <b>{l.commodityType}</b>: Single ${Number(l.singleTradeLimit).toLocaleString()} · Daily ${Number(l.dailyTradeLimit).toLocaleString()}
+              <b>{commodityLabel(l.commodityType)}</b>: Single ${Number(l.singleTradeLimit).toLocaleString()} · Daily ${Number(l.dailyTradeLimit).toLocaleString()}
             </div>
           ))}</div>
         }>
@@ -117,7 +124,7 @@ export function TradersPage() {
             <InputNumber style={{ width: '100%' }} placeholder="Desk ID" />
           </Form.Item>
           <Form.Item name="commodityTypes" label={hint('Authorised Commodities', 'Commodities this trader is approved to trade. Each commodity gets independent position and trade limits. A trader covering OIL and POWER has two separate limit rows.', 'OIL, POWER')} rules={[{ required: true }]}>
-            <Select mode="multiple" options={COMMODITY_TYPES.map((c) => ({ label: c, value: c }))} placeholder="Select commodities" />
+            <Select mode="multiple" options={COMMODITY_TYPE_LOOKUP.map((l) => ({ label: l.label, value: l.lookupId }))} placeholder="Select commodities" />
           </Form.Item>
           <Divider style={{ margin: '12px 0' }}><Typography.Text type="secondary" style={{ fontSize: 12 }}>Approval Chain</Typography.Text></Divider>
           <Form.Item name="approverTraderId" label={hint('Approver Trader (ID)', 'Senior trader or desk head who must approve deals exceeding this trader\'s single-trade limit. Must have a higher limit than this trader. Leave blank if no approval required (e.g. senior traders).')}>

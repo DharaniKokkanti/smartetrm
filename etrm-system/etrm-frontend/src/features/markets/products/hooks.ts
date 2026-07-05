@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { App as AntApp } from 'antd';
-import { productsApi, productIndexApi, productMarketApi, productSpecApi, productBlendApi } from './api';
-import type { ProductInput, ProductPriceIndexInput, BlendComponentInput } from './types';
+import { productsApi, productIndexApi, productMarketApi, productSpecApi, productBlendApi, productReportingGroupApi } from './api';
+import type { ProductInput, ProductPriceIndexInput, BlendComponentInput, ProductReportingGroupInput } from './types';
 import type { ProblemDetail } from '@services/api';
 import type { CommodityType } from '@features/organization/desks/types';
 
@@ -190,6 +190,42 @@ export function useRemoveBlendComponent(productId: number) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['products', productId, 'blend-components'] });
       message.success('Component removed.');
+    },
+    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Failed.'),
+  });
+}
+
+// ── Reporting groups ────────────────────────────────────────────────────────────
+
+export function useProductReportingGroups(productId: number | null) {
+  return useQuery({
+    queryKey: ['products', productId, 'reporting-groups'],
+    queryFn: () => productReportingGroupApi.list(productId!),
+    enabled: productId !== null,
+  });
+}
+
+export function useAssignReportingGroup(productId: number) {
+  const qc = useQueryClient();
+  const { message } = AntApp.useApp();
+  return useMutation({
+    mutationFn: (input: ProductReportingGroupInput) => productReportingGroupApi.assign(productId, input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['products', productId, 'reporting-groups'] });
+      message.success('Reporting group assigned.');
+    },
+    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Failed.'),
+  });
+}
+
+export function useRemoveReportingGroup(productId: number) {
+  const qc = useQueryClient();
+  const { message } = AntApp.useApp();
+  return useMutation({
+    mutationFn: (productReportingGroupId: number) => productReportingGroupApi.remove(productId, productReportingGroupId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['products', productId, 'reporting-groups'] });
+      message.success('Reporting group removed.');
     },
     onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Failed.'),
   });
