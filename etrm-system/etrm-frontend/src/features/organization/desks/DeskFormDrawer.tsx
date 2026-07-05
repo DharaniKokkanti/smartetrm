@@ -3,6 +3,7 @@ import { Drawer, Form, Input, Select, Button, Space, Switch } from 'antd';
 import { useSaveDesk } from './hooks';
 import { COMMODITY_TYPE_LOOKUP, type Desk, type DeskInput } from './types';
 import { useDraftValues } from '@components/smart/formDraft';
+import { hint } from '@components/smart/FieldHint';
 
 interface Props {
   open: boolean;
@@ -56,21 +57,35 @@ export function DeskFormDrawer({ open, editing, onClose, onSaved }: Props) {
       }
     >
       <Form form={form} layout="vertical">
-        <Form.Item name="deskCode" label="Desk Code" rules={[{ required: true }]}>
+        <Form.Item
+          name="deskCode"
+          label={hint('Desk Code', 'Short unique identifier for this trading desk — used in position, P&L, and limit reporting.', 'OIL-CRUDE')}
+          rules={[{ required: true }]}
+        >
           <Input placeholder="OIL-CRUDE" style={{ fontFamily: 'monospace' }} />
         </Form.Item>
         <Form.Item name="deskName" label="Desk Name" rules={[{ required: true }]}>
           <Input placeholder="Crude Oil Trading" />
         </Form.Item>
-        <Form.Item name="legalEntityId" label="Legal Entity" rules={[{ required: true }]}>
+        <Form.Item
+          name="legalEntityId"
+          label={hint('Legal Entity', 'The booking company this desk trades under — drives which legal entity trades booked to this desk settle against.')}
+          rules={[{ required: true }]}
+        >
           <Input type="number" placeholder="Entity ID" />
         </Form.Item>
-        <Form.Item name="commodityType" label="Commodity Type">
+        <Form.Item
+          name="commodityType"
+          label={hint('Commodity Type', 'Restricts this desk to one commodity for position/limit segregation. Leave blank for a multi-commodity desk.')}
+        >
           <Select allowClear placeholder="Multi-commodity if blank">
             {COMMODITY_TYPE_LOOKUP.map((l) => <Select.Option key={l.lookupId} value={l.lookupId}>{l.label}</Select.Option>)}
           </Select>
         </Form.Item>
-        <Form.Item name="headTraderId" label="Head Trader (ID)">
+        <Form.Item
+          name="headTraderId"
+          label={hint('Head Trader (ID)', 'The trader accountable for this desk’s risk and P&L — shown on desk-level reports.')}
+        >
           <Input type="number" placeholder="Trader ID" />
         </Form.Item>
         <Form.Item name="isActive" label="Active" valuePropName="checked">

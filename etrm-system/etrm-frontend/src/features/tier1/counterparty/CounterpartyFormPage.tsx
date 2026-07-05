@@ -18,6 +18,7 @@ import { TaxRegistrationsSection } from './TaxRegistrationsSection';
 import { EntityGuaranteesPanel } from '@features/tier1/guarantee/EntityGuaranteesPanel';
 import { usePageFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
+import { hint } from '@components/smart/FieldHint';
 
 const CURRENCY_OPTIONS = CURRENCY_LOOKUP.map((c) => ({ label: c.currencyCode, value: c.currencyId }));
 const RATING_OPTIONS = CREDIT_RATING_LOOKUP.map((r) => ({ label: `${r.agency} ${r.rating}`, value: r.creditRatingId }));
@@ -152,14 +153,25 @@ export function CounterpartyFormPage() {
                   <Form.Item name="shortName" label="Short Name" rules={[{ required: true }, { max: 100 }]}>
                     <Input />
                   </Form.Item>
-                  <Form.Item name="leiCode" label="LEI Code"><Input maxLength={20} /></Form.Item>
+                  <Form.Item
+                    name="leiCode"
+                    label={hint('LEI Code', 'Global Legal Entity Identifier (ISO 17442) — required for EMIR/Dodd-Frank trade reporting.', '5493001KJTIIGC8Y1R12')}
+                  ><Input maxLength={20} /></Form.Item>
                   <Form.Item name="cpType" label="Counterparty Type" rules={[{ required: true }]}>
                     <Select options={cpTypeOptions} loading={loadingCpTypes} />
                   </Form.Item>
-                  <Form.Item name="jurisdiction" label="Jurisdiction (ISO 2)" rules={[{ required: true }, { len: 2, message: '2-letter code' }]}>
+                  <Form.Item
+                    name="jurisdiction"
+                    label={hint('Jurisdiction (ISO 2)', 'The country whose law governs contracts with this counterparty — drives default netting and dispute-resolution rules.', 'GB')}
+                    rules={[{ required: true }, { len: 2, message: '2-letter code' }]}
+                  >
                     <Input maxLength={2} style={{ textTransform: 'uppercase' }} />
                   </Form.Item>
-                  <Form.Item name="isIntercompany" label="Intercompany" valuePropName="checked"><Switch /></Form.Item>
+                  <Form.Item
+                    name="isIntercompany"
+                    label={hint('Intercompany', 'Marks this counterparty as an internal group affiliate rather than a genuine external trading partner — trades against it net out at the group level rather than carrying external credit risk.')}
+                    valuePropName="checked"
+                  ><Switch /></Form.Item>
                   <Form.Item noStyle shouldUpdate={(prev, cur) => prev.isIntercompany !== cur.isIntercompany}>
                     {({ getFieldValue }) =>
                       getFieldValue('isIntercompany') && (
@@ -169,7 +181,11 @@ export function CounterpartyFormPage() {
                       )
                     }
                   </Form.Item>
-                  <Form.Item name="parentInd" label="Has Parent Company" valuePropName="checked">
+                  <Form.Item
+                    name="parentInd"
+                    label={hint('Has Parent Company', 'Enable if this counterparty is a subsidiary of another counterparty already in the system — e.g. a trading arm whose ultimate parent also trades with the firm directly.')}
+                    valuePropName="checked"
+                  >
                     <Switch onChange={(checked) => { if (!checked) coreForm.setFieldValue('parentCounterpartyId', null); }} />
                   </Form.Item>
                   <Form.Item noStyle shouldUpdate={(prev, cur) => prev.parentInd !== cur.parentInd}>
@@ -192,11 +208,18 @@ export function CounterpartyFormPage() {
               key: 'credit', label: 'Credit & KYC',
               children: (
                 <div style={{ maxWidth: 640 }}>
-                  <Form.Item name="creditRatingId" label="Credit Rating">
+                  <Form.Item
+                    name="creditRatingId"
+                    label={hint('Credit Rating', 'External or internal credit rating used to size this counterparty’s overall credit exposure. Leave blank if unrated.')}
+                  >
                     <Select options={RATING_OPTIONS} allowClear placeholder="Unrated" />
                   </Form.Item>
                   <Space.Compact block>
-                    <Form.Item name="creditLimit" label="Credit Limit" style={{ width: '60%' }}>
+                    <Form.Item
+                      name="creditLimit"
+                      label={hint('Credit Limit', 'Simple headline exposure ceiling shown here; granular per-tenor/instrument limits are managed on the Credit Limits page.')}
+                      style={{ width: '60%' }}
+                    >
                       <InputNumber style={{ width: '100%' }} min={0} />
                     </Form.Item>
                     <Form.Item name="creditLimitCurrency" label="Currency" style={{ width: '40%' }} rules={[{ required: true }, { len: 3 }]}>
@@ -204,17 +227,28 @@ export function CounterpartyFormPage() {
                     </Form.Item>
                   </Space.Compact>
                   <Form.Item name="creditReviewDate" label="Credit Review Date"><AppDatePicker /></Form.Item>
-                  <Form.Item name="settlementDays" label="Settlement Days" rules={[{ required: true }]}>
+                  <Form.Item
+                    name="settlementDays"
+                    label={hint('Settlement Days', 'Default number of business days from trade date to settlement/payment for this counterparty — feeds payment-term defaults on new trades.', '2')}
+                    rules={[{ required: true }]}
+                  >
                     <InputNumber style={{ width: '100%' }} min={0} max={365} />
                   </Form.Item>
                   <Form.Item name="defaultCurrencyId" label="Default Currency">
                     <Select options={CURRENCY_OPTIONS} allowClear />
                   </Form.Item>
-                  <Form.Item name="kycStatus" label="KYC Status" rules={[{ required: true }]}>
+                  <Form.Item
+                    name="kycStatus"
+                    label={hint('KYC Status', 'Know-Your-Customer onboarding/compliance status — trading may be blocked or restricted until this is APPROVED.')}
+                    rules={[{ required: true }]}
+                  >
                     <Select options={kycStatusOptions} loading={loadingKycStatus} />
                   </Form.Item>
                   <Form.Item name="kycApprovedDate" label="KYC Approved Date"><AppDatePicker /></Form.Item>
-                  <Form.Item name="kycExpiryDate" label="KYC Expiry Date"><AppDatePicker /></Form.Item>
+                  <Form.Item
+                    name="kycExpiryDate"
+                    label={hint('KYC Expiry Date', 'Date the KYC approval lapses and must be re-reviewed — periodic re-KYC is a standard AML control.')}
+                  ><AppDatePicker /></Form.Item>
                   <Form.Item name="onboardedDate" label="Onboarded Date"><AppDatePicker /></Form.Item>
                 </div>
               ),

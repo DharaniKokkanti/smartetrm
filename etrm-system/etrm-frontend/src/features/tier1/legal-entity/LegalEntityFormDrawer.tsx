@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  Drawer, Form, Input, Select, Switch,
+  App as AntApp, Drawer, Form, Input, Select, Switch,
   Button, Space, Divider, Tabs, Badge, Spin,
 } from 'antd';
 import dayjs from 'dayjs';
@@ -18,6 +18,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { useDraftValues } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
+import { hint } from '@components/smart/FieldHint';
 
 interface Props {
   onSaved?: (saved: LegalEntity) => void;  // called on Save (stay open) so parent can switch to edit mode
@@ -37,6 +38,7 @@ export function LegalEntityFormDrawer({ open, onClose, editing, onSaved }: Props
   const createMutation = useCreateLegalEntity();
   const updateMutation = useUpdateLegalEntity();
   const queryClient = useQueryClient();
+  const { message } = AntApp.useApp();
   const saving = createMutation.isPending || updateMutation.isPending;
 
   const [addresses, setAddresses] = useState<AddressAssignment[]>([]);
@@ -93,14 +95,34 @@ export function LegalEntityFormDrawer({ open, onClose, editing, onSaved }: Props
 
     const leId = savedEntity.legalEntityId;
 
-    await Promise.allSettled([
-      ...addresses.map((a) => saveAddressAssignment({ ...a, entityType: 'LEGAL_ENTITY', entityId: leId })),
-      ...contacts.map((c) => saveContactAssignment({ ...c, entityType: 'LEGAL_ENTITY', entityId: leId })),
-      ...taxRegistrations.map((t) => saveTaxRegistrationAssignment({ ...t, entityType: 'LEGAL_ENTITY', entityId: leId })),
-    ]);
+    const errors: string[] = [];
+    for (const a of addresses) {
+      try {
+        await saveAddressAssignment({ ...a, entityType: 'LEGAL_ENTITY', entityId: leId });
+      } catch {
+        errors.push(`Address "${a.address.addressLine1}" failed to save.`);
+      }
+    }
+    for (const c of contacts) {
+      try {
+        await saveContactAssignment({ ...c, entityType: 'LEGAL_ENTITY', entityId: leId });
+      } catch {
+        errors.push(`Contact "${c.contact.firstName} ${c.contact.lastName}" failed to save.`);
+      }
+    }
+    for (const t of taxRegistrations) {
+      try {
+        await saveTaxRegistrationAssignment({ ...t, entityType: 'LEGAL_ENTITY', entityId: leId });
+      } catch {
+        errors.push(`Tax registration "${t.taxType} ${t.taxId}" failed to save.`);
+      }
+    }
 
     queryClient.invalidateQueries({ queryKey: ['address-pool'] });
     queryClient.invalidateQueries({ queryKey: ['contact-pool'] });
+    if (errors.length > 0) {
+      message.warning(`Legal entity saved, but ${errors.length} record(s) failed: ${errors.join(' ')}`);
+    }
     if (closeAfter) onClose(); else onSaved?.(savedEntity);
   }
 
@@ -136,13 +158,21 @@ export function LegalEntityFormDrawer({ open, onClose, editing, onSaved }: Props
                 <Form.Item name="shortName" label="Short Name" rules={[{ required: true, message: 'Required' }, { max: 100 }]}>
                   <Input placeholder="e.g. Acme UK" />
                 </Form.Item>
-                <Form.Item name="leiCode" label="LEI Code" rules={[{ max: 20 }]}>
+                <Form.Item
+                  name="leiCode"
+                  label={hint('LEI Code', 'Global Legal Entity Identifier (ISO 17442) — required for EMIR/Dodd-Frank trade reporting and used to identify the entity on regulatory submissions.', '5493001KJTIIGC8Y1R12')}
+                  rules={[{ max: 20 }]}
+                >
                   <Input placeholder="20-character Legal Entity Identifier" />
                 </Form.Item>
                 <Form.Item name="entityType" label="Entity Type" rules={[{ required: true, message: 'Required' }]}>
                   <Select options={ENTITY_TYPE_OPTIONS} placeholder="Select type" />
                 </Form.Item>
-                <Form.Item name="parentInd" label="Has Parent Entity" valuePropName="checked">
+                <Form.Item
+                  name="parentInd"
+                  label={hint('Has Parent Entity', 'Enable if this entity is a subsidiary of another legal entity in the group — drives group hierarchy/consolidation reporting.')}
+                  valuePropName="checked"
+                >
                   <Switch onChange={(checked) => { if (!checked) form.setFieldValue('parentEntityId', null); }} />
                 </Form.Item>
                 <Form.Item name="parentEntityId" label="Parent Entity">
@@ -157,7 +187,12 @@ export function LegalEntityFormDrawer({ open, onClose, editing, onSaved }: Props
                 <Divider style={{ margin: '8px 0 16px' }} />
 
                 <Space.Compact block>
-                  <Form.Item name="jurisdiction" label="Jurisdiction (ISO 2)" style={{ width: '50%' }} rules={[{ required: true, message: 'Required' }, { len: 2, message: '2-letter code' }]}>
+                  <Form.Item
+                    name="jurisdiction"
+                    label={hint('Jurisdiction (ISO 2)', 'The country whose law governs this entity’s trading contracts — drives which regulatory regime and default netting rules apply.', 'GB')}
+                    style={{ width: '50%' }}
+                    rules={[{ required: true, message: 'Required' }, { len: 2, message: '2-letter code' }]}
+                  >
                     <Input placeholder="GB" maxLength={2} style={{ textTransform: 'uppercase' }} />
                   </Form.Item>
                   <Form.Item name="incorporationCountry" label="Incorporation Country" style={{ width: '50%' }} rules={[{ len: 2, message: '2-letter code' }]}>
@@ -168,7 +203,11 @@ export function LegalEntityFormDrawer({ open, onClose, editing, onSaved }: Props
                 <Form.Item name="incorporationNumber" label="Incorporation Number">
                   <Input placeholder="Companies House number, etc." />
                 </Form.Item>
-                <Form.Item name="baseCurrency" label="Base Currency (ISO 3)" rules={[{ required: true, message: 'Required' }, { len: 3, message: '3-letter code' }]}>
+                <Form.Item
+                  name="baseCurrency"
+                  label={hint('Base Currency (ISO 3)', 'Functional currency this entity’s books, P&L, and financial statements are measured in.', 'USD')}
+                  rules={[{ required: true, message: 'Required' }, { len: 3, message: '3-letter code' }]}
+                >
                   <Input placeholder="USD" maxLength={3} style={{ textTransform: 'uppercase' }} />
                 </Form.Item>
                 <Form.Item name="defaultTimezone" label="Default Timezone">
@@ -177,9 +216,16 @@ export function LegalEntityFormDrawer({ open, onClose, editing, onSaved }: Props
 
                 <Divider style={{ margin: '8px 0 16px' }} />
 
-                <Form.Item name="regulator" label="Regulator"><Input placeholder="e.g. FCA" /></Form.Item>
+                <Form.Item
+                  name="regulator"
+                  label={hint('Regulator', 'The financial/commodity regulator this entity is licensed and supervised under.', 'FCA')}
+                ><Input placeholder="e.g. FCA" /></Form.Item>
                 <Form.Item name="regulatoryLicence" label="Regulatory Licence"><Input /></Form.Item>
-                <Form.Item name="isInternal" label="Internal Entity" valuePropName="checked"><Switch /></Form.Item>
+                <Form.Item
+                  name="isInternal"
+                  label={hint('Internal Entity', 'Marks this as one of the firm’s own booking entities rather than an external counterparty being onboarded as a legal entity.')}
+                  valuePropName="checked"
+                ><Switch /></Form.Item>
                 <Form.Item name="goLiveDate" label="Go-Live Date"><AppDatePicker /></Form.Item>
                 <Form.Item name="notes" label="Notes"><Input.TextArea rows={3} maxLength={1000} showCount /></Form.Item>
               </Form>

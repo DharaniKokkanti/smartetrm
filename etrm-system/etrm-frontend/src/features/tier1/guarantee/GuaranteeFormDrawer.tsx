@@ -27,6 +27,7 @@ import { useCounterparties } from '@features/tier1/counterparty/hooks';
 import { CURRENCY_LOOKUP } from '@features/tier1/counterparty/staticLookups';
 import { useDraftValues } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
+import { hint } from '@components/smart/FieldHint';
 
 const DIRECTION_OPTIONS = [
   { label: 'Received — their parent guarantees to us', value: 'RECEIVED' },
@@ -44,6 +45,7 @@ const ROLE_TYPE_OPTIONS = [
 
 interface RoleFieldProps {
   label: string;
+  hintText: string;
   fieldName: 'guarantorEntityId' | 'principalEntityId' | 'beneficiaryEntityId';
   type: PolymorphicEntityType;
   options: { label: string; value: number }[];
@@ -60,12 +62,12 @@ interface RoleFieldProps {
  * via Form.useFormInstance() rather than receiving it as a prop, same as
  * any other Form.Item-adjacent field component would.
  */
-function RoleField({ label, fieldName, type, options, onTypeChange }: RoleFieldProps) {
+function RoleField({ label, hintText, fieldName, type, options, onTypeChange }: RoleFieldProps) {
   const form = Form.useFormInstance();
   return (
     <div style={{ marginBottom: 16 }}>
       <Typography.Text strong style={{ display: 'block', marginBottom: 6 }}>
-        {label}
+        {hint(label, hintText)}
       </Typography.Text>
       <Segmented
         options={ROLE_TYPE_OPTIONS}
@@ -248,7 +250,11 @@ export function GuaranteeFormDrawer({ open, onClose, editing, prefill }: Props) 
         >
           <Input placeholder="e.g. PCG-2026-0001" disabled={!!editing} />
         </Form.Item>
-        <Form.Item name="direction" label="Direction" rules={[{ required: true }]}>
+        <Form.Item
+          name="direction"
+          label={hint('Direction', 'RECEIVED = a counterparty’s parent guarantees their obligations to us — increases the credit capacity we can extend. ISSUED = our own parent guarantees our obligations to them.')}
+          rules={[{ required: true }]}
+        >
           <Select
             options={DIRECTION_OPTIONS}
             onChange={handleDirectionChange}
@@ -260,6 +266,7 @@ export function GuaranteeFormDrawer({ open, onClose, editing, prefill }: Props) 
 
         <RoleField
           label="Guarantor (provides the guarantee)"
+          hintText="The party standing behind the obligation — typically the principal's parent company, promising to pay if the principal defaults."
           fieldName="guarantorEntityId"
           type={guarantorType}
           options={optionsFor(guarantorType)}
@@ -267,6 +274,7 @@ export function GuaranteeFormDrawer({ open, onClose, editing, prefill }: Props) 
         />
         <RoleField
           label="Principal (whose obligations are covered)"
+          hintText="The trading entity whose performance/payment obligations this guarantee backs — usually the subsidiary actually transacting with the beneficiary."
           fieldName="principalEntityId"
           type={principalType}
           options={optionsFor(principalType)}
@@ -274,6 +282,7 @@ export function GuaranteeFormDrawer({ open, onClose, editing, prefill }: Props) 
         />
         <RoleField
           label="Beneficiary (who is protected)"
+          hintText="The party who can call on the guarantee if the principal fails to perform — usually the firm's own trading entity for RECEIVED guarantees."
           fieldName="beneficiaryEntityId"
           type={beneficiaryType}
           options={optionsFor(beneficiaryType)}
@@ -304,7 +313,11 @@ export function GuaranteeFormDrawer({ open, onClose, editing, prefill }: Props) 
         <Form.Item name="issueDate" label="Issue Date" rules={[{ required: true }]}>
           <AppDatePicker />
         </Form.Item>
-        <Form.Item name="isEvergreen" label="Evergreen (auto-renews)" valuePropName="checked">
+        <Form.Item
+          name="isEvergreen"
+          label={hint('Evergreen (auto-renews)', 'Automatically renews at expiry unless explicitly cancelled, rather than lapsing on a fixed date — removes the need for an expiry date.')}
+          valuePropName="checked"
+        >
           <Switch />
         </Form.Item>
         <Form.Item noStyle shouldUpdate={(prev, cur) => prev.isEvergreen !== cur.isEvergreen}>
@@ -316,13 +329,21 @@ export function GuaranteeFormDrawer({ open, onClose, editing, prefill }: Props) 
             )
           }
         </Form.Item>
-        <Form.Item name="pcgStatus" label="Status" rules={[{ required: true }]}>
+        <Form.Item
+          name="pcgStatus"
+          label={hint('Status', 'DRAFT/ACTIVE track the guarantee’s lifecycle; CALLED means the beneficiary has invoked it and is claiming payment — enter the amount claimed below.')}
+          rules={[{ required: true }]}
+        >
           <Select options={STATUS_OPTIONS} />
         </Form.Item>
         <Form.Item noStyle shouldUpdate={(prev, cur) => prev.pcgStatus !== cur.pcgStatus}>
           {({ getFieldValue }) =>
             getFieldValue('pcgStatus') === 'CALLED' && (
-              <Form.Item name="amountCalled" label="Amount Called" rules={[{ required: true }]}>
+              <Form.Item
+                name="amountCalled"
+                label={hint('Amount Called', 'The amount the beneficiary has actually claimed under this guarantee — may be less than the full guarantee amount.')}
+                rules={[{ required: true }]}
+              >
                 <InputNumber style={{ width: '100%' }} min={0} />
               </Form.Item>
             )

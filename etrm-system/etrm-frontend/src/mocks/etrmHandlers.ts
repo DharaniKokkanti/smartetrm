@@ -1603,13 +1603,20 @@ export const etrmHandlers = [
     const productId = Number(params.id);
     const body = await request.json() as Record<string, unknown>;
     const meta = REPORTING_GROUP_LOOKUP[body['reportingGroupId'] as number];
+    const store = productReportingGroupStore as Array<Record<string, unknown>>;
+    // One reporting_group per classification axis per product (V64) — a
+    // product can have only one POSITION group, one VAR group, etc.
+    const dup = store.some((r) => r['productId'] === productId && r['classificationTypeId'] === meta?.classificationTypeId);
+    if (dup) {
+      return HttpResponse.json({ message: 'This product already has a reporting group assigned for that classification.' }, { status: 409 });
+    }
     const next = {
       productReportingGroupId: Date.now(),
       productId,
       ...body,
       ...meta,
     };
-    (productReportingGroupStore as Array<Record<string, unknown>>).push(next);
+    store.push(next);
     return HttpResponse.json(next, { status: 201 });
   }),
   http.delete(`${API}/products/:id/reporting-groups/:productReportingGroupId`, ({ params }) => {

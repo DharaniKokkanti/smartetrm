@@ -229,7 +229,13 @@ function ReportingGroupsTab({ productId }: { productId: number }) {
   const [selectedGroupId, setSelectedGroupId] = useState<number | undefined>();
 
   const assignedIds = new Set((data as ProductReportingGroup[]).map((r) => r.reportingGroupId));
-  const classificationOptions = classificationTypes.map((l) => ({ value: l.lookupId, label: l.displayName }));
+  // A product may only have one reporting group per classification axis
+  // (one POSITION group, one VAR group, etc.) — exclude classification types
+  // already assigned; to change one, remove the existing assignment first.
+  const assignedClassificationIds = new Set((data as ProductReportingGroup[]).map((r) => r.classificationTypeId));
+  const classificationOptions = classificationTypes
+    .filter((l) => !assignedClassificationIds.has(l.lookupId))
+    .map((l) => ({ value: l.lookupId, label: l.displayName }));
   const groupOptions = groups
     .filter((g) => g.isActive && g.classificationTypeId === selectedClassificationId && !assignedIds.has(g.reportingGroupId))
     .map((g) => ({ value: g.reportingGroupId, label: g.groupName }));
@@ -277,7 +283,12 @@ function ReportingGroupsTab({ productId }: { productId: number }) {
         </Button>
       </div>
 
-      {showAssign && (
+      {showAssign && classificationOptions.length === 0 && (
+        <Typography.Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 16 }}>
+          Every classification axis already has a group assigned. Remove one below to reassign it.
+        </Typography.Text>
+      )}
+      {showAssign && classificationOptions.length > 0 && (
         <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8, padding: 16, marginBottom: 16 }}>
           <Space>
             <Select

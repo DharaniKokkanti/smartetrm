@@ -5,6 +5,7 @@ import type { BankAccount } from './types';
 import { CURRENCY_LOOKUP } from './staticLookups';
 import { localId } from '@utils/localId';
 import { useCustomConfigOptions } from './configLookups';
+import { hint } from '@components/smart/FieldHint';
 const CURRENCY_OPTIONS = CURRENCY_LOOKUP.map((c) => ({
   label: `${c.currencyCode} — ${c.currencyName}`,
   value: c.currencyId,
@@ -33,6 +34,7 @@ export function BankAccountsSection({ items, onChange }: Props) {
       items={items}
       onChange={onChange}
       displayColumns={columns}
+      idField="bankAccountId"
       emptyItem={() => ({
         bankAccountId: null,
         _localId: localId(),
@@ -54,7 +56,11 @@ export function BankAccountsSection({ items, onChange }: Props) {
       })}
       renderFormFields={() => (
         <>
-          <Form.Item name="accountType" label="Account Type" rules={[{ required: true }]}>
+          <Form.Item
+            name="accountType"
+            label={hint('Account Type', 'SETTLEMENT = used for trade payments/receipts. COLLATERAL = margin/CSA postings. FEE = broker/service fee payments.')}
+            rules={[{ required: true }]}
+          >
             <Select options={typeOptions} loading={isLoading} />
           </Form.Item>
           <Form.Item name="currencyId" label="Currency" rules={[{ required: true }]}>
@@ -66,16 +72,26 @@ export function BankAccountsSection({ items, onChange }: Props) {
           <Form.Item name="bankName" label="Bank Name" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="swiftBic" label="SWIFT/BIC">
+          <Form.Item
+            name="swiftBic"
+            label={hint('SWIFT/BIC', 'Bank Identifier Code (ISO 9362) used to route international wires to this account.', 'DEUTDEFF')}
+          >
             <Input maxLength={11} style={{ textTransform: 'uppercase' }} />
           </Form.Item>
-          <Form.Item name="iban" label="IBAN">
+          <Form.Item
+            name="iban"
+            label={hint('IBAN', 'International Bank Account Number — required for SEPA/EU wires; leave blank for jurisdictions that use a local account number instead.', 'DE89370400440532013000')}
+          >
             <Input maxLength={34} style={{ textTransform: 'uppercase' }} />
           </Form.Item>
           <Form.Item name="accountNumber" label="Account Number">
             <Input />
           </Form.Item>
-          <Form.Item name="isPrimary" label="Primary Account" valuePropName="checked">
+          <Form.Item
+            name="isPrimary"
+            label={hint('Primary Account', 'The default account used for this account type when generating settlement/payment instructions.')}
+            valuePropName="checked"
+          >
             <Switch />
           </Form.Item>
         </>

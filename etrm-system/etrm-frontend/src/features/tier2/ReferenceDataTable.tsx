@@ -11,6 +11,7 @@ import {
   Form,
   Input,
   InputNumber,
+  DatePicker,
   Select,
   Switch,
     Empty,
@@ -25,6 +26,7 @@ import { useTableMetadata, useTableRows, useSaveRow, useDeleteRow } from './hook
 import { referenceDataApi } from './api';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
+import { hint } from '@components/smart/FieldHint';
 
 /** Column-name fragments that count as a "code/short-name" field — always
  *  stored uppercase, even if the user types lowercase. Codes with a stricter
@@ -82,6 +84,70 @@ function isoRules(col: ColumnMetadata) {
   return [];
 }
 
+/** Any `number` column whose name ends in "Year" (versionYear, vintageYear,
+ *  etc.) — plausible-year bound, not just "any integer", since these were
+ *  previously unbounded InputNumbers that accepted negatives, decimals, or
+ *  four-digit-and-beyond nonsense. Upper bound is a few years out to allow
+ *  forward-dated/future-effective rows (e.g. next Incoterms revision). */
+function isYearColumn(name: string): boolean {
+  return /year$/i.test(name);
+}
+const YEAR_MIN = 1900;
+const YEAR_MAX = new Date().getFullYear() + 5;
+
+/** Extra validation rules injected for year-like number columns */
+function yearRules(col: ColumnMetadata) {
+  if (col.kind === 'number' && isYearColumn(col.name)) {
+    return [
+      {
+        type: 'number' as const,
+        min: YEAR_MIN,
+        max: YEAR_MAX,
+        message: `Must be a year between ${YEAR_MIN} and ${YEAR_MAX}`,
+      },
+    ];
+  }
+  return [];
+}
+
+/** Derives a field hint purely from column metadata (kind/nullable/maxLength/
+ *  enumValues/foreignKeyTable) — no per-column hand-authored text, since
+ *  metadata here is generated from the DB schema and adding a new Static
+ *  Data table must stay a pure data change, never a code change. Mirrors the
+ *  `hint()`/`FieldHint` pattern used on dedicated feature pages, just derived
+ *  generically instead of hand-written per field. */
+function columnHint(col: ColumnMetadata): { text: string; format?: string } {
+  const optionalSuffix = col.nullable ? ' Optional — can be left blank.' : '';
+  switch (col.kind) {
+    case 'foreign_key':
+      return { text: `References a row in the ${col.foreignKeyTable ?? 'linked'} table — pick one from the list below instead of typing an id.${optionalSuffix}` };
+    case 'enum':
+      return { text: `Fixed list of values enforced by the database — free text isn't accepted.${optionalSuffix}`, format: (col.enumValues ?? []).join(' / ') };
+    case 'boolean':
+      return { text: 'Yes/No flag.' };
+    case 'date':
+      return { text: `Pick a date from the calendar.${optionalSuffix}` };
+    case 'number':
+      if (isYearColumn(col.name)) {
+        return { text: `Pick a year from the calendar.${optionalSuffix}`, format: `${YEAR_MIN}–${YEAR_MAX}` };
+      }
+      return { text: `Numeric value.${optionalSuffix}` };
+    default: {
+      if (ISO_4217_COLS.has(col.name)) {
+        return { text: `ISO 4217 currency code — always stored uppercase.${optionalSuffix}`, format: 'AAA (3 letters)' };
+      }
+      if (ISO_3166_COLS.has(col.name)) {
+        return { text: `ISO 3166-1 alpha-2 country code — always stored uppercase.${optionalSuffix}`, format: 'AA (2 letters)' };
+      }
+      const lengthNote = col.maxLength ? ` Max ${col.maxLength} characters.` : '';
+      if (isCodeColumn(col.name)) {
+        return { text: `Short code — always stored uppercase, regardless of how you type it.${lengthNote}${optionalSuffix}` };
+      }
+      return { text: `Free text.${lengthNote}${optionalSuffix}` };
+    }
+  }
+}
+
 /** Renders the right input control for a column purely from its metadata
  *  kind — this is the mechanism that lets one component cover every Tier 2
  *  table instead of hand-writing a form per table. `fkOptions` carries the
@@ -92,7 +158,16 @@ function fieldControl(col: ColumnMetadata, fkOptions: Record<string, { value: nu
     case 'boolean':
       return <Switch />;
     case 'number':
-      return <InputNumber style={{ width: '100%' }} />;
+      return isYearColumn(col.name)
+        ? (
+          <DatePicker
+            picker="year"
+            style={{ width: '100%' }}
+            placeholder={`e.g. ${new Date().getFullYear()}`}
+            disabledDate={(d) => d.year() < YEAR_MIN || d.year() > YEAR_MAX}
+          />
+        )
+        : <InputNumber style={{ width: '100%' }} />;
     case 'foreign_key': {
       const options = col.foreignKeyTable ? fkOptions[col.foreignKeyTable] ?? [] : [];
       return (
@@ -374,20 +449,28 @@ export function ReferenceDataTable({ table }: Props) {
         )}
       >
         <Form form={form} layout="vertical" initialValues={{ isActive: true }}>
-          {editableColumns.map((col) => (
-            <Form.Item
-              key={col.name}
-              name={col.name}
-              label={col.label}
-              valuePropName={col.kind === 'boolean' ? 'checked' : 'value'}
-              rules={[
-                { required: !col.nullable, message: `${col.label} is required` },
-                ...isoRules(col),
-              ]}
-            >
-              {fieldControl(col, fkOptions)}
-            </Form.Item>
-          ))}
+          {editableColumns.map((col) => {
+            const h = columnHint(col);
+            return (
+              <Form.Item
+                key={col.name}
+                name={col.name}
+                label={hint(col.label, h.text, undefined, h.format)}
+                valuePropName={col.kind === 'boolean' ? 'checked' : 'value'}
+                {...(col.kind === 'number' && isYearColumn(col.name) ? {
+                  getValueProps: (v: number | null) => ({ value: v != null ? dayjs(`${v}`, 'YYYY') : undefined }),
+                  normalize: (v: dayjs.Dayjs | null) => (v ? v.year() : null),
+                } : {})}
+                rules={[
+                  { required: !col.nullable, message: `${col.label} is required` },
+                  ...isoRules(col),
+                  ...yearRules(col),
+                ]}
+              >
+                {fieldControl(col, fkOptions)}
+              </Form.Item>
+            );
+          })}
         </Form>
       </Modal>
 

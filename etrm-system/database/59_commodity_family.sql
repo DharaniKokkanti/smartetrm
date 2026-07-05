@@ -74,7 +74,8 @@ GO
 IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.product') AND name = 'commodity_family_id')
   ALTER TABLE dbo.product ADD commodity_family_id INT NULL;
 GO
-ALTER TABLE dbo.product ADD CONSTRAINT fk_product_commodity_family FOREIGN KEY (commodity_family_id) REFERENCES dbo.commodity_family(commodity_family_id);
+IF NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'fk_product_commodity_family')
+  ALTER TABLE dbo.product ADD CONSTRAINT fk_product_commodity_family FOREIGN KEY (commodity_family_id) REFERENCES dbo.commodity_family(commodity_family_id);
 GO
 
 -- Backfill from the existing raw product_family string (values actually

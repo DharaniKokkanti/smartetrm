@@ -10,6 +10,7 @@ import type { Contact, ContactAssignment, PolymorphicEntityType } from './types'
 import { localId } from '@utils/localId';
 import { useCustomConfigOptions } from './configLookups';
 import { useContactPool } from './hooks';
+import { hint } from '@components/smart/FieldHint';
 
 interface Props {
   items: ContactAssignment[];
@@ -195,12 +196,18 @@ export function ContactsSection({ items, onChange, entityType = 'COUNTERPARTY' }
         )}
 
         <Form form={form} layout="vertical">
-          <Form.Item name="contactRole" label="Role" rules={[{ required: true }]}>
+          <Form.Item
+            name="contactRole"
+            label={hint('Role', 'This person’s function for this entity — e.g. the trading, credit, or legal contact — used to route the right document/query to the right person.')}
+            rules={[{ required: true }]}
+          >
             <Select options={roleOptions} loading={loadingRoles} />
           </Form.Item>
 
           {mode === 'link' ? (
-            <Form.Item label="Select Existing Contact" required>
+            <Form.Item
+              label={hint('Select Existing Contact', 'Reuses a contact person already on file elsewhere (e.g. the same person is the credit contact for two counterparties) instead of creating a duplicate record.')}
+              required>
               <Select
                 showSearch
                 placeholder="Search by name…"
@@ -249,7 +256,11 @@ export function ContactsSection({ items, onChange, entityType = 'COUNTERPARTY' }
             </>
           )}
 
-          <Form.Item name="isPrimary" label="Primary Contact" valuePropName="checked">
+          <Form.Item
+            name="isPrimary"
+            label={hint('Primary Contact', 'The default contact shown when only one contact can be surfaced, e.g. on a confirmation or statement.')}
+            valuePropName="checked"
+          >
             <Switch />
           </Form.Item>
         </Form>

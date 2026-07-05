@@ -15,6 +15,7 @@ import {
   useAssignments, useApproveAssignment, useRejectAssignment, useRevokeAssignment,
 } from './hooks';
 import { useDraftState, useDraftValues } from '@components/smart/formDraft';
+import { hint } from '@components/smart/FieldHint';
 
 const { Title, Text } = Typography;
 
@@ -216,7 +217,11 @@ function RoleFormModal({ open, editing, modules, functions, onClose }: RoleFormM
       >
         <Row gutter={12}>
           <Col span={10}>
-            <Form.Item name="roleCode" label="Role Code" rules={[{ required: true }, { max: 50 }]}>
+            <Form.Item
+              name="roleCode"
+              label={hint('Role Code', 'Short unique identifier for this custom role — always stored uppercase. System roles are seeded and cannot be edited or created here.', 'CRUDE_TRADER')}
+              rules={[{ required: true }, { max: 50 }]}
+            >
               <Input placeholder="e.g. CRUDE_TRADER" disabled={!!editing || isSystem} style={{ textTransform: 'uppercase' }} />
             </Form.Item>
           </Col>

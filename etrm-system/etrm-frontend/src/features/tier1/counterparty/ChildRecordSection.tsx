@@ -13,6 +13,11 @@ interface ChildRecordSectionProps<T extends { _localId: string; isPrimary: boole
    *  surrounding <Form> instance handles values via Form.Item name props. */
   renderFormFields: () => ReactNode;
   emptyItem: () => T;
+  /** Name of this record's own server-id field (e.g. 'taxRegId',
+   *  'bankAccountId') — null means never saved. Must be the record's own
+   *  primary key, not a foreign reference like entityId/currencyId, both of
+   *  which are always non-null and would otherwise false-positive here. */
+  idField: keyof T & string;
 }
 
 /**
@@ -32,7 +37,7 @@ interface ChildRecordSectionProps<T extends { _localId: string; isPrimary: boole
  */
 export function ChildRecordSection<
   T extends { _localId: string; isPrimary: boolean; isActive: boolean },
->({ title, addLabel, items, onChange, displayColumns, renderFormFields, emptyItem }: ChildRecordSectionProps<T>) {
+>({ title, addLabel, items, onChange, displayColumns, renderFormFields, emptyItem, idField }: ChildRecordSectionProps<T>) {
   const [form] = Form.useForm<T>();
   const [editing, setEditing] = useState<T | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -53,9 +58,7 @@ export function ChildRecordSection<
   }
 
   function handleRemove(item: T) {
-    const hasServerId = Object.entries(item).some(
-      ([k, v]) => k.endsWith('Id') && k !== '_localId' && v !== null,
-    );
+    const hasServerId = item[idField] != null;
     if (hasServerId) {
       onChange(items.map((i) => (i._localId === item._localId ? { ...i, isActive: false } : i)));
     } else {

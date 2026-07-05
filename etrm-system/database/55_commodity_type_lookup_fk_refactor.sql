@@ -115,12 +115,15 @@ ALTER TABLE dbo.location_type ADD CONSTRAINT fk_loctype_commodity_type FOREIGN K
 GO
 
 -- =============================================================================
--- 5. dbo.desk.commodity_type (nullable, no prior CHECK)
+-- 5. dbo.desk.commodity_type (nullable; V43/V47 added ck_desk_commodity_type,
+--    must be dropped before the column, same as book/gl_account/trader_commodity_limit)
 -- =============================================================================
 ALTER TABLE dbo.desk ADD commodity_type_new INT NULL;
 GO
 UPDATE d SET d.commodity_type_new = lv.lookup_id
 FROM dbo.desk d JOIN dbo.lookup_value lv ON lv.category = 'commodity_type' AND lv.code = d.commodity_type;
+GO
+ALTER TABLE dbo.desk DROP CONSTRAINT IF EXISTS ck_desk_commodity_type;
 GO
 ALTER TABLE dbo.desk DROP COLUMN commodity_type;
 GO

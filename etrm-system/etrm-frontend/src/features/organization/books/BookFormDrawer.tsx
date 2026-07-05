@@ -6,6 +6,7 @@ import { BOOK_TYPES, type Book, type BookInput } from './types';
 import { COMMODITY_TYPE_LOOKUP } from '../desks/types';
 import { useDraftValues } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
+import { hint } from '@components/smart/FieldHint';
 
 interface Props {
   open: boolean;
@@ -72,41 +73,76 @@ export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
       }
     >
       <Form form={form} layout="vertical">
-        <Form.Item name="bookCode" label="Book Code" rules={[{ required: true }]}>
+        <Form.Item
+          name="bookCode"
+          label={hint('Book Code', 'Short unique identifier for this P&L book — used in position and risk reporting.', 'OIL-CRUDE-01')}
+          rules={[{ required: true }]}
+        >
           <Input placeholder="OIL-CRUDE-01" style={{ fontFamily: 'monospace' }} />
         </Form.Item>
         <Form.Item name="bookName" label="Book Name" rules={[{ required: true }]}>
           <Input placeholder="Crude Oil Physical Book" />
         </Form.Item>
-        <Form.Item name="bookType" label="Book Type" rules={[{ required: true }]}>
+        <Form.Item
+          name="bookType"
+          label={hint('Book Type', 'TRADING = active risk-taking book. HEDGE = offsets exposure from other books. FLAT/HOUSE/PROP — see book type reference for the full distinction.')}
+          rules={[{ required: true }]}
+        >
           <Select options={BOOK_TYPES.map((t) => ({ label: t, value: t }))} />
         </Form.Item>
-        <Form.Item name="deskId" label="Desk (ID)" rules={[{ required: true }]}>
+        <Form.Item
+          name="deskId"
+          label={hint('Desk (ID)', 'The trading desk this book rolls up to for desk-level P&L and risk aggregation.')}
+          rules={[{ required: true }]}
+        >
           <InputNumber style={{ width: '100%' }} placeholder="Desk ID" />
         </Form.Item>
-        <Form.Item name="legalEntityId" label="Legal Entity (ID)" rules={[{ required: true }]}>
+        <Form.Item
+          name="legalEntityId"
+          label={hint('Legal Entity (ID)', 'The booking company this book’s trades settle against.', '1=SETRM-LTD, 2=SETRM-NL, 3=SETRM-SG')}
+          rules={[{ required: true }]}
+        >
           <InputNumber style={{ width: '100%' }} placeholder="Legal Entity ID (1=SETRM-LTD, 2=SETRM-NL, 3=SETRM-SG)" />
         </Form.Item>
-        <Form.Item name="commodityType" label="Commodity Type">
+        <Form.Item
+          name="commodityType"
+          label={hint('Commodity Type', 'Restricts this book to one commodity for position/limit segregation. Leave blank for a multi-commodity book.')}
+        >
           <Select allowClear placeholder="Leave blank for multi-commodity"
             options={COMMODITY_TYPE_LOOKUP.map((l) => ({ label: l.label, value: l.lookupId }))} />
         </Form.Item>
-        <Form.Item name="currencyCode" label="Base Currency" rules={[{ required: true }]}>
+        <Form.Item
+          name="currencyCode"
+          label={hint('Base Currency', 'The functional currency this book’s P&L, positions, and limits are measured in.')}
+          rules={[{ required: true }]}
+        >
           <Select options={['USD', 'EUR', 'GBP', 'JPY', 'CAD', 'SGD'].map((c) => ({ label: c, value: c }))}
             placeholder="USD" style={{ width: 120 }} />
         </Form.Item>
-        <Form.Item name="responsibleTraderId" label="Responsible Trader (ID)">
+        <Form.Item
+          name="responsibleTraderId"
+          label={hint('Responsible Trader (ID)', 'The trader accountable for this book’s daily risk and P&L. Optional.')}
+        >
           <InputNumber style={{ width: '100%' }} placeholder="Trader ID (optional)" />
         </Form.Item>
-        <Form.Item name="positionLimit" label="Position Limit (MT/BBL)">
+        <Form.Item
+          name="positionLimit"
+          label={hint('Position Limit (MT/BBL)', 'Maximum net open position allowed in this book before a limit breach is triggered.', '500000')}
+        >
           <InputNumber style={{ width: '100%' }} placeholder="500000"
             formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
         </Form.Item>
-        <Form.Item name="pnlLimit" label="P&L Limit (USD)">
+        <Form.Item
+          name="pnlLimit"
+          label={hint('P&L Limit (USD)', 'Daily or cumulative loss threshold for this book — breaching it should trigger a risk alert.', '10000000')}
+        >
           <InputNumber style={{ width: '100%' }} placeholder="10000000"
             formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
         </Form.Item>
-        <Form.Item name="varLimit" label="VaR Limit (USD)">
+        <Form.Item
+          name="varLimit"
+          label={hint('VaR Limit (USD)', 'Value-at-Risk ceiling for this book, typically at a 95% or 99% confidence interval over a 1-day horizon.', '500000')}
+        >
           <InputNumber style={{ width: '100%' }} placeholder="500000"
             formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
         </Form.Item>

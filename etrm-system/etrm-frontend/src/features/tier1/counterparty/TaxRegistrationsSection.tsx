@@ -6,6 +6,7 @@ import { TAX_TYPES } from './types';
 import { localId } from '@utils/localId';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import dayjs from 'dayjs';
+import { hint } from '@components/smart/FieldHint';
 
 const TAX_TYPE_OPTIONS = TAX_TYPES.map((t) => ({ label: t, value: t }));
 
@@ -35,6 +36,7 @@ export function TaxRegistrationsSection({ items, onChange, entityType = 'COUNTER
       items={items}
       onChange={onChange}
       displayColumns={columns}
+      idField="taxRegId"
       emptyItem={() => ({
         taxRegId: null,
         _localId: localId(),
@@ -53,13 +55,25 @@ export function TaxRegistrationsSection({ items, onChange, entityType = 'COUNTER
       })}
       renderFormFields={() => (
         <>
-          <Form.Item name="taxType" label="Tax Type" rules={[{ required: true }]}>
+          <Form.Item
+            name="taxType"
+            label={hint('Tax Type', 'VAT/GST for most jurisdictions; EIN/UTR/TIN for country-specific tax IDs used on invoices and regulatory filings.')}
+            rules={[{ required: true }]}
+          >
             <Select options={TAX_TYPE_OPTIONS} />
           </Form.Item>
-          <Form.Item name="taxId" label="Registration Number" rules={[{ required: true }]}>
+          <Form.Item
+            name="taxId"
+            label={hint('Registration Number', 'The tax authority-issued identifier — printed on invoices and used for tax reporting.', 'GB123456789')}
+            rules={[{ required: true }]}
+          >
             <Input placeholder="e.g. GB123456789" />
           </Form.Item>
-          <Form.Item name="jurisdiction" label="Jurisdiction (ISO 2)" rules={[{ required: true }, { len: 2, message: '2-letter code' }]}>
+          <Form.Item
+            name="jurisdiction"
+            label={hint('Jurisdiction (ISO 2)', 'The country this registration was issued in — an entity can hold multiple registrations across jurisdictions it operates in.', 'GB')}
+            rules={[{ required: true }, { len: 2, message: '2-letter code' }]}
+          >
             <Input maxLength={2} style={{ textTransform: 'uppercase' }} />
           </Form.Item>
           <Form.Item name="issuingAuthority" label="Issuing Authority">
@@ -72,7 +86,11 @@ export function TaxRegistrationsSection({ items, onChange, entityType = 'COUNTER
           >
             <AppDatePicker />
           </Form.Item>
-          <Form.Item name="isPrimary" label="Primary Registration" valuePropName="checked">
+          <Form.Item
+            name="isPrimary"
+            label={hint('Primary Registration', 'The default tax registration used when this entity’s tax ID needs to be shown on an invoice or filing.')}
+            valuePropName="checked"
+          >
             <Switch />
           </Form.Item>
         </>

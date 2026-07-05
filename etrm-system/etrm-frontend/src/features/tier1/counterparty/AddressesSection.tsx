@@ -10,6 +10,7 @@ import type { Address, AddressAssignment, PolymorphicEntityType } from './types'
 import { localId } from '@utils/localId';
 import { useCustomConfigOptions } from './configLookups';
 import { useAddressPool } from './hooks';
+import { hint } from '@components/smart/FieldHint';
 
 interface Props {
   items: AddressAssignment[];
@@ -196,12 +197,18 @@ export function AddressesSection({ items, onChange, entityType = 'COUNTERPARTY' 
         )}
 
         <Form form={form} layout="vertical">
-          <Form.Item name="addressType" label="Address Type" rules={[{ required: true }]}>
+          <Form.Item
+            name="addressType"
+            label={hint('Address Type', 'REGISTERED = official/legal registered office. Others (e.g. mailing, delivery) are for operational correspondence only — the registered address is what appears on legal documents.')}
+            rules={[{ required: true }]}
+          >
             <Select options={typeOptions} loading={loadingTypes} />
           </Form.Item>
 
           {mode === 'link' ? (
-            <Form.Item label="Select Existing Address" required>
+            <Form.Item
+              label={hint('Select Existing Address', 'Reuses an address already on file (e.g. a group HQ shared by several affiliated counterparties) instead of creating a duplicate record.')}
+              required>
               <Select
                 showSearch
                 placeholder="Search by street, city…"
@@ -247,7 +254,11 @@ export function AddressesSection({ items, onChange, entityType = 'COUNTERPARTY' 
             </>
           )}
 
-          <Form.Item name="isPrimary" label="Primary Address" valuePropName="checked">
+          <Form.Item
+            name="isPrimary"
+            label={hint('Primary Address', 'The default address shown when only one can be surfaced for this entity, e.g. on a statement or shipping document.')}
+            valuePropName="checked"
+          >
             <Switch />
           </Form.Item>
         </Form>
