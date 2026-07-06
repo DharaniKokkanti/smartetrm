@@ -4,6 +4,8 @@ import { productsApi, productIndexApi, productMarketApi, productSpecApi, product
 import type { ProductInput, ProductPriceIndexInput, BlendComponentInput, ProductReportingGroupInput } from './types';
 import type { ProblemDetail } from '@services/api';
 import type { CommodityType } from '@features/organization/desks/types';
+import { marketsApi } from '@features/markets/markets/api';
+import type { MarketProductInput } from '@features/markets/markets/types';
 
 const KEY = ['products'] as const;
 
@@ -75,6 +77,23 @@ export function useProductMarkets(productId: number | null) {
     queryKey: ['products', productId, 'markets'],
     queryFn: () => productMarketApi.list(productId!),
     enabled: productId !== null,
+  });
+}
+
+// Links this product onto a market chosen from the product side — writes through the same
+// `market_product` bridge row as `useSaveMarketProduct` (used from the Markets page), just entered
+// from the other direction so either page can manage the link.
+export function useLinkMarketToProduct(productId: number) {
+  const qc = useQueryClient();
+  const { message } = AntApp.useApp();
+  return useMutation({
+    mutationFn: ({ marketId, input }: { marketId: number; input: Omit<MarketProductInput, 'productId' | 'marketId'> }) =>
+      marketsApi.addProduct(marketId, { ...input, productId } as MarketProductInput),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['products', productId, 'markets'] });
+      message.success('Market linked.');
+    },
+    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Link failed.'),
   });
 }
 

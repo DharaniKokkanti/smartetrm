@@ -993,25 +993,25 @@ const currenciesStore: unknown[] = [
 
 // ─── UNITS OF MEASURE ─────────────────────────────────────────────────────────
 const uomStore: unknown[] = [
-  { uomId: 1, uomCode: 'BBL', uomName: 'Barrel (42 US Gallons)', uomType: 'VOLUME', baseUomCode: 'BBL', conversionFactor: 1, commodityHint: 'Crude oil, refined products (Americas)', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { uomId: 2, uomCode: 'MT', uomName: 'Metric Tonne', uomType: 'WEIGHT', baseUomCode: 'MT', conversionFactor: 1, commodityHint: 'All physical commodities (international)', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { uomId: 3, uomCode: 'MWH', uomName: 'Megawatt Hour', uomType: 'ENERGY', baseUomCode: 'MWH', conversionFactor: 1, commodityHint: 'Power, natural gas (EU)', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { uomId: 4, uomCode: 'MMBTU', uomName: 'Million British Thermal Units', uomType: 'ENERGY', baseUomCode: 'MWH', conversionFactor: 0.29307, commodityHint: 'Natural gas (US), LNG', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { uomId: 5, uomCode: 'THERM', uomName: 'Therm (100,000 BTU)', uomType: 'ENERGY', baseUomCode: 'MWH', conversionFactor: 0.02931, commodityHint: 'UK NBP gas market', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { uomId: 6, uomCode: 'BUSHEL', uomName: 'Bushel (US 60 lb)', uomType: 'VOLUME', baseUomCode: 'MT', conversionFactor: 0.027216, commodityHint: 'Grains: corn, wheat, soybeans (CBOT)', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { uomId: 7, uomCode: 'GAL', uomName: 'US Gallon', uomType: 'VOLUME', baseUomCode: 'BBL', conversionFactor: 0.02381, commodityHint: 'Refined products, NYMEX heating oil', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { uomId: 8, uomCode: 'M3', uomName: 'Cubic Metre', uomType: 'VOLUME', baseUomCode: 'SCM', conversionFactor: 1, commodityHint: 'Gas pipeline, LNG storage (M3 = SCM at standard conditions)', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { uomId: 9, uomCode: 'KG', uomName: 'Kilogram', uomType: 'WEIGHT', baseUomCode: 'MT', conversionFactor: 0.001, commodityHint: 'Precious metals, chemicals', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { uomId: 10, uomCode: 'MW', uomName: 'Megawatt (capacity)', uomType: 'POWER', baseUomCode: 'MW', conversionFactor: 1, commodityHint: 'Power capacity (not energy)', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { uomId: 11, uomCode: 'LTR', uomName: 'Litre', uomType: 'VOLUME', baseUomCode: 'BBL', conversionFactor: 0.006290, commodityHint: 'Road tankers, retail fuel', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { uomId: 12, uomCode: 'SCFD',    uomName: 'Standard Cubic Feet per Day',      uomType: 'VOLUME', baseUomCode: 'SCM',  conversionFactor: 0.0000283168, commodityHint: 'US pipeline gas capacity (1 SCF = 0.028317 SCM)', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { uomId: 13, uomCode: 'GJ',      uomName: 'Gigajoule',                         uomType: 'ENERGY', baseUomCode: 'MWH', conversionFactor: 0.27778,    commodityHint: 'Gas (Australia, continental EU wholesale)', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { uomId: 14, uomCode: 'SCM',     uomName: 'Standard Cubic Metre',              uomType: 'VOLUME', baseUomCode: 'SCM',  conversionFactor: 1,          commodityHint: 'Gas pipeline volumes (EU, Asia). SCM→MWH requires product GCV — no commodity default.', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { uomId: 15, uomCode: 'MMSCM',   uomName: 'Million Standard Cubic Metres',     uomType: 'VOLUME', baseUomCode: 'SCM',  conversionFactor: 1000000,    commodityHint: 'Large gas pipeline capacity (1 MMSCM = 1,000,000 SCM)', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { uomId: 16, uomCode: 'LB',      uomName: 'Pound (weight)',                    uomType: 'WEIGHT', baseUomCode: 'MT',  conversionFactor: 0.0004536,  commodityHint: 'US agricultural (soybeans, wheat) and metals', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { uomId: 17, uomCode: 'CBM',     uomName: 'Cubic Metre (oil/liquid)',          uomType: 'VOLUME', baseUomCode: 'BBL', conversionFactor: 6.28981,    commodityHint: 'Oil product road tankers, refinery volumes', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { uomId: 18, uomCode: 'TROY_OZ', uomName: 'Troy Ounce',                        uomType: 'WEIGHT', baseUomCode: 'MT',  conversionFactor: 0.0000311,  commodityHint: 'Precious metals (gold, silver, platinum, palladium)', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { uomId: 19, uomCode: 'GWH',     uomName: 'Gigawatt Hour',                     uomType: 'ENERGY', baseUomCode: 'MWH', conversionFactor: 1000,       commodityHint: 'Large-scale power contracts, interconnector capacity', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 1, uomCode: 'BBL', uomName: 'Barrel (42 US Gallons)', uomType: 'VOLUME', baseUomCode: 'BBL', conversionFactor: 1, commodityHint: 'Crude oil, refined products (Americas)', commodityTypes: ['OIL'], isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 2, uomCode: 'MT', uomName: 'Metric Tonne', uomType: 'WEIGHT', baseUomCode: 'MT', conversionFactor: 1, commodityHint: 'All physical commodities (international)', commodityTypes: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 3, uomCode: 'MWH', uomName: 'Megawatt Hour', uomType: 'ENERGY', baseUomCode: 'MWH', conversionFactor: 1, commodityHint: 'Power, natural gas (EU)', commodityTypes: ['POWER', 'GAS'], isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 4, uomCode: 'MMBTU', uomName: 'Million British Thermal Units', uomType: 'ENERGY', baseUomCode: 'MWH', conversionFactor: 0.29307, commodityHint: 'Natural gas (US), LNG', commodityTypes: ['GAS', 'LNG'], isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 5, uomCode: 'THERM', uomName: 'Therm (100,000 BTU)', uomType: 'ENERGY', baseUomCode: 'MWH', conversionFactor: 0.02931, commodityHint: 'UK NBP gas market', commodityTypes: ['GAS'], isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 6, uomCode: 'BUSHEL', uomName: 'Bushel (US 60 lb)', uomType: 'VOLUME', baseUomCode: 'MT', conversionFactor: 0.027216, commodityHint: 'Grains: corn, wheat, soybeans (CBOT)', commodityTypes: ['AGRICULTURAL'], isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 7, uomCode: 'GAL', uomName: 'US Gallon', uomType: 'VOLUME', baseUomCode: 'BBL', conversionFactor: 0.02381, commodityHint: 'Refined products, NYMEX heating oil, RIN volumes (RVO gallons)', commodityTypes: ['OIL', 'RINS'], isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 8, uomCode: 'M3', uomName: 'Cubic Metre', uomType: 'VOLUME', baseUomCode: 'SCM', conversionFactor: 1, commodityHint: 'Gas pipeline, LNG storage (M3 = SCM at standard conditions)', commodityTypes: ['GAS', 'LNG'], isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 9, uomCode: 'KG', uomName: 'Kilogram', uomType: 'WEIGHT', baseUomCode: 'MT', conversionFactor: 0.001, commodityHint: 'Precious metals, chemicals', commodityTypes: ['METALS'], isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 10, uomCode: 'MW', uomName: 'Megawatt (capacity)', uomType: 'POWER', baseUomCode: 'MW', conversionFactor: 1, commodityHint: 'Power capacity (not energy)', commodityTypes: ['POWER'], isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 11, uomCode: 'LTR', uomName: 'Litre', uomType: 'VOLUME', baseUomCode: 'BBL', conversionFactor: 0.006290, commodityHint: 'Road tankers, retail fuel', commodityTypes: ['OIL'], isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 12, uomCode: 'SCFD',    uomName: 'Standard Cubic Feet per Day',      uomType: 'VOLUME', baseUomCode: 'SCM',  conversionFactor: 0.0000283168, commodityHint: 'US pipeline gas capacity (1 SCF = 0.028317 SCM)', commodityTypes: ['GAS'], isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 13, uomCode: 'GJ',      uomName: 'Gigajoule',                         uomType: 'ENERGY', baseUomCode: 'MWH', conversionFactor: 0.27778,    commodityHint: 'Gas (Australia, continental EU wholesale)', commodityTypes: ['GAS'], isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 14, uomCode: 'SCM',     uomName: 'Standard Cubic Metre',              uomType: 'VOLUME', baseUomCode: 'SCM',  conversionFactor: 1,          commodityHint: 'Gas pipeline volumes (EU, Asia). SCM→MWH requires product GCV — no commodity default.', commodityTypes: ['GAS', 'LNG'], isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 15, uomCode: 'MMSCM',   uomName: 'Million Standard Cubic Metres',     uomType: 'VOLUME', baseUomCode: 'SCM',  conversionFactor: 1000000,    commodityHint: 'Large gas pipeline capacity (1 MMSCM = 1,000,000 SCM)', commodityTypes: ['GAS'], isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 16, uomCode: 'LB',      uomName: 'Pound (weight)',                    uomType: 'WEIGHT', baseUomCode: 'MT',  conversionFactor: 0.0004536,  commodityHint: 'US agricultural (soybeans, wheat) and metals', commodityTypes: ['AGRICULTURAL', 'METALS'], isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 17, uomCode: 'CBM',     uomName: 'Cubic Metre (oil/liquid)',          uomType: 'VOLUME', baseUomCode: 'BBL', conversionFactor: 6.28981,    commodityHint: 'Oil product road tankers, refinery volumes', commodityTypes: ['OIL'], isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 18, uomCode: 'TROY_OZ', uomName: 'Troy Ounce',                        uomType: 'WEIGHT', baseUomCode: 'MT',  conversionFactor: 0.0000311,  commodityHint: 'Precious metals (gold, silver, platinum, palladium)', commodityTypes: ['METALS'], isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { uomId: 19, uomCode: 'GWH',     uomName: 'Gigawatt Hour',                     uomType: 'ENERGY', baseUomCode: 'MWH', conversionFactor: 1000,       commodityHint: 'Large-scale power contracts, interconnector capacity', commodityTypes: ['POWER'], isActive: true, createdAt: '2024-01-01T00:00:00Z' },
 ];
 
 // ─── UOM CONVERSION ───────────────────────────────────────────────────────────
@@ -1586,7 +1586,11 @@ export const etrmHandlers = [
   }),
   http.post(`${API}/markets/:id/products`, async ({ params, request }) => {
     const input = (await request.json()) as Record<string, unknown>;
-    const row = { ...input, marketProductId: nextId(), marketId: Number(params.id), createdAt: now() };
+    const product = (productsStore as Array<Record<string, unknown>>).find((p) => p['productId'] === input['productId']);
+    const row = {
+      ...input, marketProductId: nextId(), marketId: Number(params.id), createdAt: now(),
+      productCode: product?.['productCode'] ?? null, productName: product?.['productName'] ?? null,
+    };
     marketProductsStore.push(row);
     return HttpResponse.json(row, { status: 201 });
   }),

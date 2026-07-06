@@ -37,7 +37,9 @@ import {
 import { useTraders } from '@features/organization/traders/hooks';
 import { useBooks } from '@features/organization/books/hooks';
 import { useProducts } from '@features/markets/products/hooks';
+import { resolveCommodityType, type CommodityRow } from '@features/markets/products/types';
 import { useMarkets } from '@features/markets/markets/hooks';
+import type { CommodityType } from '@features/organization/desks/types';
 import { usePricingRules } from '@features/pricing/pricing-rules/hooks';
 import type { PricingRule } from '@features/pricing/pricing-rules/types';
 import { useBalmoProducts } from '@features/pricing/balmo-products/hooks';
@@ -46,6 +48,7 @@ import { useLocations } from '@features/logistics/locations/hooks';
 import { useVessels } from '@features/logistics/vessels/hooks';
 import { usePeriods } from '@features/calendar/periods/hooks';
 import { useUom } from '@features/reference/uom/hooks';
+import type { Uom } from '@features/reference/uom/types';
 import { useCommodityInstrumentMap } from '@features/reference/commodity-instrument-map/hooks';
 import { useTableRows } from '@features/tier2/hooks';
 import { useUiStore } from '@store/uiStore';
@@ -53,6 +56,14 @@ import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 
 const { Text } = Typography;
+
+// The `commodity` master table only models 5 broad buckets (OIL/POWER/GAS/AGRICULTURAL/METALS) — LNG products are
+// filed under GAS (there's no separate LNG row), and FREIGHT/RINS/ENVIRONMENTAL trades don't reference dbo.product
+// at all (confirmed: their seeded orders all have productId: null, using freightDetail/rinDetail/environmentalDetail
+// instead), so they're deliberately absent from this map — a trade of that type simply gets no product options.
+const COMMODITY_TRADE_TO_BROAD: Partial<Record<CommodityTypeTrade, CommodityType>> = {
+  OIL: 'OIL', GAS: 'GAS', POWER: 'POWER', LNG: 'GAS', AGRICULTURAL: 'AGRICULTURAL', METALS: 'METALS',
+};
 
 /** Converts named string-date fields on a nested detail object (oilDetail, gasDetail, ...) to dayjs for the form. */
 function detailToForm<T extends object>(obj: T | null | undefined, dateFields: (keyof T)[]): Record<string, unknown> | undefined {
@@ -724,12 +735,12 @@ function DemurrageSection({ currencyOpts }: { currencyOpts: SelectOpt[] }) {
 
 // ─── Delivery fields (legs only) ──────────────────────────────────────────────
 function DeliveryFields({
-  commodityType, locationOpts, vesselOpts, uomOpts, currencyOpts, incoterms, products, markets, pricingRules, periods,
+  commodityType, locationOpts, vesselOpts, uomOpts, currencyOpts, incoterms, productOpts, marketOpts, pricingRules, periods,
   crudeGradeOpts, metalShapeOpts, gasDayTypeOpts, nominationOpts, lngPriceOpts, powerLoadOpts, pipelineOpts, isTas, isBalmo, balmoProducts,
 }: {
   commodityType: CommodityTypeTrade;
   locationOpts: SelectOpt[]; vesselOpts: SelectOpt[]; uomOpts: SelectOpt[]; currencyOpts: SelectOpt[];
-  incoterms: unknown[]; products: unknown[]; markets: unknown[]; pricingRules: unknown[]; periods: unknown[];
+  incoterms: unknown[]; productOpts: SelectOpt[]; marketOpts: SelectOpt[]; pricingRules: unknown[]; periods: unknown[];
   crudeGradeOpts: SelectOpt[]; metalShapeOpts: SelectOpt[]; gasDayTypeOpts: SelectOpt[];
   nominationOpts: SelectOpt[]; lngPriceOpts: SelectOpt[]; powerLoadOpts: SelectOpt[]; pipelineOpts: SelectOpt[];
   isTas: boolean;
@@ -753,7 +764,7 @@ function DeliveryFields({
         <Col span={12}>
           <Form.Item name="productId" label="Product">
             <Select
-              options={(products as { productId: number; productCode: string; productName: string }[]).map((p) => ({ value: p.productId, label: `${p.productCode} — ${p.productName}` }))}
+              options={productOpts}
               placeholder="Select product" showSearch allowClear
               filterOption={(i, o) => (o?.label ?? '').toLowerCase().includes(i.toLowerCase())}
             />
@@ -762,7 +773,7 @@ function DeliveryFields({
         <Col span={12}>
           <Form.Item name="marketId" label={hint('Market', 'Trading venue or OTC market.')}>
             <Select
-              options={(markets as { marketId: number; marketCode: string; marketName: string }[]).map((m) => ({ value: m.marketId, label: `${m.marketCode} — ${m.marketName}` }))}
+              options={marketOpts}
               placeholder="Select market" showSearch allowClear
             />
           </Form.Item>
@@ -900,6 +911,7 @@ export function TradeBlotter() {
   const { data: books = [] } = useBooks();
   const { data: products = [] } = useProducts();
   const { data: markets = [] } = useMarkets();
+  const { data: commodityRows = [] } = useTableRows('commodity');
   const { data: pricingRules = [] } = usePricingRules();
   const { data: balmoProducts = [] } = useBalmoProducts();
   const { data: locations = [] } = useLocations();
@@ -974,9 +986,46 @@ export function TradeBlotter() {
   } : undefined);
 
   // ── Option lists ──
-  const locationOpts  = useMemo(() => (locations as { locationCode: string; locationName: string }[]).map((l) => ({ value: l.locationCode, label: `${l.locationCode} — ${l.locationName}` })), [locations]);
+  // Location options scoped to a commodity — Location.commodityType is null for cross-commodity locations (ports that
+  // handle multiple commodities), otherwise only shows up for its own commodity (e.g. an LNG terminal shouldn't
+  // appear as a candidate discharge port for an oil trade).
+  const locationOptionsFor = useMemo(() => {
+    const rows = locations as { locationCode: string; locationName: string; commodityType: CommodityType | null }[];
+    return (commodityType: CommodityTypeTrade) =>
+      rows
+        .filter((l) => !l.commodityType || l.commodityType === commodityType)
+        .map((l) => ({ value: l.locationCode, label: `${l.locationCode} — ${l.locationName}` }));
+  }, [locations]);
+  // Product options scoped to a commodity via the broad commodity bucket resolved from Product.commodityId — mirrors
+  // the filter ProductsPage.tsx already applies to its own list, just never applied here before.
+  const productOptionsFor = useMemo(() => {
+    const rows = products as { productId: number; productCode: string; productName: string; commodityId: number }[];
+    const commodities = commodityRows as CommodityRow[];
+    return (commodityType: CommodityTypeTrade) => {
+      const broad = COMMODITY_TRADE_TO_BROAD[commodityType];
+      return rows
+        .filter((p) => broad && resolveCommodityType(commodities, p.commodityId) === broad)
+        .map((p) => ({ value: p.productId, label: `${p.productCode} — ${p.productName}` }));
+    };
+  }, [products, commodityRows]);
+  // Market options scoped to a commodity — Market.commodityType is a direct field, no resolver needed.
+  const marketOptionsFor = useMemo(() => {
+    const rows = markets as { marketId: number; marketCode: string; marketName: string; commodityType: string }[];
+    return (commodityType: CommodityTypeTrade) =>
+      rows
+        .filter((m) => m.commodityType === commodityType)
+        .map((m) => ({ value: m.marketId, label: `${m.marketCode} — ${m.marketName}` }));
+  }, [markets]);
   const vesselOpts    = useMemo(() => (vessels   as { vesselName: string; imoNumber: string }[]).map((v) => ({ value: v.vesselName, label: `${v.vesselName} (${v.imoNumber})` })), [vessels]);
-  const uomOpts       = useMemo(() => (uomRows   as { uomCode: string }[]).map((r) => ({ value: r.uomCode, label: r.uomCode })), [uomRows]);
+  // UoM options scoped to a commodity — a UoM with commodityTypes: null applies cross-commodity (e.g. MT); one with a
+  // populated list (e.g. MWH -> POWER/GAS) only shows up for those commodities, instead of every UoM regardless of leg type.
+  const uomOptionsFor = useMemo(() => {
+    const rows = uomRows as Uom[];
+    return (commodityType: CommodityTypeTrade) =>
+      rows
+        .filter((r) => !r.commodityTypes || r.commodityTypes.includes(commodityType))
+        .map((r) => ({ value: r.uomCode, label: r.uomCode }));
+  }, [uomRows]);
   const currencyOpts  = useMemo(() => (currencyRows as { currencyCode: string; currencyName: string }[]).map((r) => ({ value: r.currencyCode, label: `${r.currencyCode} — ${r.currencyName}` })), [currencyRows]);
   const brokerOpts    = useMemo(() => (brokers   as { brokerId: number; brokerCode: string; brokerName: string }[]).map((b) => ({ value: b.brokerId, label: `${b.brokerCode} — ${b.brokerName}` })), [brokers]);
   const pipelineOpts  = useMemo(() => (pipelines as { pipelineId: number; pipelineCode: string; pipelineName: string }[]).map((p) => ({ value: p.pipelineId, label: `${p.pipelineCode} — ${p.pipelineName}` })), [pipelines]);
@@ -988,7 +1037,8 @@ export function TradeBlotter() {
   const powerLoadOpts = useMemo(() => (powerLoadTypeRows  as { typeCode: string; typeName: string }[]).map((r) => ({ value: r.typeCode, label: r.typeName })), [powerLoadTypeRows]);
 
   const deliveryFieldProps = {
-    locationOpts, vesselOpts, uomOpts, currencyOpts, incoterms, products, markets,
+    locationOpts: locationOptionsFor(orderCommodity), vesselOpts, uomOpts: uomOptionsFor(orderCommodity), currencyOpts, incoterms,
+    productOpts: productOptionsFor(orderCommodity), marketOpts: marketOptionsFor(orderCommodity),
     pricingRules, periods, crudeGradeOpts, metalShapeOpts, gasDayTypeOpts,
     nominationOpts, lngPriceOpts, powerLoadOpts, pipelineOpts,
     balmoProducts: balmoProducts as BalmoProduct[],
@@ -1835,7 +1885,7 @@ export function TradeBlotter() {
             <Col span={12}>
               <Form.Item name="productId" label="Product">
                 <Select
-                  options={(products as { productId: number; productCode: string; productName: string }[]).map((p) => ({ value: p.productId, label: `${p.productCode} — ${p.productName}` }))}
+                  options={productOptionsFor(selectedTrade?.commodityType ?? 'OIL')}
                   placeholder="Select product" showSearch allowClear
                 />
               </Form.Item>
@@ -1846,7 +1896,7 @@ export function TradeBlotter() {
           </Form.Item>
           <Row gutter={16}>
             <Col span={7}><Form.Item name="quantity" label="Quantity" rules={[{ required: true }]}><InputNumber placeholder="500000" style={{ width: '100%' }} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} parser={(v) => v?.replace(/,/g, '') as unknown as number} /></Form.Item></Col>
-            <Col span={5}><Form.Item name="uomCode" label="UoM" rules={[{ required: true }]}><Select options={uomOpts} showSearch /></Form.Item></Col>
+            <Col span={5}><Form.Item name="uomCode" label="UoM" rules={[{ required: true }]}><Select options={uomOptionsFor(selectedTrade?.commodityType ?? 'OIL')} showSearch /></Form.Item></Col>
             <Col span={7}><Form.Item name="unitPrice" label="Unit Price"><InputNumber placeholder="82.45" precision={4} style={{ width: '100%' }} /></Form.Item></Col>
             <Col span={5}><Form.Item name="currencyCode" label="CCY" rules={[{ required: true }]}><Select options={currencyOpts} showSearch /></Form.Item></Col>
           </Row>

@@ -18,6 +18,7 @@ import {
 } from './hooks';
 import { MARKET_TYPES, SETTLEMENT_TYPES_MKT, type Market, type MarketInput, type MarketProduct, type MarketType, type SettlementTypeMkt } from './types';
 import { COMMODITY_TYPES } from '@features/organization/desks/types';
+import { useProducts } from '@features/markets/products/hooks';
 import { useFormDraft } from '@components/smart/formDraft';
 
 const MKT_TYPE_COLOR: Record<MarketType, string> = {
@@ -148,6 +149,9 @@ function MarketProductDetail({ mp, onClose }: { mp: MarketProduct; onClose: () =
 function MarketProductsDrawer({ market, onClose }: { market: Market; onClose: () => void }) {
   const { data: mps, isLoading } = useMarketProducts(market.marketId);
   const save = useSaveMarketProduct(market.marketId);
+  const { data: products = [] } = useProducts();
+  const productOpts = (products as { productId: number; productCode: string; productName: string }[])
+    .map((p) => ({ value: p.productId, label: `${p.productCode} — ${p.productName}` }));
   const [addOpen, setAddOpen] = useState(false);
   const [selectedMp, setSelectedMp] = useState<MarketProduct | null>(null);
   const [form] = Form.useForm();
@@ -197,8 +201,9 @@ function MarketProductsDrawer({ market, onClose }: { market: Market; onClose: ()
           <div style={{ marginTop: 16, padding: 16, border: '1px solid #d9d9d9', borderRadius: 6 }}>
             <Form form={form} layout="vertical">
               <Space style={{ width: '100%', gap: 12 }}>
-                <Form.Item name="productId" label={hint('Product ID', 'Product ID from the Products master data table. The product must exist and be active before it can be listed on this market.', '1')} rules={[{ required: true }]} style={{ flex: 1 }}>
-                  <InputNumber style={{ width: '100%' }} />
+                <Form.Item name="productId" label={hint('Product', 'The product being listed on this market. Market-specific attributes below (ticker, lot size) override the product defaults.')} rules={[{ required: true }]} style={{ flex: 1 }}>
+                  <Select options={productOpts} placeholder="Select product" showSearch allowClear
+                    filterOption={(i, o) => (o?.label ?? '').toLowerCase().includes(i.toLowerCase())} />
                 </Form.Item>
                 <Form.Item name="ticker" label={hint('Exchange Ticker', 'Exchange-specific contract code used in order routing and FIX messaging. ICE Brent: B, NYMEX WTI: CL, LME Copper: CA.', 'B, CL, CA')} style={{ flex: 1 }}>
                   <Input placeholder="CL" style={{ fontFamily: 'monospace' }} />

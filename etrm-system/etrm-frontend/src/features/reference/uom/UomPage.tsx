@@ -10,8 +10,10 @@ import { useUom, useSaveUom, useDeactivateUom } from './hooks';
 import { useTableRows } from '@features/tier2/hooks';
 import type { Uom, UomInput } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { COMMODITY_TYPES_TRADE } from '@features/trade/types';
 
 const TYPE_COLOR: Record<string, string> = { VOLUME: 'blue', WEIGHT: 'orange', ENERGY: 'volcano', POWER: 'gold', QUANTITY: 'cyan', DISTANCE: 'green' };
+const commodityOpts = COMMODITY_TYPES_TRADE.map((c) => ({ value: c, label: c }));
 
 export function UomPage() {
   const { data, isLoading, refetch } = useUom();
@@ -26,10 +28,11 @@ export function UomPage() {
   useFormDraft('ref-uom', { form, open, setOpen, editing, setEditing });
 
   function openNew() { setEditing(null); form.resetFields(); form.setFieldValue('isActive', true); setOpen(true); }
-  function openEdit(r: Uom) { setEditing(r); form.setFieldsValue({ ...r }); setOpen(true); }
+  function openEdit(r: Uom) { setEditing(r); form.setFieldsValue({ ...r, commodityTypes: r.commodityTypes ?? undefined }); setOpen(true); }
   async function submit(closeAfter = true) {
     const v = await form.validateFields();
-    const saved = await save.mutateAsync({ id: editing?.uomId ?? null, input: v });
+    const input = { ...v, commodityTypes: v.commodityTypes?.length ? v.commodityTypes : null };
+    const saved = await save.mutateAsync({ id: editing?.uomId ?? null, input });
     if (closeAfter) setOpen(false); else setEditing(saved);
   }
 
@@ -39,6 +42,10 @@ export function UomPage() {
     { field: 'uomType', headerName: 'Type', width: 100, cellRenderer: (p: { value: string }) => <Tag color={TYPE_COLOR[p.value] ?? 'default'}>{p.value}</Tag> },
     { field: 'baseUomCode', headerName: 'Base Unit', width: 100, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },
     { field: 'conversionFactor', headerName: 'Conversion Factor', width: 150, type: 'numericColumn', valueFormatter: (p) => p.value != null ? Number(p.value).toFixed(6) : '—' },
+    { field: 'commodityTypes', headerName: 'Allowed Commodities', flex: 1.2, minWidth: 180,
+      cellRenderer: (p: { value: Uom['commodityTypes'] }) => p.value?.length
+        ? <Space size={4} wrap>{p.value.map((c) => <Tag key={c} color="purple">{c}</Tag>)}</Space>
+        : <Tag color="default">All</Tag> },
     { field: 'commodityHint', headerName: 'Used For', flex: 1.2, minWidth: 180, valueFormatter: (p) => p.value ?? '—' },
     { field: 'isActive', headerName: 'Status', width: 90, cellRenderer: (p: { value: boolean }) => <ActiveTag active={p.value} /> },
     { headerName: '', width: 80, sortable: false, filter: false, pinned: 'right',
@@ -75,6 +82,9 @@ export function UomPage() {
           </Form.Item>
           <Form.Item name="conversionFactor" label={hint('Conversion Factor', 'Multiply this unit × factor to get base unit. 1 MT crude ≈ 7.33 BBL (API°-dependent). 1 MMBTU = 0.29307 MWH.')}>
             <InputNumber precision={6} style={{ width: '100%' }} placeholder="1.000000" />
+          </Form.Item>
+          <Form.Item name="commodityTypes" label={hint('Allowed Commodities', 'Which commodities can use this unit for trade leg/item quantities. Leave empty to allow it for every commodity (e.g. MT).')}>
+            <Select mode="multiple" options={commodityOpts} allowClear placeholder="All commodities (leave empty)" />
           </Form.Item>
           <Form.Item name="commodityHint" label="Used For (hint)">
             <Input placeholder="Crude oil, refined products (Americas)" />

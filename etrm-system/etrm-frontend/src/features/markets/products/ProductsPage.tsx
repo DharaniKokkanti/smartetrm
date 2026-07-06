@@ -22,9 +22,11 @@ import {
   useProductBlendComponents, useAddBlendComponent, useRemoveBlendComponent,
   useSpecParameters, useAddSpecValue, useUpdateSpecValue, useDeleteSpecValue,
   useProductReportingGroups, useAssignReportingGroup, useRemoveReportingGroup,
+  useLinkMarketToProduct,
 } from './hooks';
 import { useUomConversions } from '@features/reference/uom-conversions/hooks';
 import { usePriceIndices } from '@features/markets/price-indices/hooks';
+import { useMarkets } from '@features/markets/markets/hooks';
 import {
   SETTLEMENT_TYPES,
   type Product, type ProductInput, type SettlementType,
@@ -163,6 +165,20 @@ function PriceIndicesTab({ productId }: { productId: number }) {
 
 function MarketsTab({ productId }: { productId: number }) {
   const { data = [], isLoading } = useProductMarkets(productId);
+  const { data: markets = [] } = useMarkets();
+  const marketOpts = (markets as { marketId: number; marketCode: string; marketName: string }[])
+    .map((m) => ({ value: m.marketId, label: `${m.marketCode} — ${m.marketName}` }));
+  const link = useLinkMarketToProduct(productId);
+  const [addOpen, setAddOpen] = useState(false);
+  const [form] = Form.useForm();
+
+  async function submit(closeAfter = true) {
+    const v = await form.validateFields();
+    const { marketId, ...input } = v;
+    await link.mutateAsync({ marketId, input });
+    if (closeAfter) setAddOpen(false);
+    form.resetFields();
+  }
 
   const cols: ColumnsType<ProductMarketLink> = [
     { title: 'Market Code', dataIndex: 'marketCode', width: 160, render: (v: string) => <code>{v}</code> },
@@ -189,7 +205,8 @@ function MarketsTab({ productId }: { productId: number }) {
     <div>
       <Typography.Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 12 }}>
         Markets and exchanges where this product is listed or traded. Market-specific attributes
-        (ticker, lot size) override product defaults. Manage from Markets → Market Products.
+        (ticker, lot size) override product defaults. Linking here or from Markets → Market Products
+        updates the same record either way.
       </Typography.Text>
       <Table
         size="small"
@@ -199,7 +216,44 @@ function MarketsTab({ productId }: { productId: number }) {
         rowKey="marketProductId"
         pagination={false}
         locale={{ emptyText: 'Not listed on any market.' }}
+        footer={() => (
+          <Button size="small" icon={<PlusOutlined />} onClick={() => setAddOpen(true)}>Link Market</Button>
+        )}
       />
+      {addOpen && (
+        <div style={{ marginTop: 12, padding: 16, border: '1px solid #d9d9d9', borderRadius: 6 }}>
+          <Form form={form} layout="vertical">
+            <Space style={{ width: '100%', gap: 12 }}>
+              <Form.Item name="marketId" label={hint('Market', 'The market or exchange this product is listed on.')} rules={[{ required: true }]} style={{ flex: 1 }}>
+                <Select options={marketOpts} placeholder="Select market" showSearch allowClear
+                  filterOption={(i, o) => (o?.label ?? '').toLowerCase().includes(i.toLowerCase())} />
+              </Form.Item>
+              <Form.Item name="ticker" label={hint('Exchange Ticker', 'Exchange-specific contract code used in order routing and FIX messaging. ICE Brent: B, NYMEX WTI: CL, LME Copper: CA.', 'B, CL, CA')} style={{ flex: 1 }}>
+                <Input placeholder="CL" style={{ fontFamily: 'monospace' }} />
+              </Form.Item>
+              <Form.Item name="lotSize" label="Lot Size" style={{ flex: 1 }}>
+                <InputNumber style={{ width: '100%' }} />
+              </Form.Item>
+            </Space>
+            <Space style={{ width: '100%', gap: 12 }}>
+              <Form.Item name="lastTradingDayOffset" label={hint('Last Trading Day Offset', 'Days before the end of the delivery month when trading ceases.')} style={{ flex: 1 }}>
+                <InputNumber style={{ width: '100%' }} placeholder="-3" />
+              </Form.Item>
+              <Form.Item name="firstNoticeDayOffset" label={hint('First Notice Day Offset', 'Days before contract expiry when physical delivery notices can be issued.')} style={{ flex: 1 }}>
+                <InputNumber style={{ width: '100%' }} />
+              </Form.Item>
+              <Form.Item name="pricePrecision" label="Price Precision" style={{ flex: 1 }}>
+                <InputNumber style={{ width: '100%' }} placeholder="2" min={0} max={8} />
+              </Form.Item>
+            </Space>
+            <Space>
+              <Button onClick={() => { void submit(false); }} loading={link.isPending} size="small">Add & Next</Button>
+              <Button type="primary" onClick={() => { void submit(true); }} loading={link.isPending} size="small">Add & Close</Button>
+              <Button size="small" onClick={() => { setAddOpen(false); form.resetFields(); }}>Cancel</Button>
+            </Space>
+          </Form>
+        </div>
+      )}
     </div>
   );
 }
