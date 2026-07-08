@@ -5,8 +5,9 @@ function col(
   name: string, label: string, kind: ColumnDataKind,
   nullable: boolean, isPrimaryKey: boolean, maxLength: number | null,
   enumValues: string[] | null = null, foreignKeyTable: string | null = null,
+  foreignKeyCategory: string | null = null,
 ) {
-  return { name, label, kind, isPrimaryKey, nullable, maxLength, enumValues, foreignKeyTable };
+  return { name, label, kind, isPrimaryKey, nullable, maxLength, enumValues, foreignKeyTable, foreignKeyCategory };
 }
 
 // V55: commodity_type moved from a hardcoded VARCHAR+CHECK to an INT FK on
@@ -1137,7 +1138,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('operatorId',      'ID',            'number',      false, true,  null),
       col('operatorCode',    'Code',          'string',      false, false, 20),
       col('operatorName',    'Name',          'string',      false, false, 200),
-      col('operatorType',    'Operator Type', 'enum',        false, false, null, ['SHIPPING_LINE', 'SHIP_MANAGER', 'HAULIER', 'RAIL_OPERATOR', 'PIPELINE_TSO', 'TERMINAL_OP', 'MULTI_MODAL', 'OTHER']),
+      col('operatorType',    'Operator Type', 'foreign_key', false, false, null, null, 'lookup_value', 'operator_type'),
       col('motTypeId',       'MOT Type',      'foreign_key', true,  false, null, null, 'mot_type'),
       col('countryCode',     'Country',       'string',      true,  false, 2),
       col('counterpartyId',  'Counterparty',  'foreign_key', true,  false, null, null, 'counterparty'),
@@ -1410,6 +1411,15 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { lookupId: 1, category: 'REPORTING_CLASSIFICATION_TYPE', code: 'POSITION',   displayName: 'Position Reporting', sortOrder: 1, isActive: true },
     { lookupId: 2, category: 'REPORTING_CLASSIFICATION_TYPE', code: 'VAR',        displayName: 'VaR / Risk',          sortOrder: 2, isActive: true },
     { lookupId: 3, category: 'REPORTING_CLASSIFICATION_TYPE', code: 'SETTLEMENT', displayName: 'Settlement / GL',     sortOrder: 3, isActive: true },
+    // V77 — transport_operator.operator_type, converted from CHECK to lookup_value FK
+    { lookupId: 4,  category: 'operator_type', code: 'SHIPPING_LINE', displayName: 'Shipping Line',      sortOrder: 1, isActive: true },
+    { lookupId: 5,  category: 'operator_type', code: 'SHIP_MANAGER',  displayName: 'Ship Manager',       sortOrder: 2, isActive: true },
+    { lookupId: 6,  category: 'operator_type', code: 'HAULIER',       displayName: 'Haulier',            sortOrder: 3, isActive: true },
+    { lookupId: 7,  category: 'operator_type', code: 'RAIL_OPERATOR', displayName: 'Rail Operator',      sortOrder: 4, isActive: true },
+    { lookupId: 8,  category: 'operator_type', code: 'PIPELINE_TSO',  displayName: 'Pipeline TSO',       sortOrder: 5, isActive: true },
+    { lookupId: 9,  category: 'operator_type', code: 'TERMINAL_OP',   displayName: 'Terminal Operator',  sortOrder: 6, isActive: true },
+    { lookupId: 10, category: 'operator_type', code: 'MULTI_MODAL',   displayName: 'Multi-Modal',        sortOrder: 7, isActive: true },
+    { lookupId: 11, category: 'operator_type', code: 'OTHER',         displayName: 'Other',              sortOrder: 8, isActive: true },
   ],
   credit_rating: [
     { creditRatingId: 1, agency: 'S&P', rating: 'AAA', numericScore: 1, riskCategory: 'INVESTMENT_GRADE', isActive: true },
@@ -1622,9 +1632,9 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { reportTypeId: 4, reportCode: 'CFTC_SWAP',     reportName: 'CFTC Swap Data Report',              regulation: 'CFTC',    jurisdiction: 'US', submissionTarget: 'DTCC SDR',          reportingDeadline: 'T+1 business day', reportFormat: 'XML', isMandatory: true, isActive: true, description: 'US CFTC swap data reporting to a registered swap data repository.' },
   ],
   transport_operator: [
-    { operatorId: 1, operatorCode: 'MAERSK-TANKERS', operatorName: 'Maersk Tankers',        operatorType: 'SHIPPING_LINE',  motTypeId: 1, countryCode: 'DK', counterpartyId: null, isActive: true, notes: 'Product/chemical tanker owner-operator.' },
-    { operatorId: 2, operatorCode: 'NORTHWARD-RAIL',  operatorName: 'Northward Rail Freight', operatorType: 'RAIL_OPERATOR', motTypeId: 4, countryCode: 'US', counterpartyId: null, isActive: true, notes: 'Unit-train bulk rail operator for grain and refined products.' },
-    { operatorId: 3, operatorCode: 'RHINE-BARGE',     operatorName: 'Rhine Barge Logistics',  operatorType: 'HAULIER',       motTypeId: 5, countryCode: 'NL', counterpartyId: null, isActive: true, notes: 'Inland waterway barge operator, ARA region.' },
+    { operatorId: 1, operatorCode: 'MAERSK-TANKERS', operatorName: 'Maersk Tankers',        operatorType: 4, motTypeId: 1, countryCode: 'DK', counterpartyId: null, isActive: true, notes: 'Product/chemical tanker owner-operator.' },
+    { operatorId: 2, operatorCode: 'NORTHWARD-RAIL',  operatorName: 'Northward Rail Freight', operatorType: 7, motTypeId: 4, countryCode: 'US', counterpartyId: null, isActive: true, notes: 'Unit-train bulk rail operator for grain and refined products.' },
+    { operatorId: 3, operatorCode: 'RHINE-BARGE',     operatorName: 'Rhine Barge Logistics',  operatorType: 6, motTypeId: 5, countryCode: 'NL', counterpartyId: null, isActive: true, notes: 'Inland waterway barge operator, ARA region.' },
   ],
   collateral_type: [
     { collateralTypeId: 1, typeCode: 'CASH_USD', typeName: 'Cash USD',                    assetClass: 'CASH',             standardHaircutPct: 0.0,  isActive: true, description: 'USD cash collateral.' },

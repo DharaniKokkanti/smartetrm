@@ -21,6 +21,13 @@ export interface CalendarHoliday {
   calendarId: number;
   holidayDate: string;
   holidayName: string;
-  isPartialDay: boolean;
-  endTime: string | null;
+  isSettlementHoliday: boolean;
+  isTradingHoliday: boolean;
+}
+
+export type HolidayInput = Omit<CalendarHoliday, 'holidayId'>;
+
+export interface HolidayUploadRow extends HolidayInput {
+  _rowNumber: number;
+  _errors: string[];
 }

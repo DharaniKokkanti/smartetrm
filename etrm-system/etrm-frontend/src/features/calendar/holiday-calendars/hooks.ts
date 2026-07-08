@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { App as AntApp } from 'antd';
 import { holidayCalendarsApi } from './api';
-import type { HolidayCalendarInput } from './types';
+import type { HolidayCalendarInput, HolidayInput } from './types';
 import type { ProblemDetail } from '@services/api';
 
 const KEY = ['holiday-calendars'] as const;
@@ -37,5 +37,44 @@ export function useDeactivateHolidayCalendar() {
     mutationFn: holidayCalendarsApi.deactivate,
     onSuccess: () => { qc.invalidateQueries({ queryKey: KEY }); message.success('Calendar deactivated.'); },
     onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Deactivate failed.'),
+  });
+}
+
+export function useSaveHoliday(calendarId: number) {
+  const qc = useQueryClient();
+  const { message } = AntApp.useApp();
+  return useMutation({
+    mutationFn: (input: HolidayInput) => holidayCalendarsApi.createHoliday(calendarId, input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [...KEY, calendarId, 'holidays'] });
+      qc.invalidateQueries({ queryKey: KEY });
+      message.success('Holiday added.');
+    },
+    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Save failed.'),
+  });
+}
+
+export function useDeleteHoliday(calendarId: number) {
+  const qc = useQueryClient();
+  const { message } = AntApp.useApp();
+  return useMutation({
+    mutationFn: (holidayId: number) => holidayCalendarsApi.deleteHoliday(calendarId, holidayId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [...KEY, calendarId, 'holidays'] });
+      qc.invalidateQueries({ queryKey: KEY });
+      message.success('Holiday removed.');
+    },
+    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Delete failed.'),
+  });
+}
+
+export function useBulkCreateHolidays(calendarId: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (inputs: HolidayInput[]) => holidayCalendarsApi.bulkCreateHolidays(calendarId, inputs),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [...KEY, calendarId, 'holidays'] });
+      qc.invalidateQueries({ queryKey: KEY });
+    },
   });
 }

@@ -27,6 +27,7 @@ import { referenceDataApi } from './api';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import { hint } from '@components/smart/FieldHint';
+import { useCountries } from '@features/reference/countries/hooks';
 
 /** Column-name fragments that count as a "code/short-name" field — always
  *  stored uppercase, even if the user types lowercase. Codes with a stricter
@@ -56,6 +57,15 @@ function fkOptionLabel(row: ReferenceDataRow, fallbackId: number): string {
  *  here to read a FK target row's id without a second metadata fetch. */
 function primaryKeyFieldFor(tableName: string): string {
   return tableName.replace(/_([a-z0-9])/g, (_, c: string) => c.toUpperCase()) + 'Id';
+}
+
+/** `lookup_value` holds every small picklist in the schema in one shared row
+ *  set, so a foreign_key column pointing at it must be scoped by category —
+ *  keying fkOptions by table alone would mix every category's rows into one
+ *  dropdown. Every other FK target has its own dedicated table, so this key
+ *  collapses to just the table name for them. */
+function fkKeyFor(col: Pick<ColumnMetadata, 'foreignKeyTable' | 'foreignKeyCategory'>): string {
+  return `${col.foreignKeyTable ?? ''}${col.foreignKeyCategory ? `:${col.foreignKeyCategory}` : ''}`;
 }
 
 interface Props {
@@ -120,7 +130,11 @@ function columnHint(col: ColumnMetadata): { text: string; format?: string } {
   const optionalSuffix = col.nullable ? ' Optional — can be left blank.' : '';
   switch (col.kind) {
     case 'foreign_key':
-      return { text: `References a row in the ${col.foreignKeyTable ?? 'linked'} table — pick one from the list below instead of typing an id.${optionalSuffix}` };
+      return {
+        text: col.foreignKeyCategory
+          ? `Fixed list of values ('${col.foreignKeyCategory}') managed in Lookup Values — pick one from the list below instead of typing an id.${optionalSuffix}`
+          : `References a row in the ${col.foreignKeyTable ?? 'linked'} table — pick one from the list below instead of typing an id.${optionalSuffix}`,
+      };
     case 'enum':
       return { text: `Fixed list of values enforced by the database — free text isn't accepted.${optionalSuffix}`, format: (col.enumValues ?? []).join(' / ') };
     case 'boolean':
@@ -152,8 +166,31 @@ function columnHint(col: ColumnMetadata): { text: string; format?: string } {
  *  kind — this is the mechanism that lets one component cover every Tier 2
  *  table instead of hand-writing a form per table. `fkOptions` carries the
  *  already-fetched target-table rows for any `foreign_key` column, keyed by
- *  the column's `foreignKeyTable`. */
-function fieldControl(col: ColumnMetadata, fkOptions: Record<string, { value: number; label: string }[]>) {
+ *  the column's `foreignKeyTable`. `countryOptions` is a special case: every
+ *  ISO_3166_COLS column (countryCode/jurisdictionCode/incorporationCountry,
+ *  across every Static Data table) resolves against the real `country`
+ *  reference entity by column NAME, not per-table config — `country` isn't
+ *  itself a generic reference-data table (its PK is the ISO string code, not
+ *  a numeric id, so it can't go through the same `/reference-data/:table`
+ *  mechanism as `foreign_key` columns without a second, duplicate mock store
+ *  — the exact legalEntityStore-vs-legalEntitiesRef shadow-store bug already
+ *  hit once in this codebase). Fetched once from the real `/countries` API
+ *  and reused for every column across every table. */
+function fieldControl(
+  col: ColumnMetadata,
+  fkOptions: Record<string, { value: number; label: string }[]>,
+  countryOptions: { value: string; label: string }[],
+) {
+  if (ISO_3166_COLS.has(col.name)) {
+    return (
+      <Select
+        showSearch
+        optionFilterProp="label"
+        options={countryOptions}
+        placeholder={`Select ${col.label.toLowerCase()}…`}
+      />
+    );
+  }
   switch (col.kind) {
     case 'boolean':
       return <Switch />;
@@ -169,7 +206,7 @@ function fieldControl(col: ColumnMetadata, fkOptions: Record<string, { value: nu
         )
         : <InputNumber style={{ width: '100%' }} />;
     case 'foreign_key': {
-      const options = col.foreignKeyTable ? fkOptions[col.foreignKeyTable] ?? [] : [];
+      const options = col.foreignKeyTable ? fkOptions[fkKeyFor(col)] ?? [] : [];
       return (
         <Select
           showSearch
@@ -182,7 +219,14 @@ function fieldControl(col: ColumnMetadata, fkOptions: Record<string, { value: nu
     case 'date':
       return <AppDatePicker />;
     case 'enum':
-      return <Select options={(col.enumValues ?? []).map((v) => ({ label: v, value: v }))} />;
+      return (
+        <Select
+          showSearch
+          optionFilterProp="label"
+          options={(col.enumValues ?? []).map((v) => ({ label: v, value: v }))}
+          placeholder={`Select ${col.label.toLowerCase()}…`}
+        />
+      );
     default: {
       const isCodeCol = ISO_4217_COLS.has(col.name) || ISO_3166_COLS.has(col.name) || isCodeColumn(col.name);
       return (
@@ -281,15 +325,40 @@ export function ReferenceDataTable({ table }: Props) {
       staleTime: 10 * 60_000,
     })),
   });
+  // FK options are keyed by table+category (fkKeyFor), not just table — a
+  // lookup_value-backed column must only offer rows from its own category,
+  // even though every such column shares the same underlying fetch above.
+  const fkTargets = useMemo(() => {
+    const map = new Map<string, { table: string; category: string | null }>();
+    editableColumns.forEach((c) => {
+      if (c.kind === 'foreign_key' && c.foreignKeyTable) {
+        map.set(fkKeyFor(c), { table: c.foreignKeyTable, category: c.foreignKeyCategory });
+      }
+    });
+    return Array.from(map.entries());
+  }, [editableColumns]);
   const fkOptions = useMemo(() => {
     const map: Record<string, { value: number; label: string }[]> = {};
-    fkTables.forEach((t, i) => {
-      const targetRows = (fkResults[i]?.data ?? []) as ReferenceDataRow[];
-      const pkField = fkMetaResults[i]?.data?.primaryKeyColumn ?? primaryKeyFieldFor(t);
-      map[t] = targetRows.map((r) => ({ value: r[pkField] as number, label: fkOptionLabel(r, r[pkField] as number) }));
+    fkTargets.forEach(([key, { table, category }]) => {
+      const i = fkTables.indexOf(table);
+      let targetRows = (fkResults[i]?.data ?? []) as ReferenceDataRow[];
+      if (category) targetRows = targetRows.filter((r) => r['category'] === category);
+      const pkField = fkMetaResults[i]?.data?.primaryKeyColumn ?? primaryKeyFieldFor(table);
+      map[key] = targetRows.map((r) => ({ value: r[pkField] as number, label: fkOptionLabel(r, r[pkField] as number) }));
     });
     return map;
-  }, [fkTables, fkResults, fkMetaResults]);
+  }, [fkTargets, fkTables, fkResults, fkMetaResults]);
+
+  // ISO_3166_COLS columns (countryCode/jurisdictionCode/incorporationCountry)
+  // resolve against the real country reference entity, fetched once here and
+  // reused by name across every table — see fieldControl's doc comment.
+  const hasCountryColumn = useMemo(() => editableColumns.some((c) => ISO_3166_COLS.has(c.name)), [editableColumns]);
+  const { data: countryRows = [] } = useCountries();
+  const countryOptions = useMemo(
+    () => (hasCountryColumn ? countryRows.map((c) => ({ value: c.countryCode, label: `${c.countryCode} — ${c.countryName}` })) : []),
+    [hasCountryColumn, countryRows],
+  );
+  const countryLabelMap = useMemo(() => new Map(countryOptions.map((o) => [o.value, o.label])), [countryOptions]);
 
   if (loadingMeta) return <Spin />;
   if (!metadata) {
@@ -347,8 +416,11 @@ export function ReferenceDataTable({ table }: Props) {
           return <Tag color={value ? 'success' : 'default'}>{value ? 'Yes' : 'No'}</Tag>;
         if (value === null || value === undefined || value === '') return '—';
         if (col.kind === 'foreign_key' && col.foreignKeyTable) {
-          const opt = fkOptions[col.foreignKeyTable]?.find((o) => o.value === value);
+          const opt = fkOptions[fkKeyFor(col)]?.find((o) => o.value === value);
           return opt ? opt.label : String(value);
+        }
+        if (ISO_3166_COLS.has(col.name)) {
+          return countryLabelMap.get(String(value)) ?? String(value);
         }
         return String(value);
       },
@@ -467,7 +539,7 @@ export function ReferenceDataTable({ table }: Props) {
                   ...yearRules(col),
                 ]}
               >
-                {fieldControl(col, fkOptions)}
+                {fieldControl(col, fkOptions, countryOptions)}
               </Form.Item>
             );
           })}

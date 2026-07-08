@@ -1,45 +1,134 @@
-import { useMemo, useState } from 'react';
-import { Button, Space, Popconfirm, Tag, Drawer, Form, Input, Select, Switch, Table, Badge } from 'antd';
-import { EditOutlined, StopOutlined, CalendarOutlined } from '@ant-design/icons';
+import { useMemo, useRef, useState, type ChangeEvent } from 'react';
+import { Button, Space, Popconfirm, Tag, Drawer, Form, Input, Select, Switch, Table, Modal, Typography, App as AntApp } from 'antd';
+import { EditOutlined, StopOutlined, CalendarOutlined, PlusOutlined, UploadOutlined, DownloadOutlined, DeleteOutlined } from '@ant-design/icons';
 import type { ColDef } from 'ag-grid-community';
 import dayjs from 'dayjs';
 import { PageHeader } from '@components/layout/PageHeader';
 import { SmartGrid } from '@components/smart/SmartGrid';
 import { ActiveTag } from '@components/smart/StatusTag';
+import { AppDatePicker } from '@components/smart/AppDatePicker';
 import { hint } from '@components/smart/FieldHint';
-import { useHolidayCalendars, useSaveHolidayCalendar, useDeactivateHolidayCalendar, useCalendarHolidays } from './hooks';
-import { CALENDAR_TYPES, type HolidayCalendar, type HolidayCalendarInput, type CalendarType } from './types';
+import {
+  useHolidayCalendars, useSaveHolidayCalendar, useDeactivateHolidayCalendar,
+  useCalendarHolidays, useSaveHoliday, useDeleteHoliday,
+} from './hooks';
+import { CALENDAR_TYPES, type HolidayCalendar, type HolidayCalendarInput, type CalendarType, type CalendarHoliday, type HolidayInput, type HolidayUploadRow } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { downloadBlob, generateHolidayTemplate } from './excelTemplateHolidays';
+import { parseHolidayUpload } from './excelUploadHolidays';
+import { HolidayUploadReviewModal } from './HolidayUploadReviewModal';
 
 const TYPE_COLOR: Record<CalendarType, string> = {
   BANKING: 'blue', COMMODITY: 'gold', EXCHANGE: 'purple', CUSTOM: 'default',
 };
 
-function HolidayDrawer({ calendarId, onClose }: { calendarId: number; onClose: () => void }) {
-  const { data, isLoading } = useCalendarHolidays(calendarId);
-  const year = new Date().getFullYear();
-  const currentYearHolidays = data?.filter((h) => h.holidayDate.startsWith(String(year))) ?? [];
-  const nextYearHolidays = data?.filter((h) => h.holidayDate.startsWith(String(year + 1))) ?? [];
+function AddHolidayModal({ calendarId, open, onClose }: { calendarId: number; open: boolean; onClose: () => void }) {
+  const save = useSaveHoliday(calendarId);
+  const [form] = Form.useForm<{ holidayDate: dayjs.Dayjs; holidayName: string; isSettlementHoliday: boolean; isTradingHoliday: boolean }>();
+
+  async function handleOk() {
+    const v = await form.validateFields();
+    const input: HolidayInput = {
+      calendarId,
+      holidayDate: v.holidayDate.format('YYYY-MM-DD'),
+      holidayName: v.holidayName,
+      isSettlementHoliday: v.isSettlementHoliday,
+      isTradingHoliday: v.isTradingHoliday,
+    };
+    await save.mutateAsync(input);
+    form.resetFields();
+    onClose();
+  }
 
   return (
-    <Drawer mask={false} forceRender title="Holiday Dates" open onClose={onClose} width={440}>
-      <div style={{ marginBottom: 12 }}><Badge count={currentYearHolidays.length} showZero><Tag>{year}</Tag></Badge></div>
-      <Table dataSource={currentYearHolidays} rowKey="holidayId" pagination={false} size="small" loading={isLoading}
+    <Modal mask={false} title="Add Holiday" open={open} onCancel={onClose} onOk={() => { void handleOk(); }} okText="Add" confirmLoading={save.isPending} destroyOnHidden>
+      <Form form={form} layout="vertical" initialValues={{ isSettlementHoliday: true, isTradingHoliday: true }}>
+        <Form.Item name="holidayDate" label="Date" rules={[{ required: true }]}>
+          <AppDatePicker style={{ width: '100%' }} />
+        </Form.Item>
+        <Form.Item name="holidayName" label="Holiday Name" rules={[{ required: true }]}>
+          <Input placeholder="New Year's Day" />
+        </Form.Item>
+        <Space size={24}>
+          <Form.Item name="isSettlementHoliday" label="Settlement Holiday" valuePropName="checked">
+            <Switch />
+          </Form.Item>
+          <Form.Item name="isTradingHoliday" label="Trading Holiday" valuePropName="checked">
+            <Switch />
+          </Form.Item>
+        </Space>
+      </Form>
+    </Modal>
+  );
+}
+
+function HolidayDrawer({ calendar, onClose }: { calendar: HolidayCalendar; onClose: () => void }) {
+  const calendarId = calendar.calendarId;
+  const { data, isLoading } = useCalendarHolidays(calendarId);
+  const deleteHoliday = useDeleteHoliday(calendarId);
+  const { message } = AntApp.useApp();
+  const [addOpen, setAddOpen] = useState(false);
+  const [uploadRows, setUploadRows] = useState<HolidayUploadRow[] | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const sorted = useMemo(() => [...(data ?? [])].sort((a, b) => a.holidayDate.localeCompare(b.holidayDate)), [data]);
+
+  async function handleFileSelected(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      const rows = await parseHolidayUpload(file, calendarId, data ?? []);
+      if (rows.length === 0) {
+        message.warning('No data rows found in that file.');
+        return;
+      }
+      setUploadRows(rows);
+    } catch (err) {
+      message.error('Could not read that file — is it a valid .xlsx export of the template?');
+      console.error(err);
+    }
+  }
+
+  async function handleDownloadTemplate() {
+    const blob = await generateHolidayTemplate(calendar.calendarCode);
+    downloadBlob(blob, `${calendar.calendarCode}_holiday_upload_template.xlsx`);
+  }
+
+  return (
+    <Drawer mask={false} forceRender title={`Holiday Dates — ${calendar.calendarCode}`} open onClose={onClose} width={520}
+      extra={
+        <Space>
+          <Button size="small" icon={<DownloadOutlined />} onClick={() => { void handleDownloadTemplate(); }}>Template</Button>
+          <Button size="small" icon={<UploadOutlined />} onClick={() => fileInputRef.current?.click()}>Upload</Button>
+          <Button size="small" type="primary" icon={<PlusOutlined />} onClick={() => setAddOpen(true)}>Add Holiday</Button>
+          <input ref={fileInputRef} type="file" accept=".xlsx" style={{ display: 'none' }} onChange={(e) => { void handleFileSelected(e); }} />
+        </Space>
+      }
+    >
+      <Table<CalendarHoliday> dataSource={sorted} rowKey="holidayId" pagination={false} size="small" loading={isLoading}
         columns={[
-          { title: 'Date', dataIndex: 'holidayDate', render: (v: string) => dayjs(v).format('DD MMM YYYY'), width: 130 },
+          { title: 'Date', dataIndex: 'holidayDate', render: (v: string) => dayjs(v).format('DD MMM YYYY'), width: 120 },
           { title: 'Holiday', dataIndex: 'holidayName' },
-          { title: '', dataIndex: 'isPartialDay', width: 70, render: (v: boolean) => v ? <Tag color="orange">HALF</Tag> : null },
+          { title: 'Settlement', dataIndex: 'isSettlementHoliday', width: 90, render: (v: boolean) => v ? <Tag color="blue">YES</Tag> : null },
+          { title: 'Trading', dataIndex: 'isTradingHoliday', width: 80, render: (v: boolean) => v ? <Tag color="purple">YES</Tag> : null },
+          {
+            title: '', width: 50, render: (_: unknown, r: CalendarHoliday) => (
+              <Popconfirm title="Remove this holiday?" onConfirm={() => deleteHoliday.mutate(r.holidayId)} okText="Remove" okButtonProps={{ danger: true }}>
+                <Button type="text" size="small" danger icon={<DeleteOutlined />} />
+              </Popconfirm>
+            ),
+          },
         ]} />
-      {nextYearHolidays.length > 0 && (
-        <>
-          <div style={{ margin: '16px 0 8px' }}><Badge count={nextYearHolidays.length} showZero><Tag>{year + 1}</Tag></Badge></div>
-          <Table dataSource={nextYearHolidays} rowKey="holidayId" pagination={false} size="small"
-            columns={[
-              { title: 'Date', dataIndex: 'holidayDate', render: (v: string) => dayjs(v).format('DD MMM YYYY'), width: 130 },
-              { title: 'Holiday', dataIndex: 'holidayName' },
-              { title: '', dataIndex: 'isPartialDay', width: 70, render: (v: boolean) => v ? <Tag color="orange">HALF</Tag> : null },
-            ]} />
-        </>
+      {sorted.length === 0 && !isLoading && (
+        <Typography.Text type="secondary" style={{ display: 'block', marginTop: 12 }}>
+          No holidays on this calendar yet — add one manually or upload a spreadsheet using the template above.
+        </Typography.Text>
+      )}
+
+      <AddHolidayModal calendarId={calendarId} open={addOpen} onClose={() => setAddOpen(false)} />
+      {uploadRows && (
+        <HolidayUploadReviewModal open={!!uploadRows} calendarId={calendarId} rows={uploadRows} onClose={() => setUploadRows(null)} />
       )}
     </Drawer>
   );
@@ -51,7 +140,7 @@ export function HolidayCalendarsPage() {
   const deactivate = useDeactivateHolidayCalendar();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<HolidayCalendar | null>(null);
-  const [viewingCalId, setViewingCalId] = useState<number | null>(null);
+  const [viewingCal, setViewingCal] = useState<HolidayCalendar | null>(null);
   const [form] = Form.useForm<HolidayCalendarInput>();
   useFormDraft('calendar-holiday-calendars', { form, open, setOpen, editing, setEditing });
 
@@ -83,7 +172,7 @@ export function HolidayCalendarsPage() {
       headerName: '', width: 115, sortable: false, filter: false, pinned: 'right',
       cellRenderer: (p: { data: HolidayCalendar }) => (
         <Space size={4}>
-          <Button type="text" size="small" icon={<CalendarOutlined />} onClick={() => setViewingCalId(p.data.calendarId)} title="View holidays" />
+          <Button type="text" size="small" icon={<CalendarOutlined />} onClick={() => setViewingCal(p.data)} title="View holidays" />
           <Button type="text" size="small" icon={<EditOutlined />} onClick={() => openEdit(p.data)} />
           {p.data.isActive && (
             <Popconfirm title="Deactivate calendar?" onConfirm={() => deactivate.mutate(p.data.calendarId)} okText="Deactivate" okButtonProps={{ danger: true }}>
@@ -100,7 +189,7 @@ export function HolidayCalendarsPage() {
       <PageHeader title="Holiday Calendars" description="Banking, commodity, and exchange holiday calendars used for payment date and pricing period calculations." moduleGroup="calendar" />
       <SmartGrid columnDefs={colDefs} rowData={data} loading={isLoading} onAdd={openNew} addLabel="New Calendar" onRefresh={() => { void refetch(); }} getRowId={(p) => String(p.data.calendarId)} />
 
-      {viewingCalId != null && <HolidayDrawer calendarId={viewingCalId} onClose={() => setViewingCalId(null)} />}
+      {viewingCal != null && <HolidayDrawer calendar={viewingCal} onClose={() => setViewingCal(null)} />}
 
       <Drawer mask={false} forceRender title={editing ? `Edit Calendar — ${editing.calendarCode}` : 'New Calendar'} open={open} onClose={() => setOpen(false)} width={480}
         footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>

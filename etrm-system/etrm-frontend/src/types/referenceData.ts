@@ -37,6 +37,12 @@ export interface ColumnMetadata {
    *  column points to, so the form can render a searchable lookup instead
    *  of a raw integer input. */
   foreignKeyTable: string | null;
+  /** Populated when foreignKeyTable === 'lookup_value' — scopes the option
+   *  list to one lookup_value.category, since that table holds every small
+   *  picklist in the schema in one shared row set (e.g. 'operator_type').
+   *  Not needed for any other foreign_key target, which each have their own
+   *  dedicated table. */
+  foreignKeyCategory: string | null;
 }
 
 export interface TableMetadata {

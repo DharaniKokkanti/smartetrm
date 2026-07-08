@@ -292,16 +292,16 @@ const holidayCalendarsStore: unknown[] = [
 
 const holidayDates: Record<number, unknown[]> = {
   1: [
-    { holidayId: 1, calendarId: 1, holidayDate: '2026-01-01', holidayName: "New Year's Day", isPartialDay: false, endTime: null },
-    { holidayId: 2, calendarId: 1, holidayDate: '2026-04-03', holidayName: 'Good Friday', isPartialDay: false, endTime: null },
-    { holidayId: 3, calendarId: 1, holidayDate: '2026-04-06', holidayName: 'Easter Monday', isPartialDay: false, endTime: null },
-    { holidayId: 4, calendarId: 1, holidayDate: '2026-05-04', holidayName: 'Early May Bank Holiday', isPartialDay: false, endTime: null },
-    { holidayId: 5, calendarId: 1, holidayDate: '2026-05-25', holidayName: 'Spring Bank Holiday', isPartialDay: false, endTime: null },
-    { holidayId: 6, calendarId: 1, holidayDate: '2026-08-31', holidayName: 'Summer Bank Holiday', isPartialDay: false, endTime: null },
-    { holidayId: 7, calendarId: 1, holidayDate: '2026-12-24', holidayName: 'Christmas Eve (Early Close)', isPartialDay: true, endTime: '12:00' },
-    { holidayId: 8, calendarId: 1, holidayDate: '2026-12-25', holidayName: 'Christmas Day', isPartialDay: false, endTime: null },
-    { holidayId: 9, calendarId: 1, holidayDate: '2026-12-28', holidayName: 'Boxing Day (observed)', isPartialDay: false, endTime: null },
-    { holidayId: 10, calendarId: 1, holidayDate: '2026-12-31', holidayName: "New Year's Eve (Early Close)", isPartialDay: true, endTime: '12:00' },
+    { holidayId: 1, calendarId: 1, holidayDate: '2026-01-01', holidayName: "New Year's Day", isSettlementHoliday: true, isTradingHoliday: true },
+    { holidayId: 2, calendarId: 1, holidayDate: '2026-04-03', holidayName: 'Good Friday', isSettlementHoliday: true, isTradingHoliday: true },
+    { holidayId: 3, calendarId: 1, holidayDate: '2026-04-06', holidayName: 'Easter Monday', isSettlementHoliday: true, isTradingHoliday: true },
+    { holidayId: 4, calendarId: 1, holidayDate: '2026-05-04', holidayName: 'Early May Bank Holiday', isSettlementHoliday: true, isTradingHoliday: true },
+    { holidayId: 5, calendarId: 1, holidayDate: '2026-05-25', holidayName: 'Spring Bank Holiday', isSettlementHoliday: true, isTradingHoliday: true },
+    { holidayId: 6, calendarId: 1, holidayDate: '2026-08-31', holidayName: 'Summer Bank Holiday', isSettlementHoliday: true, isTradingHoliday: true },
+    { holidayId: 7, calendarId: 1, holidayDate: '2026-12-24', holidayName: 'Christmas Eve (early close — settlement only)', isSettlementHoliday: true, isTradingHoliday: false },
+    { holidayId: 8, calendarId: 1, holidayDate: '2026-12-25', holidayName: 'Christmas Day', isSettlementHoliday: true, isTradingHoliday: true },
+    { holidayId: 9, calendarId: 1, holidayDate: '2026-12-28', holidayName: 'Boxing Day (observed)', isSettlementHoliday: true, isTradingHoliday: true },
+    { holidayId: 10, calendarId: 1, holidayDate: '2026-12-31', holidayName: "New Year's Eve (early close — settlement only)", isSettlementHoliday: true, isTradingHoliday: false },
   ],
 };
 
@@ -574,10 +574,22 @@ const vesselCertificatesStore: unknown[] = [
 // ─── LOGISTICS — RAILCARS ─────────────────────────────────────────────────────
 function computeRailcar(input: Record<string, unknown>): Record<string, unknown> {
   const op = (referenceRowSeed.transport_operator as unknown as Array<Record<string, unknown>>).find((o) => o['operatorId'] === input['operatorId']);
-  return { ...input, operatorName: op?.['operatorName'] ?? null };
+  const country = (countriesStore as Array<Record<string, unknown>>).find((c) => c['countryCode'] === input['countryCode']);
+  return { ...input, operatorName: op?.['operatorName'] ?? null, countryName: country?.['countryName'] ?? null };
 }
 const railcarsStore: unknown[] = [
-  { railcarId: 1, carNumber: 'TILX 483920', carType: 'TANK_CAR', operatorId: 2, operatorName: 'Northward Rail Freight', capacityLitres: 113000, capacityMt: 90, dotClass: 'DOT-117', aarClass: 'T112', approvedCommodities: 'ETHANOL,HEATING-OIL', lastTestDate: '2025-03-01', nextTestDate: '2035-03-01', certExpiry: '2035-03-01', homeRailroad: 'BNSF', countryCode: 'US', isActive: true, notes: null, createdAt: '2024-01-01T00:00:00Z' },
+  { railcarId: 1, carNumber: 'TILX 483920', carType: 'TANK_CAR', operatorId: 2, operatorName: 'Northward Rail Freight', capacityLitres: 113000, capacityMt: 90, dotClass: 'DOT-117', aarClass: 'T112', buildYear: 2018, grossRailLoadLbs: 286000, lastTestDate: '2025-03-01', nextTestDate: '2035-03-01', certExpiry: '2035-03-01', homeRailroad: 'BNSF', countryCode: 'US', countryName: 'United States', isActive: true, notes: null, createdAt: '2024-01-01T00:00:00Z' },
+];
+
+// Product approvals per railcar — dbo.mot_asset_product_approval, asset_type='RAILCAR'
+function computeAssetApproval(input: Record<string, unknown>): Record<string, unknown> {
+  const product = (referenceRowSeed.product as unknown as Array<Record<string, unknown>>).find((p) => p['productId'] === input['productId']);
+  const uom = (uomStore as Array<Record<string, unknown>>).find((u) => u['uomId'] === input['quantityUomId']);
+  return { ...input, productName: product?.['productName'] ?? null, quantityUomCode: uom?.['uomCode'] ?? null };
+}
+const railcarProductApprovalsStore: unknown[] = [
+  { assetApprovalId: 1, assetType: 'RAILCAR', assetId: 1, productId: 14, productName: 'Fuel Ethanol (Denatured, Industrial Grade)', maxQuantity: null, quantityUomId: null, quantityUomCode: null, approvalStatus: 'APPROVED', conditions: null, regulatoryRef: '49 CFR 173.150', effectiveFrom: '2018-06-01', effectiveTo: null, isActive: true, approvedBy: 'AAR Tank Car Committee', notes: null },
+  { assetApprovalId: 2, assetType: 'RAILCAR', assetId: 1, productId: 10, productName: 'Gas Oil / Heating Oil', maxQuantity: null, quantityUomId: null, quantityUomCode: null, approvalStatus: 'APPROVED', conditions: null, regulatoryRef: '49 CFR 173.150', effectiveFrom: '2018-06-01', effectiveTo: null, isActive: true, approvedBy: 'AAR Tank Car Committee', notes: null },
 ];
 
 // ─── LOGISTICS — CONTAINERS ───────────────────────────────────────────────────
@@ -624,6 +636,25 @@ function computePipelineTariff(input: Record<string, unknown>): Record<string, u
 }
 const pipelineTariffsStore: unknown[] = [
   { tariffId: 1, pipelineId: 4, pipelineName: 'Capline Crude Pipeline', fromPointCode: 'ST-JAMES-LA', toPointCode: 'PATOKA-IL', productId: 2, productName: 'West Texas Intermediate', tariffType: 'FIRM', capacityType: 'ENTRY_EXIT', currencyId: 1, currencyCode: 'USD', rate: 0.85, rateUomId: 1, rateUomCode: 'BBL', season: 'ALL', effectiveFrom: '2024-01-01', effectiveTo: null, regulatoryRef: 'FERC-CAPLINE-2024', isActive: true, notes: null },
+];
+
+// ─── LOGISTICS — PIPELINE CYCLES ──────────────────────────────────────────────
+function computePipelineCycle(input: Record<string, unknown>): Record<string, unknown> {
+  const pipeline = (pipelinesStore as Array<Record<string, unknown>>).find((p) => p['pipelineId'] === input['pipelineId']);
+  const calendar = (holidayCalendarsStore as Array<Record<string, unknown>>).find((c) => c['calendarId'] === input['calendarId']);
+  const product = (referenceRowSeed.product as unknown as Array<Record<string, unknown>>).find((p) => p['productId'] === input['productId']);
+  return {
+    ...input,
+    pipelineName: pipeline?.['pipelineName'] ?? null,
+    calendarName: calendar?.['calendarName'] ?? null,
+    productName: product?.['productName'] ?? null,
+  };
+}
+const pipelineCyclesStore: unknown[] = [
+  { cycleId: 1, pipelineId: 3, pipelineName: 'Interconnector UK', cycleType: 'INTRADAY', cycleCode: 'WD1', cycleName: 'Within Day 1', productId: null, productName: null, effectiveFrom: '2020-06-01', effectiveTo: null, nominationDeadline: '06:00', confirmationDeadline: '07:00', schedulingDeadline: '07:30', effectiveStart: '06:00', effectiveEnd: '05:00', calendarId: 1, calendarName: 'London Banking Days', appliesToDays: 'ALL', tolerancePct: 10, cyclePriority: 1, isActive: true, notes: 'UK NBP-style within-day cycle 1 of 3. Product-agnostic — applies to all gas nominated on this interconnector.' },
+  { cycleId: 2, pipelineId: 3, pipelineName: 'Interconnector UK', cycleType: 'INTRADAY', cycleCode: 'WD2', cycleName: 'Within Day 2', productId: null, productName: null, effectiveFrom: '2020-06-01', effectiveTo: null, nominationDeadline: '11:00', confirmationDeadline: '12:00', schedulingDeadline: '12:30', effectiveStart: '13:00', effectiveEnd: '05:00', calendarId: 1, calendarName: 'London Banking Days', appliesToDays: 'ALL', tolerancePct: 10, cyclePriority: 2, isActive: true, notes: null },
+  { cycleId: 3, pipelineId: 3, pipelineName: 'Interconnector UK', cycleType: 'INTRADAY', cycleCode: 'WD3', cycleName: 'Within Day 3', productId: null, productName: null, effectiveFrom: '2020-06-01', effectiveTo: null, nominationDeadline: '15:00', confirmationDeadline: '16:00', schedulingDeadline: '16:30', effectiveStart: '17:00', effectiveEnd: '05:00', calendarId: 1, calendarName: 'London Banking Days', appliesToDays: 'ALL', tolerancePct: 10, cyclePriority: 3, isActive: true, notes: null },
+  { cycleId: 4, pipelineId: 4, pipelineName: 'Capline Crude Pipeline', cycleType: 'DAILY', cycleCode: 'D+1', cycleName: 'Day Ahead — WTI', productId: 2, productName: 'West Texas Intermediate', effectiveFrom: '2024-01-01', effectiveTo: null, nominationDeadline: '14:00', confirmationDeadline: '16:00', schedulingDeadline: '18:00', effectiveStart: '00:00', effectiveEnd: '23:59', calendarId: 2, calendarName: 'New York Federal Reserve', appliesToDays: 'WEEKDAYS', tolerancePct: 5, cyclePriority: 1, isActive: true, notes: 'WTI-specific batch cycle — this multi-product pipeline runs a separate cycle per crude grade, unlike the product-agnostic gas cycles above.' },
 ];
 
 // ─── PRICING — FORMULA TEMPLATES ─────────────────────────────────────────────
@@ -1855,6 +1886,47 @@ export const etrmHandlers = [
     const calendarId = Number(params.id);
     return HttpResponse.json(holidayDates[calendarId] ?? []);
   }),
+  http.post(`${API}/holiday-calendars/:id/holidays`, async ({ params, request }) => {
+    const calendarId = Number(params.id);
+    const input = (await request.json()) as Record<string, unknown>;
+    const list = (holidayDates[calendarId] ??= []) as Array<Record<string, unknown>>;
+    const row = { ...input, calendarId, holidayId: nextId() };
+    list.push(row);
+    const cal = (holidayCalendarsStore as Array<Record<string, unknown>>).find((c) => c['calendarId'] === calendarId);
+    if (cal) cal['holidayCount'] = Number(cal['holidayCount'] ?? 0) + 1;
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.delete(`${API}/holiday-calendars/:id/holidays/:holidayId`, ({ params }) => {
+    const calendarId = Number(params.id);
+    const holidayId = Number(params.holidayId);
+    const list = (holidayDates[calendarId] ?? []) as Array<Record<string, unknown>>;
+    const idx = list.findIndex((h) => h['holidayId'] === holidayId);
+    if (idx === -1) return problem(404, 'Not Found', `Holiday ${String(params.holidayId)} not found.`);
+    list.splice(idx, 1);
+    const cal = (holidayCalendarsStore as Array<Record<string, unknown>>).find((c) => c['calendarId'] === calendarId);
+    if (cal) cal['holidayCount'] = Math.max(0, Number(cal['holidayCount'] ?? 0) - 1);
+    return new HttpResponse(null, { status: 204 });
+  }),
+  http.post(`${API}/holiday-calendars/:id/holidays/bulk`, async ({ params, request }) => {
+    const calendarId = Number(params.id);
+    const body = (await request.json()) as { holidays: Array<Record<string, unknown>> };
+    const list = (holidayDates[calendarId] ??= []) as Array<Record<string, unknown>>;
+    const created: Array<Record<string, unknown>> = [];
+    const rejected: { row: Record<string, unknown>; reason: string }[] = [];
+
+    for (const input of body.holidays) {
+      if (list.some((h) => h['holidayDate'] === input['holidayDate'])) {
+        rejected.push({ row: input, reason: `A holiday already exists on ${String(input['holidayDate'])} for this calendar.` });
+        continue;
+      }
+      const row = { ...input, calendarId, holidayId: nextId() };
+      list.push(row);
+      created.push(row);
+    }
+    const cal = (holidayCalendarsStore as Array<Record<string, unknown>>).find((c) => c['calendarId'] === calendarId);
+    if (cal) cal['holidayCount'] = Number(cal['holidayCount'] ?? 0) + created.length;
+    return HttpResponse.json({ created, rejected });
+  }),
 
   // Trades
   http.get(`${API}/trades`, ({ request }) => {
@@ -2294,6 +2366,27 @@ export const etrmHandlers = [
   }),
   ...crudHandlers('logistics/railcars', railcarsStore as Array<Record<string, unknown>>, 'railcarId'),
 
+  // Railcar product approvals sub-resource — dbo.mot_asset_product_approval, asset_type='RAILCAR'
+  http.get(`${API}/logistics/railcars/:id/product-approvals`, ({ params }) => {
+    const railcarId = Number(params.id);
+    return HttpResponse.json((railcarProductApprovalsStore as Array<Record<string, unknown>>).filter((a) => a['assetType'] === 'RAILCAR' && a['assetId'] === railcarId));
+  }),
+  http.post(`${API}/logistics/railcars/:id/product-approvals`, async ({ params, request }) => {
+    const railcarId = Number(params.id);
+    const input = (await request.json()) as Record<string, unknown>;
+    const maxId = (railcarProductApprovalsStore as Array<Record<string, unknown>>).reduce((m, r) => Math.max(m, Number(r['assetApprovalId'])), 0);
+    const row = { ...computeAssetApproval(input), assetApprovalId: maxId + 1, assetType: 'RAILCAR', assetId: railcarId };
+    railcarProductApprovalsStore.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.delete(`${API}/logistics/railcars/:id/product-approvals/:approvalId`, ({ params }) => {
+    const s = railcarProductApprovalsStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((a) => a['assetApprovalId'] === Number(params.approvalId));
+    if (idx === -1) return problem(404, 'Not Found', `Product approval ${String(params.approvalId)} not found.`);
+    s.splice(idx, 1);
+    return new HttpResponse(null, { status: 204 });
+  }),
+
   // ─── LOGISTICS — Containers ─────────────────────────────────────────────────────
   http.post(`${API}/logistics/containers`, async ({ request }) => {
     const input = (await request.json()) as Record<string, unknown>;
@@ -2365,6 +2458,24 @@ export const etrmHandlers = [
     return HttpResponse.json(s[idx]);
   }),
   ...crudHandlers('logistics/pipeline-tariffs', pipelineTariffsStore as Array<Record<string, unknown>>, 'tariffId'),
+
+  // ─── LOGISTICS — Pipeline Cycles ─────────────────────────────────────────────
+  http.post(`${API}/logistics/pipeline-cycles`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const maxId = (pipelineCyclesStore as Array<Record<string, unknown>>).reduce((m, r) => Math.max(m, Number(r['cycleId'])), 0);
+    const row = { ...computePipelineCycle(input), cycleId: maxId + 1 };
+    pipelineCyclesStore.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/logistics/pipeline-cycles/:id`, async ({ params, request }) => {
+    const s = pipelineCyclesStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['cycleId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Pipeline cycle ${String(params.id)} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    s[idx] = { ...s[idx], ...computePipelineCycle({ ...s[idx], ...input }) };
+    return HttpResponse.json(s[idx]);
+  }),
+  ...crudHandlers('logistics/pipeline-cycles', pipelineCyclesStore as Array<Record<string, unknown>>, 'cycleId'),
 
   // ─── COUNTERPARTIES — Netting Agreements ─────────────────────────────────────
   // Custom POST/PUT (before crudHandlers) to denormalize legalEntityName/

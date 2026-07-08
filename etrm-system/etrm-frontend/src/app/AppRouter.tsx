@@ -80,6 +80,7 @@ const ContainersPage = lazy1(() => import('@features/logistics/containers/Contai
 const TanksPage = lazy1(() => import('@features/logistics/tanks/TanksPage'), 'TanksPage');
 const PipelineSegmentsPage = lazy1(() => import('@features/logistics/pipeline-segments/PipelineSegmentsPage'), 'PipelineSegmentsPage');
 const PipelineTariffsPage = lazy1(() => import('@features/logistics/pipeline-tariffs/PipelineTariffsPage'), 'PipelineTariffsPage');
+const PipelineCyclesPage = lazy1(() => import('@features/logistics/pipeline-cycles/PipelineCyclesPage'), 'PipelineCyclesPage');
 const FormulaTemplatesPage = lazy1(() => import('@features/pricing/formula-templates/FormulaTemplatesPage'), 'FormulaTemplatesPage');
 const RegulatoryObligationsPage = lazy1(() => import('@features/contracts/regulatory-obligations/RegulatoryObligationsPage'), 'RegulatoryObligationsPage');
 const CreditLimitsPage = lazy1(() => import('@features/credit/credit-limits/CreditLimitsPage'), 'CreditLimitsPage');
@@ -198,6 +199,7 @@ export function AppRouter() {
         <Route path="/logistics/tanks" element={<S><TanksPage /></S>} />
         <Route path="/logistics/pipeline-segments" element={<S><PipelineSegmentsPage /></S>} />
         <Route path="/logistics/pipeline-tariffs" element={<S><PipelineTariffsPage /></S>} />
+        <Route path="/logistics/pipeline-cycles" element={<S><PipelineCyclesPage /></S>} />
         <Route path="/credit/limits" element={<S><CreditLimitsPage /></S>} />
         <Route path="/credit/letters-of-credit" element={<S><LettersOfCreditPage /></S>} />
 
