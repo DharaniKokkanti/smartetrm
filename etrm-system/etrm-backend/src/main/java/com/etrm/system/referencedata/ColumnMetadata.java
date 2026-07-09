@@ -10,5 +10,6 @@ public record ColumnMetadata(
         boolean nullable,
         Integer maxLength,
         List<String> enumValues,
-        String foreignKeyTable
+        String foreignKeyTable,
+        String numericSubKind   // 'integer' | 'decimal' | null — only set when kind == 'number'
 ) {}

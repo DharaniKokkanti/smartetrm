@@ -43,6 +43,11 @@ export interface ColumnMetadata {
    *  Not needed for any other foreign_key target, which each have their own
    *  dedicated table. */
   foreignKeyCategory: string | null;
+  /** Populated when kind === 'number' — derived from the real SQL type
+   *  (INT/BIGINT/SMALLINT/TINYINT -> 'integer'; DECIMAL/NUMERIC/FLOAT/REAL/
+   *  MONEY -> 'decimal'). Drives whether the input accepts a decimal point
+   *  at all — a count/id/day column shouldn't silently take "3.5". */
+  numericSubKind: 'integer' | 'decimal' | null;
 }
 
 export interface TableMetadata {

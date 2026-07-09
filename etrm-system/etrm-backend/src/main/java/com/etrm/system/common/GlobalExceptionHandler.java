@@ -64,6 +64,18 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(pd);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ProblemDetail> handleIllegalArgument(IllegalArgumentException ex) {
+        // Field-level input validation (e.g. ReferenceDataCrudService rejecting
+        // a decimal value for an integer column, or an unsafe character in a
+        // text field) throws this — without an explicit handler it fell
+        // through to the generic 500 handler below, hiding a real 400-shaped
+        // client error behind "An unexpected error occurred."
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        pd.setTitle("Bad Request");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(pd);
+    }
+
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ProblemDetail> handleConstraintViolation(ConstraintViolationException ex) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());

@@ -1,5 +1,6 @@
 package com.etrm.system.referencedata;
 
+import com.etrm.system.common.FieldValidation;
 import com.etrm.system.common.NotFoundException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -40,6 +41,23 @@ public class ReferenceDataCrudService {
         }
     }
 
+    /** Real enforcement of the rules ReferenceDataTable.tsx applies as a UX
+     *  nicety, via the shared FieldValidation helpers (common package, not
+     *  duplicated here) — an "integer" column rejects a fractional value
+     *  outright, and a free-text/code ("string") value can't start with a
+     *  spreadsheet-formula-triggering character or contain markup-shaped
+     *  characters anywhere. Every generic Tier 2 table's create/update goes
+     *  through here, so this one check covers every registered reference
+     *  table, not per-table code. */
+    private void validateValue(ColumnMetadata col, Object value) {
+        if ("integer".equals(col.numericSubKind())) {
+            FieldValidation.assertWholeNumber(col.label(), value);
+        }
+        if ("string".equals(col.kind()) && value instanceof String s) {
+            FieldValidation.assertSafeText(col.label(), s);
+        }
+    }
+
     public List<Map<String, Object>> listRows(String tableName) {
         assertSafeIdentifier(tableName, "table name");
         List<Map<String, Object>> rows = jdbc.queryForList("SELECT * FROM dbo." + tableName);
@@ -56,6 +74,7 @@ public class ReferenceDataCrudService {
         for (Map.Entry<String, Object> entry : camelCaseRow.entrySet()) {
             ColumnMetadata col = columnsByCamelName.get(entry.getKey());
             if (col == null || col.isPrimaryKey()) continue; // PK is identity-generated, never client-supplied
+            validateValue(col, entry.getValue());
             sqlColumns.add(NameUtils.toSnakeCase(entry.getKey()));
             values.add(entry.getValue());
         }
@@ -87,6 +106,7 @@ public class ReferenceDataCrudService {
         for (Map.Entry<String, Object> entry : camelCaseRow.entrySet()) {
             ColumnMetadata col = columnsByCamelName.get(entry.getKey());
             if (col == null || col.isPrimaryKey()) continue;
+            validateValue(col, entry.getValue());
             setClauses.add(NameUtils.toSnakeCase(entry.getKey()) + " = ?");
             values.add(entry.getValue());
         }

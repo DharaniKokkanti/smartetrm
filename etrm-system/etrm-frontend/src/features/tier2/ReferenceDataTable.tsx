@@ -27,6 +27,7 @@ import { referenceDataApi } from './api';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import { hint } from '@components/smart/FieldHint';
+import { safeTextRule, integerInputNumberProps } from '@components/smart/fieldValidation';
 import { useCountries } from '@features/reference/countries/hooks';
 
 /** Column-name fragments that count as a "code/short-name" field — always
@@ -120,6 +121,15 @@ function yearRules(col: ColumnMetadata) {
   return [];
 }
 
+/** Extra validation rule injected for every free-text/code `string` column
+ *  (kind === 'string' covers both — code columns get uppercased separately
+ *  in fieldControl, this guard applies on top, not instead of). Rule itself
+ *  lives in `@components/smart/fieldValidation` — shared with every bespoke
+ *  feature page's own forms, not duplicated here. */
+function safeTextRules(col: ColumnMetadata) {
+  return col.kind === 'string' ? [safeTextRule()] : [];
+}
+
 /** Derives a field hint purely from column metadata (kind/nullable/maxLength/
  *  enumValues/foreignKeyTable) — no per-column hand-authored text, since
  *  metadata here is generated from the DB schema and adding a new Static
@@ -145,7 +155,11 @@ function columnHint(col: ColumnMetadata): { text: string; format?: string } {
       if (isYearColumn(col.name)) {
         return { text: `Pick a year from the calendar.${optionalSuffix}`, format: `${YEAR_MIN}–${YEAR_MAX}` };
       }
-      return { text: `Numeric value.${optionalSuffix}` };
+      return {
+        text: col.numericSubKind === 'integer'
+          ? `Whole number only — no decimal point.${optionalSuffix}`
+          : `Numeric value — decimals allowed.${optionalSuffix}`,
+      };
     default: {
       if (ISO_4217_COLS.has(col.name)) {
         return { text: `ISO 4217 currency code — always stored uppercase.${optionalSuffix}`, format: 'AAA (3 letters)' };
@@ -195,15 +209,23 @@ function fieldControl(
     case 'boolean':
       return <Switch />;
     case 'number':
-      return isYearColumn(col.name)
-        ? (
+      if (isYearColumn(col.name)) {
+        return (
           <DatePicker
             picker="year"
             style={{ width: '100%' }}
             placeholder={`e.g. ${new Date().getFullYear()}`}
             disabledDate={(d) => d.year() < YEAR_MIN || d.year() > YEAR_MAX}
           />
-        )
+        );
+      }
+      // integer columns round a fractional keystroke to the nearest whole
+      // number on blur (antd precision behavior) — a count/id/day field
+      // never ends up storing "3.5". The real hard rejection is server-side
+      // (ReferenceDataCrudService.validateValue) for a value posted
+      // directly to the API, bypassing this widget entirely.
+      return col.numericSubKind === 'integer'
+        ? <InputNumber style={{ width: '100%' }} {...integerInputNumberProps} />
         : <InputNumber style={{ width: '100%' }} />;
     case 'foreign_key': {
       const options = col.foreignKeyTable ? fkOptions[fkKeyFor(col)] ?? [] : [];
@@ -550,6 +572,7 @@ export function ReferenceDataTable({ table }: Props) {
                   { required: !col.nullable, message: `${col.label} is required` },
                   ...isoRules(col),
                   ...yearRules(col),
+                  ...safeTextRules(col),
                 ]}
               >
                 {fieldControl(col, fkOptions, countryOptions)}

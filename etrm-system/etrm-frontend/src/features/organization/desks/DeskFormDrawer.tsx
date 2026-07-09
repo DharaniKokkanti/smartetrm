@@ -4,6 +4,7 @@ import { useSaveDesk } from './hooks';
 import { COMMODITY_TYPE_LOOKUP, type Desk, type DeskInput } from './types';
 import { useDraftValues } from '@components/smart/formDraft';
 import { hint } from '@components/smart/FieldHint';
+import { safeTextRule, integerRule } from '@components/smart/fieldValidation';
 
 interface Props {
   open: boolean;
@@ -60,17 +61,17 @@ export function DeskFormDrawer({ open, editing, onClose, onSaved }: Props) {
         <Form.Item
           name="deskCode"
           label={hint('Desk Code', 'Short unique identifier for this trading desk — used in position, P&L, and limit reporting.', 'OIL-CRUDE')}
-          rules={[{ required: true }]}
+          rules={[{ required: true }, safeTextRule()]}
         >
           <Input placeholder="OIL-CRUDE" style={{ fontFamily: 'monospace' }} />
         </Form.Item>
-        <Form.Item name="deskName" label="Desk Name" rules={[{ required: true }]}>
+        <Form.Item name="deskName" label="Desk Name" rules={[{ required: true }, safeTextRule()]}>
           <Input placeholder="Crude Oil Trading" />
         </Form.Item>
         <Form.Item
           name="legalEntityId"
           label={hint('Legal Entity', 'The booking company this desk trades under — drives which legal entity trades booked to this desk settle against.')}
-          rules={[{ required: true }]}
+          rules={[{ required: true }, integerRule()]}
         >
           <Input type="number" placeholder="Entity ID" />
         </Form.Item>
@@ -85,6 +86,7 @@ export function DeskFormDrawer({ open, editing, onClose, onSaved }: Props) {
         <Form.Item
           name="headTraderId"
           label={hint('Head Trader (ID)', 'The trader accountable for this desk’s risk and P&L — shown on desk-level reports.')}
+          rules={[integerRule()]}
         >
           <Input type="number" placeholder="Trader ID" />
         </Form.Item>

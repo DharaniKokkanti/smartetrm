@@ -363,9 +363,31 @@ GO
 CREATE INDEX ix_lookup_category_active ON dbo.lookup_category (is_active, sort_order);
 GO
 
+-- Codes are always stored UPPER_SNAKE_CASE, matching every other code/
+-- type_code column in this schema (source data has mixed casing —
+-- REPORTING_CLASSIFICATION_TYPE was already upper, the rest were lower —
+-- UPPER() normalizes both onto the same convention).
 INSERT INTO dbo.lookup_category (category_code, category_name, created_by, updated_by)
-SELECT DISTINCT category, category, 'SYSTEM', 'SYSTEM'
+SELECT DISTINCT UPPER(category), UPPER(category), 'SYSTEM', 'SYSTEM'
 FROM dbo.lookup_value;
+GO
+
+-- Friendlier category_name + description for the 10 categories with real,
+-- active FK consumers today (see lookup_category_binding, step 4 below). The
+-- 7 V49/V50 backlog categories (BREACH_ACTION, COUNTRY_RISK_RATING,
+-- CREDIT_ALERT_TYPE, INSTRUMENT_CLASS, LIMIT_BASIS, REVIEW_OUTCOME,
+-- GL_NORMAL_BALANCE) keep name = code, same as before — not yet wired to any
+-- FK column, so a curated label isn't worth writing until they are.
+UPDATE dbo.lookup_category SET category_name = 'Reporting Classification Type', description = 'Independent per-report classification axes for Reporting Groups — Position, VaR, Settlement/GL.'                          WHERE category_code = 'REPORTING_CLASSIFICATION_TYPE';
+UPDATE dbo.lookup_category SET category_name = 'Operator Type',                 description = 'Transport operator roles — shipping line, ship manager, haulier, rail/pipeline/terminal operator.'                    WHERE category_code = 'OPERATOR_TYPE';
+UPDATE dbo.lookup_category SET category_name = 'Instrument Type',               description = 'Trade instrument classification — physical, forward, futures, swap, option, storage/transport agreement.'              WHERE category_code = 'INSTRUMENT_TYPE';
+UPDATE dbo.lookup_category SET category_name = 'Storage Agreement Type',        description = 'Storage deal sub-types — tank lease, throughput, terminalling, working/cushion gas, LNG slot.'                            WHERE category_code = 'STORAGE_AGREEMENT_TYPE';
+UPDATE dbo.lookup_category SET category_name = 'Transport Agreement Type',      description = 'Transport deal sub-types — voyage/time/bareboat charter, COA, pipeline capacity, truck/rail/barge spot.'                    WHERE category_code = 'TRANSPORT_AGREEMENT_TYPE';
+UPDATE dbo.lookup_category SET category_name = 'Price Adjustment Type',         description = 'Order-level price adjustments — quality differentials, treatment/refining charges, tax, markup, FX.'                      WHERE category_code = 'PRICE_ADJUSTMENT_TYPE';
+UPDATE dbo.lookup_category SET category_name = 'Demurrage Basis',               description = 'How demurrage/dispatch is calculated across multiple load/discharge ports — reversible, non-reversible, averaged.'         WHERE category_code = 'DEMURRAGE_BASIS';
+UPDATE dbo.lookup_category SET category_name = 'GL Account Type',               description = 'General ledger account classification — revenue, cost, asset, liability, equity, P&L.'                                    WHERE category_code = 'GL_ACCOUNT_TYPE';
+UPDATE dbo.lookup_category SET category_name = 'RIN Transaction Type',          description = 'RFS RIN lifecycle transaction types — generate, separate, transfer, retire.'                                              WHERE category_code = 'RIN_TRANSACTION_TYPE';
+UPDATE dbo.lookup_category SET category_name = 'RIN Obligation Status',         description = 'RVO compliance obligation status — open, partially satisfied, satisfied, overdue.'                                         WHERE category_code = 'RIN_OBLIGATION_STATUS';
 GO
 
 -- ── 2. dbo.lookup_value.category: free text -> real FK ───────────────────────
@@ -374,7 +396,7 @@ GO
 UPDATE lv
 SET    lv.category_id = lc.category_id
 FROM   dbo.lookup_value lv
-JOIN   dbo.lookup_category lc ON lc.category_code = lv.category;
+JOIN   dbo.lookup_category lc ON lc.category_code = UPPER(lv.category);
 GO
 ALTER TABLE dbo.lookup_value DROP COLUMN category;
 GO
@@ -421,9 +443,9 @@ GO
 -- Seed with every column that is still a real FK to lookup_value today
 -- (V63, V77, V81, V84 — V55/V57's commodity_type/book_type columns are gone
 -- from this list, redirected to their own dedicated tables in steps 0a/0b
--- above). Categories seeded in V49/V50 (breach_action, country_risk_rating,
--- credit_alert_type, instrument_class, limit_basis, review_outcome,
--- gl_normal_balance) have no bindings yet — those columns haven't been
+-- above). Categories seeded in V49/V50 (BREACH_ACTION, COUNTRY_RISK_RATING,
+-- CREDIT_ALERT_TYPE, INSTRUMENT_CLASS, LIMIT_BASIS, REVIEW_OUTCOME,
+-- GL_NORMAL_BALANCE) have no bindings yet — those columns haven't been
 -- converted from free text to FK yet, tracked separately as part of the
 -- existing CHECK-constraint backlog, not touched here.
 INSERT INTO dbo.lookup_category_binding (category_id, table_name, column_name, created_by, updated_by)
@@ -431,15 +453,15 @@ SELECT lc.category_id, v.table_name, v.column_name, 'SYSTEM', 'SYSTEM'
 FROM (VALUES
     ('REPORTING_CLASSIFICATION_TYPE','reporting_group',                  'classification_type_id'),
     ('REPORTING_CLASSIFICATION_TYPE','product_reporting_group',          'classification_type_id'),
-    ('operator_type',                'transport_operator',               'operator_type'),
-    ('instrument_type',              'trade',                            'instrument_type'),
-    ('storage_agreement_type',       'trade_storage_agreement_detail',   'storage_agreement_type'),
-    ('transport_agreement_type',     'trade_transport_agreement_detail', 'transport_agreement_type'),
-    ('price_adjustment_type',        'trade_order_price_adjustment',     'adjustment_type'),
-    ('demurrage_basis',              'trade_order',                      'demurrage_basis'),
-    ('rin_transaction_type',         'rin_transaction',                  'transaction_type'),
-    ('rin_obligation_status',        'rin_obligation',                   'status'),
-    ('gl_account_type',              'gl_account',                       'account_type')
+    ('OPERATOR_TYPE',                'transport_operator',               'operator_type'),
+    ('INSTRUMENT_TYPE',              'trade',                            'instrument_type'),
+    ('STORAGE_AGREEMENT_TYPE',       'trade_storage_agreement_detail',   'storage_agreement_type'),
+    ('TRANSPORT_AGREEMENT_TYPE',     'trade_transport_agreement_detail', 'transport_agreement_type'),
+    ('PRICE_ADJUSTMENT_TYPE',        'trade_order_price_adjustment',     'adjustment_type'),
+    ('DEMURRAGE_BASIS',              'trade_order',                      'demurrage_basis'),
+    ('RIN_TRANSACTION_TYPE',         'rin_transaction',                  'transaction_type'),
+    ('RIN_OBLIGATION_STATUS',        'rin_obligation',                   'status'),
+    ('GL_ACCOUNT_TYPE',              'gl_account',                       'account_type')
 ) AS v(category_code, table_name, column_name)
 JOIN dbo.lookup_category lc ON lc.category_code = v.category_code;
 GO

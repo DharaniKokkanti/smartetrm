@@ -53,6 +53,7 @@ public class ReferenceDataMetadataService {
             boolean isPk = sqlColumnName.equalsIgnoreCase(primaryKeyColumn);
 
             String kind;
+            String numericSubKind = null;
             List<String> enumValues = enumsByColumn.get(sqlColumnName);
             String fkTarget = fkTargetsByColumn.get(sqlColumnName);
 
@@ -64,9 +65,12 @@ public class ReferenceDataMetadataService {
                 kind = "boolean";
             } else if (dataType.contains("date") || dataType.contains("time")) {
                 kind = "date";
-            } else if (dataType.contains("int") || dataType.contains("decimal")
-                    || dataType.contains("numeric") || dataType.contains("float")) {
+            } else if (isIntegerType(dataType)) {
                 kind = "number";
+                numericSubKind = "integer";
+            } else if (isDecimalType(dataType)) {
+                kind = "number";
+                numericSubKind = "decimal";
             } else {
                 kind = "string";
             }
@@ -79,7 +83,8 @@ public class ReferenceDataMetadataService {
                     nullable,
                     maxLength,
                     enumValues,
-                    fkTarget
+                    fkTarget,
+                    numericSubKind
             ));
         }
 
@@ -176,6 +181,20 @@ public class ReferenceDataMetadataService {
             result.put((String) row.get("column_name"), (String) row.get("ref_table"));
         }
         return result;
+    }
+
+    /** INT-family SQL types — int, bigint, smallint, tinyint all contain "int". */
+    private boolean isIntegerType(String dataType) {
+        return dataType.contains("int");
+    }
+
+    /** Fractional-value SQL types — decimal/numeric/float/real/money all take a
+     *  decimal point; "int" is checked first in the caller so this never
+     *  double-matches an integer type. */
+    private boolean isDecimalType(String dataType) {
+        return dataType.contains("decimal") || dataType.contains("numeric")
+                || dataType.contains("float") || dataType.contains("real")
+                || dataType.contains("money");
     }
 
     private String humanizeLabel(String snakeCaseColumn) {
