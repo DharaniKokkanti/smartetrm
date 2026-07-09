@@ -57,6 +57,8 @@ export type UserRoleInput = Pick<UserRole, 'roleCode' | 'roleName' | 'descriptio
 export interface UserRoleAssignment {
   assignmentId: number;
   userId: number;
+  username: string;        // denormalised
+  fullName: string;        // denormalised
   roleId: number;
   roleName: string;        // denormalised
   roleCode: string;        // denormalised

@@ -7,11 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.Setter;
 
-@Getter
-@Setter
 @Entity
 @Table(name = "master_data_table_registry")
 public class MasterDataTableRegistry extends AuditableEntity {
@@ -56,4 +52,31 @@ public class MasterDataTableRegistry extends AuditableEntity {
 
     @Column(name = "notes", length = 500)
     private String notes;
+
+    public Long getRegistryId() { return registryId; }
+    public void setRegistryId(Long registryId) { this.registryId = registryId; }
+    public String getTableName() { return tableName; }
+    public void setTableName(String tableName) { this.tableName = tableName; }
+    public String getDisplayName() { return displayName; }
+    public void setDisplayName(String displayName) { this.displayName = displayName; }
+    public String getModuleGroup() { return moduleGroup; }
+    public void setModuleGroup(String moduleGroup) { this.moduleGroup = moduleGroup; }
+    public Boolean getAllowCreate() { return allowCreate; }
+    public void setAllowCreate(Boolean allowCreate) { this.allowCreate = allowCreate; }
+    public Boolean getAllowEdit() { return allowEdit; }
+    public void setAllowEdit(Boolean allowEdit) { this.allowEdit = allowEdit; }
+    public Boolean getAllowDelete() { return allowDelete; }
+    public void setAllowDelete(Boolean allowDelete) { this.allowDelete = allowDelete; }
+    public Boolean getAllowExcelUpload() { return allowExcelUpload; }
+    public void setAllowExcelUpload(Boolean allowExcelUpload) { this.allowExcelUpload = allowExcelUpload; }
+    public Boolean getIsEnabled() { return isEnabled; }
+    public void setIsEnabled(Boolean isEnabled) { this.isEnabled = isEnabled; }
+    public Integer getDisplayOrder() { return displayOrder; }
+    public void setDisplayOrder(Integer displayOrder) { this.displayOrder = displayOrder; }
+    public String getSubGroup() { return subGroup; }
+    public void setSubGroup(String subGroup) { this.subGroup = subGroup; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    public String getNotes() { return notes; }
+    public void setNotes(String notes) { this.notes = notes; }
 }

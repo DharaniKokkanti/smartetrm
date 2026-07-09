@@ -1,5 +1,7 @@
 package com.etrm.system.rbac;
 
+import com.etrm.system.auth.AppUser;
+import com.etrm.system.auth.AppUserRepository;
 import com.etrm.system.common.ConflictException;
 import com.etrm.system.common.NotFoundException;
 import jakarta.transaction.Transactional;
@@ -41,18 +43,21 @@ public class RbacController {
     private final UserRoleRepository           roleRepo;
     private final RoleFunctionRepository       roleFunctionRepo;
     private final UserRoleAssignmentRepository assignmentRepo;
+    private final AppUserRepository            userRepo;
 
     public RbacController(
             AppModuleRepository moduleRepo,
             AppFunctionRepository functionRepo,
             UserRoleRepository roleRepo,
             RoleFunctionRepository roleFunctionRepo,
-            UserRoleAssignmentRepository assignmentRepo) {
+            UserRoleAssignmentRepository assignmentRepo,
+            AppUserRepository userRepo) {
         this.moduleRepo       = moduleRepo;
         this.functionRepo     = functionRepo;
         this.roleRepo         = roleRepo;
         this.roleFunctionRepo = roleFunctionRepo;
         this.assignmentRepo   = assignmentRepo;
+        this.userRepo         = userRepo;
     }
 
     // ── Modules ───────────────────────────────────────────────────────────────
@@ -155,24 +160,26 @@ public class RbacController {
     // ── Role assignments ──────────────────────────────────────────────────────
 
     @GetMapping("/role-assignments")
-    public List<UserRoleAssignment> listAllAssignments() {
-        return assignmentRepo.findAll();
+    public List<AssignmentResponse> listAllAssignments() {
+        return assignmentRepo.findAll().stream().map(this::toResponse).toList();
     }
 
     @GetMapping("/users/{userId}/role-assignments")
-    public List<UserRoleAssignment> listUserAssignments(@PathVariable Long userId) {
-        return assignmentRepo.findByUserIdAndIsActiveTrue(userId);
+    public List<AssignmentResponse> listUserAssignments(@PathVariable Long userId) {
+        return assignmentRepo.findByUserIdAndIsActiveTrue(userId).stream().map(this::toResponse).toList();
     }
 
     @PostMapping("/users/{userId}/role-assignments")
     @ResponseStatus(HttpStatus.CREATED)
-    public UserRoleAssignment assignRole(@PathVariable Long userId, @RequestBody Map<String, Long> body) {
+    public AssignmentResponse assignRole(@PathVariable Long userId, @RequestBody Map<String, Long> body) {
         Long roleId = body.get("roleId");
         UserRole role = roleRepo.findById(Objects.requireNonNull(roleId))
                 .orElseThrow(() -> new NotFoundException("Role " + roleId + " not found"));
         if (!"APPROVED".equals(role.getStatus())) {
             throw new ConflictException("Only APPROVED roles can be assigned.");
         }
+        userRepo.findById(Objects.requireNonNull(userId))
+                .orElseThrow(() -> new NotFoundException("User " + userId + " not found"));
         assignmentRepo.findByUserIdAndRoleRoleIdAndIsActiveTrue(userId, roleId).ifPresent(a -> {
             throw new ConflictException("User already has an active assignment for this role.");
         });
@@ -181,26 +188,31 @@ public class RbacController {
         a.setRole(role);
         a.setAssignedBy("system");
         a.setStatus("PENDING_APPROVAL");
-        return assignmentRepo.save(a);
+        return toResponse(assignmentRepo.save(a));
     }
 
     @PatchMapping("/role-assignments/{id}/approve")
-    public UserRoleAssignment approveAssignment(@PathVariable Long id) {
+    public AssignmentResponse approveAssignment(@PathVariable Long id) {
         UserRoleAssignment a = assignmentRepo.findById(Objects.requireNonNull(id))
                 .orElseThrow(() -> new NotFoundException("Assignment " + id + " not found"));
         a.setStatus("ACTIVE");
         a.setApprovedBy("system");
         a.setApprovedAt(Instant.now());
-        return assignmentRepo.save(a);
+        return toResponse(assignmentRepo.save(a));
     }
 
     @PatchMapping("/role-assignments/{id}/reject")
-    public UserRoleAssignment rejectAssignment(@PathVariable Long id, @RequestBody Map<String, String> body) {
+    public AssignmentResponse rejectAssignment(@PathVariable Long id, @RequestBody Map<String, String> body) {
         UserRoleAssignment a = assignmentRepo.findById(Objects.requireNonNull(id))
                 .orElseThrow(() -> new NotFoundException("Assignment " + id + " not found"));
         a.setStatus("REJECTED");
         a.setRejectionReason(body.get("reason"));
-        return assignmentRepo.save(a);
+        return toResponse(assignmentRepo.save(a));
+    }
+
+    private AssignmentResponse toResponse(UserRoleAssignment a) {
+        AppUser user = userRepo.findById(a.getUserId()).orElse(null);
+        return AssignmentResponse.of(a, user);
     }
 
     @DeleteMapping("/users/{userId}/role-assignments/{assignmentId}")

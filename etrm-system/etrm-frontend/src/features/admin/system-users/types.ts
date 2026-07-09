@@ -1,23 +1,29 @@
-// V79 follow-up: this file used to define its own USER_ROLES/UserRole — a
-// flat, hardcoded 6-value string with zero connection to the real RBAC
-// system (dbo.user_role / dbo.user_role_assignment, @features/admin/roles).
-// dbo.app_user has no role column at all; a user's real role lives entirely
-// in user_role_assignment. That fake field is gone — roleId/roleCode/
-// roleName/assignmentStatus below are denormalized from the user's current
-// assignment (mocks/rbacData.ts's assignmentsStore), the same way every
-// other denormalized display field in this app works.
+// This file used to define its own USER_ROLES/UserRole — a flat, hardcoded
+// 6-value string with zero connection to the real RBAC system (dbo.user_role
+// / dbo.user_role_assignment, @features/admin/roles). dbo.app_user has no
+// role column at all; a user's real roles live entirely in
+// user_role_assignment, and a user can hold more than one at once (the
+// table's uniqueness constraint is on (user_id, role_id), not user_id
+// alone) — so `roles` below is an array, denormalized from every ACTIVE /
+// PENDING_APPROVAL assignment the user currently holds (mocks/rbacData.ts's
+// assignmentsStore), the same way every other denormalized field works.
+export interface SystemUserRoleSummary {
+  assignmentId: number;
+  roleId: number;
+  roleCode: string;
+  roleName: string;
+  status: 'PENDING_APPROVAL' | 'ACTIVE';
+}
+
 export interface SystemUser {
   userId: number;
   username: string;
   email: string;
   fullName: string;
-  /** Current role assignment, denormalized. null = no role assigned yet. */
-  roleId: number | null;
-  roleCode: string | null;
-  roleName: string | null;
-  /** Status of the current assignment — PENDING_APPROVAL until someone
-   *  approves it on the Roles & Permissions "User Assignments" tab. */
-  assignmentStatus: 'PENDING_APPROVAL' | 'ACTIVE' | null;
+  /** Every role this user currently holds — empty array if none assigned yet.
+   *  Additional roles are granted via Roles & Permissions → User Assignments
+   *  ("Assign Role"), not by editing the user record. */
+  roles: SystemUserRoleSummary[];
   traderId: number | null;
   department: string | null;
   phone: string | null;
@@ -30,4 +36,7 @@ export interface SystemUser {
   createdAt: string;
 }
 
-export type SystemUserInput = Omit<SystemUser, 'userId' | 'createdAt' | 'lastLogin' | 'roleCode' | 'roleName' | 'assignmentStatus'>;
+/** roleId here is create-only — it requests the user's first role assignment,
+ *  same pending-approval path as any other assignment. Not present on
+ *  SystemUser itself since a user's roles are a list, not one input field. */
+export type SystemUserInput = Omit<SystemUser, 'userId' | 'createdAt' | 'lastLogin' | 'roles'> & { roleId?: number };

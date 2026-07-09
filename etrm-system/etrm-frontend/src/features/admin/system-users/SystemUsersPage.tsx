@@ -37,7 +37,6 @@ export function SystemUsersPage() {
       username: u.username,
       email: u.email,
       fullName: u.fullName,
-      roleId: u.roleId ?? undefined,
       traderId: u.traderId ?? undefined,
       department: u.department ?? undefined,
       phone: u.phone ?? undefined,
@@ -59,11 +58,14 @@ export function SystemUsersPage() {
     { field: 'fullName', headerName: 'Full Name', flex: 1 },
     { field: 'email', headerName: 'Email', flex: 1.2 },
     {
-      field: 'roleCode', headerName: 'Role', width: 170,
-      cellRenderer: (p: { data: SystemUser }) => p.data.roleCode ? (
-        <Space size={4}>
-          <Tag>{p.data.roleName ?? p.data.roleCode}</Tag>
-          {p.data.assignmentStatus === 'PENDING_APPROVAL' && <Tag color="orange">Pending</Tag>}
+      field: 'roles', headerName: 'Roles', width: 220,
+      cellRenderer: (p: { data: SystemUser }) => p.data.roles.length ? (
+        <Space size={4} wrap>
+          {p.data.roles.map((r) => (
+            <Tag key={r.assignmentId} color={r.status === 'PENDING_APPROVAL' ? 'orange' : undefined}>
+              {r.roleName}{r.status === 'PENDING_APPROVAL' ? ' (Pending)' : ''}
+            </Tag>
+          ))}
         </Space>
       ) : <Tag color="default">No role</Tag>,
     },
@@ -142,23 +144,38 @@ export function SystemUsersPage() {
           >
             <Input placeholder="Jane Doe" />
           </Form.Item>
-          <Form.Item
-            name="roleId"
-            label={hint(
-              'Role',
-              editing
-                ? 'Set once, on creation. To change an existing user’s role, use Roles & Permissions → User Assignments — that keeps the request/approval history intact instead of silently overwriting access.'
-                : 'Requests this role for the new user — goes to Roles & Permissions → User Assignments for approval before it takes effect, same as any other role assignment.',
-            )}
-            rules={[{ required: !editing, message: 'Role is required' }]}
-            extra={editing?.assignmentStatus === 'PENDING_APPROVAL' ? 'Awaiting approval on Roles & Permissions → User Assignments.' : undefined}
-          >
-            <Select
-              options={assignableRoles.map((r) => ({ label: r.roleName, value: r.roleId }))}
-              placeholder="Select role"
-              disabled={!!editing}
-            />
-          </Form.Item>
+          {editing ? (
+            <Form.Item
+              label={hint(
+                'Roles',
+                'A user can hold more than one role at once. To grant an additional role, approve a request, or revoke one, use Roles & Permissions → User Assignments — that keeps the request/approval history intact instead of silently overwriting access here.',
+              )}
+            >
+              <Space size={4} wrap>
+                {editing.roles.length
+                  ? editing.roles.map((r) => (
+                    <Tag key={r.assignmentId} color={r.status === 'PENDING_APPROVAL' ? 'orange' : undefined}>
+                      {r.roleName}{r.status === 'PENDING_APPROVAL' ? ' (Pending)' : ''}
+                    </Tag>
+                  ))
+                  : <Tag color="default">No role</Tag>}
+              </Space>
+            </Form.Item>
+          ) : (
+            <Form.Item
+              name="roleId"
+              label={hint(
+                'Role',
+                'Requests this role for the new user — goes to Roles & Permissions → User Assignments for approval before it takes effect, same as any other role assignment. Additional roles can be granted later from that same page.',
+              )}
+              rules={[{ required: true, message: 'Role is required' }]}
+            >
+              <Select
+                options={assignableRoles.map((r) => ({ label: r.roleName, value: r.roleId }))}
+                placeholder="Select role"
+              />
+            </Form.Item>
+          )}
           <Form.Item name="department" label="Department">
             <Input placeholder="Trading" />
           </Form.Item>

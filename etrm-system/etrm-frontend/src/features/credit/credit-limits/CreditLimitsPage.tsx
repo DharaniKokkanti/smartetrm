@@ -77,12 +77,17 @@ export function CreditLimitsPage() {
     () => cpRows.map((c) => ({ value: c.counterpartyId, label: `${c.counterpartyCode} — ${c.name}` })),
     [cpRows],
   );
-  // V79 follow-up: role is now denormalized from the real user_role_assignment
-  // (roleCode), not the old hardcoded SystemUser.role string.
+  // Roles are denormalized from the real user_role_assignment table and a
+  // user can hold more than one, so match on whether ANY of a user's roles
+  // qualifies rather than a single roleCode.
   const analystOpts = useMemo(
     () => users
-      .filter((u) => u.roleCode === 'CREDIT_ANALYST' || u.roleCode === 'RISK_MANAGER' || u.roleCode === 'ADMIN')
-      .map((u) => ({ value: u.userId, label: `${u.fullName}${u.roleCode === 'CREDIT_ANALYST' ? '' : ` (${u.roleName})`}` })),
+      .filter((u) => u.roles.some((r) => r.roleCode === 'CREDIT_ANALYST' || r.roleCode === 'RISK_MANAGER' || r.roleCode === 'ADMIN'))
+      .map((u) => {
+        const isAnalyst = u.roles.some((r) => r.roleCode === 'CREDIT_ANALYST');
+        const otherRole = u.roles.find((r) => r.roleCode === 'RISK_MANAGER' || r.roleCode === 'ADMIN');
+        return { value: u.userId, label: `${u.fullName}${!isAnalyst && otherRole ? ` (${otherRole.roleName})` : ''}` };
+      }),
     [users],
   );
   // parent options: umbrella limits of the same counterparty (or any DIRECT limit), excluding self

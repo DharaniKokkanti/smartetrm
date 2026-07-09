@@ -1,6 +1,6 @@
 # ETRM Backend
 
-Spring Boot 3.3.x / Java 21 backend for the ETRM master data tier — built to match
+Spring Boot 3.3.x / Java 25 backend for the ETRM master data tier — built to match
 the exact REST contract the frontend (`etrm-frontend/`) was already built against.
 
 ## ⚠️ Verification status — read this first
@@ -26,7 +26,7 @@ vouch for without a real SQL Server to test against.
 
 ## Prerequisites
 
-- Java 21 (`java -version` should show 21.x)
+- Java 25 (`java -version` should show 25.x)
 - Maven 3.9+ (or use the Maven Wrapper if you generate one: `mvn -N wrapper:wrapper`)
 - A real SQL Server 2022 instance — local Docker, Azure SQL, or on-prem.
   `localhost:1433` by default; override via env vars (see below).

@@ -3,6 +3,7 @@ import {
   modulesSeed, functionsSeed, rolesStore, roleFunctionsStore, assignmentsStore,
   nextRoleId_, nextAssignmentId_,
 } from './rbacData';
+import { systemUsersStore } from './etrmHandlers';
 import type { UserRole, UserRoleInput, UserRoleAssignment } from '@features/admin/roles/types';
 
 const modules = [...modulesSeed];
@@ -125,11 +126,15 @@ export const rbacHandlers = [
     const role = roles.find((r) => r.roleId === body.roleId);
     if (!role) return problem(404, 'Not Found', `Role ${body.roleId} not found.`);
     if (role.status !== 'APPROVED') return problem(400, 'Bad Request', 'Only APPROVED roles can be assigned.');
+    const user = (systemUsersStore as Array<Record<string, unknown>>).find((u) => u['userId'] === Number(params.userId));
+    if (!user) return problem(404, 'Not Found', `User ${params.userId} not found.`);
     const existing = assignments.find((a) => a.userId === Number(params.userId) && a.roleId === body.roleId && a.isActive);
     if (existing) return problem(409, 'Conflict', 'User already has this role assignment.');
     const assignment: UserRoleAssignment = {
       assignmentId: nextAssignmentId_(),
       userId: Number(params.userId),
+      username: user['username'] as string,
+      fullName: user['fullName'] as string,
       roleId: body.roleId,
       roleName: role.roleName,
       roleCode: role.roleCode,

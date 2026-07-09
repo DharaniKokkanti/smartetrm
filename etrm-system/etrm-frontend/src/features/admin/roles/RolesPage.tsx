@@ -1,19 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Table, Button, Tag, Badge, Space, Modal, Form, Input, Checkbox, Tooltip,
-  Typography, Divider, Popconfirm, Tabs, Alert, Spin, Row, Col,
+  Typography, Divider, Popconfirm, Tabs, Alert, Spin, Row, Col, Select,
 } from 'antd';
 import {
   PlusOutlined, EditOutlined, CheckOutlined, CloseOutlined,
-  SendOutlined, LockOutlined, UnlockOutlined,
+  SendOutlined, LockOutlined, UnlockOutlined, UserAddOutlined, SearchOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
-import type { AppFunction, AppModule, RoleFunction, RoleStatus, UserRole, UserRoleAssignment } from './types';
+import type { AppFunction, AppModule, RoleFunction, RoleStatus, RoleType, AssignmentStatus, UserRole, UserRoleAssignment } from './types';
 import {
   useRoles, useRoleDetail, useModules, useFunctions,
   useCreateRole, useUpdateRole, useSubmitRole, useApproveRole, useRejectRole,
-  useAssignments, useApproveAssignment, useRejectAssignment, useRevokeAssignment,
+  useAssignments, useAssignRole, useApproveAssignment, useRejectAssignment, useRevokeAssignment,
 } from './hooks';
+import { useSystemUsers } from '@features/admin/system-users/hooks';
 import { useDraftState, useDraftValues } from '@components/smart/formDraft';
 import { hint } from '@components/smart/FieldHint';
 import { PageHeader } from '@components/layout/PageHeader';
@@ -253,6 +254,59 @@ function RoleFormModal({ open, editing, modules, functions, onClose }: RoleFormM
   );
 }
 
+// ── Assign role modal ─────────────────────────────────────────────────────────
+// A user can hold more than one role at once (user_role_assignment's
+// uniqueness is on (user_id, role_id), not user_id alone) — this is the one
+// place in the app that grants an ADDITIONAL role to an existing user; the
+// System Users page only requests a user's first role, at creation.
+interface AssignRoleModalProps { open: boolean; onClose: () => void }
+
+function AssignRoleModal({ open, onClose }: AssignRoleModalProps) {
+  const [form] = Form.useForm<{ userId: number; roleId: number }>();
+  const { data: users = [] } = useSystemUsers();
+  const { data: roles = [] } = useRoles();
+  const assignableRoles = roles.filter((r) => r.status === 'APPROVED');
+  const assignRole = useAssignRole();
+
+  async function handleOk() {
+    const vals = await form.validateFields();
+    await assignRole.mutateAsync(vals, { onSuccess: () => { form.resetFields(); onClose(); } });
+  }
+
+  return (
+    <Modal mask={false} forceRender
+      open={open}
+      title="Assign Role to User"
+      onCancel={() => { form.resetFields(); onClose(); }}
+      onOk={handleOk}
+      okButtonProps={{ loading: assignRole.isPending }}
+      okText="Request Assignment"
+      destroyOnHidden
+    >
+      <Form form={form} layout="vertical">
+        <Form.Item name="userId" label="User" rules={[{ required: true, message: 'User is required' }]}>
+          <Select
+            showSearch
+            placeholder="Select user"
+            optionFilterProp="label"
+            options={users.map((u) => ({ label: `${u.fullName} (${u.username})`, value: u.userId }))}
+          />
+        </Form.Item>
+        <Form.Item
+          name="roleId"
+          label={hint('Role', 'Goes to Roles & Permissions → User Assignments for approval before it takes effect. A user already holding this role cannot be assigned it again.')}
+          rules={[{ required: true, message: 'Role is required' }]}
+        >
+          <Select
+            placeholder="Select role"
+            options={assignableRoles.map((r) => ({ label: r.roleName, value: r.roleId }))}
+          />
+        </Form.Item>
+      </Form>
+    </Modal>
+  );
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 export function RolesPage() {
   const { data: roles = [], isLoading: rolesLoading } = useRoles();
@@ -274,9 +328,31 @@ export function RolesPage() {
   const [rejectTarget, setRejectTarget] = useState<number | null>(null);
   const [rejectAssignmentOpen, setRejectAssignmentOpen] = useState(false);
   const [rejectAssignmentTarget, setRejectAssignmentTarget] = useState<number | null>(null);
+  const [assignOpen, setAssignOpen] = useState(false);
+  const [roleSearch, setRoleSearch] = useState('');
+  const [assignmentSearch, setAssignmentSearch] = useState('');
 
   function openCreate() { setEditingRole(null); setFormOpen(true); }
   function openEdit(r: UserRole) { setEditingRole(r); setFormOpen(true); }
+
+  const filteredRoles = useMemo(() => {
+    const q = roleSearch.trim().toLowerCase();
+    if (!q) return roles;
+    return roles.filter((r) =>
+      r.roleCode.toLowerCase().includes(q) ||
+      r.roleName.toLowerCase().includes(q) ||
+      (r.description ?? '').toLowerCase().includes(q));
+  }, [roles, roleSearch]);
+
+  const filteredAssignments = useMemo(() => {
+    const q = assignmentSearch.trim().toLowerCase();
+    if (!q) return assignments;
+    return assignments.filter((a) =>
+      a.fullName.toLowerCase().includes(q) ||
+      a.username.toLowerCase().includes(q) ||
+      a.roleName.toLowerCase().includes(q) ||
+      a.roleCode.toLowerCase().includes(q));
+  }, [assignments, assignmentSearch]);
 
   const roleColumns: ColumnsType<UserRole> = [
     {
@@ -296,12 +372,16 @@ export function RolesPage() {
       dataIndex: 'roleType',
       width: 90,
       render: (v) => <Tag color={v === 'SYSTEM' ? 'purple' : 'blue'}>{v}</Tag>,
+      filters: (['SYSTEM', 'CUSTOM'] as RoleType[]).map((v) => ({ text: v, value: v })),
+      onFilter: (value, r) => r.roleType === value,
     },
     {
       title: 'Status',
       dataIndex: 'status',
       width: 155,
       render: (v: RoleStatus) => <RoleStatusTag status={v} />,
+      filters: (['DRAFT', 'PENDING_APPROVAL', 'APPROVED', 'REJECTED'] as RoleStatus[]).map((v) => ({ text: v.replace('_', ' '), value: v })),
+      onFilter: (value, r) => r.status === value,
     },
     {
       title: 'Functions',
@@ -355,7 +435,12 @@ export function RolesPage() {
   ];
 
   const assignmentColumns: ColumnsType<UserRoleAssignment> = [
-    { title: 'User ID', dataIndex: 'userId', width: 80 },
+    {
+      title: 'User',
+      dataIndex: 'fullName',
+      width: 200,
+      render: (v, r) => <><Text strong>{v}</Text> <Text type="secondary" style={{ fontFamily: 'monospace' }}>({r.username})</Text></>,
+    },
     { title: 'Role', dataIndex: 'roleName', render: (v, r) => <><Text strong>{v}</Text> <Tag style={{ marginLeft: 4 }}>{r.roleCode}</Tag></> },
     {
       title: 'Status',
@@ -365,6 +450,8 @@ export function RolesPage() {
         const color = v === 'ACTIVE' ? 'green' : v === 'PENDING_APPROVAL' ? 'orange' : v === 'REJECTED' ? 'red' : 'default';
         return <Tag color={color}>{v.replace('_', ' ')}</Tag>;
       },
+      filters: (['PENDING_APPROVAL', 'ACTIVE', 'REJECTED', 'EXPIRED'] as AssignmentStatus[]).map((v) => ({ text: v.replace('_', ' '), value: v })),
+      onFilter: (value, a) => a.status === value,
     },
     { title: 'Assigned By', dataIndex: 'assignedBy', width: 120, render: (v) => <Text type="secondary">{v}</Text> },
     { title: 'Valid From', dataIndex: 'validFrom', width: 110 },
@@ -444,14 +531,24 @@ export function RolesPage() {
               </Badge>
             ),
             children: (
-              <Table<UserRole>
-                columns={roleColumns}
-                dataSource={roles}
-                rowKey="roleId"
-                loading={rolesLoading}
-                size="small"
-                pagination={{ pageSize: 15, showSizeChanger: false }}
-              />
+              <>
+                <Input
+                  allowClear
+                  placeholder="Search by code, name, or description…"
+                  prefix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+                  value={roleSearch}
+                  onChange={(e) => setRoleSearch(e.target.value)}
+                  style={{ maxWidth: 360, marginBottom: 12 }}
+                />
+                <Table<UserRole>
+                  columns={roleColumns}
+                  dataSource={filteredRoles}
+                  rowKey="roleId"
+                  loading={rolesLoading}
+                  size="small"
+                  pagination={{ pageSize: 15, showSizeChanger: false }}
+                />
+              </>
             ),
           },
           {
@@ -462,14 +559,29 @@ export function RolesPage() {
               </Badge>
             ),
             children: (
-              <Table<UserRoleAssignment>
-                columns={assignmentColumns}
-                dataSource={assignments}
-                rowKey="assignmentId"
-                loading={assignmentsLoading}
-                size="small"
-                pagination={{ pageSize: 15, showSizeChanger: false }}
-              />
+              <>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, marginBottom: 12 }}>
+                  <Input
+                    allowClear
+                    placeholder="Search by user or role…"
+                    prefix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+                    value={assignmentSearch}
+                    onChange={(e) => setAssignmentSearch(e.target.value)}
+                    style={{ maxWidth: 360 }}
+                  />
+                  <Button type="primary" icon={<UserAddOutlined />} onClick={() => setAssignOpen(true)}>
+                    Assign Role
+                  </Button>
+                </div>
+                <Table<UserRoleAssignment>
+                  columns={assignmentColumns}
+                  dataSource={filteredAssignments}
+                  rowKey="assignmentId"
+                  loading={assignmentsLoading}
+                  size="small"
+                  pagination={{ pageSize: 15, showSizeChanger: false }}
+                />
+              </>
             ),
           },
         ]}
@@ -482,6 +594,8 @@ export function RolesPage() {
         functions={functions}
         onClose={() => setFormOpen(false)}
       />
+
+      <AssignRoleModal open={assignOpen} onClose={() => setAssignOpen(false)} />
 
       <RejectModal
         open={rejectOpen}

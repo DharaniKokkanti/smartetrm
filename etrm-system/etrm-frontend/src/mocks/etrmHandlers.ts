@@ -381,28 +381,26 @@ const balmoProductsStore: unknown[] = [
 ];
 
 // ─── SYSTEM USERS ─────────────────────────────────────────────────────────────
-// A user's current role assignment — prefers an ACTIVE one, falls back to a
-// PENDING_APPROVAL one so a brand-new user's requested (not yet approved)
-// role is still visible on the grid rather than looking role-less.
-function currentAssignment(userId: number) {
-  const mine = assignmentsStore.filter((a) => a.userId === userId && a.isActive);
-  return mine.find((a) => a.status === 'ACTIVE') ?? mine.find((a) => a.status === 'PENDING_APPROVAL') ?? null;
+// A user's roles — every ACTIVE or PENDING_APPROVAL assignment they hold. A
+// user can have more than one active role at once (user_role_assignment's
+// uniqueness constraint is on (user_id, role_id), not user_id alone), so
+// this returns a list rather than picking a single "current" one.
+function userRoleAssignments(userId: number) {
+  return assignmentsStore
+    .filter((a) => a.userId === userId && a.isActive && (a.status === 'ACTIVE' || a.status === 'PENDING_APPROVAL'))
+    .map((a) => ({ assignmentId: a.assignmentId, roleId: a.roleId, roleCode: a.roleCode, roleName: a.roleName, status: a.status }));
 }
 function denormalizeSystemUser(u: Record<string, unknown>) {
-  const assignment = currentAssignment(Number(u['userId']));
-  return {
-    ...u,
-    roleId: assignment?.roleId ?? null,
-    roleCode: assignment?.roleCode ?? null,
-    roleName: assignment?.roleName ?? null,
-    assignmentStatus: assignment?.status ?? null,
-  };
+  return { ...u, roles: userRoleAssignments(Number(u['userId'])) };
 }
 
-// V79 follow-up: no `role` column — dbo.app_user never had one. A user's
-// role is entirely denormalized from mocks/rbacData.ts's assignmentsStore at
-// read time (see the custom GET below), matching the real schema.
-const systemUsersStore: unknown[] = [
+// No `role` column — dbo.app_user never had one. A user's roles are entirely
+// denormalized from mocks/rbacData.ts's assignmentsStore at read time (see
+// the custom GET below), matching the real schema. Exported so rbacHandlers.ts
+// can denormalize username/fullName onto assignment rows the other way —
+// the Roles & Permissions "User Assignments" tab showing a bare numeric
+// User ID with no name was a real, reported gap.
+export const systemUsersStore: unknown[] = [
   { userId: 1, username: 'admin', email: 'admin@smartetrm.com', fullName: 'System Administrator', traderId: null, department: 'IT', phone: '+44 20 7123 0001', preferredLocale: 'en-GB', officeLocation: 'London', isActive: true, lastLogin: '2026-06-27T08:00:00Z', createdAt: '2024-01-01T00:00:00Z' },
   { userId: 2, username: 'j.doe', email: 'john.doe@smartetrm.com', fullName: 'John Doe', traderId: 1, department: 'Crude Oil Trading', phone: '+44 20 7123 0002', preferredLocale: 'en-GB', officeLocation: 'London', isActive: true, lastLogin: '2026-06-27T09:30:00Z', createdAt: '2024-01-01T00:00:00Z' },
   { userId: 3, username: 'a.smith', email: 'alice.smith@smartetrm.com', fullName: 'Alice Smith', traderId: 2, department: 'European Gas', phone: '+44 20 7123 0003', preferredLocale: 'en-US', officeLocation: 'Houston', isActive: true, lastLogin: '2026-06-26T17:00:00Z', createdAt: '2024-01-01T00:00:00Z' },
@@ -2082,13 +2080,14 @@ export const etrmHandlers = [
   }),
 
   // New master data domains
-  // ── System Users (V79 follow-up) ──────────────────────────────────────────
-  // Custom GET/POST (before crudHandlers) — role is denormalized live from
+  // ── System Users ───────────────────────────────────────────────────────────
+  // Custom GET/POST (before crudHandlers) — roles are denormalized live from
   // rbacData.ts's assignmentsStore (the real user_role_assignment mock), not
   // a stored column on the user row, and creating a user also requests their
   // initial role assignment through the same pending-approval path the Roles
-  // & Permissions page's "User Assignments" tab already uses — no bypass, no
-  // second write path for the same data.
+  // & Permissions page's "User Assignments" tab uses to grant every
+  // additional role after that — no bypass, no second write path for the
+  // same data.
   http.get(`${API}/admin/users`, () =>
     HttpResponse.json((systemUsersStore as Array<Record<string, unknown>>).map(denormalizeSystemUser)),
   ),
@@ -2103,6 +2102,8 @@ export const etrmHandlers = [
       assignmentsStore.push({
         assignmentId: nextAssignmentId_(),
         userId: Number(user.userId),
+        username: (user as Record<string, unknown>)['username'] as string,
+        fullName: (user as Record<string, unknown>)['fullName'] as string,
         roleId: role.roleId,
         roleName: role.roleName,
         roleCode: role.roleCode,

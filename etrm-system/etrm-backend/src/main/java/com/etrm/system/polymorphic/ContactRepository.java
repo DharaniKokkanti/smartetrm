@@ -5,4 +5,5 @@ import java.util.List;
 
 public interface ContactRepository extends JpaRepository<Contact, Long> {
     List<Contact> findByIsActiveTrue();
+    List<Contact> findByEntityTypeAndEntityId(EntityType entityType, Long entityId);
 }

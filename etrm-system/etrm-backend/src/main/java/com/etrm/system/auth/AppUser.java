@@ -43,9 +43,6 @@ public class AppUser extends AuditableEntity {
     @Column(name = "last_login")
     private Instant lastLogin;
 
-    @Column(name = "role", length = 30)
-    private String role;
-
     @Column(name = "department", length = 100)
     private String department;
 
@@ -135,9 +132,6 @@ public class AppUser extends AuditableEntity {
     public void setLastLogin(Instant lastLogin) {
         this.lastLogin = lastLogin;
     }
-
-    public String getRole() { return role; }
-    public void setRole(String role) { this.role = role; }
 
     public String getDepartment() { return department; }
     public void setDepartment(String department) { this.department = department; }

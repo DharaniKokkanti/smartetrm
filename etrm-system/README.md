@@ -9,7 +9,7 @@ directly (`code etrm.code-workspace` or File → Open Workspace from File…).
 etrm-system/
   etrm.code-workspace   <- open THIS in VS Code
   etrm-frontend/        React 18 + TS + Ant Design + AG Grid
-  etrm-backend/         Spring Boot 3.3 + Java 21
+  etrm-backend/         Spring Boot 3.3 + Java 25
   database/             All 15 SQL scripts in execution order (also Flyway
                           migrations inside etrm-backend/src/main/resources/db/migration —
                           these are the same files, kept here too for easy

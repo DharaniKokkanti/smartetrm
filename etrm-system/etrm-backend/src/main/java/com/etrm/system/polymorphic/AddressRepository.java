@@ -5,4 +5,5 @@ import java.util.List;
 
 public interface AddressRepository extends JpaRepository<Address, Long> {
     List<Address> findByIsActiveTrue();
+    List<Address> findByEntityTypeAndEntityId(EntityType entityType, Long entityId);
 }

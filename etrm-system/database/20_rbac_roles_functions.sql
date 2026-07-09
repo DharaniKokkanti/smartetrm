@@ -94,7 +94,7 @@ GO
 -- ── user_role_assignment ──────────────────────────────────────────────────────
 CREATE TABLE dbo.user_role_assignment (
     assignment_id       INT             IDENTITY(1,1)   NOT NULL,
-    user_id             INT             NOT NULL,       -- FK → system_user.user_id
+    user_id             INT             NOT NULL,
     role_id             INT             NOT NULL,
     status              VARCHAR(20)     NOT NULL    DEFAULT 'PENDING_APPROVAL',
     --   PENDING_APPROVAL → ACTIVE | REJECTED → EXPIRED
@@ -108,6 +108,14 @@ CREATE TABLE dbo.user_role_assignment (
     is_active           BIT             NOT NULL    DEFAULT 1,
     CONSTRAINT pk_user_role_assignment  PRIMARY KEY (assignment_id),
     CONSTRAINT uq_user_role             UNIQUE (user_id, role_id),
+    -- user_id originally shipped as a bare INT with only a comment claiming
+    -- "FK → system_user.user_id" — system_user was never a real table (the
+    -- real one is dbo.app_user, created in V1) and no FOREIGN KEY was ever
+    -- actually declared, so nothing stopped an assignment pointing at a
+    -- user_id that doesn't exist. Fixed in place (this table has no real
+    -- deployed data yet), matching how this file already fixes the V1/V20
+    -- duplicate dbo.user_role bug above rather than patching forward.
+    CONSTRAINT fk_ura_user              FOREIGN KEY (user_id) REFERENCES dbo.app_user(user_id),
     CONSTRAINT fk_ura_role              FOREIGN KEY (role_id) REFERENCES dbo.user_role(role_id),
     CONSTRAINT chk_ura_status           CHECK (status IN ('PENDING_APPROVAL','ACTIVE','REJECTED','EXPIRED'))
 );
