@@ -7,24 +7,25 @@ import { SmartGrid } from '@components/smart/SmartGrid';
 import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import { useStorageFacilities, useSaveStorageFacility, useDeactivateStorageFacility } from './hooks';
-import { STORAGE_TYPES, STORAGE_STATUS_CODES, type StorageFacility, type StorageFacilityInput, type StorageType, type StorageStatusCode } from './types';
+import { STORAGE_STATUS_CODES, type StorageFacility, type StorageFacilityInput, type StorageStatusCode } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { useCustomConfigOptions } from '@features/tier1/counterparty/configLookups';
 
-const TYPE_COLOR: Record<StorageType, string> = {
-  TANK_FARM: 'blue',
-  SALT_CAVERN: 'gold',
-  GAS_STORAGE: 'cyan',
-  LNG_TANK: 'purple',
-  FLOATING_STORAGE: 'geekblue',
-  WAREHOUSE: 'default',
-  PIPELINE_LINEFILL: 'volcano',
-  SILO: 'lime',
-  REFRIGERATED_STORAGE: 'blue',
-  CHEMICAL_TANK: 'orange',
-  FSRU: 'geekblue',
-  REFINERY: 'volcano',
-  VAULT: 'magenta',
-  OTHER: 'default',
+const TYPE_COLOR: Record<string, string> = {
+  'Tank Farm': 'blue',
+  'Salt Cavern': 'gold',
+  'Gas Storage': 'cyan',
+  'LNG Tank': 'purple',
+  'Floating Storage': 'geekblue',
+  'Warehouse': 'default',
+  'Pipeline Linefill': 'volcano',
+  'Silo': 'lime',
+  'Refrigerated Storage': 'blue',
+  'Chemical Tank': 'orange',
+  'FSRU': 'geekblue',
+  'Refinery': 'volcano',
+  'Vault': 'magenta',
+  'Other': 'default',
 };
 
 const STATUS_COLOR: Record<StorageStatusCode, string> = {
@@ -37,6 +38,7 @@ export function StoragePage() {
   const { data, isLoading, refetch } = useStorageFacilities();
   const save = useSaveStorageFacility();
   const deactivate = useDeactivateStorageFacility();
+  const { data: storageTypeOptions = [], isLoading: loadingStorageTypes } = useCustomConfigOptions('STORAGE_FACILITY_TYPE');
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<StorageFacility | null>(null);
   const [form] = Form.useForm<StorageFacilityInput>();
@@ -92,9 +94,10 @@ export function StoragePage() {
     { field: 'storageName', headerName: 'Name', flex: 1.5, minWidth: 180 },
     {
       field: 'storageType', headerName: 'Type', width: 170,
-      cellRenderer: (p: { value: StorageType }) => (
-        <Tag color={TYPE_COLOR[p.value] ?? 'default'}>{p.value.replace(/_/g, ' ')}</Tag>
-      ),
+      cellRenderer: (p: { value: number }) => {
+        const label = storageTypeOptions.find((o) => o.value === p.value)?.label ?? '—';
+        return <Tag color={TYPE_COLOR[label] ?? 'default'}>{label}</Tag>;
+      },
     },
     {
       field: 'commodityType', headerName: 'Commodity', width: 110,
@@ -126,7 +129,7 @@ export function StoragePage() {
         </Space>
       ),
     },
-  ], [deactivate]);
+  ], [deactivate, storageTypeOptions]);
 
   return (
     <>
@@ -180,7 +183,7 @@ export function StoragePage() {
             label={hint('Storage Type', 'TANK_FARM = above-ground steel tanks. SALT_CAVERN = underground, ideal for gas (fast injection/withdrawal). PIPELINE_LINEFILL = inventory in transit within pipeline.')}
             rules={[{ required: true, message: 'Storage type is required' }]}
           >
-            <Select options={STORAGE_TYPES.map((t) => ({ label: t.replace(/_/g, ' '), value: t }))} />
+            <Select options={storageTypeOptions} loading={loadingStorageTypes} />
           </Form.Item>
 
           <Form.Item name="locationCode" label="Location Code">

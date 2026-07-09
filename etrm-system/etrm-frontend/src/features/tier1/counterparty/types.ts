@@ -3,8 +3,11 @@ export type PolymorphicEntityType = 'LEGAL_ENTITY' | 'COUNTERPARTY' | 'BROKER';
 
 // ── Counterparty ──────────────────────────────────────────────────────────
 
-export type CpType = string;
-export type KycStatus = string;
+// V78 converted counterparty.cp_type / kyc_status from CHECK+VARCHAR to a
+// real FK id (counterparty_type / kyc_status parent tables) — these are now
+// numeric ids, not string codes; resolve a label via useCustomConfigOptions.
+export type CpType = number;
+export type KycStatus = number;
 
 export interface Counterparty {
   counterpartyId: number;
@@ -65,7 +68,8 @@ export interface Address {
   notes: string | null;
 }
 
-export type AddressType = string;
+// V78: address.address_type is now a numeric FK id (address_type parent table).
+export type AddressType = number;
 
 // Link record: one Address assigned to one entity with role / primary flag.
 // addressId is always set; address (embedded) is populated when fetched.
@@ -99,7 +103,8 @@ export interface Contact {
   notes: string | null;
 }
 
-export type ContactRole = string;
+// V78: contact.contact_role is now a numeric FK id (contact_role parent table).
+export type ContactRole = number;
 
 // Link record: one Contact assigned to one entity.
 export interface ContactAssignment {
@@ -115,7 +120,8 @@ export interface ContactAssignment {
   isLinked: boolean;
 }
 
-export type BankAccountType = string;
+// V78: bank_account.account_type is now a numeric FK id (bank_account_type parent table).
+export type BankAccountType = number;
 
 export interface BankAccount {
   bankAccountId: number | null;
@@ -143,8 +149,9 @@ export interface BankAccount {
 // the user asked for a VAT/organization ID field on counterparty, and this
 // existing polymorphic table (not a new flat column) is the correct home.
 
-export const TAX_TYPES = ['VAT', 'GST', 'EIN', 'UTR', 'TIN', 'ABN', 'SIREN', 'KVKK', 'OTHER'] as const;
-export type TaxType = (typeof TAX_TYPES)[number];
+// V78: tax_registration.tax_type is now a numeric FK id (tax_type parent
+// table) — resolve a label via useCustomConfigOptions('TAX_TYPE').
+export type TaxType = number;
 
 export interface TaxRegistration {
   taxRegId: number | null;

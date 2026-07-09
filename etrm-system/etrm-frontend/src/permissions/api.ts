@@ -10,7 +10,7 @@ export async function fetchEffectiveFieldPermissions(
   screenCode: string,
   lockParams?: ObjectLockParams,
 ): Promise<EffectiveFieldPermissionsResponse> {
-  const params: Record<string, string | boolean> = { screen: screenCode };
+  const params: Record<string, string | number | boolean> = { screen: screenCode };
   if (lockParams?.tradeStatus)           params.tradeStatus  = lockParams.tradeStatus;
   if (lockParams?.hasInvoice  != null)   params.hasInvoice   = lockParams.hasInvoice;
   if (lockParams?.hasCost     != null)   params.hasCost      = lockParams.hasCost;

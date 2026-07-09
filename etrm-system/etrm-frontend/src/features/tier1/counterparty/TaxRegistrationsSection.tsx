@@ -2,13 +2,11 @@ import { Form, Input, Select, Switch } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { ChildRecordSection, PrimaryTag } from './ChildRecordSection';
 import type { PolymorphicEntityType, TaxRegistration } from './types';
-import { TAX_TYPES } from './types';
+import { useCustomConfigOptions } from './configLookups';
 import { localId } from '@utils/localId';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import dayjs from 'dayjs';
 import { hint } from '@components/smart/FieldHint';
-
-const TAX_TYPE_OPTIONS = TAX_TYPES.map((t) => ({ label: t, value: t }));
 
 interface Props {
   items: TaxRegistration[];
@@ -21,8 +19,9 @@ interface Props {
  *  frontend at all; built following the same ChildRecordSection pattern as
  *  BankAccountsSection (no pooling — each registration belongs to one entity). */
 export function TaxRegistrationsSection({ items, onChange, entityType = 'COUNTERPARTY' }: Props) {
+  const { data: taxTypeOptions = [], isLoading: loadingTaxTypes } = useCustomConfigOptions('TAX_TYPE');
   const columns: ColumnsType<TaxRegistration> = [
-    { title: 'Type', dataIndex: 'taxType', width: 90 },
+    { title: 'Type', dataIndex: 'taxType', width: 90, render: (v: number) => taxTypeOptions.find((o) => o.value === v)?.label ?? '—' },
     { title: 'Registration No.', dataIndex: 'taxId' },
     { title: 'Jurisdiction', dataIndex: 'jurisdiction', width: 100 },
     { title: 'Issuing Authority', dataIndex: 'issuingAuthority', render: (v) => v || '—' },
@@ -42,7 +41,7 @@ export function TaxRegistrationsSection({ items, onChange, entityType = 'COUNTER
         _localId: localId(),
         entityType,
         entityId: 0,
-        taxType: 'VAT',
+        taxType: taxTypeOptions.find((o) => o.label === 'VAT')?.value ?? 0,
         taxId: '',
         jurisdiction: '',
         issuingAuthority: null,
@@ -60,7 +59,7 @@ export function TaxRegistrationsSection({ items, onChange, entityType = 'COUNTER
             label={hint('Tax Type', 'VAT/GST for most jurisdictions; EIN/UTR/TIN for country-specific tax IDs used on invoices and regulatory filings.')}
             rules={[{ required: true }]}
           >
-            <Select options={TAX_TYPE_OPTIONS} />
+            <Select options={taxTypeOptions} loading={loadingTaxTypes} />
           </Form.Item>
           <Form.Item
             name="taxId"

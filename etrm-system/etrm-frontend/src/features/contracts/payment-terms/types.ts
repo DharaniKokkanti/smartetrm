@@ -20,14 +20,9 @@ export type BusinessDayConvention =
 
 export type DaysBasis = 'CALENDAR' | 'BUSINESS';
 
-export type PaymentMethod =
-  | 'WIRE'
-  | 'LETTER_OF_CREDIT'
-  | 'BANK_GUARANTEE'
-  | 'PREPAYMENT'
-  | 'NETTING'
-  | 'CHEQUE'
-  | 'OTHER';
+// V78: payment_term.payment_method is now a numeric FK id (payment_method
+// parent table) — resolve a label via useCustomConfigOptions('PAYMENT_METHOD').
+export type PaymentMethod = number;
 
 export interface PaymentTerm {
   paymentTermId: number;

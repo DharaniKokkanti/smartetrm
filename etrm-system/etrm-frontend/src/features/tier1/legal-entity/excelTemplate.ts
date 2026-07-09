@@ -1,5 +1,4 @@
 import ExcelJS from 'exceljs';
-import { ENTITY_TYPES } from './types';
 
 export const LEGAL_ENTITY_COLUMNS = [
   { header: 'Entity Code*', key: 'entityCode', width: 16 },
@@ -23,7 +22,7 @@ export const LEGAL_ENTITY_COLUMNS = [
 /** Generates the downloadable upload template — headers, one example row,
  *  and a reference sheet listing valid entity_type values (mirrors the DB
  *  CHECK constraint so the spreadsheet can't be filled out wrong). */
-export async function generateLegalEntityTemplate(): Promise<Blob> {
+export async function generateLegalEntityTemplate(entityTypeCodes: string[]): Promise<Blob> {
   const workbook = new ExcelJS.Workbook();
   workbook.creator = 'ETRM';
   workbook.created = new Date();
@@ -60,7 +59,7 @@ export async function generateLegalEntityTemplate(): Promise<Blob> {
   const refSheet = workbook.addWorksheet('Valid Values');
   refSheet.columns = [{ header: 'entity_type', key: 'v', width: 24 }];
   refSheet.getRow(1).font = { bold: true };
-  ENTITY_TYPES.forEach((t) => refSheet.addRow({ v: t }));
+  entityTypeCodes.forEach((t) => refSheet.addRow({ v: t }));
 
   const buffer = await workbook.xlsx.writeBuffer();
   return new Blob([buffer], {

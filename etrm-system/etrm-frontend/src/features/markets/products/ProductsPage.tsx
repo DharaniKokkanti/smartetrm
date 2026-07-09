@@ -28,8 +28,7 @@ import { useUomConversions } from '@features/reference/uom-conversions/hooks';
 import { usePriceIndices } from '@features/markets/price-indices/hooks';
 import { useMarkets } from '@features/markets/markets/hooks';
 import {
-  SETTLEMENT_TYPES,
-  type Product, type ProductInput, type SettlementType,
+  type Product, type ProductInput,
   type ProductPriceIndex, type ProductMarketLink, type IndexRole,
   type ProductSpecTemplate, type ProductSpecValue, type BlendComponent,
   type BoundDirection, type ParameterCategory, type SpecParameter,
@@ -39,11 +38,12 @@ import {
 import type { CommodityType } from '@features/organization/desks/types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { useTableRows } from '@features/tier2/hooks';
+import { useCustomConfigOptions } from '@features/tier1/counterparty/configLookups';
 
 // ── Static maps ───────────────────────────────────────────────────────────────
 
-const SETTLE_COLOR: Record<SettlementType, string> = {
-  PHYSICAL: 'blue', FINANCIAL: 'purple', OPTIONS: 'orange', SWAP: 'cyan',
+const SETTLE_COLOR: Record<string, string> = {
+  Physical: 'blue', Financial: 'purple', Options: 'orange', Swap: 'cyan',
 };
 const COMMODITY_COLOR: Record<CommodityType, string> = {
   OIL: 'volcano', GAS: 'blue', POWER: 'gold', METALS: 'purple', AGRICULTURAL: 'green',
@@ -918,6 +918,7 @@ export function ProductsPage() {
   const { data, isLoading, refetch } = useProducts();
   const save       = useSaveProduct();
   const deactivate = useDeactivateProduct();
+  const { data: settlementTypeOptions = [], isLoading: loadingSettlementTypes } = useCustomConfigOptions('SETTLEMENT_TYPE');
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editing, setEditing]       = useState<Product | null>(null);
@@ -1035,7 +1036,10 @@ export function ProductsPage() {
     },
     {
       field: 'settlementType', headerName: 'Settlement', width: 115,
-      cellRenderer: (p: { value: SettlementType }) => <Tag color={SETTLE_COLOR[p.value]}>{p.value}</Tag>,
+      cellRenderer: (p: { value: number }) => {
+        const label = settlementTypeOptions.find((o) => o.value === p.value)?.label ?? '—';
+        return <Tag color={SETTLE_COLOR[label] ?? 'default'}>{label}</Tag>;
+      },
     },
     { field: 'commodityFamilyId', headerName: 'Family',   width: 160,
       valueFormatter: (p) => familyLabel(p.value as number | null) },
@@ -1080,7 +1084,7 @@ export function ProductsPage() {
         </Space>
       ),
     },
-  ], [deactivate, commodityFamilies, commodities]);
+  ], [deactivate, commodityFamilies, commodities, settlementTypeOptions]);
 
   const tabItems = [
     {
@@ -1126,7 +1130,7 @@ export function ProductsPage() {
           </Divider>
           <Space style={{ width: '100%' }} size={12}>
             <Form.Item name="settlementType" label="Settlement Type" style={{ flex: 1 }} rules={[{ required: true }]}>
-              <Select options={SETTLEMENT_TYPES.map((s) => ({ label: s, value: s }))} />
+              <Select options={settlementTypeOptions} loading={loadingSettlementTypes} />
             </Form.Item>
             <Form.Item name="defaultPricingTypeCode" label="Default Pricing" style={{ flex: 1 }} rules={[{ required: true }]}>
               <Select options={PRICING_TYPE_OPTIONS.map((p) => ({ label: p, value: p }))} />

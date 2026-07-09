@@ -12,13 +12,11 @@ import dayjs, { type Dayjs } from 'dayjs';
 import { useCounterparties } from '@features/trade/hooks';
 import { useLegalEntities } from '@features/tier1/legal-entity/hooks';
 import { useNettingAgreements, useSaveNettingAgreement, useDeactivateNettingAgreement } from './hooks';
-import { NETTING_AGREEMENT_TYPES, type NettingAgreement, type NettingAgreementInput } from './types';
+import { type NettingAgreement, type NettingAgreementInput } from './types';
+import { useCustomConfigOptions } from '@features/tier1/counterparty/configLookups';
 
-const TYPE_LABELS: Record<string, string> = {
-  ISDA_2002: 'ISDA 2002', ISDA_1992: 'ISDA 1992', EFET: 'EFET', GTMA: 'GTMA', NAESB: 'NAESB', OTHER: 'Other',
-};
 const TYPE_COLOR: Record<string, string> = {
-  ISDA_2002: 'blue', ISDA_1992: 'geekblue', EFET: 'green', GTMA: 'purple', NAESB: 'orange', OTHER: 'default',
+  'ISDA 2002 MA': 'blue', 'ISDA 1992 MA': 'geekblue', 'EFET GTMA': 'green', GTMA: 'purple', NAESB: 'orange', Other: 'default',
 };
 
 export function NettingAgreementsPage() {
@@ -27,6 +25,7 @@ export function NettingAgreementsPage() {
   const deactivate = useDeactivateNettingAgreement();
   const { data: counterparties = [] } = useCounterparties();
   const { data: legalEntities = [] } = useLegalEntities();
+  const { data: agreementTypeOptions = [], isLoading: loadingAgreementTypes } = useCustomConfigOptions('NETTING_AGREEMENT_TYPE');
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<NettingAgreement | null>(null);
@@ -36,7 +35,10 @@ export function NettingAgreementsPage() {
   function openNew() {
     setEditing(null);
     form.resetFields();
-    form.setFieldsValue({ agreementType: 'ISDA_2002', isActive: true } as unknown as NettingAgreementInput);
+    form.setFieldsValue({
+      agreementType: agreementTypeOptions.find((o) => o.label === 'ISDA 2002 MA')?.value,
+      isActive: true,
+    } as unknown as NettingAgreementInput);
     setOpen(true);
   }
 
@@ -78,7 +80,10 @@ export function NettingAgreementsPage() {
     { field: 'counterpartyName', headerName: 'Counterparty', flex: 1, minWidth: 150 },
     {
       field: 'agreementType', headerName: 'Type', width: 120,
-      cellRenderer: (p: { value: string }) => <Tag color={TYPE_COLOR[p.value] ?? 'default'} style={{ fontSize: 10 }}>{TYPE_LABELS[p.value] ?? p.value}</Tag>,
+      cellRenderer: (p: { value: number }) => {
+        const label = agreementTypeOptions.find((o) => o.value === p.value)?.label ?? '—';
+        return <Tag color={TYPE_COLOR[label] ?? 'default'} style={{ fontSize: 10 }}>{label}</Tag>;
+      },
     },
     { field: 'agreementRef', headerName: 'Agreement Ref', width: 160, valueFormatter: (p) => p.value ?? '—' },
     { field: 'effectiveDate', headerName: 'Effective', width: 105, cellClass: 'cell-mono' },
@@ -100,7 +105,7 @@ export function NettingAgreementsPage() {
         </Space>
       ),
     },
-  ], [deactivate]);
+  ], [deactivate, agreementTypeOptions]);
 
   return (
     <>
@@ -144,7 +149,7 @@ export function NettingAgreementsPage() {
             label={hint('Agreement Type', 'ISDA 2002/1992 = general OTC derivatives master agreement. EFET = European gas/power physical & financial. GTMA = grain trade. NAESB = North American gas/power.')}
             rules={[{ required: true }]}
           >
-            <Select options={NETTING_AGREEMENT_TYPES.map((t) => ({ value: t, label: TYPE_LABELS[t] }))} />
+            <Select options={agreementTypeOptions} loading={loadingAgreementTypes} />
           </Form.Item>
           <Form.Item name="agreementRef" label="Agreement Reference">
             <Input placeholder="Internal reference number" />

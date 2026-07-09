@@ -50,7 +50,16 @@ export const counterpartyHandlers = [
   // ── Counterparties ────────────────────────────────────────────────────────
   http.get(`${API}/counterparties`, () => HttpResponse.json(cpStore)),
 
-  http.get(`${API}/counterparties/:id`, ({ params }) => {
+  // :id constrained to digits — otherwise this shadows the sibling
+  // sub-resource list routes registered later (etrmHandlers.ts's crudHandlers
+  // calls for /counterparties/netting-agreements, /commercial-terms,
+  // /gtc-agreements), since MSW/path-to-regexp's bare `:id` matches any
+  // single path segment and this handler is registered first (counterparty-
+  // Handlers is spread before etrmHandlers in browser.ts). Found via headless
+  // browser check while verifying V78's frontend rewiring: Netting
+  // Agreements grid loaded "No records found" — GET was 404ing because
+  // `Number('netting-agreements')` is NaN and never matched a real id.
+  http.get(`${API}/counterparties/:id(\\d+)`, ({ params }) => {
     const cp = cpStore.find((c) => c.counterpartyId === Number(params.id));
     if (!cp) return problem(404, 'Not Found', `No counterparty with id ${params.id}.`);
     return HttpResponse.json(cp);
@@ -76,7 +85,7 @@ export const counterpartyHandlers = [
     return HttpResponse.json(cp, { status: 201 });
   }),
 
-  http.put(`${API}/counterparties/:id`, async ({ params, request }) => {
+  http.put(`${API}/counterparties/:id(\\d+)`, async ({ params, request }) => {
     const idx = cpStore.findIndex((c) => c.counterpartyId === Number(params.id));
     if (idx === -1) return problem(404, 'Not Found', `No counterparty with id ${params.id}.`);
     const input = (await request.json()) as CounterpartyInput;
@@ -84,7 +93,7 @@ export const counterpartyHandlers = [
     return HttpResponse.json(cpStore[idx]);
   }),
 
-  http.patch(`${API}/counterparties/:id/deactivate`, ({ params }) => {
+  http.patch(`${API}/counterparties/:id(\\d+)/deactivate`, ({ params }) => {
     const idx = cpStore.findIndex((c) => c.counterpartyId === Number(params.id));
     if (idx === -1) return problem(404, 'Not Found', `No counterparty with id ${params.id}.`);
     cpStore[idx] = { ...cpStore[idx], isActive: false, deactivatedDate: new Date().toISOString().slice(0, 10), updatedAt: new Date().toISOString(), updatedBy: 'mock-user' };
@@ -128,7 +137,7 @@ export const counterpartyHandlers = [
     const body = (await request.json()) as {
       entityType: string;
       entityId: number;
-      addressType: string;
+      addressType: number;
       isPrimary: boolean;
       isLinked: boolean;
       // if !isLinked, full address data to create pool record
@@ -217,7 +226,7 @@ export const counterpartyHandlers = [
     const body = (await request.json()) as {
       entityType: string;
       entityId: number;
-      contactRole: string;
+      contactRole: number;
       isPrimary: boolean;
       isLinked: boolean;
       contactId?: number;

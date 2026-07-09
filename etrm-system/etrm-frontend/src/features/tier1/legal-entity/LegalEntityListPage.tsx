@@ -17,8 +17,11 @@ import type { LegalEntity, LegalEntityUploadRow } from './types';
 import { LegalEntityFormDrawer } from './LegalEntityFormDrawer';
 import { LegalEntityUploadReviewModal } from './LegalEntityUploadReviewModal';
 import { downloadBlob, generateLegalEntityTemplate } from './excelTemplate';
-import { parseLegalEntityUpload } from './excelUpload';
+import { parseLegalEntityUpload, type EntityTypeLookupRow } from './excelUpload';
 import { useDraftState } from '@components/smart/formDraft';
+import { useQuery } from '@tanstack/react-query';
+import { apiClient } from '@services/api';
+import type { ReferenceDataRow } from '@models/referenceData';
 
 export function LegalEntityListPage() {
   const { data: entities, isLoading } = useLegalEntities();
@@ -26,6 +29,30 @@ export function LegalEntityListPage() {
   const { message } = AntApp.useApp();
   const mode = useThemeStore((s) => s.mode);
   const gridTheme = useMemo(() => buildAgGridTheme(mode), [mode]);
+
+  // V78: legal_entity.entity_type is a numeric FK id (legal_entity_type
+  // parent table) — fetch the raw rows once, used both to resolve the grid's
+  // display label and to translate the Excel template's human-readable
+  // typeCode column into that id on upload.
+  // Query key deliberately distinct from ['lookup', 'legal_entity_type'] —
+  // that key belongs to useCustomConfigOptions('LEGAL_ENTITY_TYPE') (used by
+  // the always-mounted LegalEntityFormDrawer below), which returns a
+  // different shape ({label, value} ConfigOption[], not raw ReferenceData
+  // Row[] with typeCode/legalEntityTypeId/typeName). React Query dedupes
+  // purely by key, so reusing that key silently fed this component the
+  // wrong-shaped cached data — the grid's Type column showed "—" for every
+  // row, and the Excel template/upload's typeCode lookup would have quietly
+  // broken too. Found via headless-browser verification of the V78 pass.
+  const { data: entityTypeRows = [] } = useQuery({
+    queryKey: ['legal-entity-type-rows'],
+    queryFn: async () => (await apiClient.get<ReferenceDataRow[]>('/reference-data/legal_entity_type')).data,
+    staleTime: 5 * 60_000,
+  });
+  const entityTypeLookup: EntityTypeLookupRow[] = entityTypeRows.map((r) => ({
+    typeCode: String(r.typeCode ?? ''),
+    legalEntityTypeId: Number(r.legalEntityTypeId),
+  }));
+  const entityTypeLabel = (id: number) => entityTypeRows.find((r) => r.legalEntityTypeId === id)?.typeName as string | undefined ?? '—';
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editing, setEditing] = useState<LegalEntity | null>(null);
@@ -47,7 +74,7 @@ export function LegalEntityListPage() {
     e.target.value = ''; // allow re-selecting the same file later
     if (!file) return;
     try {
-      const rows = await parseLegalEntityUpload(file, entities ?? []);
+      const rows = await parseLegalEntityUpload(file, entities ?? [], entityTypeLookup);
       if (rows.length === 0) {
         message.warning('No data rows found in that file.');
         return;
@@ -60,7 +87,7 @@ export function LegalEntityListPage() {
   }
 
   async function handleDownloadTemplate() {
-    const blob = await generateLegalEntityTemplate();
+    const blob = await generateLegalEntityTemplate(entityTypeLookup.map((r) => r.typeCode));
     downloadBlob(blob, 'legal_entity_upload_template.xlsx');
   }
 
@@ -69,7 +96,16 @@ export function LegalEntityListPage() {
       { field: 'entityCode', headerName: 'Code', cellClass: 'cell-mono', width: 130, pinned: 'left' },
       { field: 'entityName', headerName: 'Name', flex: 1.4, minWidth: 200 },
       { field: 'shortName', headerName: 'Short Name', flex: 1 },
-      { field: 'entityType', headerName: 'Type', width: 150 },
+      {
+        field: 'entityType', headerName: 'Type', width: 150,
+        // cellRenderer, not valueFormatter — valueFormatter's output is cached
+        // by ag-grid at initial render and doesn't re-run once the async
+        // entityTypeRows lookup resolves (confirmed via headless-browser
+        // check: every row showed "—" indefinitely). cellRenderer is the
+        // pattern that already works elsewhere for the same async-lookup-label
+        // shape (ProductsPage's Settlement column, TradeBlotter's Type column).
+        cellRenderer: (p: { value: number }) => entityTypeLabel(p.value),
+      },
       { field: 'jurisdiction', headerName: 'Jur.', width: 80, cellClass: 'cell-mono' },
       { field: 'baseCurrency', headerName: 'Ccy', width: 80, cellClass: 'cell-mono' },
       {
@@ -116,7 +152,7 @@ export function LegalEntityListPage() {
         ),
       },
     ],
-    [deactivateMutation],
+    [deactivateMutation, entityTypeRows],
   );
 
   return (
@@ -172,6 +208,7 @@ export function LegalEntityListPage() {
           open={!!uploadRows}
           rows={uploadRows}
           onClose={() => setUploadRows(null)}
+          entityTypeLookup={entityTypeLookup}
         />
       )}
     </>

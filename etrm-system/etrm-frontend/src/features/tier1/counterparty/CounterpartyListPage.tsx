@@ -9,14 +9,14 @@ import { buildAgGridTheme } from '@theme/ag-grid-theme';
 import { useThemeStore } from '@store/themeStore';
 import { useCounterparties, useDeactivateCounterparty } from './hooks';
 import { useCustomConfigOptions } from './configLookups';
-import type { Counterparty, KycStatus } from './types';
+import type { Counterparty } from './types';
 
 const KYC_TAG_COLOR: Record<string, string> = {
-  PENDING: 'default',
-  APPROVED: 'success',
-  REVIEW: 'processing',
-  SUSPENDED: 'warning',
-  REJECTED: 'error',
+  Pending: 'default',
+  Approved: 'success',
+  Review: 'processing',
+  Suspended: 'warning',
+  Rejected: 'error',
 };
 
 
@@ -24,8 +24,9 @@ export function CounterpartyListPage() {
   const navigate = useNavigate();
   const { data: counterparties, isLoading } = useCounterparties();
   const deactivateMutation = useDeactivateCounterparty();
+  const { data: cpTypeOptions = [] } = useCustomConfigOptions('COUNTERPARTY_TYPE');
   const { data: kycStatusOptions = [] } = useCustomConfigOptions('KYC_STATUS');
-  const [kycFilter, setKycFilter] = useState<string>('ALL');
+  const [kycFilter, setKycFilter] = useState<number | 'ALL'>('ALL');
   const mode = useThemeStore((s) => s.mode);
   const gridTheme = useMemo(() => buildAgGridTheme(mode), [mode]);
 
@@ -38,15 +39,24 @@ export function CounterpartyListPage() {
     () => [
       { field: 'cpCode', headerName: 'Code', cellClass: 'cell-mono', width: 130, pinned: 'left' },
       { field: 'legalName', headerName: 'Legal Name', flex: 1.4, minWidth: 220 },
-      { field: 'cpType', headerName: 'Type', width: 130 },
+      {
+        // cellRenderer, not valueFormatter — valueFormatter's output is
+        // cached at initial render and never re-runs once the async
+        // cpTypeOptions lookup resolves (grid showed "—" indefinitely).
+        // Matches the kycStatus column below, which already uses cellRenderer
+        // for the identical async-lookup-label shape.
+        field: 'cpType', headerName: 'Type', width: 130,
+        cellRenderer: (p: { value: number }) => cpTypeOptions.find((o) => o.value === p.value)?.label ?? '—',
+      },
       { field: 'jurisdiction', headerName: 'Jur.', width: 80, cellClass: 'cell-mono' },
       {
         field: 'kycStatus',
         headerName: 'KYC Status',
         width: 130,
-        cellRenderer: (p: { value: KycStatus }) => (
-          <Tag color={KYC_TAG_COLOR[p.value]}>{p.value}</Tag>
-        ),
+        cellRenderer: (p: { value: number }) => {
+          const label = kycStatusOptions.find((o) => o.value === p.value)?.label ?? '—';
+          return <Tag color={KYC_TAG_COLOR[label]}>{label}</Tag>;
+        },
       },
       {
         field: 'creditLimit',
@@ -93,7 +103,7 @@ export function CounterpartyListPage() {
         ),
       },
     ],
-    [deactivateMutation, navigate],
+    [deactivateMutation, navigate, cpTypeOptions, kycStatusOptions],
   );
 
   return (

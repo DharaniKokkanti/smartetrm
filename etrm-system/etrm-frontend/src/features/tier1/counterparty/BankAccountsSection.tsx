@@ -21,7 +21,7 @@ export function BankAccountsSection({ items, onChange }: Props) {
   const columns: ColumnsType<BankAccount> = [
     { title: 'Account Name', dataIndex: 'accountName' },
     { title: 'Bank', dataIndex: 'bankName' },
-    { title: 'Type', dataIndex: 'accountType', width: 110 },
+    { title: 'Type', dataIndex: 'accountType', width: 110, render: (v: number) => typeOptions.find((o) => o.value === v)?.label ?? '—' },
     { title: 'SWIFT/BIC', dataIndex: 'swiftBic', width: 110, render: (v) => v || '—' },
     { title: 'IBAN', dataIndex: 'iban', render: (v) => v || '—' },
     { title: '', key: 'primary', width: 80, render: (_, r) => <PrimaryTag isPrimary={r.isPrimary} /> },
@@ -40,7 +40,7 @@ export function BankAccountsSection({ items, onChange }: Props) {
         _localId: localId(),
         entityType: 'COUNTERPARTY',
         entityId: 0,
-        accountType: 'SETTLEMENT',
+        accountType: typeOptions.find((o) => o.label === 'Settlement')?.value ?? 0,
         currencyId: CURRENCY_LOOKUP[0].currencyId,
         isPrimary: items.length === 0,
         bankName: '',

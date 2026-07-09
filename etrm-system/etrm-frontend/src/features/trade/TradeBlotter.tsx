@@ -26,7 +26,7 @@ import type {
   CommodityTypeTrade,
 } from './types';
 import {
-  COMMODITY_TYPES_TRADE, TRADE_TYPES, DIRECTIONS, TRADE_STATUSES, ORDER_STATUSES,
+  COMMODITY_TYPES_TRADE, DIRECTIONS, TRADE_STATUSES, ORDER_STATUSES,
   SETTLEMENT_TYPES_TRADE, CONTRACT_TYPES, BROKER_FEE_TYPES, CREDIT_TERM_CODES,
   CREDIT_APPROVAL_STATUSES, FREIGHT_VESSEL_TYPES, FREIGHT_RATE_TYPES, FREIGHT_CHARTER_TYPES,
   TERM_TYPES, DEAL_INDICATORS, RFP_FREQUENCIES,
@@ -51,6 +51,7 @@ import { useUom } from '@features/reference/uom/hooks';
 import type { Uom } from '@features/reference/uom/types';
 import { useCommodityInstrumentMap } from '@features/reference/commodity-instrument-map/hooks';
 import { useTableRows } from '@features/tier2/hooks';
+import { useCustomConfigOptions } from '@features/tier1/counterparty/configLookups';
 import { useUiStore } from '@store/uiStore';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
@@ -101,7 +102,7 @@ const ORDER_STATUS_COLOR: Record<string, string> = {
   WORKING: 'orange', CONFIRMED: 'success', SETTLED: 'blue', CANCELLED: 'error',
 };
 const TRADE_TYPE_COLOR: Record<string, string> = {
-  PHYSICAL: 'orange', FINANCIAL: 'geekblue', OPTION: 'purple', FREIGHT: 'cyan',
+  Physical: 'orange', Financial: 'geekblue', Option: 'purple', Freight: 'cyan',
 };
 
 type SelectOpt = { value: string | number; label: string };
@@ -919,6 +920,7 @@ export function TradeBlotter() {
   const { data: periods = [] } = usePeriods();
   const { data: uomRows = [] }            = useUom();
   const { data: commodityInstrumentMap }  = useCommodityInstrumentMap();
+  const { data: tradeTypeOptions = [] } = useCustomConfigOptions('DEAL_TYPE');
   // Capture drawers span the full content area — flush to the nav sidebar edge
   const { sidebarCollapsed } = useUiStore();
   const fullDrawerWidth = `calc(100vw - ${sidebarCollapsed ? 80 : 210}px)`;
@@ -1063,7 +1065,7 @@ export function TradeBlotter() {
     setTradeCommodity('OIL');
     tradeForm.resetFields();
     tradeForm.setFieldsValue({
-      commodityType: 'OIL', tradeType: 'PHYSICAL', direction: 'BUY',
+      commodityType: 'OIL', tradeType: tradeTypeOptions.find((o) => o.label === 'Physical')?.value, direction: 'BUY',
       status: 'DRAFT', contractType: 'SPOT',
       termType: 'SPOT', dealIndicator: 'EXTERNAL',
       hedgeFlag: false, specialReference: null,
@@ -1205,7 +1207,10 @@ export function TradeBlotter() {
     },
     {
       field: 'tradeType', headerName: 'Type', width: 90,
-      cellRenderer: (p: { value: string }) => <Tag color={TRADE_TYPE_COLOR[p.value]}>{p.value}</Tag>,
+      cellRenderer: (p: { value: number }) => {
+        const label = tradeTypeOptions.find((o) => o.value === p.value)?.label ?? '—';
+        return <Tag color={TRADE_TYPE_COLOR[label]}>{label}</Tag>;
+      },
     },
     {
       field: 'direction', headerName: 'B/S', width: 58,
@@ -1262,7 +1267,7 @@ export function TradeBlotter() {
         </Space>
       ),
     },
-  ], [cancelTrade, confirmTrade, selectedTradeId]);
+  ], [cancelTrade, confirmTrade, selectedTradeId, tradeTypeOptions]);
 
   // ── Legs grid columns ──
   const orderColDefs = useMemo<ColDef<TradeOrder>[]>(() => [
@@ -1390,7 +1395,10 @@ export function TradeBlotter() {
                 <Text style={{ fontSize: 12, color: '#1677ff', fontWeight: 600 }}>{selectedTrade.tradeReference}</Text>
                 <Tag color={COMMODITY_COLOR[selectedTrade.commodityType]} style={{ margin: 0 }}>{selectedTrade.commodityType}</Tag>
                 <Tag color={DIRECTION_COLOR[selectedTrade.direction]} style={{ fontWeight: 700, margin: 0 }}>{selectedTrade.direction}</Tag>
-                <Tag color={TRADE_TYPE_COLOR[selectedTrade.tradeType]} style={{ margin: 0 }}>{selectedTrade.tradeType}</Tag>
+                {(() => {
+                  const label = tradeTypeOptions.find((o) => o.value === selectedTrade.tradeType)?.label ?? '—';
+                  return <Tag color={TRADE_TYPE_COLOR[label]} style={{ margin: 0 }}>{label}</Tag>;
+                })()}
                 {selectedTrade.termType === 'RFP' && <Tag color="geekblue" style={{ margin: 0 }}>RFP</Tag>}
                 {selectedTrade.dealIndicator === 'INTERNAL' && <Tag color="purple" style={{ margin: 0 }}>INTERNAL</Tag>}
                 <Text type="secondary" style={{ fontSize: 11 }}>{selectedTrade.counterpartyName}</Text>
@@ -1496,7 +1504,7 @@ export function TradeBlotter() {
             </Col>
             <Col span={8}>
               <Form.Item name="tradeType" label={hint('Trade Type', 'PHYSICAL = delivery. FINANCIAL = cash-settled. OPTION = right not obligation.')} rules={[{ required: true }]}>
-                <Select options={TRADE_TYPES.map((t) => ({ value: t, label: t }))} />
+                <Select options={tradeTypeOptions} />
               </Form.Item>
             </Col>
             <Col span={8}>

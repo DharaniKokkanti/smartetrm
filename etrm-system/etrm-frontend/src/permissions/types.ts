@@ -51,5 +51,9 @@ export interface ObjectLockParams {
   hasInvoice?: boolean;
   hasCost?: boolean;
   hasShipment?: boolean;
-  tradeType?: string;
+  // V78: trade.trade_type is now a numeric FK id in the domain model, but
+  // this Layer 1 lock-rule matcher was never wired to branch on its value
+  // (just forwarded as a query param) — widened rather than assuming
+  // behavior that was never actually implemented.
+  tradeType?: string | number;
 }

@@ -3,14 +3,16 @@ import { Modal, Tabs, Table, Tag, Typography, Alert } from 'antd';
 import { App as AntApp } from 'antd';
 import type { LegalEntityUploadRow } from './types';
 import { useBulkCreateLegalEntities } from './hooks';
+import type { EntityTypeLookupRow } from './excelUpload';
 
 interface Props {
   open: boolean;
   rows: LegalEntityUploadRow[];
   onClose: () => void;
+  entityTypeLookup: EntityTypeLookupRow[];
 }
 
-export function LegalEntityUploadReviewModal({ open, rows, onClose }: Props) {
+export function LegalEntityUploadReviewModal({ open, rows, onClose, entityTypeLookup }: Props) {
   const { message } = AntApp.useApp();
   const bulkCreate = useBulkCreateLegalEntities();
 
@@ -70,7 +72,7 @@ export function LegalEntityUploadReviewModal({ open, rows, onClose }: Props) {
                   { title: 'Row', dataIndex: '_rowNumber', width: 60 },
                   { title: 'Code', dataIndex: 'entityCode' },
                   { title: 'Name', dataIndex: 'entityName' },
-                  { title: 'Type', dataIndex: 'entityType' },
+                  { title: 'Type', dataIndex: 'entityType', render: (v: number) => entityTypeLookup.find((r) => r.legalEntityTypeId === v)?.typeCode ?? v },
                   { title: 'Jurisdiction', dataIndex: 'jurisdiction' },
                   { title: 'Currency', dataIndex: 'baseCurrency' },
                 ]}

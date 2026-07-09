@@ -4,7 +4,8 @@ import {
   Button, Space, Divider, Tabs, Badge, Spin,
 } from 'antd';
 import dayjs from 'dayjs';
-import { ENTITY_TYPES, type LegalEntity, type LegalEntityInput } from './types';
+import type { LegalEntity, LegalEntityInput } from './types';
+import { useCustomConfigOptions } from '@features/tier1/counterparty/configLookups';
 import { useCreateLegalEntity, useUpdateLegalEntity, useLegalEntities } from './hooks';
 import { EntityGuaranteesPanel } from '@features/tier1/guarantee/EntityGuaranteesPanel';
 import { AddressesSection } from '@features/tier1/counterparty/AddressesSection';
@@ -27,14 +28,13 @@ interface Props {
   editing: LegalEntity | null;
 }
 
-const ENTITY_TYPE_OPTIONS = ENTITY_TYPES.map((t) => ({ label: t.replaceAll('_', ' '), value: t }));
-
 type FormValues = Omit<LegalEntityInput, 'goLiveDate'> & { goLiveDate?: dayjs.Dayjs };
 
 export function LegalEntityFormDrawer({ open, onClose, editing, onSaved }: Props) {
   const [form] = Form.useForm<FormValues>();
   const skipDraftReset = useDraftValues('tier1-legal-entity-v', form, open, editing);
   const { data: entities } = useLegalEntities();
+  const { data: entityTypeOptions = [], isLoading: loadingEntityTypes } = useCustomConfigOptions('LEGAL_ENTITY_TYPE');
   const createMutation = useCreateLegalEntity();
   const updateMutation = useUpdateLegalEntity();
   const queryClient = useQueryClient();
@@ -166,7 +166,7 @@ export function LegalEntityFormDrawer({ open, onClose, editing, onSaved }: Props
                   <Input placeholder="20-character Legal Entity Identifier" />
                 </Form.Item>
                 <Form.Item name="entityType" label="Entity Type" rules={[{ required: true, message: 'Required' }]}>
-                  <Select options={ENTITY_TYPE_OPTIONS} placeholder="Select type" />
+                  <Select options={entityTypeOptions} loading={loadingEntityTypes} placeholder="Select type" />
                 </Form.Item>
                 <Form.Item
                   name="parentInd"

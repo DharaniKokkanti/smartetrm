@@ -1,8 +1,9 @@
 export const COMMODITY_TYPES_TRADE = ['OIL', 'GAS', 'POWER', 'LNG', 'AGRICULTURAL', 'METALS', 'FREIGHT', 'RINS', 'ENVIRONMENTAL'] as const;
 export type CommodityTypeTrade = (typeof COMMODITY_TYPES_TRADE)[number];
 
-export const TRADE_TYPES = ['PHYSICAL', 'FINANCIAL', 'OPTION', 'FREIGHT'] as const;
-export type TradeType = (typeof TRADE_TYPES)[number];
+// V78: trade.trade_type is now a numeric FK id (deal_type parent table) —
+// resolve a label via useCustomConfigOptions('DEAL_TYPE').
+export type TradeType = number;
 
 // Instrument type — more granular than tradeType; describes the financial structure of the deal
 export const INSTRUMENT_TYPES = [

@@ -1,7 +1,8 @@
 import type { CommodityType } from '@features/organization/desks/types';
 
-export const SETTLEMENT_TYPES = ['PHYSICAL', 'FINANCIAL', 'OPTIONS', 'SWAP'] as const;
-export type SettlementType = (typeof SETTLEMENT_TYPES)[number];
+// V78: product.settlement_type is now a numeric FK id (settlement_type parent
+// table) — resolve a label via useCustomConfigOptions('SETTLEMENT_TYPE').
+export type SettlementType = number;
 
 export interface Product {
   productId: number;

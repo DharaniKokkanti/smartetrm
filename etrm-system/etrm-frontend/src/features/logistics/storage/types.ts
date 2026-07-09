@@ -1,20 +1,8 @@
-export const STORAGE_TYPES = [
-  'TANK_FARM',            // fixed or floating-roof above-ground tanks (crude, products)
-  'FLOATING_STORAGE',     // vessel used as offshore storage (FSU)
-  'WAREHOUSE',            // covered dry storage (metals, agri bagged goods)
-  'SALT_CAVERN',          // underground salt cavern (crude, gas, LPG)
-  'GAS_STORAGE',          // depleted reservoir or aquifer gas storage
-  'PIPELINE_LINEFILL',    // product held in active pipeline as operational stock
-  'LNG_TANK',             // cryogenic LNG storage tank at a terminal
-  'SILO',                 // grain or dry-bulk silo
-  'REFRIGERATED_STORAGE', // pressure/refrigerated storage (LPG, ammonia, ethylene)
-  'CHEMICAL_TANK',        // chemical tank (petrochemicals, solvents, acids)
-  'FSRU',                 // Floating Storage Regasification Unit
-  'REFINERY',             // crude oil refinery with intermediate storage
-  'VAULT',                // secure vault for metals (LME-approved, precious)
-  'OTHER',                // facility type not covered by standard classifications
-] as const;
-export type StorageType = (typeof STORAGE_TYPES)[number];
+// V78: storage_facility.facility_type is now a numeric FK id
+// (storage_facility_type parent table) — resolve a label via
+// useCustomConfigOptions('STORAGE_FACILITY_TYPE'). Note the DB column is
+// `facility_type`; this frontend field has always been named `storageType`.
+export type StorageType = number;
 
 export const STORAGE_STATUS_CODES = ['OPERATIONAL', 'UNDER_MAINTENANCE', 'DECOMMISSIONED'] as const;
 export type StorageStatusCode = (typeof STORAGE_STATUS_CODES)[number];

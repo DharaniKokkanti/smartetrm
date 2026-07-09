@@ -40,7 +40,7 @@ export function ContactsSection({ items, onChange, entityType = 'COUNTERPARTY' }
         </Space>
       ),
     },
-    { title: 'Role', dataIndex: 'contactRole', width: 130 },
+    { title: 'Role', dataIndex: 'contactRole', width: 130, render: (v: number) => roleOptions.find((o) => o.value === v)?.label ?? '—' },
     { title: 'Job Title', dataIndex: ['contact', 'jobTitle'], ellipsis: true },
     { title: 'Email', dataIndex: ['contact', 'email'], ellipsis: true },
     {
@@ -66,7 +66,10 @@ export function ContactsSection({ items, onChange, entityType = 'COUNTERPARTY' }
     setMode('new');
     setSelectedPoolId(null);
     form.resetFields();
-    form.setFieldsValue({ contactRole: 'PRIMARY', isPrimary: visible.length === 0 });
+    form.setFieldsValue({
+      contactRole: roleOptions.find((o) => o.label === 'Primary')?.value,
+      isPrimary: visible.length === 0,
+    });
     setModalOpen(true);
   }
 
@@ -103,7 +106,7 @@ export function ContactsSection({ items, onChange, entityType = 'COUNTERPARTY' }
         entityId: 0,
         contactId: poolContact.contactId,
         contact: poolContact,
-        contactRole: values.contactRole as string,
+        contactRole: values.contactRole as number,
         isPrimary: values.isPrimary as boolean,
         isActive: true,
         isLinked: true,
@@ -135,7 +138,7 @@ export function ContactsSection({ items, onChange, entityType = 'COUNTERPARTY' }
         entityId: 0,
         contactId: contact.contactId,
         contact,
-        contactRole: values.contactRole as string,
+        contactRole: values.contactRole as number,
         isPrimary: values.isPrimary as boolean,
         isActive: true,
         isLinked: false,

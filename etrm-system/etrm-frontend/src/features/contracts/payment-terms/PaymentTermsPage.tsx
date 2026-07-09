@@ -10,34 +10,22 @@ import { SmartGrid } from '@components/smart/SmartGrid';
 import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import { useTableRows } from '@features/tier2/hooks';
+import { useCustomConfigOptions } from '@features/tier1/counterparty/configLookups';
 import { usePaymentTerms, useSavePaymentTerm, useDeactivatePaymentTerm } from './hooks';
 import type {
   PaymentTerm, PaymentTermInput,
-  BaseDateEvent, BusinessDayConvention, DaysBasis, PaymentMethod,
+  BaseDateEvent, BusinessDayConvention, DaysBasis,
 } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
 
 // ── Static option maps for non-lookup fields ──────────────────────────────────
 
-const METHOD_LABELS: Record<PaymentMethod, string> = {
-  WIRE:             'Wire Transfer',
-  LETTER_OF_CREDIT: 'Letter of Credit',
-  BANK_GUARANTEE:   'Bank Guarantee',
-  PREPAYMENT:       'Prepayment',
-  NETTING:          'Netting',
-  CHEQUE:           'Cheque',
-  OTHER:            'Other',
+const METHOD_COLOR: Record<string, string> = {
+  'Letter of Credit': 'blue',
+  'Bank Guarantee':   'purple',
+  'Netting':          'cyan',
+  'Prepayment':       'orange',
 };
-
-function methodColor(m: PaymentMethod): string {
-  const map: Partial<Record<PaymentMethod, string>> = {
-    LETTER_OF_CREDIT: 'blue',
-    BANK_GUARANTEE:   'purple',
-    NETTING:          'cyan',
-    PREPAYMENT:       'orange',
-  };
-  return map[m] ?? 'default';
-}
 
 // ── Calculation formula display ───────────────────────────────────────────────
 
@@ -66,6 +54,7 @@ export function PaymentTermsPage() {
     useTableRows('base_date_event_type');
   const { data: bdcRows = [], isLoading: bdcLoading } =
     useTableRows('business_day_convention_type');
+  const { data: paymentMethodOptions = [], isLoading: pmLoading } = useCustomConfigOptions('PAYMENT_METHOD');
 
   // Build label map for formula column display
   const bdeLabelMap = useMemo(
@@ -111,7 +100,7 @@ export function PaymentTermsPage() {
       offsetDays:             30,
       daysBasis:              'CALENDAR' as DaysBasis,
       businessDayConvention:  'MOD_FOLLOWING' as BusinessDayConvention,
-      paymentMethod:          'WIRE' as PaymentMethod,
+      paymentMethod:          paymentMethodOptions.find((o) => o.label === 'Wire Transfer')?.value,
       invoiceLeadDays:        0,
       isDefault:              false,
       isActive:               true,
@@ -166,9 +155,10 @@ export function PaymentTermsPage() {
     },
     {
       field: 'paymentMethod', headerName: 'Method', width: 165,
-      cellRenderer: (p: { value: PaymentMethod }) => (
-        <Tag color={methodColor(p.value)}>{METHOD_LABELS[p.value] ?? p.value}</Tag>
-      ),
+      cellRenderer: (p: { value: number }) => {
+        const label = paymentMethodOptions.find((o) => o.value === p.value)?.label ?? '—';
+        return <Tag color={METHOD_COLOR[label] ?? 'default'}>{label}</Tag>;
+      },
     },
     {
       headerName: 'Discount', width: 110,
@@ -206,9 +196,9 @@ export function PaymentTermsPage() {
         </Space>
       ),
     },
-  ], [deactivate, bdeLabelMap]);
+  ], [deactivate, bdeLabelMap, paymentMethodOptions]);
 
-  const lookupLoading = bdeLoading || bdcLoading;
+  const lookupLoading = bdeLoading || bdcLoading || pmLoading;
 
   return (
     <>
@@ -389,7 +379,7 @@ export function PaymentTermsPage() {
                 style={{ flex: 1 }}
                 rules={[{ required: true }]}
               >
-                <Select options={Object.entries(METHOD_LABELS).map(([v, l]) => ({ value: v, label: l }))} />
+                <Select options={paymentMethodOptions} loading={pmLoading} />
               </Form.Item>
               <Form.Item
                 name="invoiceLeadDays"

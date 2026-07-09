@@ -1,5 +1,7 @@
-export const NETTING_AGREEMENT_TYPES = ['ISDA_2002', 'ISDA_1992', 'EFET', 'GTMA', 'NAESB', 'OTHER'] as const;
-export type NettingAgreementType = (typeof NETTING_AGREEMENT_TYPES)[number];
+// V78: netting_agreement.agreement_type is now a numeric FK id
+// (netting_agreement_type parent table) — resolve a label via
+// useCustomConfigOptions('NETTING_AGREEMENT_TYPE').
+export type NettingAgreementType = number;
 
 export interface NettingAgreement {
   nettingId: number;

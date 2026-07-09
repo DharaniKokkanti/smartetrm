@@ -1,8 +1,17 @@
 import ExcelJS from 'exceljs';
-import { ENTITY_TYPES, type LegalEntity, type LegalEntityUploadRow } from './types';
+import type { LegalEntity, LegalEntityUploadRow } from './types';
 
 const ISO2 = /^[A-Z]{2}$/;
 const ISO3 = /^[A-Z]{3}$/;
+
+/** One row of dbo.legal_entity_type (V78: entity_type is now this FK's id,
+ *  not a CHECK-constrained code) — the spreadsheet still asks for the human
+ *  typeCode (e.g. 'BRANCH'), resolved to the numeric id here rather than
+ *  asking an admin to type a raw FK id into a cell. */
+export interface EntityTypeLookupRow {
+  typeCode: string;
+  legalEntityTypeId: number;
+}
 
 function cellText(value: ExcelJS.CellValue): string {
   if (value === null || value === undefined) return '';
@@ -24,6 +33,7 @@ function cellText(value: ExcelJS.CellValue): string {
 export async function parseLegalEntityUpload(
   file: File,
   existingEntities: LegalEntity[],
+  entityTypeRows: EntityTypeLookupRow[],
 ): Promise<LegalEntityUploadRow[]> {
   const workbook = new ExcelJS.Workbook();
   const buffer = await file.arrayBuffer();
@@ -66,8 +76,9 @@ export async function parseLegalEntityUpload(
     if (!entityCode) errors.push('Entity Code is required.');
     if (!entityName) errors.push('Entity Name is required.');
     if (!shortName) errors.push('Short Name is required.');
-    if (!ENTITY_TYPES.includes(entityType as (typeof ENTITY_TYPES)[number])) {
-      errors.push(`Entity Type must be one of: ${ENTITY_TYPES.join(', ')}.`);
+    const entityTypeId = entityTypeRows.find((r) => r.typeCode === entityType)?.legalEntityTypeId ?? null;
+    if (entityTypeId === null) {
+      errors.push(`Entity Type must be one of: ${entityTypeRows.map((r) => r.typeCode).join(', ')}.`);
     }
     if (!ISO2.test(jurisdiction)) errors.push('Jurisdiction must be a 2-letter ISO country code.');
     if (incorporationCountry && !ISO2.test(incorporationCountry)) {
@@ -104,7 +115,7 @@ export async function parseLegalEntityUpload(
       entityName,
       shortName,
       leiCode,
-      entityType: (errors.length ? entityType : (entityType as (typeof ENTITY_TYPES)[number])) as never,
+      entityType: (entityTypeId ?? 0) as never,
       parentInd: parentEntityId !== null,
       parentEntityId,
       jurisdiction,

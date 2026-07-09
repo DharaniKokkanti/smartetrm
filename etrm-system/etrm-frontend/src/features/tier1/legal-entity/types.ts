@@ -5,14 +5,9 @@
  * convention changes, this is the one file that needs updating.
  */
 
-export const ENTITY_TYPES = [
-  'TRADING_COMPANY',
-  'SUBSIDIARY',
-  'BRANCH',
-  'HOLDING',
-  'BROKER',
-] as const;
-export type EntityType = (typeof ENTITY_TYPES)[number];
+// V78: legal_entity.entity_type is now a numeric FK id (legal_entity_type
+// parent table) — resolve a label via useCustomConfigOptions('LEGAL_ENTITY_TYPE').
+export type EntityType = number;
 
 export interface LegalEntity {
   legalEntityId: number;

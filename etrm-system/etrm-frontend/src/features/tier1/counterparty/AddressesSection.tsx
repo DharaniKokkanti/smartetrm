@@ -33,9 +33,9 @@ export function AddressesSection({ items, onChange, entityType = 'COUNTERPARTY' 
   const columns: ColumnsType<AddressAssignment> = [
     {
       title: 'Type', dataIndex: 'addressType', width: 120,
-      render: (v, r) => (
+      render: (v: number, r) => (
         <Space size={4}>
-          {v}
+          {typeOptions.find((o) => o.value === v)?.label ?? '—'}
           {r.isLinked && <Tag color="purple" style={{ fontSize: 10, padding: '0 4px', lineHeight: '16px' }}>Linked</Tag>}
         </Space>
       ),
@@ -65,7 +65,10 @@ export function AddressesSection({ items, onChange, entityType = 'COUNTERPARTY' 
     setMode('new');
     setSelectedPoolId(null);
     form.resetFields();
-    form.setFieldsValue({ addressType: 'REGISTERED', isPrimary: visible.length === 0 });
+    form.setFieldsValue({
+      addressType: typeOptions.find((o) => o.label === 'Registered')?.value,
+      isPrimary: visible.length === 0,
+    });
     setModalOpen(true);
   }
 
@@ -102,7 +105,7 @@ export function AddressesSection({ items, onChange, entityType = 'COUNTERPARTY' 
         entityId: 0,
         addressId: poolAddr.addressId,
         address: poolAddr,
-        addressType: values.addressType as string,
+        addressType: values.addressType as number,
         isPrimary: values.isPrimary as boolean,
         isActive: true,
         isLinked: true,
@@ -135,7 +138,7 @@ export function AddressesSection({ items, onChange, entityType = 'COUNTERPARTY' 
         entityId: 0,
         addressId: address.addressId,
         address,
-        addressType: values.addressType as string,
+        addressType: values.addressType as number,
         isPrimary: values.isPrimary as boolean,
         isActive: true,
         isLinked: false,

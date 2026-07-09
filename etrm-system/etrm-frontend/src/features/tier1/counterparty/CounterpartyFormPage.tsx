@@ -68,6 +68,23 @@ export function CounterpartyFormPage() {
     }),
   });
 
+  // Defaults for cpType/kycStatus are numeric FK ids resolved from the async
+  // lookup options — can't go in `initialValues` (evaluated before the
+  // options query resolves), and only apply to a genuinely new, untouched form.
+  useEffect(() => {
+    if (!isNew) return;
+    const defaults: { cpType?: number; kycStatus?: number } = {};
+    if (coreForm.getFieldValue('cpType') === undefined) {
+      const def = cpTypeOptions.find((o) => o.label === 'Trader')?.value;
+      if (def !== undefined) defaults.cpType = def;
+    }
+    if (coreForm.getFieldValue('kycStatus') === undefined) {
+      const def = kycStatusOptions.find((o) => o.label === 'Pending')?.value;
+      if (def !== undefined) defaults.kycStatus = def;
+    }
+    if (Object.keys(defaults).length) coreForm.setFieldsValue(defaults);
+  }, [isNew, cpTypeOptions, kycStatusOptions, coreForm]);
+
   useEffect(() => {
     if (skipFormSyncRef.current) { skipFormSyncRef.current = false; return; }
     if (existing) {
@@ -138,7 +155,7 @@ export function CounterpartyFormPage() {
       />
 
       {loading ? <Spin /> : (
-        <Form form={coreForm} layout="vertical" initialValues={{ cpType: 'TRADER', jurisdiction: '', creditLimitCurrency: 'USD', settlementDays: 2, kycStatus: 'PENDING', isIntercompany: false, parentInd: false }}>
+        <Form form={coreForm} layout="vertical" initialValues={{ jurisdiction: '', creditLimitCurrency: 'USD', settlementDays: 2, isIntercompany: false, parentInd: false }}>
           <Tabs defaultActiveKey="core" items={[
             {
               key: 'core', label: 'Core',
