@@ -1,15 +1,17 @@
 import { http, HttpResponse } from 'msw';
 import {
-  modulesSeed, functionsSeed, rolesSeed, roleFunctionsSeed, assignmentsSeed,
+  modulesSeed, functionsSeed, rolesStore, roleFunctionsStore, assignmentsStore,
   nextRoleId_, nextAssignmentId_,
 } from './rbacData';
-import type { UserRole, UserRoleInput, UserRoleAssignment, RoleFunction } from '@features/admin/roles/types';
+import type { UserRole, UserRoleInput, UserRoleAssignment } from '@features/admin/roles/types';
 
 const modules = [...modulesSeed];
 const functions = [...functionsSeed];
-const roles: UserRole[] = [...rolesSeed];
-const roleFunctions: RoleFunction[] = [...roleFunctionsSeed];
-const assignments: UserRoleAssignment[] = [...assignmentsSeed];
+// Shared live state (mocks/rbacData.ts) — etrmHandlers.ts's admin/users
+// handlers read and write these same arrays, not private copies.
+const roles = rolesStore;
+const roleFunctions = roleFunctionsStore;
+const assignments = assignmentsStore;
 
 const API = '/api/v1';
 function problem(s: number, t: string, d: string) {

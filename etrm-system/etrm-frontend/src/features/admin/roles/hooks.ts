@@ -93,7 +93,12 @@ export function useAssignRole() {
   const { message } = AntApp.useApp();
   return useMutation({
     mutationFn: ({ userId, roleId }: { userId: number; roleId: number }) => assignRole(userId, roleId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['role-assignments'] }),
+    // V79 follow-up: System Users' Role column denormalizes from these same
+    // assignment rows now (mocks/etrmHandlers.ts's denormalizeSystemUser) —
+    // invalidate its query key too, or an approval/rejection/revocation here
+    // leaves the Users grid showing a stale role/status until its own 5-
+    // minute staleTime lapses.
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['role-assignments'] }); qc.invalidateQueries({ queryKey: ['system-users'] }); },
     onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Assign role failed.'),
   });
 }
@@ -103,7 +108,12 @@ export function useApproveAssignment() {
   const { message } = AntApp.useApp();
   return useMutation({
     mutationFn: (assignmentId: number) => approveAssignment(assignmentId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['role-assignments'] }),
+    // V79 follow-up: System Users' Role column denormalizes from these same
+    // assignment rows now (mocks/etrmHandlers.ts's denormalizeSystemUser) —
+    // invalidate its query key too, or an approval/rejection/revocation here
+    // leaves the Users grid showing a stale role/status until its own 5-
+    // minute staleTime lapses.
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['role-assignments'] }); qc.invalidateQueries({ queryKey: ['system-users'] }); },
     onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Approve failed.'),
   });
 }
@@ -114,7 +124,12 @@ export function useRejectAssignment() {
   return useMutation({
     mutationFn: ({ assignmentId, reason }: { assignmentId: number; reason: string }) =>
       rejectAssignment(assignmentId, reason),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['role-assignments'] }),
+    // V79 follow-up: System Users' Role column denormalizes from these same
+    // assignment rows now (mocks/etrmHandlers.ts's denormalizeSystemUser) —
+    // invalidate its query key too, or an approval/rejection/revocation here
+    // leaves the Users grid showing a stale role/status until its own 5-
+    // minute staleTime lapses.
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['role-assignments'] }); qc.invalidateQueries({ queryKey: ['system-users'] }); },
     onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Reject failed.'),
   });
 }
@@ -125,7 +140,12 @@ export function useRevokeAssignment() {
   return useMutation({
     mutationFn: ({ userId, assignmentId }: { userId: number; assignmentId: number }) =>
       revokeAssignment(userId, assignmentId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['role-assignments'] }),
+    // V79 follow-up: System Users' Role column denormalizes from these same
+    // assignment rows now (mocks/etrmHandlers.ts's denormalizeSystemUser) —
+    // invalidate its query key too, or an approval/rejection/revocation here
+    // leaves the Users grid showing a stale role/status until its own 5-
+    // minute staleTime lapses.
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['role-assignments'] }); qc.invalidateQueries({ queryKey: ['system-users'] }); },
     onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Revoke failed.'),
   });
 }

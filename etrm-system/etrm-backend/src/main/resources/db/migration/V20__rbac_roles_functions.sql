@@ -12,6 +12,18 @@
 --   user_role_assignment — which roles a user holds, pending manager approval
 -- =============================================================================
 
+-- V1__master_data_foundation.sql already created dbo.user_role, but as a
+-- completely different concept (a flat user_id+role_code CHECK assignment
+-- row — superseded by this file's own user_role_assignment table). Never
+-- dropped before this file's CREATE TABLE dbo.user_role redefines it from
+-- scratch with an unrelated shape (role_id/role_type/status) — would fail
+-- outright on a real from-scratch deploy. Found while reviewing the User
+-- Management domain's schema; fixed in place here since this is the
+-- migration that actually needs the drop, matching how V55's desk CHECK
+-- bug was fixed in place rather than patched forward.
+IF OBJECT_ID('dbo.user_role', 'U') IS NOT NULL DROP TABLE dbo.user_role;
+GO
+
 -- ── app_module ────────────────────────────────────────────────────────────────
 CREATE TABLE dbo.app_module (
     module_id       INT             IDENTITY(1,1)   NOT NULL,

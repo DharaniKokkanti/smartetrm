@@ -77,11 +77,12 @@ export function CreditLimitsPage() {
     () => cpRows.map((c) => ({ value: c.counterpartyId, label: `${c.counterpartyCode} — ${c.name}` })),
     [cpRows],
   );
-  type UserRow = { userId: number; fullName: string; role: string };
+  // V79 follow-up: role is now denormalized from the real user_role_assignment
+  // (roleCode), not the old hardcoded SystemUser.role string.
   const analystOpts = useMemo(
-    () => (users as UserRow[])
-      .filter((u) => u.role === 'CREDIT_ANALYST' || u.role === 'RISK_MANAGER' || u.role === 'ADMIN')
-      .map((u) => ({ value: u.userId, label: `${u.fullName}${u.role === 'CREDIT_ANALYST' ? '' : ` (${u.role.replace('_', ' ')})`}` })),
+    () => users
+      .filter((u) => u.roleCode === 'CREDIT_ANALYST' || u.roleCode === 'RISK_MANAGER' || u.roleCode === 'ADMIN')
+      .map((u) => ({ value: u.userId, label: `${u.fullName}${u.roleCode === 'CREDIT_ANALYST' ? '' : ` (${u.roleName})`}` })),
     [users],
   );
   // parent options: umbrella limits of the same counterparty (or any DIRECT limit), excluding self

@@ -5,7 +5,7 @@ import {
   GlobalOutlined, CalendarOutlined, DollarOutlined,
   FileTextOutlined, SafetyCertificateOutlined, BankOutlined,
   ThunderboltOutlined, CarOutlined, WarningOutlined, CloudOutlined, AuditOutlined,
-  ReconciliationOutlined,
+  ReconciliationOutlined, LockOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '@components/layout/PageHeader';
@@ -25,6 +25,7 @@ interface Entry {
 
 const GROUPS = [
   { key: 'Organization & Users', label: 'Organization & Users', icon: <ApartmentOutlined />, color: '#7c3aed', bg: '#f5f3ff' },
+  { key: 'User Management', label: 'User Management', icon: <LockOutlined />, color: '#4338ca', bg: '#eef2ff' },
   { key: 'Counterparties & Agreements', label: 'Counterparties & Agreements', icon: <TeamOutlined />, color: '#0891b2', bg: '#ecfeff' },
   { key: 'Credit & Collateral', label: 'Credit & Collateral', icon: <SafetyCertificateOutlined />, color: '#c2410c', bg: '#fff7ed' },
   { key: 'Products & Markets', label: 'Products & Markets', icon: <ShopOutlined />, color: '#0369a1', bg: '#eff6ff' },
@@ -48,8 +49,6 @@ const ALL_ENTRIES: Entry[] = [
   // ── Organization & Users ──────────────────────────────────────
   { live: true,  db: 'legal_entity',      group: 'Organization & Users', label: 'Legal Entities',      path: '/tier1/legal-entity',          description: 'Registered companies used as booking or trading entities. Required FK for trade capture.', tags: ['entity', 'company', 'corporate', 'lei'], kind: 'entity' },
   { live: true,  db: 'legal_entity_type', group: 'Organization & Users', label: 'Legal Entity Types',  path: '/static-data/legal_entity_type',     description: 'Corporate structure classifications — Trading Company, Subsidiary, Branch, Holding, Broker. Parent table for legal_entity.entity_type FK.', tags: ['legal entity type', 'subsidiary', 'branch', 'holding', 'structure'] },
-  { live: true,  db: 'app_user',          group: 'Organization & Users', label: 'System Users',        path: '/admin/users',                 description: 'Login accounts with assigned roles — ADMIN, TRADER, RISK_MANAGER, OPERATIONS, COMPLIANCE, VIEWER.', tags: ['user', 'role', 'access', 'admin', 'permission'], kind: 'entity' },
-  { live: true,  db: 'user_role',         group: 'Organization & Users', label: 'User Roles',          path: '/admin/roles',                 description: 'Role definitions and module-level permission sets. Controls which screens and actions each role can access.', tags: ['role', 'permission', 'rbac', 'access control'] },
   { live: true,  db: 'desk',              group: 'Organization & Users', label: 'Trading Desks',       path: '/org/desks',                   description: 'Commodity desk hierarchy — crude, gas, power, metals. Defines commodity type assignments and desk heads.', tags: ['desk', 'trading', 'commodity', 'team'], kind: 'entity' },
   { live: true,  db: 'book',              group: 'Organization & Users', label: 'Trading Books',       path: '/org/books',                   description: 'P&L books with position limits, VAR limits, and desk assignment. Each trade is booked to a book.', tags: ['book', 'pnl', 'var', 'position', 'limit'], kind: 'entity' },
   { live: true,  db: 'book_type',         group: 'Organization & Users', label: 'Book Types',          path: '/static-data/book_type',             description: 'Trading mandate classifications — Trading, Hedging, Arbitrage, Prop, Client, Risk Mgmt. Parent table for book.book_type FK.', tags: ['book type', 'trading', 'hedging', 'arbitrage', 'prop', 'risk mgmt'] },
@@ -59,6 +58,11 @@ const ALL_ENTRIES: Entry[] = [
   { live: true,  db: 'event_category',    group: 'Organization & Users', label: 'Event Categories',    path: '/static-data/event_category',         description: 'Top-level classification for system workflow/lifecycle events — Trade, Delivery, Settlement, Risk, Credit, Market Data, Regulatory.', tags: ['event', 'category', 'workflow', 'notification'] },
   { live: true,  db: 'event_type',        group: 'Organization & Users', label: 'Event Types',         path: '/static-data/event_type',              description: 'Full catalogue of system event codes with severity, SLA, and workflow flags — drives the notification engine and audit trail (no notification engine built yet; this is the reference data ahead of it).', tags: ['event', 'type', 'severity', 'sla', 'notification'] },
   { live: true,  db: 'external_system',   group: 'Organization & Users', label: 'External Systems',    path: '/static-data/external_system',         description: 'Integration endpoints — Bloomberg, SAP, DTCC GTR — for the polymorphic external_system_mapping crosswalk (no integrations built yet; this is the reference data ahead of them).', tags: ['integration', 'bloomberg', 'sap', 'dtcc', 'external system'] },
+
+  // ── User Management ───────────────────────────────────────────
+  { live: true,  db: 'app_user',              group: 'User Management', label: 'System Users',        path: '/admin/users',              description: 'Login accounts and their assigned roles.', tags: ['user', 'login', 'account', 'admin'], kind: 'entity' },
+  { live: true,  db: 'user_role',             group: 'User Management', label: 'User Roles',          path: '/admin/roles',              description: 'Role definitions, per-function Read/Read+Write grants, and user-role assignment approvals.', tags: ['role', 'rbac', 'access control', 'approval'], kind: 'entity' },
+  { live: true,  db: 'field_permission_rule', group: 'User Management', label: 'Field Permissions',   path: '/admin/field-permissions',   description: 'Per-role, per-field Edit/View/Hidden overrides — the profile-based permission engine every capture form checks before rendering a field.', tags: ['field permission', 'edit', 'view', 'hidden', 'lock'], kind: 'entity' },
 
   // ── Counterparties & Agreements ───────────────────────────────
   // DB: counterparty.cp_type = PRODUCER|CONSUMER|TRADER|BANK|BROKER|EXCHANGE|INTERCOMPANY|UTILITY|OTHER

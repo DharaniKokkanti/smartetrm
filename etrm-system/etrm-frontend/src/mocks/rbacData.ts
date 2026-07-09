@@ -78,29 +78,66 @@ const viewerGrants: RoleFunction[] = functionsSeed
   .filter((f) => f.functionCode.endsWith('_VIEW') || f.functionCode === 'POS_VIEW')
   .map((f, i) => ({ roleFunctionId: 500 + i, roleId: 6, functionId: f.functionId, functionCode: f.functionCode, accessLevel: 'READ' }));
 
+// CREDIT_ANALYST: read-only risk-monitoring role — counterparty/credit exposure
+// and position visibility, no trade capture or master-data edit rights. Added
+// while fixing the Users page's role field (previously a disconnected, hard-
+// coded string with no matching real user_role row at all — 'CREDIT_ANALYST'
+// existed only on 2 mock user rows and nowhere else, not even as an option in
+// the Role dropdown).
+const creditAnalystFnIds = new Set([1, 6, 10, 14, 18]); // TRADE_VIEW, CP_VIEW, MD_VIEW, SD_VIEW, POS_VIEW
+const creditAnalystGrants: RoleFunction[] = functionsSeed
+  .filter((f) => creditAnalystFnIds.has(f.functionId))
+  .map((f, i) => ({ roleFunctionId: 600 + i, roleId: 8, functionId: f.functionId, functionCode: f.functionCode, accessLevel: 'READ' }));
+
 export const roleFunctionsSeed: RoleFunction[] = [
-  ...adminGrants, ...traderGrants, ...riskGrants, ...opsGrants, ...complianceGrants, ...viewerGrants,
+  ...adminGrants, ...traderGrants, ...riskGrants, ...opsGrants, ...complianceGrants, ...viewerGrants, ...creditAnalystGrants,
 ];
 
 export const rolesSeed: UserRole[] = [
-  { roleId: 1, roleCode: 'ADMIN',        roleName: 'System Administrator', description: 'Full access to all modules including administration', roleType: 'SYSTEM', status: 'APPROVED', rejectionReason: null, isActive: true, createdBy: 'SYSTEM', createdAt: '2026-01-01T00:00:00Z', submittedAt: null, approvedBy: 'SYSTEM', approvedAt: '2026-01-01T00:00:00Z', functions: adminGrants },
-  { roleId: 2, roleCode: 'TRADER',       roleName: 'Trader',               description: 'Create and manage trades; view counterparties and master data', roleType: 'SYSTEM', status: 'APPROVED', rejectionReason: null, isActive: true, createdBy: 'SYSTEM', createdAt: '2026-01-01T00:00:00Z', submittedAt: null, approvedBy: 'SYSTEM', approvedAt: '2026-01-01T00:00:00Z', functions: traderGrants },
-  { roleId: 3, roleCode: 'RISK_MANAGER', roleName: 'Risk Manager',         description: 'View and approve trades; view positions and P&L', roleType: 'SYSTEM', status: 'APPROVED', rejectionReason: null, isActive: true, createdBy: 'SYSTEM', createdAt: '2026-01-01T00:00:00Z', submittedAt: null, approvedBy: 'SYSTEM', approvedAt: '2026-01-01T00:00:00Z', functions: riskGrants },
-  { roleId: 4, roleCode: 'OPERATIONS',   roleName: 'Operations',           description: 'Full counterparty and master data management; view trades', roleType: 'SYSTEM', status: 'APPROVED', rejectionReason: null, isActive: true, createdBy: 'SYSTEM', createdAt: '2026-01-01T00:00:00Z', submittedAt: null, approvedBy: 'SYSTEM', approvedAt: '2026-01-01T00:00:00Z', functions: opsGrants },
-  { roleId: 5, roleCode: 'COMPLIANCE',   roleName: 'Compliance',           description: 'View and manage KYC/counterparty data; view trades', roleType: 'SYSTEM', status: 'APPROVED', rejectionReason: null, isActive: true, createdBy: 'SYSTEM', createdAt: '2026-01-01T00:00:00Z', submittedAt: null, approvedBy: 'SYSTEM', approvedAt: '2026-01-01T00:00:00Z', functions: complianceGrants },
-  { roleId: 6, roleCode: 'VIEWER',       roleName: 'Read-Only Viewer',     description: 'Read-only access to all non-admin modules', roleType: 'SYSTEM', status: 'APPROVED', rejectionReason: null, isActive: true, createdBy: 'SYSTEM', createdAt: '2026-01-01T00:00:00Z', submittedAt: null, approvedBy: 'SYSTEM', approvedAt: '2026-01-01T00:00:00Z', functions: viewerGrants },
+  { roleId: 1, roleCode: 'ADMIN',          roleName: 'System Administrator', description: 'Full access to all modules including administration', roleType: 'SYSTEM', status: 'APPROVED', rejectionReason: null, isActive: true, createdBy: 'SYSTEM', createdAt: '2026-01-01T00:00:00Z', submittedAt: null, approvedBy: 'SYSTEM', approvedAt: '2026-01-01T00:00:00Z', functions: adminGrants },
+  { roleId: 2, roleCode: 'TRADER',         roleName: 'Trader',               description: 'Create and manage trades; view counterparties and master data', roleType: 'SYSTEM', status: 'APPROVED', rejectionReason: null, isActive: true, createdBy: 'SYSTEM', createdAt: '2026-01-01T00:00:00Z', submittedAt: null, approvedBy: 'SYSTEM', approvedAt: '2026-01-01T00:00:00Z', functions: traderGrants },
+  { roleId: 3, roleCode: 'RISK_MANAGER',   roleName: 'Risk Manager',         description: 'View and approve trades; view positions and P&L', roleType: 'SYSTEM', status: 'APPROVED', rejectionReason: null, isActive: true, createdBy: 'SYSTEM', createdAt: '2026-01-01T00:00:00Z', submittedAt: null, approvedBy: 'SYSTEM', approvedAt: '2026-01-01T00:00:00Z', functions: riskGrants },
+  { roleId: 4, roleCode: 'OPERATIONS',     roleName: 'Operations',           description: 'Full counterparty and master data management; view trades', roleType: 'SYSTEM', status: 'APPROVED', rejectionReason: null, isActive: true, createdBy: 'SYSTEM', createdAt: '2026-01-01T00:00:00Z', submittedAt: null, approvedBy: 'SYSTEM', approvedAt: '2026-01-01T00:00:00Z', functions: opsGrants },
+  { roleId: 5, roleCode: 'COMPLIANCE',     roleName: 'Compliance',           description: 'View and manage KYC/counterparty data; view trades', roleType: 'SYSTEM', status: 'APPROVED', rejectionReason: null, isActive: true, createdBy: 'SYSTEM', createdAt: '2026-01-01T00:00:00Z', submittedAt: null, approvedBy: 'SYSTEM', approvedAt: '2026-01-01T00:00:00Z', functions: complianceGrants },
+  { roleId: 6, roleCode: 'VIEWER',         roleName: 'Read-Only Viewer',     description: 'Read-only access to all non-admin modules', roleType: 'SYSTEM', status: 'APPROVED', rejectionReason: null, isActive: true, createdBy: 'SYSTEM', createdAt: '2026-01-01T00:00:00Z', submittedAt: null, approvedBy: 'SYSTEM', approvedAt: '2026-01-01T00:00:00Z', functions: viewerGrants },
   // One custom role in PENDING_APPROVAL state
-  { roleId: 7, roleCode: 'CRUDE_TRADER', roleName: 'Crude Oil Trader',     description: 'Crude-specific role with full trade access and read-only positions', roleType: 'CUSTOM', status: 'PENDING_APPROVAL', rejectionReason: null, isActive: true, createdBy: 'john.doe', createdAt: '2026-06-20T09:00:00Z', submittedAt: '2026-06-20T09:05:00Z', approvedBy: null, approvedAt: null, functions: [] },
+  { roleId: 7, roleCode: 'CRUDE_TRADER',   roleName: 'Crude Oil Trader',     description: 'Crude-specific role with full trade access and read-only positions', roleType: 'CUSTOM', status: 'PENDING_APPROVAL', rejectionReason: null, isActive: true, createdBy: 'john.doe', createdAt: '2026-06-20T09:00:00Z', submittedAt: '2026-06-20T09:05:00Z', approvedBy: null, approvedAt: null, functions: [] },
+  { roleId: 8, roleCode: 'CREDIT_ANALYST', roleName: 'Credit Analyst',       description: 'Read-only counterparty, credit exposure, and position visibility for risk monitoring', roleType: 'SYSTEM', status: 'APPROVED', rejectionReason: null, isActive: true, createdBy: 'SYSTEM', createdAt: '2026-06-01T00:00:00Z', submittedAt: null, approvedBy: 'SYSTEM', approvedAt: '2026-06-01T00:00:00Z', functions: creditAnalystGrants },
 ];
 
+// One ACTIVE assignment per system user (mocks/etrmHandlers.ts's systemUsersStore,
+// userId 1-9) — this is the real source of a user's role now (the Users page
+// used to carry its own redundant, hardcoded `role` string with
+// no connection to user_role at all; that field is gone, this is the only
+// place a user's role lives).
 export const assignmentsSeed: UserRoleAssignment[] = [
-  { assignmentId: 1, userId: 1, roleId: 1, roleName: 'System Administrator', roleCode: 'ADMIN',   status: 'ACTIVE', assignedBy: 'SYSTEM', assignedAt: '2026-01-01T00:00:00Z', approvedBy: 'SYSTEM', approvedAt: '2026-01-01T00:00:00Z', rejectionReason: null, validFrom: '2026-01-01', validTo: null, isActive: true },
-  { assignmentId: 2, userId: 2, roleId: 2, roleName: 'Trader',               roleCode: 'TRADER',  status: 'ACTIVE', assignedBy: 'admin',  assignedAt: '2026-01-15T10:00:00Z', approvedBy: 'admin',  approvedAt: '2026-01-15T10:30:00Z', rejectionReason: null, validFrom: '2026-01-15', validTo: null, isActive: true },
-  { assignmentId: 3, userId: 3, roleId: 3, roleName: 'Risk Manager',         roleCode: 'RISK_MANAGER', status: 'ACTIVE', assignedBy: 'admin', assignedAt: '2026-01-15T10:00:00Z', approvedBy: 'admin', approvedAt: '2026-01-15T10:30:00Z', rejectionReason: null, validFrom: '2026-01-15', validTo: null, isActive: true },
-  { assignmentId: 4, userId: 4, roleId: 4, roleName: 'Operations',           roleCode: 'OPERATIONS', status: 'PENDING_APPROVAL', assignedBy: 'admin', assignedAt: '2026-06-25T09:00:00Z', approvedBy: null, approvedAt: null, rejectionReason: null, validFrom: '2026-06-25', validTo: null, isActive: true },
+  { assignmentId: 1, userId: 1, roleId: 1, roleName: 'System Administrator', roleCode: 'ADMIN',          status: 'ACTIVE', assignedBy: 'SYSTEM', assignedAt: '2026-01-01T00:00:00Z', approvedBy: 'SYSTEM', approvedAt: '2026-01-01T00:00:00Z', rejectionReason: null, validFrom: '2026-01-01', validTo: null, isActive: true },
+  { assignmentId: 2, userId: 2, roleId: 2, roleName: 'Trader',               roleCode: 'TRADER',         status: 'ACTIVE', assignedBy: 'admin',  assignedAt: '2026-01-15T10:00:00Z', approvedBy: 'admin',  approvedAt: '2026-01-15T10:30:00Z', rejectionReason: null, validFrom: '2026-01-15', validTo: null, isActive: true },
+  { assignmentId: 3, userId: 3, roleId: 2, roleName: 'Trader',               roleCode: 'TRADER',         status: 'ACTIVE', assignedBy: 'admin',  assignedAt: '2026-01-15T10:00:00Z', approvedBy: 'admin',  approvedAt: '2026-01-15T10:30:00Z', rejectionReason: null, validFrom: '2026-01-15', validTo: null, isActive: true },
+  { assignmentId: 4, userId: 4, roleId: 3, roleName: 'Risk Manager',         roleCode: 'RISK_MANAGER',   status: 'ACTIVE', assignedBy: 'admin',  assignedAt: '2026-01-15T10:00:00Z', approvedBy: 'admin',  approvedAt: '2026-01-15T10:30:00Z', rejectionReason: null, validFrom: '2026-01-15', validTo: null, isActive: true },
+  { assignmentId: 5, userId: 5, roleId: 5, roleName: 'Compliance',           roleCode: 'COMPLIANCE',     status: 'ACTIVE', assignedBy: 'admin',  assignedAt: '2026-01-15T10:00:00Z', approvedBy: 'admin',  approvedAt: '2026-01-15T10:30:00Z', rejectionReason: null, validFrom: '2026-01-15', validTo: null, isActive: true },
+  // Pending approval — kept as the one worked example of the request/approve workflow
+  { assignmentId: 6, userId: 6, roleId: 4, roleName: 'Operations',           roleCode: 'OPERATIONS',     status: 'PENDING_APPROVAL', assignedBy: 'admin', assignedAt: '2026-06-25T09:00:00Z', approvedBy: null, approvedAt: null, rejectionReason: null, validFrom: '2026-06-25', validTo: null, isActive: true },
+  { assignmentId: 7, userId: 7, roleId: 6, roleName: 'Read-Only Viewer',     roleCode: 'VIEWER',         status: 'ACTIVE', assignedBy: 'admin',  assignedAt: '2026-01-15T10:00:00Z', approvedBy: 'admin',  approvedAt: '2026-01-15T10:30:00Z', rejectionReason: null, validFrom: '2026-01-15', validTo: null, isActive: true },
+  { assignmentId: 8, userId: 8, roleId: 8, roleName: 'Credit Analyst',       roleCode: 'CREDIT_ANALYST', status: 'ACTIVE', assignedBy: 'admin',  assignedAt: '2026-06-01T00:00:00Z', approvedBy: 'admin',  approvedAt: '2026-06-01T00:30:00Z', rejectionReason: null, validFrom: '2026-06-01', validTo: null, isActive: true },
+  { assignmentId: 9, userId: 9, roleId: 8, roleName: 'Credit Analyst',       roleCode: 'CREDIT_ANALYST', status: 'ACTIVE', assignedBy: 'admin',  assignedAt: '2026-06-01T00:00:00Z', approvedBy: 'admin',  approvedAt: '2026-06-01T00:30:00Z', rejectionReason: null, validFrom: '2026-06-01', validTo: null, isActive: true },
 ];
 
-let nextRoleId = 8;
-let nextAssignmentId = 5;
+let nextRoleId = 9;
+let nextAssignmentId = 10;
 export function nextRoleId_() { return nextRoleId++; }
 export function nextAssignmentId_() { return nextAssignmentId++; }
+
+// Live, mutable working copies — the single source of truth every RBAC mock
+// handler reads/writes, in whichever file (rbacHandlers.ts for roles/role-
+// assignments, etrmHandlers.ts for the admin/users denormalization and the
+// pending-assignment-on-create side effect). Previously rbacHandlers.ts held
+// its own private `const roles = [...rolesSeed]` copy — fine as long as
+// nothing else needed the same live data, but the Users page fix needs to
+// read (and, on create, write) these same rows, so a second private copy
+// would silently drift the moment either side mutated its own. Same class of
+// shadow-store bug as the legalEntityStore-vs-legalEntitiesRef lesson
+// elsewhere in this codebase.
+export const rolesStore: UserRole[] = [...rolesSeed];
+export const roleFunctionsStore: RoleFunction[] = [...roleFunctionsSeed];
+export const assignmentsStore: UserRoleAssignment[] = [...assignmentsSeed];

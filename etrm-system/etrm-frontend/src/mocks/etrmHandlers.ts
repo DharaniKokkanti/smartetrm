@@ -8,6 +8,7 @@ import { http, HttpResponse } from 'msw';
 import { legalEntityStore } from './handlers';
 import { cpStore } from './counterpartyHandlers';
 import { rowSeed as referenceRowSeed } from './referenceData';
+import { rolesStore, assignmentsStore, nextAssignmentId_ } from './rbacData';
 
 const API = '/api/v1';
 function problem(status: number, title: string, detail: string) {
@@ -380,16 +381,37 @@ const balmoProductsStore: unknown[] = [
 ];
 
 // ─── SYSTEM USERS ─────────────────────────────────────────────────────────────
+// A user's current role assignment — prefers an ACTIVE one, falls back to a
+// PENDING_APPROVAL one so a brand-new user's requested (not yet approved)
+// role is still visible on the grid rather than looking role-less.
+function currentAssignment(userId: number) {
+  const mine = assignmentsStore.filter((a) => a.userId === userId && a.isActive);
+  return mine.find((a) => a.status === 'ACTIVE') ?? mine.find((a) => a.status === 'PENDING_APPROVAL') ?? null;
+}
+function denormalizeSystemUser(u: Record<string, unknown>) {
+  const assignment = currentAssignment(Number(u['userId']));
+  return {
+    ...u,
+    roleId: assignment?.roleId ?? null,
+    roleCode: assignment?.roleCode ?? null,
+    roleName: assignment?.roleName ?? null,
+    assignmentStatus: assignment?.status ?? null,
+  };
+}
+
+// V79 follow-up: no `role` column — dbo.app_user never had one. A user's
+// role is entirely denormalized from mocks/rbacData.ts's assignmentsStore at
+// read time (see the custom GET below), matching the real schema.
 const systemUsersStore: unknown[] = [
-  { userId: 1, username: 'admin', email: 'admin@smartetrm.com', fullName: 'System Administrator', role: 'ADMIN', traderId: null, department: 'IT', phone: '+44 20 7123 0001', preferredLocale: 'en-GB', officeLocation: 'London', isActive: true, lastLogin: '2026-06-27T08:00:00Z', createdAt: '2024-01-01T00:00:00Z' },
-  { userId: 2, username: 'j.doe', email: 'john.doe@smartetrm.com', fullName: 'John Doe', role: 'TRADER', traderId: 1, department: 'Crude Oil Trading', phone: '+44 20 7123 0002', preferredLocale: 'en-GB', officeLocation: 'London', isActive: true, lastLogin: '2026-06-27T09:30:00Z', createdAt: '2024-01-01T00:00:00Z' },
-  { userId: 3, username: 'a.smith', email: 'alice.smith@smartetrm.com', fullName: 'Alice Smith', role: 'TRADER', traderId: 2, department: 'European Gas', phone: '+44 20 7123 0003', preferredLocale: 'en-US', officeLocation: 'Houston', isActive: true, lastLogin: '2026-06-26T17:00:00Z', createdAt: '2024-01-01T00:00:00Z' },
-  { userId: 4, username: 'risk.mgr', email: 'risk@smartetrm.com', fullName: 'Risk Manager', role: 'RISK_MANAGER', traderId: null, department: 'Risk Management', phone: null, preferredLocale: 'en-SG', officeLocation: 'Singapore', isActive: true, lastLogin: '2026-06-27T07:45:00Z', createdAt: '2024-01-01T00:00:00Z' },
-  { userId: 5, username: 'compliance', email: 'compliance@smartetrm.com', fullName: 'Compliance Officer', role: 'COMPLIANCE', traderId: null, department: 'Legal & Compliance', phone: null, preferredLocale: 'fr-FR', officeLocation: 'Paris', isActive: true, lastLogin: '2026-06-25T14:00:00Z', createdAt: '2024-01-01T00:00:00Z' },
-  { userId: 6, username: 'ops.team', email: 'operations@smartetrm.com', fullName: 'Operations Team', role: 'OPERATIONS', traderId: null, department: 'Operations', phone: '+44 20 7123 0006', preferredLocale: 'en-GB', officeLocation: 'London', isActive: true, lastLogin: '2026-06-27T08:30:00Z', createdAt: '2024-01-01T00:00:00Z' },
-  { userId: 7, username: 'viewer1', email: 'viewer@smartetrm.com', fullName: 'Board Viewer', role: 'VIEWER', traderId: null, department: 'Executive', phone: null, preferredLocale: null, officeLocation: null, isActive: false, lastLogin: '2026-05-01T10:00:00Z', createdAt: '2024-01-01T00:00:00Z' },
-  { userId: 8, username: 's.chen', email: 'sarah.chen@smartetrm.com', fullName: 'Sarah Chen', role: 'CREDIT_ANALYST', traderId: null, department: 'Credit Risk', phone: '+44 20 7123 0008', preferredLocale: 'en-GB', officeLocation: 'London', isActive: true, lastLogin: '2026-07-02T09:15:00Z', createdAt: '2024-06-01T00:00:00Z' },
-  { userId: 9, username: 'm.webb', email: 'marcus.webb@smartetrm.com', fullName: 'Marcus Webb', role: 'CREDIT_ANALYST', traderId: null, department: 'Credit Risk', phone: '+65 6123 0009', preferredLocale: 'en-SG', officeLocation: 'Singapore', isActive: true, lastLogin: '2026-07-02T03:40:00Z', createdAt: '2025-01-15T00:00:00Z' },
+  { userId: 1, username: 'admin', email: 'admin@smartetrm.com', fullName: 'System Administrator', traderId: null, department: 'IT', phone: '+44 20 7123 0001', preferredLocale: 'en-GB', officeLocation: 'London', isActive: true, lastLogin: '2026-06-27T08:00:00Z', createdAt: '2024-01-01T00:00:00Z' },
+  { userId: 2, username: 'j.doe', email: 'john.doe@smartetrm.com', fullName: 'John Doe', traderId: 1, department: 'Crude Oil Trading', phone: '+44 20 7123 0002', preferredLocale: 'en-GB', officeLocation: 'London', isActive: true, lastLogin: '2026-06-27T09:30:00Z', createdAt: '2024-01-01T00:00:00Z' },
+  { userId: 3, username: 'a.smith', email: 'alice.smith@smartetrm.com', fullName: 'Alice Smith', traderId: 2, department: 'European Gas', phone: '+44 20 7123 0003', preferredLocale: 'en-US', officeLocation: 'Houston', isActive: true, lastLogin: '2026-06-26T17:00:00Z', createdAt: '2024-01-01T00:00:00Z' },
+  { userId: 4, username: 'risk.mgr', email: 'risk@smartetrm.com', fullName: 'Risk Manager', traderId: null, department: 'Risk Management', phone: null, preferredLocale: 'en-SG', officeLocation: 'Singapore', isActive: true, lastLogin: '2026-06-27T07:45:00Z', createdAt: '2024-01-01T00:00:00Z' },
+  { userId: 5, username: 'compliance', email: 'compliance@smartetrm.com', fullName: 'Compliance Officer', traderId: null, department: 'Legal & Compliance', phone: null, preferredLocale: 'fr-FR', officeLocation: 'Paris', isActive: true, lastLogin: '2026-06-25T14:00:00Z', createdAt: '2024-01-01T00:00:00Z' },
+  { userId: 6, username: 'ops.team', email: 'operations@smartetrm.com', fullName: 'Operations Team', traderId: null, department: 'Operations', phone: '+44 20 7123 0006', preferredLocale: 'en-GB', officeLocation: 'London', isActive: true, lastLogin: '2026-06-27T08:30:00Z', createdAt: '2024-01-01T00:00:00Z' },
+  { userId: 7, username: 'viewer1', email: 'viewer@smartetrm.com', fullName: 'Board Viewer', traderId: null, department: 'Executive', phone: null, preferredLocale: null, officeLocation: null, isActive: false, lastLogin: '2026-05-01T10:00:00Z', createdAt: '2024-01-01T00:00:00Z' },
+  { userId: 8, username: 's.chen', email: 'sarah.chen@smartetrm.com', fullName: 'Sarah Chen', traderId: null, department: 'Credit Risk', phone: '+44 20 7123 0008', preferredLocale: 'en-GB', officeLocation: 'London', isActive: true, lastLogin: '2026-07-02T09:15:00Z', createdAt: '2024-06-01T00:00:00Z' },
+  { userId: 9, username: 'm.webb', email: 'marcus.webb@smartetrm.com', fullName: 'Marcus Webb', traderId: null, department: 'Credit Risk', phone: '+65 6123 0009', preferredLocale: 'en-SG', officeLocation: 'Singapore', isActive: true, lastLogin: '2026-07-02T03:40:00Z', createdAt: '2025-01-15T00:00:00Z' },
 ];
 
 // ─── PAYMENT TERMS ─────────────────────────────────────────────────────────────
@@ -2060,6 +2082,43 @@ export const etrmHandlers = [
   }),
 
   // New master data domains
+  // ── System Users (V79 follow-up) ──────────────────────────────────────────
+  // Custom GET/POST (before crudHandlers) — role is denormalized live from
+  // rbacData.ts's assignmentsStore (the real user_role_assignment mock), not
+  // a stored column on the user row, and creating a user also requests their
+  // initial role assignment through the same pending-approval path the Roles
+  // & Permissions page's "User Assignments" tab already uses — no bypass, no
+  // second write path for the same data.
+  http.get(`${API}/admin/users`, () =>
+    HttpResponse.json((systemUsersStore as Array<Record<string, unknown>>).map(denormalizeSystemUser)),
+  ),
+  http.post(`${API}/admin/users`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const { roleId, ...userFields } = input;
+    const maxId = (systemUsersStore as Array<Record<string, unknown>>).reduce((m, r) => Math.max(m, Number(r['userId'])), 0);
+    const user = { ...userFields, userId: maxId + 1, createdAt: now(), lastLogin: null };
+    (systemUsersStore as Array<Record<string, unknown>>).push(user);
+    const role = roleId != null ? rolesStore.find((r) => r.roleId === Number(roleId)) : undefined;
+    if (role && role.status === 'APPROVED') {
+      assignmentsStore.push({
+        assignmentId: nextAssignmentId_(),
+        userId: Number(user.userId),
+        roleId: role.roleId,
+        roleName: role.roleName,
+        roleCode: role.roleCode,
+        status: 'PENDING_APPROVAL',
+        assignedBy: 'mock-user',
+        assignedAt: now(),
+        approvedBy: null,
+        approvedAt: null,
+        rejectionReason: null,
+        validFrom: now().slice(0, 10),
+        validTo: null,
+        isActive: true,
+      });
+    }
+    return HttpResponse.json(denormalizeSystemUser(user), { status: 201 });
+  }),
   ...crudHandlers('admin/users', systemUsersStore as Array<Record<string, unknown>>, 'userId'),
   ...crudHandlers('payment-terms', paymentTermsStore as Array<Record<string, unknown>>, 'paymentTermId'),
   ...crudHandlers('payment-methods', paymentMethodsStore as Array<Record<string, unknown>>, 'paymentMethodId'),

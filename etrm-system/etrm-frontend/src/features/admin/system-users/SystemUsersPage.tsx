@@ -7,20 +7,16 @@ import { SmartGrid } from '@components/smart/SmartGrid';
 import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import { useSystemUsers, useSaveSystemUser, useDeactivateSystemUser } from './hooks';
-import { USER_ROLES, type SystemUser, type SystemUserInput, type UserRole } from './types';
+import type { SystemUser, SystemUserInput } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
-
-const ROLE_COLOR: Record<UserRole, string> = {
-  ADMIN: 'red',
-  TRADER: 'blue',
-  RISK_MANAGER: 'orange',
-  OPERATIONS: 'cyan',
-  COMPLIANCE: 'purple',
-  VIEWER: 'default',
-};
+import { useRoles } from '@features/admin/roles/hooks';
 
 export function SystemUsersPage() {
   const { data, isLoading, refetch } = useSystemUsers();
+  const { data: allRoles = [] } = useRoles();
+  // Only APPROVED roles can actually be requested for a user — same
+  // constraint the role-assignment endpoint itself enforces.
+  const assignableRoles = useMemo(() => allRoles.filter((r) => r.status === 'APPROVED'), [allRoles]);
   const save = useSaveSystemUser();
   const deactivate = useDeactivateSystemUser();
   const [open, setOpen] = useState(false);
@@ -41,7 +37,7 @@ export function SystemUsersPage() {
       username: u.username,
       email: u.email,
       fullName: u.fullName,
-      role: u.role,
+      roleId: u.roleId ?? undefined,
       traderId: u.traderId ?? undefined,
       department: u.department ?? undefined,
       phone: u.phone ?? undefined,
@@ -63,10 +59,13 @@ export function SystemUsersPage() {
     { field: 'fullName', headerName: 'Full Name', flex: 1 },
     { field: 'email', headerName: 'Email', flex: 1.2 },
     {
-      field: 'role', headerName: 'Role', width: 140,
-      cellRenderer: (p: { value: UserRole }) => (
-        <Tag color={ROLE_COLOR[p.value] ?? 'default'}>{p.value.replace(/_/g, ' ')}</Tag>
-      ),
+      field: 'roleCode', headerName: 'Role', width: 170,
+      cellRenderer: (p: { data: SystemUser }) => p.data.roleCode ? (
+        <Space size={4}>
+          <Tag>{p.data.roleName ?? p.data.roleCode}</Tag>
+          {p.data.assignmentStatus === 'PENDING_APPROVAL' && <Tag color="orange">Pending</Tag>}
+        </Space>
+      ) : <Tag color="default">No role</Tag>,
     },
     { field: 'department', headerName: 'Department', flex: 0.8, valueFormatter: (p) => p.value ?? '—' },
     { field: 'officeLocation', headerName: 'Location', width: 120, valueFormatter: (p) => p.value ?? '—' },
@@ -144,13 +143,20 @@ export function SystemUsersPage() {
             <Input placeholder="Jane Doe" />
           </Form.Item>
           <Form.Item
-            name="role"
-            label={hint('Role', 'ADMIN = full system access. TRADER = deal capture + own book view. RISK_MANAGER = read all positions. COMPLIANCE = trade surveillance. VIEWER = read-only.')}
-            rules={[{ required: true, message: 'Role is required' }]}
+            name="roleId"
+            label={hint(
+              'Role',
+              editing
+                ? 'Set once, on creation. To change an existing user’s role, use Roles & Permissions → User Assignments — that keeps the request/approval history intact instead of silently overwriting access.'
+                : 'Requests this role for the new user — goes to Roles & Permissions → User Assignments for approval before it takes effect, same as any other role assignment.',
+            )}
+            rules={[{ required: !editing, message: 'Role is required' }]}
+            extra={editing?.assignmentStatus === 'PENDING_APPROVAL' ? 'Awaiting approval on Roles & Permissions → User Assignments.' : undefined}
           >
             <Select
-              options={USER_ROLES.map((r) => ({ label: r.replace(/_/g, ' '), value: r }))}
+              options={assignableRoles.map((r) => ({ label: r.roleName, value: r.roleId }))}
               placeholder="Select role"
+              disabled={!!editing}
             />
           </Form.Item>
           <Form.Item name="department" label="Department">
