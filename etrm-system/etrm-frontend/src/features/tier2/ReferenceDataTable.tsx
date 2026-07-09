@@ -132,7 +132,7 @@ function columnHint(col: ColumnMetadata): { text: string; format?: string } {
     case 'foreign_key':
       return {
         text: col.foreignKeyCategory
-          ? `Fixed list of values ('${col.foreignKeyCategory}') managed in Lookup Values — pick one from the list below instead of typing an id.${optionalSuffix}`
+          ? `Values come from Lookup Values, filtered to the '${col.foreignKeyCategory}' category — pick one from the list below instead of typing an id.${optionalSuffix}`
           : `References a row in the ${col.foreignKeyTable ?? 'linked'} table — pick one from the list below instead of typing an id.${optionalSuffix}`,
       };
     case 'enum':
@@ -337,17 +337,30 @@ export function ReferenceDataTable({ table }: Props) {
     });
     return Array.from(map.entries());
   }, [editableColumns]);
+  // V85: lookup_value.category went from a free-text string to a real
+  // category_id FK, so a foreignKeyCategory code (e.g. 'operator_type') has
+  // to be resolved through lookup_category before it can filter lookup_value
+  // rows by categoryId. Only fetched when some column actually needs it.
+  const needsCategoryLookup = useMemo(() => fkTargets.some(([, { category }]) => category), [fkTargets]);
+  const { data: lookupCategoryRows = [] } = useTableRows(needsCategoryLookup ? 'lookup_category' : null);
+  const categoryIdByCode = useMemo(
+    () => new Map((lookupCategoryRows as ReferenceDataRow[]).map((r) => [r['categoryCode'] as string, r['categoryId'] as number])),
+    [lookupCategoryRows],
+  );
   const fkOptions = useMemo(() => {
     const map: Record<string, { value: number; label: string }[]> = {};
     fkTargets.forEach(([key, { table, category }]) => {
       const i = fkTables.indexOf(table);
       let targetRows = (fkResults[i]?.data ?? []) as ReferenceDataRow[];
-      if (category) targetRows = targetRows.filter((r) => r['category'] === category);
+      if (category) {
+        const categoryId = categoryIdByCode.get(category);
+        targetRows = targetRows.filter((r) => r['categoryId'] === categoryId);
+      }
       const pkField = fkMetaResults[i]?.data?.primaryKeyColumn ?? primaryKeyFieldFor(table);
       map[key] = targetRows.map((r) => ({ value: r[pkField] as number, label: fkOptionLabel(r, r[pkField] as number) }));
     });
     return map;
-  }, [fkTargets, fkTables, fkResults, fkMetaResults]);
+  }, [fkTargets, fkTables, fkResults, fkMetaResults, categoryIdByCode]);
 
   // ISO_3166_COLS columns (countryCode/jurisdictionCode/incorporationCountry)
   // resolve against the real country reference entity, fetched once here and

@@ -267,15 +267,19 @@ const CLASSIFICATION_COLOR: Record<string, string> = {
   POSITION: 'blue', VAR: 'volcano', SETTLEMENT: 'green',
 };
 
-type LookupValueRow = { lookupId: number; category: string; code: string; displayName: string; isActive: boolean };
+type LookupValueRow = { lookupId: number; categoryId: number; code: string; displayName: string; isActive: boolean };
+type LookupCategoryRow = { categoryId: number; categoryCode: string };
 
 function ReportingGroupsTab({ productId }: { productId: number }) {
   const { data = [], isLoading } = useProductReportingGroups(productId);
   const { data: allGroups = [] } = useTableRows('reporting_group');
   const { data: allLookups = [] } = useTableRows('lookup_value');
+  const { data: allCategories = [] } = useTableRows('lookup_category');
   const groups = allGroups as unknown as ReportingGroup[];
+  const reportingClassificationCategoryId = (allCategories as unknown as LookupCategoryRow[])
+    .find((c) => c.categoryCode === 'REPORTING_CLASSIFICATION_TYPE')?.categoryId;
   const classificationTypes = (allLookups as unknown as LookupValueRow[])
-    .filter((l) => l.category === 'REPORTING_CLASSIFICATION_TYPE' && l.isActive);
+    .filter((l) => l.categoryId === reportingClassificationCategoryId && l.isActive);
   const assign = useAssignReportingGroup(productId);
   const remove = useRemoveReportingGroup(productId);
   const [showAssign, setShowAssign] = useState(false);

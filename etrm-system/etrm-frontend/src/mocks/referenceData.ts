@@ -10,14 +10,17 @@ function col(
   return { name, label, kind, isPrimaryKey, nullable, maxLength, enumValues, foreignKeyTable, foreignKeyCategory };
 }
 
-// V55: commodity_type moved from a hardcoded VARCHAR+CHECK to an INT FK on
-// dbo.lookup_value(lookup_id) (category='commodity_type', seeded in that
-// order: OIL=1, GAS=2, POWER=3, LNG=4, AGRICULTURAL=5, METALS=6, FREIGHT=7,
-// RINS=8, ENVIRONMENTAL=9, MULTI=10, OTHER=11). rowSeed values below use
-// those ids directly. There's no `lookup_value` mock table yet (a pre-
-// existing gap — see the `uomId` placeholder note further down), so these
-// ids aren't independently resolvable to a label in the mock layer; they
-// only need to be stable, non-null identifiers.
+// V55 moved commodity_type from a hardcoded VARCHAR+CHECK to an INT FK on
+// dbo.lookup_value(lookup_id); V85 later pulled it back out into its own
+// dedicated dbo.commodity_type table (see PARENT_LOOKUP_TABLES below —
+// 'commodity_type' entry, ids seeded in the same order this comment used to
+// document: OIL=1, GAS=2, POWER=3, LNG=4, AGRICULTURAL=5, METALS=6,
+// FREIGHT=7, RINS=8, ENVIRONMENTAL=9, MULTI=10, OTHER=11). The various
+// bespoke entity mocks below (book/desk/gl_account/etc., in etrmHandlers.ts,
+// not this file) reference commodityType as a raw numeric id without a real
+// FK lookup modeled in the mock layer — a pre-existing gap (see the `uomId`
+// placeholder note further down) — but those ids do line up with real
+// dbo.commodity_type rows now.
 
 // ─── Factory: standard parent-lookup table metadata ───────────────────────────
 // All 13 V17 parent tables share the same column shape:
@@ -134,6 +137,23 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
       { bankAccountTypeId: 4, typeCode: 'MARGIN',     typeName: 'Margin',     sortOrder: 4, isActive: true },
       { bankAccountTypeId: 5, typeCode: 'GENERAL',    typeName: 'General',    sortOrder: 5, isActive: true },
       { bankAccountTypeId: 6, typeCode: 'ESCROW',     typeName: 'Escrow',     sortOrder: 6, isActive: true },
+    ],
+  },
+  {
+    name: 'commodity_type', label: 'Commodity Types', pk: 'commodityTypeId', group: 'Products & Markets', order: 9,
+    subGroup: 'Classification', description: 'Sector classification reused across desks, books, GL accounts, periods, and other tables — pulled out of the generic Lookup Values system (V85) into its own dedicated table.',
+    rows: [
+      { commodityTypeId: 1,  typeCode: 'OIL',           typeName: 'Oil',             description: 'Crude oil and refined petroleum products.',        sortOrder: 1,  isActive: true },
+      { commodityTypeId: 2,  typeCode: 'GAS',           typeName: 'Gas',             description: 'Pipeline natural gas.',                            sortOrder: 2,  isActive: true },
+      { commodityTypeId: 3,  typeCode: 'POWER',         typeName: 'Power',           description: 'Wholesale electricity.',                           sortOrder: 3,  isActive: true },
+      { commodityTypeId: 4,  typeCode: 'LNG',           typeName: 'LNG',             description: 'Liquefied natural gas.',                           sortOrder: 4,  isActive: true },
+      { commodityTypeId: 5,  typeCode: 'AGRICULTURAL',  typeName: 'Agricultural',    description: 'Grains, oilseeds, and soft commodities.',          sortOrder: 5,  isActive: true },
+      { commodityTypeId: 6,  typeCode: 'METALS',        typeName: 'Metals',          description: 'Base and precious metals.',                        sortOrder: 6,  isActive: true },
+      { commodityTypeId: 7,  typeCode: 'FREIGHT',       typeName: 'Freight',         description: 'Vessel charter and freight contracts.',            sortOrder: 7,  isActive: true },
+      { commodityTypeId: 8,  typeCode: 'RINS',          typeName: 'RINs',            description: 'Renewable Identification Numbers (RFS).',          sortOrder: 8,  isActive: true },
+      { commodityTypeId: 9,  typeCode: 'ENVIRONMENTAL', typeName: 'Environmental',   description: 'Emissions, carbon, and environmental products.',   sortOrder: 9,  isActive: true },
+      { commodityTypeId: 10, typeCode: 'MULTI',         typeName: 'Multi-Commodity', description: 'Spans more than one commodity sector.',            sortOrder: 10, isActive: true },
+      { commodityTypeId: 11, typeCode: 'OTHER',         typeName: 'Other',           description: 'Sector not covered by the classifications above.', sortOrder: 11, isActive: true },
     ],
   },
   {
@@ -319,48 +339,25 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   // ── Trade — commodity-detail dropdowns ────────────────────────────────────────
-  {
-    name: 'crude_grade_type', label: 'Crude Oil Grades', pk: 'crudeGradeId', group: 'Products & Markets', order: 5,
-    subGroup: 'Oil Details', description: 'Named crude oil grades and blends tradeable under dated benchmark pricing. Determines applicable quality spec, pricing differential, and delivery point. Managed by the Oil Operations team.',
-    rows: [
-      { crudeGradeId:  1, typeCode: 'BRENT',       typeName: 'Brent Blend',             region: 'North Sea',    benchmarkIndex: 'DTBRT', sortOrder: 10, isActive: true },
-      { crudeGradeId:  2, typeCode: 'FORTIES',      typeName: 'Forties Blend',           region: 'North Sea',    benchmarkIndex: 'DTBRT', sortOrder: 20, isActive: true },
-      { crudeGradeId:  3, typeCode: 'OSEBERG',      typeName: 'Oseberg Blend',           region: 'North Sea',    benchmarkIndex: 'DTBRT', sortOrder: 30, isActive: true },
-      { crudeGradeId:  4, typeCode: 'EKOFISK',      typeName: 'Ekofisk Blend',           region: 'North Sea',    benchmarkIndex: 'DTBRT', sortOrder: 40, isActive: true },
-      { crudeGradeId:  5, typeCode: 'TROLL',        typeName: 'Troll Crude',             region: 'North Sea',    benchmarkIndex: 'DTBRT', sortOrder: 50, isActive: true },
-      { crudeGradeId:  6, typeCode: 'WTI',          typeName: 'West Texas Intermediate', region: 'Americas',     benchmarkIndex: 'WTI-NYMEX', sortOrder: 60, isActive: true },
-      { crudeGradeId:  7, typeCode: 'URALS',        typeName: 'Urals Blend',             region: 'CIS',          benchmarkIndex: 'DTBRT', sortOrder: 70, isActive: true },
-      { crudeGradeId:  8, typeCode: 'DUBAI',        typeName: 'Dubai Crude',             region: 'Middle East',  benchmarkIndex: 'DUBAI-OMAN', sortOrder: 80, isActive: true },
-      { crudeGradeId:  9, typeCode: 'OMAN',         typeName: 'Oman Crude',              region: 'Middle East',  benchmarkIndex: 'DUBAI-OMAN', sortOrder: 90, isActive: true },
-      { crudeGradeId: 10, typeCode: 'ESPO',         typeName: 'ESPO Blend (Skovorodino)', region: 'CIS/Asia',   benchmarkIndex: 'ESPO', sortOrder: 100, isActive: true },
-      { crudeGradeId: 11, typeCode: 'BONNY_LIGHT',  typeName: 'Bonny Light',             region: 'West Africa',  benchmarkIndex: 'DTBRT', sortOrder: 110, isActive: true },
-      { crudeGradeId: 12, typeCode: 'BASRA_LIGHT',  typeName: 'Basra Light',             region: 'Middle East',  benchmarkIndex: 'DTBRT', sortOrder: 120, isActive: true },
-      { crudeGradeId: 13, typeCode: 'ARAB_HEAVY',   typeName: 'Arab Heavy',              region: 'Middle East',  benchmarkIndex: 'DTBRT', sortOrder: 130, isActive: true },
-      { crudeGradeId: 14, typeCode: 'IRAN_HEAVY',   typeName: 'Iranian Heavy',           region: 'Middle East',  benchmarkIndex: 'DTBRT', sortOrder: 140, isActive: true },
-    ],
-  },
+  // crude_grade_type removed — was a pure mock duplicate of dbo.product
+  // (BRENT-CRUDE/WTI-CRUDE/etc. already exist there as real products, not a
+  // separate grade lookup). gas_day_type removed — was already correctly
+  // wired as dbo.period.gas_day_type_lookup_id -> lookup_value since V57;
+  // its rows now live in the lookup_value seed above, not here.
   {
     name: 'metal_shape', label: 'Metal Physical Forms', pk: 'metalShapeId', group: 'Products & Markets', order: 6,
-    subGroup: 'Metals Details', description: 'Physical form in which a metal is traded and delivered. LME contracts specify acceptable shapes per metal — e.g. copper as cathode, aluminium as ingot or billet. Affects storage, transport, and melting characteristics.',
+    subGroup: 'Metals Details', description: 'Physical form in which a metal is traded and delivered — the real CHECK values on dbo.metal_brand.metal_form (V68), now a dedicated FK table (V84).',
     rows: [
-      { metalShapeId: 1, typeCode: 'CATHODE',   typeName: 'Cathode',         applicableMetals: 'Copper, Zinc', sortOrder: 10, isActive: true },
-      { metalShapeId: 2, typeCode: 'INGOT',     typeName: 'Ingot',           applicableMetals: 'Aluminium, Lead, Zinc, Tin', sortOrder: 20, isActive: true },
-      { metalShapeId: 3, typeCode: 'BILLET',    typeName: 'Billet',          applicableMetals: 'Aluminium, Copper', sortOrder: 30, isActive: true },
-      { metalShapeId: 4, typeCode: 'COIL',      typeName: 'Coil',            applicableMetals: 'Aluminium, Steel', sortOrder: 40, isActive: true },
-      { metalShapeId: 5, typeCode: 'ROD',       typeName: 'Wire Rod',        applicableMetals: 'Copper, Aluminium', sortOrder: 50, isActive: true },
-      { metalShapeId: 6, typeCode: 'SLAB',      typeName: 'Slab',            applicableMetals: 'Aluminium, Steel', sortOrder: 60, isActive: true },
-      { metalShapeId: 7, typeCode: 'WIRE',      typeName: 'Wire Bar',        applicableMetals: 'Copper', sortOrder: 70, isActive: true },
-      { metalShapeId: 8, typeCode: 'POWDER',    typeName: 'Powder',          applicableMetals: 'Precious metals, Nickel', sortOrder: 80, isActive: true },
-      { metalShapeId: 9, typeCode: 'T_BAR',     typeName: 'T-Bar',           applicableMetals: 'Aluminium, Tin', sortOrder: 90, isActive: true },
-    ],
-  },
-  {
-    name: 'gas_day_type', label: 'Gas Day Types', pk: 'gasDayTypeId', group: 'Products & Markets', order: 7,
-    subGroup: 'Gas Details', description: 'Defines the start and end time of the gas delivery day at a specific hub. NBP (UK) uses 06:00–06:00 UTC. Continental European hubs (TTF, NCG, GPL) use 06:00–06:00 CET. Some pipelines use midnight-to-midnight.',
-    rows: [
-      { gasDayTypeId: 1, typeCode: 'STANDARD',   typeName: 'Standard (06:00–06:00)',  description: 'Gas day runs 06:00 to 06:00 local hub time. Standard for UK NBP, TTF, NCG, and most European hubs.', sortOrder: 10, isActive: true },
-      { gasDayTypeId: 2, typeCode: 'MIDNIGHT',   typeName: 'Midnight (00:00–00:00)',  description: 'Gas day runs midnight to midnight. Used for some pipeline balancing points and US gas markets.', sortOrder: 20, isActive: true },
-      { gasDayTypeId: 3, typeCode: 'EXTENDED',   typeName: 'Extended (custom hours)', description: 'Non-standard gas day boundary agreed in the transport or supply contract. See contract for hours.', sortOrder: 30, isActive: true },
+      { metalShapeId: 1,  typeCode: 'CATHODE',            typeName: 'Cathode',              description: 'Standard refined metal cathode — copper, zinc.', sortOrder: 1,  isActive: true },
+      { metalShapeId: 2,  typeCode: 'CATHODE_FULL_PLATE',  typeName: 'Cathode (Full Plate)', description: 'Full-plate cathode form, as distinct from cut cathode.', sortOrder: 2,  isActive: true },
+      { metalShapeId: 3,  typeCode: 'INGOT',               typeName: 'Ingot',                description: 'Cast metal ingot — aluminium, lead, zinc, tin.', sortOrder: 3,  isActive: true },
+      { metalShapeId: 4,  typeCode: 'WIRE_ROD',            typeName: 'Wire Rod',             description: 'Drawn wire rod — copper, aluminium.', sortOrder: 4,  isActive: true },
+      { metalShapeId: 5,  typeCode: 'PIG',                 typeName: 'Pig',                  description: 'Pig-cast metal form.', sortOrder: 5,  isActive: true },
+      { metalShapeId: 6,  typeCode: 'BAR',                 typeName: 'Bar',                  description: 'Bar-cast metal form.', sortOrder: 6,  isActive: true },
+      { metalShapeId: 7,  typeCode: 'GRANULES',            typeName: 'Granules',             description: 'Granulated metal form.', sortOrder: 7,  isActive: true },
+      { metalShapeId: 8,  typeCode: 'BRIQUETTE',           typeName: 'Briquette',            description: 'Compressed briquette form.', sortOrder: 8,  isActive: true },
+      { metalShapeId: 9,  typeCode: 'SLAB',                typeName: 'Slab',                 description: 'Slab-cast metal form — aluminium, steel.', sortOrder: 9,  isActive: true },
+      { metalShapeId: 10, typeCode: 'OTHER',               typeName: 'Other',                description: 'Physical form not covered by the standard classifications above.', sortOrder: 10, isActive: true },
     ],
   },
   {
@@ -372,28 +369,14 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
       { nominationTypeId: 3, typeCode: 'RENOMINATABLE', typeName: 'Renominatable', description: 'Firm delivery but buyer may re-nominate quantity within agreed windows during the gas day. Flexible gas for balancing.', sortOrder: 30, isActive: true },
     ],
   },
-  {
-    name: 'lng_price_basis', label: 'LNG Price Linkages', pk: 'lngPriceBasisId', group: 'Products & Markets', order: 9,
-    subGroup: 'LNG Details', description: 'Benchmark index to which an LNG cargo price is linked. Asian LNG is typically JCC-linked. US export LNG is HH-linked. European destination cargoes use TTF or NBP. Some transactions are hybrid (JCC slope + HH floor).',
-    rows: [
-      { lngPriceBasisId: 1, typeCode: 'JCC',    typeName: 'JCC (Japan Crude Cocktail)',      description: 'Average price of crude oils imported to Japan (Ministry of Finance monthly). Dominant basis for long-term Asian LNG contracts. Typically expressed as a slope (e.g. 13.9% × JCC).', sortOrder: 10, isActive: true },
-      { lngPriceBasisId: 2, typeCode: 'HH',     typeName: 'HH (Henry Hub)',                  description: 'NYMEX Henry Hub natural gas price. Standard linkage for US LNG export contracts (Sabine Pass, Freeport, Corpus Christi). Expressed as HH + liquefaction fee.', sortOrder: 20, isActive: true },
-      { lngPriceBasisId: 3, typeCode: 'TTF',    typeName: 'TTF (Title Transfer Facility)',    description: 'ICE TTF front-month or average. Increasingly common for European destination LNG and spot Atlantic basin cargoes.', sortOrder: 30, isActive: true },
-      { lngPriceBasisId: 4, typeCode: 'NBP',    typeName: 'NBP (National Balancing Point)',   description: 'UK National Balancing Point. Used for UK-delivery LNG and some European contracts. Often priced as day-ahead or monthly average.', sortOrder: 40, isActive: true },
-      { lngPriceBasisId: 5, typeCode: 'DES_SPOT', typeName: 'DES Spot (Market Price)',        description: 'Spot LNG price at the delivery terminal — negotiated on a per-cargo basis reflecting global supply-demand at time of trade. No fixed index linkage.', sortOrder: 50, isActive: true },
-      { lngPriceBasisId: 6, typeCode: 'HYBRID', typeName: 'Hybrid (JCC slope + HH floor)',   description: 'Blended pricing formula combining a JCC slope with a Henry Hub floor or cap. Used in some APAC long-term contracts to hedge against oil/gas price divergence.', sortOrder: 60, isActive: true },
-    ],
-  },
-  {
-    name: 'power_load_type', label: 'Power Load Types', pk: 'powerLoadTypeId', group: 'Products & Markets', order: 10,
-    subGroup: 'Power Details', description: 'Defines the delivery hour profile for a power trade. Baseload covers all hours 24/7. Peak and off-peak split by agreed hour boundaries. Custom profiles reference a load_shape_template. Critical for position and scheduling calculations.',
-    rows: [
-      { powerLoadTypeId: 1, typeCode: 'BASELOAD',  typeName: 'Baseload (7×24)',   description: 'Continuous delivery 24 hours/day, 7 days/week for the full contract period. Simplest profile; used for large industrial supply and wholesale bulk contracts.', sortOrder: 10, isActive: true },
-      { powerLoadTypeId: 2, typeCode: 'PEAK',      typeName: 'Peak Hours',        description: 'Delivery only during defined peak hours — typically Mon–Fri 07:00–23:00 or 08:00–20:00 depending on the market. Higher per-MWh price than baseload.', sortOrder: 20, isActive: true },
-      { powerLoadTypeId: 3, typeCode: 'OFF_PEAK',  typeName: 'Off-Peak Hours',    description: 'Delivery during non-peak hours: nights, weekends, and public holidays. Lower price; purchased by pumped hydro and battery operators for arbitrage.', sortOrder: 30, isActive: true },
-      { powerLoadTypeId: 4, typeCode: 'SHAPED',    typeName: 'Shaped / Custom',   description: 'User-defined hourly delivery profile from a load_shape_template. Used for wind/solar shape hedges or industrial demand curves that don\'t match standard profiles.', sortOrder: 40, isActive: true },
-    ],
-  },
+  // lng_price_basis removed — was a pure mock duplicate of dbo.price_index
+  // (JCC/HH/TTF/NBP are benchmark indices, the same concept price_index
+  // already models via index_code — DATED_BRENT/WTI/TTF are already real
+  // rows there; an LNG deal referencing JCC or HH is just another
+  // price_index row, not a distinct linkage concept needing its own table).
+  // power_load_type removed — was a pure mock duplicate of dbo.load_shape_template
+  // (BASELOAD/PEAK/OFFPEAK/CUSTOM already exist there, and
+  // power_product_detail.default_load_shape_id already FKs to it).
   // ── Credit & Risk classification tables ───────────────────────────────────
   {
     name: 'margin_agreement_type', label: 'Margin Agreement Types', pk: 'marginAgreementTypeId', group: 'Credit & Collateral', order: 1,
@@ -467,14 +450,15 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
   },
   {
     name: 'uom_type', label: 'UoM Types', pk: 'uomTypeId', group: 'Finance & Settlement', order: 10,
-    subGroup: 'Units & Conversions', description: 'Physical dimension classification for a unit of measure. Units of the same type convert by a fixed factor (e.g. BBL→MT for a given crude grade). Cross-type conversions (Volume↔Weight, Volume↔Energy) require a product-specific density or calorific value, not a fixed factor.',
+    subGroup: 'Units & Conversions', description: 'Physical dimension classification for a unit of measure — the real CHECK values on dbo.unit_of_measure.uom_category, now a dedicated FK table (V84).',
     rows: [
-      { uomTypeId: 1, typeCode: 'VOLUME',   typeName: 'Volume',   description: 'Liquid or gas volume units — barrels, cubic metres, gallons, litres. Used for crude, refined products, and LNG.', sortOrder: 10, isActive: true },
-      { uomTypeId: 2, typeCode: 'WEIGHT',   typeName: 'Weight',   description: 'Mass units — metric tonnes, short tons, pounds, kilograms. Used for metals, agri commodities, and weight-settled cargoes.', sortOrder: 20, isActive: true },
-      { uomTypeId: 3, typeCode: 'ENERGY',   typeName: 'Energy',   description: 'Heat content units — MMBtu, therms, gigajoules. Used for natural gas and LNG priced on a calorific basis.', sortOrder: 30, isActive: true },
-      { uomTypeId: 4, typeCode: 'POWER',    typeName: 'Power',    description: 'Electrical power and energy units — MW, MWh, kWh. Used for power trade quantities and load profiles.', sortOrder: 40, isActive: true },
-      { uomTypeId: 5, typeCode: 'QUANTITY', typeName: 'Quantity', description: 'Discrete count units — lots, cargoes, contracts. Used where a commodity trades in standard-sized units rather than a continuous measure.', sortOrder: 50, isActive: true },
-      { uomTypeId: 6, typeCode: 'DISTANCE', typeName: 'Distance', description: 'Length units — nautical miles, kilometres. Used in freight routing and voyage distance calculations.', sortOrder: 60, isActive: true },
+      { uomTypeId: 1, typeCode: 'VOLUME',      typeName: 'Volume',      description: 'Liquid or gas volume units — barrels, cubic metres, gallons, litres. Used for crude, refined products, and LNG.', sortOrder: 1, isActive: true },
+      { uomTypeId: 2, typeCode: 'WEIGHT',      typeName: 'Weight',      description: 'Mass units — metric tonnes, short tons, pounds, kilograms. Used for metals, agri commodities, and weight-settled cargoes.', sortOrder: 2, isActive: true },
+      { uomTypeId: 3, typeCode: 'ENERGY',      typeName: 'Energy',      description: 'Heat content units — MMBtu, therms, gigajoules. Used for natural gas and LNG priced on a calorific basis.', sortOrder: 3, isActive: true },
+      { uomTypeId: 4, typeCode: 'POWER',       typeName: 'Power',       description: 'Electrical power and energy units — MW, MWh, kWh. Used for power trade quantities and load profiles.', sortOrder: 4, isActive: true },
+      { uomTypeId: 5, typeCode: 'TEMPERATURE', typeName: 'Temperature', description: 'Temperature units — used for weather-linked and degree-day products.', sortOrder: 5, isActive: true },
+      { uomTypeId: 6, typeCode: 'COUNT',       typeName: 'Count',       description: 'Discrete count units — lots, cargoes, contracts. Used where a commodity trades in standard-sized units.', sortOrder: 6, isActive: true },
+      { uomTypeId: 7, typeCode: 'OTHER',       typeName: 'Other',       description: 'Unit category not covered by the standard classifications above.', sortOrder: 7, isActive: true },
     ],
   },
   {
@@ -512,116 +496,15 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
       { emissionObligationStatusId: 4, typeCode: 'OVERDUE',               typeName: 'Overdue',               description: 'Surrender deadline has passed without full compliance. Financial penalties and reputational risk apply.', sortOrder: 40, isActive: true },
     ],
   },
-  {
-    name: 'gl_account_type', label: 'GL Account Types', pk: 'glAccountTypeId', group: 'Finance & Settlement', order: 15,
-    subGroup: 'Finance & Settlement', description: 'Chart-of-accounts classification for general ledger accounts used in trade P&L, fee, and settlement postings.',
-    rows: [
-      { glAccountTypeId: 1, typeCode: 'REVENUE',   typeName: 'Revenue',   description: 'Income accounts — physical trade revenue, financial hedge realised gains, fee income.', sortOrder: 10, isActive: true },
-      { glAccountTypeId: 2, typeCode: 'COST',      typeName: 'Cost',      description: 'Expense accounts — cost of goods sold, transportation, storage, inspection fees.', sortOrder: 20, isActive: true },
-      { glAccountTypeId: 3, typeCode: 'ASSET',     typeName: 'Asset',     description: 'Balance sheet asset accounts — trade receivables, margin deposits, prepayments.', sortOrder: 30, isActive: true },
-      { glAccountTypeId: 4, typeCode: 'LIABILITY', typeName: 'Liability', description: 'Balance sheet liability accounts — trade payables, deferred revenue, collateral received.', sortOrder: 40, isActive: true },
-      { glAccountTypeId: 5, typeCode: 'EQUITY',    typeName: 'Equity',    description: 'Equity and retained earnings accounts.', sortOrder: 50, isActive: true },
-      { glAccountTypeId: 6, typeCode: 'PNL',       typeName: 'P&L',       description: 'Mark-to-market and unrealised P&L accounts — FV of open positions, hedge effectiveness.', sortOrder: 60, isActive: true },
-    ],
-  },
-  {
-    name: 'rin_transaction_type', label: 'RIN Transaction Types', pk: 'rinTransactionTypeId', group: 'RIN & Renewable Fuels', order: 16,
-    subGroup: 'Regulatory Compliance', description: 'Types of RIN movements under the EPA Renewable Fuel Standard (RFS2). Each type changes the inventory position in a specific direction and has distinct EMTS reporting requirements.',
-    rows: [
-      { rinTransactionTypeId: 1, typeCode: 'GENERATE',      typeName: 'Generate',         description: 'Renewable fuel producer generates attached RINs with each batch of qualifying fuel. Quantity = gallons × equivalence value.', sortOrder: 10, isActive: true },
-      { rinTransactionTypeId: 2, typeCode: 'SEPARATE',      typeName: 'Separate',         description: 'RINs are separated from the physical fuel they were generated with. Once separated, RINs can be traded independently.', sortOrder: 20, isActive: true },
-      { rinTransactionTypeId: 3, typeCode: 'TRANSFER_BUY',  typeName: 'Transfer — Buy',   description: 'Purchase of separated RINs from another party via EPA EMTS. Increases RIN inventory and incurs a cost basis.', sortOrder: 30, isActive: true },
-      { rinTransactionTypeId: 4, typeCode: 'TRANSFER_SELL', typeName: 'Transfer — Sell',  description: 'Sale of separated RINs to another party via EPA EMTS. Reduces RIN inventory and realises a gain or loss.', sortOrder: 40, isActive: true },
-      { rinTransactionTypeId: 5, typeCode: 'RETIRE',        typeName: 'Retire (Surrender)','description': 'Surrender of RINs to the EPA via EMTS to satisfy the annual Renewable Volume Obligation. Irreversible once accepted.', sortOrder: 50, isActive: true },
-    ],
-  },
-  {
-    name: 'rin_obligation_status', label: 'RIN Obligation Statuses', pk: 'rinObligationStatusId', group: 'RIN & Renewable Fuels', order: 17,
-    subGroup: 'Regulatory Compliance', description: 'Compliance status of an annual Renewable Volume Obligation (RVO) for a specific legal entity and D-code.',
-    rows: [
-      { rinObligationStatusId: 1, typeCode: 'OPEN',                label: 'Open',                  description: 'RVO is active. Required quantity not yet fully satisfied.', sortOrder: 10, isActive: true },
-      { rinObligationStatusId: 2, typeCode: 'PARTIALLY_SATISFIED', label: 'Partially Satisfied',   description: 'Some RINs retired but a shortfall remains. Further retirement required before deadline.', sortOrder: 20, isActive: true },
-      { rinObligationStatusId: 3, typeCode: 'SATISFIED',           label: 'Satisfied',             description: 'All required RINs retired to EPA EMTS. Obligation fully met.', sortOrder: 30, isActive: true },
-      { rinObligationStatusId: 4, typeCode: 'OVERDUE', label: 'Overdue', description: 'Compliance deadline passed without full retirement. Civil penalties apply under 40 CFR 80.1460.', sortOrder: 40, isActive: true },
-    ],
-  },
-  {
-    name: 'instrument_type', label: 'Instrument Types', pk: 'instrumentTypeId', group: 'Products & Markets', order: 18,
-    subGroup: 'Deal Classification', description: 'Financial structure / legal form of the deal. More granular than Trade Type — distinguishes futures from forwards, vanilla swaps from basis swaps, and American from Asian options.',
-    rows: [
-      { instrumentTypeId: 1,  typeCode: 'PHYSICAL',              typeName: 'Physical Delivery',        description: 'Standard physical commodity delivery against a fixed or floating price.',                                                                                              sortOrder: 10,  isActive: true },
-      { instrumentTypeId: 12, typeCode: 'CERTIFICATE_TRANSFER',  typeName: 'Certificate Transfer',     description: 'Spot electronic certificate transfer — RINs via EPA EMTS, EUAs on ICE/EEX spot, VCUs/RECs on registry platforms. No physical delivery.',                              sortOrder: 15,  isActive: true },
-      { instrumentTypeId: 2,  typeCode: 'FUTURES',               typeName: 'Futures',                  description: 'Exchange-traded standardised contract. Marked to market daily. May settle cash or physical.',                                                                         sortOrder: 20,  isActive: true },
-      { instrumentTypeId: 3,  typeCode: 'FORWARD',               typeName: 'Forward (OTC)',             description: 'OTC bilateral forward — fixed price, future delivery, no daily MTM.',                                                                                               sortOrder: 30,  isActive: true },
-      { instrumentTypeId: 4,  typeCode: 'SWAP_FIXED_FLOAT',      typeName: 'Swap — Fixed / Float',     description: 'Fixed price leg vs floating market index average. Net cash-settled.',                                                                                                sortOrder: 40,  isActive: true },
-      { instrumentTypeId: 5,  typeCode: 'SWAP_FLOAT_FLOAT',      typeName: 'Swap — Float / Float',     description: 'Two floating legs on different indices — basis or spread swap (e.g. Brent vs Dubai).',                                                                               sortOrder: 50,  isActive: true },
-      { instrumentTypeId: 6,  typeCode: 'OPTION_LISTED',         typeName: 'Option — Listed',          description: 'Exchange-traded option on a futures contract. Standard strikes, margined like futures.',                                                                              sortOrder: 60,  isActive: true },
-      { instrumentTypeId: 7,  typeCode: 'OPTION_OTC_AMERICAN',   typeName: 'Option — OTC American',    description: 'OTC option exercisable any time on or before expiry. Premium paid upfront.',                                                                                         sortOrder: 70,  isActive: true },
-      { instrumentTypeId: 8,  typeCode: 'OPTION_OTC_ASIAN',      typeName: 'Option — OTC Asian (APO)', description: 'Average Price Option — payoff based on arithmetic average of index over observation period.',                                                                         sortOrder: 80,  isActive: true },
-      { instrumentTypeId: 9,  typeCode: 'OPTION_OTC_EUROPEAN',   typeName: 'Option — OTC European',    description: 'OTC option exercisable only at expiry. Simpler, cheaper premium than American.',                                                                                     sortOrder: 90,  isActive: true },
-      { instrumentTypeId: 10, typeCode: 'STORAGE_AGREEMENT',     typeName: 'Storage Agreement',        description: 'Commercial agreement to use storage capacity — tank lease, throughput, terminalling, or working gas.',                                                                sortOrder: 100, isActive: true },
-      { instrumentTypeId: 11, typeCode: 'TRANSPORT_AGREEMENT',   typeName: 'Transport Agreement',      description: 'Contract for transportation services — ship charter, pipeline capacity, or spot truck/rail/barge.',                                                                  sortOrder: 110, isActive: true },
-    ],
-  },
-  {
-    name: 'storage_agreement_type', label: 'Storage Agreement Types', pk: 'storageAgreementTypeId', group: 'Products & Markets', order: 19,
-    subGroup: 'Agreement Deal Types', description: 'Commercial structure of a storage capacity agreement. Active when instrument type = STORAGE_AGREEMENT.',
-    rows: [
-      { storageAgreementTypeId: 1, typeCode: 'TANK_LEASE',     typeName: 'Tank Lease',           description: 'Fixed capacity lease — monthly/annual fee for reserved tank space regardless of utilisation. Take-or-pay.',         sortOrder: 10, isActive: true },
-      { storageAgreementTypeId: 2, typeCode: 'THROUGHPUT',     typeName: 'Throughput',           description: 'Pay per unit moved into/out of storage. Volume-based, no fixed capacity commitment.',                               sortOrder: 20, isActive: true },
-      { storageAgreementTypeId: 3, typeCode: 'TERMINALLING',   typeName: 'Terminalling',         description: 'Terminal handling — loading, unloading, blending, inspection. Often combined with throughput.',                     sortOrder: 30, isActive: true },
-      { storageAgreementTypeId: 4, typeCode: 'WORKING_GAS',    typeName: 'Working Gas Capacity', description: 'Contracted volume in underground gas storage that can be injected and withdrawn. Distinct from cushion gas.',        sortOrder: 40, isActive: true },
-      { storageAgreementTypeId: 5, typeCode: 'CUSHION_GAS',    typeName: 'Cushion Gas',          description: 'Non-withdrawable base gas maintaining cavern/reservoir pressure. Purchased upfront; recovered on decommission.',    sortOrder: 50, isActive: true },
-      { storageAgreementTypeId: 6, typeCode: 'LNG_SLOT',       typeName: 'LNG Terminal Slot',    description: 'Reserved LNG send-out or berth slot. Defines arrival window, sendout rate, and cooldown/heel obligations.',        sortOrder: 60, isActive: true },
-      { storageAgreementTypeId: 7, typeCode: 'REGASIFICATION', typeName: 'Regasification',       description: 'FSRU or land-based LNG regasification capacity — right to vaporise LNG and deliver gas to the pipeline grid.',    sortOrder: 70, isActive: true },
-    ],
-  },
-  {
-    name: 'transport_agreement_type', label: 'Transport Agreement Types', pk: 'transportAgreementTypeId', group: 'Products & Markets', order: 20,
-    subGroup: 'Agreement Deal Types', description: 'Commercial structure of a transportation capacity agreement. Active when instrument type = TRANSPORT_AGREEMENT.',
-    rows: [
-      { transportAgreementTypeId: 1,  typeCode: 'VOYAGE_CHARTER',         typeName: 'Voyage Charter',               description: 'Specific voyage at worldscale or lumpsum. Charterer pays bunkers and port costs; owner pays vessel ops.',    sortOrder: 10,  isActive: true },
-      { transportAgreementTypeId: 2,  typeCode: 'TIME_CHARTER',           typeName: 'Time Charter',                 description: 'Vessel hired for fixed period. Charterer directs vessel and pays bunkers; owner pays crew and maintenance.',  sortOrder: 20,  isActive: true },
-      { transportAgreementTypeId: 3,  typeCode: 'BAREBOAT_CHARTER',       typeName: 'Bareboat Charter',             description: 'Hull only — charterer provides crew, insurance, all running costs. For long-term fleet management.',         sortOrder: 30,  isActive: true },
-      { transportAgreementTypeId: 4,  typeCode: 'COA',                    typeName: 'Contract of Affreightment',    description: 'Multiple voyages at fixed freight rate over contract period. Owner nominates vessels meeting agreed specs.',   sortOrder: 40,  isActive: true },
-      { transportAgreementTypeId: 5,  typeCode: 'PIPELINE_FIRM',          typeName: 'Pipeline — Firm Capacity',     description: 'Must-take reserved pipeline capacity with take-or-pay. Guaranteed access; capacity charge even if unutilised.', sortOrder: 50, isActive: true },
-      { transportAgreementTypeId: 6,  typeCode: 'PIPELINE_INTERRUPTIBLE', typeName: 'Pipeline — Interruptible',     description: 'Interruptible capacity — lower tariff but TSO can curtail flow during peak demand. No take-or-pay.',          sortOrder: 60,  isActive: true },
-      { transportAgreementTypeId: 7,  typeCode: 'TRUCK_SPOT',             typeName: 'Truck — Spot',                 description: 'Spot road tanker or bulk truck hire. Rate per trip or per tonne.',                                          sortOrder: 70,  isActive: true },
-      { transportAgreementTypeId: 8,  typeCode: 'RAIL_SPOT',              typeName: 'Rail — Spot',                  description: 'Spot rail tank car movement. Rate per car or per tonne-km.',                                                sortOrder: 80,  isActive: true },
-      { transportAgreementTypeId: 9,  typeCode: 'BARGE_SPOT',             typeName: 'Barge — Spot',                 description: 'Spot river or coastal barge hire. Used for ARA/USAC products and grain movements.',                        sortOrder: 90,  isActive: true },
-      { transportAgreementTypeId: 10, typeCode: 'LNG_SLOT_CHARTER',       typeName: 'LNG Slot Charter',             description: 'Reserved slot within an LNG vessel time-charter or COA — for fleet portfolio optimisation.',               sortOrder: 100, isActive: true },
-    ],
-  },
-  {
-    name: 'price_adjustment_type', label: 'Price Adjustment Types', pk: 'priceAdjustmentTypeId', group: 'Products & Markets', order: 21,
-    subGroup: 'Physical Price Terms', description: 'Types of quality or commercial adjustment applied to the physical contract price. Positive value = premium added; negative = discount subtracted.',
-    rows: [
-      { priceAdjustmentTypeId:  1, typeCode: 'API_GRAVITY',      typeName: 'API Gravity Differential',      description: 'Premium or discount per BBL for each °API above/below the reference crude specification (e.g. Brent ≈ 38.5°).',   sortOrder: 10,  isActive: true },
-      { priceAdjustmentTypeId:  2, typeCode: 'DENSITY',          typeName: 'Density Correction',            description: 'Volumetric-to-mass conversion factor applied when contract quantity is in BBL but settlement is in MT.',              sortOrder: 20,  isActive: true },
-      { priceAdjustmentTypeId:  3, typeCode: 'HEAT_CONTENT',     typeName: 'Heat Content / Calorific Value',description: 'Adjustment for actual BTU/MJ content vs contract reference value — common in gas and LNG.',                          sortOrder: 30,  isActive: true },
-      { priceAdjustmentTypeId:  4, typeCode: 'SULFUR',           typeName: 'Sulfur Premium / Discount',     description: 'Premium for sweet crude or discount for sour crude vs reference sulphur specification (e.g. <0.5% wt).',             sortOrder: 40,  isActive: true },
-      { priceAdjustmentTypeId:  5, typeCode: 'PROTEIN',          typeName: 'Protein Content Adjustment',    description: 'Premium per % protein above minimum (e.g. €1.25/MT per 0.1% above 12% for EU milling wheat).',                       sortOrder: 50,  isActive: true },
-      { priceAdjustmentTypeId:  6, typeCode: 'MOISTURE',         typeName: 'Moisture Deduction',            description: 'Deduction per % moisture content above maximum tolerance — reduces effective net weight of dry commodity.',           sortOrder: 60,  isActive: true },
-      { priceAdjustmentTypeId:  7, typeCode: 'TEST_WEIGHT',      typeName: 'Test Weight Adjustment',        description: 'Grain: premium or discount for bushel weight above/below spec (e.g. wheat >60 lb/bu vs reference 60 lb/bu).',        sortOrder: 70,  isActive: true },
-      { priceAdjustmentTypeId:  8, typeCode: 'ASSAY',            typeName: 'Assay / Payable Metal',         description: 'Metals concentrates: price based on payable metal % from assay certificate (e.g. Cu 28.5% payable at 96.5%).',       sortOrder: 80,  isActive: true },
-      { priceAdjustmentTypeId:  9, typeCode: 'TREATMENT_CHARGE', typeName: 'Treatment Charge (TC)',         description: 'Smelter fee deducted from concentrate proceeds — $/dmt of dry metric tonne of concentrate.',                          sortOrder: 90,  isActive: true },
-      { priceAdjustmentTypeId: 10, typeCode: 'REFINING_CHARGE',  typeName: 'Refining Charge (RC)',          description: 'Refinery fee for extracting payable metal from concentrate — ¢/lb or $/oz of payable metal.',                         sortOrder: 100, isActive: true },
-      { priceAdjustmentTypeId: 11, typeCode: 'QUALITY_PREMIUM',  typeName: 'Quality Premium',               description: 'General agreed premium for above-spec quality not captured by a specific adjustment type.',                           sortOrder: 110, isActive: true },
-      { priceAdjustmentTypeId: 12, typeCode: 'QUALITY_DISCOUNT', typeName: 'Quality Discount',              description: 'General agreed discount for below-spec quality or off-grade material.',                                              sortOrder: 120, isActive: true },
-      { priceAdjustmentTypeId: 13, typeCode: 'TAX',              typeName: 'Tax',                           description: 'Applicable commodity tax, excise duty, or royalty embedded in the physical price (e.g. UK North Sea royalty).',     sortOrder: 130, isActive: true },
-      { priceAdjustmentTypeId: 14, typeCode: 'MARKUP',           typeName: 'Commercial Markup',             description: 'Trading desk margin added to the supply price before selling to an end customer.',                                    sortOrder: 140, isActive: true },
-      { priceAdjustmentTypeId: 15, typeCode: 'FX_DIFFERENTIAL',  typeName: 'FX Differential',               description: 'Cross-currency price adjustment embedded in the deal — e.g. oil priced in USD but settled in EUR at a fixed rate.',  sortOrder: 150, isActive: true },
-    ],
-  },
-  {
-    name: 'demurrage_basis', label: 'Demurrage Basis', pk: 'demurrageBasisId', group: 'Products & Markets', order: 22,
-    subGroup: 'Physical Price Terms', description: 'Determines how laytime allowances at load and discharge ports are pooled when calculating demurrage.',
-    rows: [
-      { demurrageBasisId: 1, typeCode: 'REVERSIBLE',     typeName: 'Reversible',      description: 'Load and discharge laytime allowances are combined into a single pool. Any saved time at one port offsets excess at the other.',      sortOrder: 10, isActive: true },
-      { demurrageBasisId: 2, typeCode: 'NON_REVERSIBLE', typeName: 'Non-Reversible',  description: 'Each port has its own separate laytime allowance. Savings at one port cannot be applied to the other. Most common in crude tankers.', sortOrder: 20, isActive: true },
-      { demurrageBasisId: 3, typeCode: 'AVERAGED',       typeName: 'Averaged',         description: 'An average of the two ports\' laytime is used for the calculation. Compromise between REVERSIBLE and NON_REVERSIBLE.',               sortOrder: 30, isActive: true },
-    ],
-  },
+  // gl_account_type removed — already seeded as a lookup_value category in
+  // real SQL (V37 itself), never a missing table; wired in V84, rows above.
+  // rin_transaction_type / rin_obligation_status removed — already seeded
+  // as lookup_value categories in real SQL (V38); wired in V81, rows above.
+  // instrument_type / storage_agreement_type / transport_agreement_type /
+  // price_adjustment_type / demurrage_basis removed — all five already had
+  // their lookup_value rows seeded in real SQL (V44/V46), just never wired
+  // to the consuming column until V81; rows now live in the lookup_value
+  // seed above, not here.
 ];
 
 // ─── Complex table metadata (tables with unique column shapes) ────────────────
@@ -680,15 +563,35 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
   // id->label array instead, e.g. desks/types.ts's COMMODITY_TYPE_LOOKUP).
   // Only the REPORTING_CLASSIFICATION_TYPE rows are seeded here — this does
   // NOT attempt to backfill every other category already hardcoded elsewhere.
+  //
+  // V85 — category went from a free-text VARCHAR to a real categoryId FK
+  // against the new dbo.lookup_category master (dedicated tables built in
+  // V82/V83/V84 are untouched by this — this only fixes lookup_value itself,
+  // the generic table, so its own category axis is a managed list instead of
+  // an unconstrained string).
   lookup_value: {
     tableName: 'lookup_value', displayName: 'Lookup Values', primaryKeyColumn: 'lookupId', isTemporal: false,
     columns: [
-      col('lookupId',     'ID',           'number',  false, true,  null),
-      col('category',     'Category',     'string',  false, false, 50),
-      col('code',         'Code',         'string',  false, false, 50),
-      col('displayName',  'Display Name', 'string',  false, false, 200),
-      col('sortOrder',    'Sort Order',   'number',  true,  false, null),
-      col('isActive',     'Active',       'boolean', false, false, null),
+      col('lookupId',     'ID',           'number',      false, true,  null),
+      col('categoryId',   'Category',     'foreign_key', false, false, null, null, 'lookup_category'),
+      col('code',         'Code',         'string',      false, false, 50),
+      col('displayName',  'Display Name', 'string',      false, false, 200),
+      col('sortOrder',    'Sort Order',   'number',      true,  false, null),
+      col('isActive',     'Active',       'boolean',     false, false, null),
+    ],
+  },
+  // V85 — dbo.lookup_category: the category master lookup_value.categoryId
+  // now points at, so the category axis itself is a managed list (creatable
+  // from the GUI) instead of a free-text string on every lookup_value row.
+  lookup_category: {
+    tableName: 'lookup_category', displayName: 'Lookup Categories', primaryKeyColumn: 'categoryId', isTemporal: false,
+    columns: [
+      col('categoryId',   'ID',          'number',  false, true,  null),
+      col('categoryCode', 'Code',        'string',  false, false, 100),
+      col('categoryName', 'Name',        'string',  false, false, 200),
+      col('description',  'Description', 'string',  true,  false, 500),
+      col('sortOrder',    'Sort Order',  'number',  false, false, null),
+      col('isActive',     'Active',      'boolean', false, false, null),
     ],
   },
   // V60/V63 — independent per-report classification axes (Position, VaR,
@@ -704,7 +607,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
     tableName: 'reporting_group', displayName: 'Reporting Groups', primaryKeyColumn: 'reportingGroupId', isTemporal: false,
     columns: [
       col('reportingGroupId',    'ID',             'number',      false, true,  null),
-      col('classificationTypeId','Classification', 'foreign_key', false, false, null, null, 'lookup_value'),
+      col('classificationTypeId','Classification', 'foreign_key', false, false, null, null, 'lookup_value', 'REPORTING_CLASSIFICATION_TYPE'),
       col('groupName',           'Group Name',     'string',      false, false, 100),
       col('description',         'Description',    'string',      true,  false, 500),
       col('isActive',            'Active',         'boolean',     false, false, null),
@@ -765,7 +668,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('indexType',            'Index Type',           'enum',        false, false, null, ['BALTIC', 'WORLDSCALE', 'ASSESSED', 'OTHER']),
       col('vesselType',           'Vessel Type',          'string',      true,  false, 30),
       col('routeDescription',     'Route',                'string',      true,  false, 200),
-      col('commodityType',        'Commodity',            'foreign_key', true,  false, null, null, 'lookup_value'),
+      col('commodityType',        'Commodity',            'foreign_key', true,  false, null, null, 'commodity_type'),
       col('currencyId',           'Currency',             'foreign_key', true,  false, null, null, 'currency'),
       col('uomId',                'UoM',                  'number',      true,  false, null),
       col('publicationSource',    'Publication Source',   'string',      true,  false, 100),
@@ -787,7 +690,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('norWifponAllowed',  'NOR — WIFPON',        'boolean', false, false, null),
       col('norWcconAllowed',   'NOR — WCCON',         'boolean', false, false, null),
       col('noticeOfReadinessTurnTimeMins', 'NOR Turn Time (mins)', 'number', false, false, null),
-      col('commodityType',     'Commodity',           'foreign_key', true,  false, null, null, 'lookup_value'),
+      col('commodityType',     'Commodity',           'foreign_key', true,  false, null, null, 'commodity_type'),
       col('description',       'Description',         'string',  true,  false, 300),
       col('isActive',          'Active',              'boolean', false, false, null),
     ],
@@ -801,7 +704,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('demurrageRatePerDay', 'Demurrage $/Day',     'number',      false, false, null),
       col('dispatchRatePerDay',  'Dispatch $/Day',      'number',      true,  false, null),
       col('currencyId',          'Currency',            'foreign_key', false, false, null, null, 'currency'),
-      col('commodityType',       'Commodity',           'foreign_key', true,  false, null, null, 'lookup_value'),
+      col('commodityType',       'Commodity',           'foreign_key', true,  false, null, null, 'commodity_type'),
       col('claimTimeBarDays',    'Claim Time-Bar (days)','number',     true,  false, null),
       col('despatchBasis',       'Despatch Basis',      'enum',        true,  false, null, ['ALL_TIME_SAVED', 'WORKING_TIME_SAVED_ONLY']),
       col('effectiveFrom',       'Effective From',      'date',        false, false, null),
@@ -1344,6 +1247,8 @@ export const registrySeed: RegistryEntry[] = [
   { registryId: 229, tableName: 'fx_rate',             displayName: 'FX Rates',             moduleGroup: 'Pricing & Rates',                  subGroup: 'FX',        description: 'Daily FX rates per currency pair — EOD, intraday, settlement, fixing, or mid. Used for P&L revaluation and cross-currency settlement.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: true, isEnabled: true, displayOrder: 8 },
   { registryId: 230, tableName: 'settlement_calendar', displayName: 'Settlement Calendars', moduleGroup: 'Products & Markets',                subGroup: 'Classification', description: 'Which holiday calendars apply to a product\'s settlement date calculation — a product may use multiple (e.g. UK + US bank holidays), with a priority order.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 8 },
   { registryId: 231, tableName: 'trade_repository',    displayName: 'Trade Repositories',   moduleGroup: 'Sanctions & Regulatory Reporting', subGroup: 'Reporting', description: 'Approved trade repositories for regulatory reporting submission — DTCC, REGIS-TR, ICE TVEL — by regime with submission format and endpoint.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
+  // V85 — lookup_category: the category master lookup_value.categoryId now points at
+  { registryId: 232, tableName: 'lookup_category',     displayName: 'Lookup Categories',    moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Category master for Lookup Values — add a category here first, then add its code/display-name rows under Lookup Values to introduce a new managed picklist.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 8 },
   // V17 parent lookup tables — generated from the simple list above
   ...PARENT_LOOKUP_TABLES.map((t, i) => ({
     registryId:       10 + i,
@@ -1407,19 +1312,106 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { reportingGroupId: 11, classificationTypeId: 3, groupName: 'GL — Metals',             description: 'Settlement/invoicing GL posting group for metals products.',    isActive: true },
     { reportingGroupId: 12, classificationTypeId: 3, groupName: 'GL — Agricultural',       description: 'Settlement/invoicing GL posting group for agricultural products.', isActive: true },
   ],
+  // V85 — categoryId: 1=REPORTING_CLASSIFICATION_TYPE, 2=operator_type,
+  // 3=instrument_type, 4=storage_agreement_type, 5=transport_agreement_type,
+  // 6=price_adjustment_type, 7=demurrage_basis, 8=gl_account_type,
+  // 9=rin_transaction_type, 10=rin_obligation_status (see lookup_category
+  // rowSeed below).
   lookup_value: [
-    { lookupId: 1, category: 'REPORTING_CLASSIFICATION_TYPE', code: 'POSITION',   displayName: 'Position Reporting', sortOrder: 1, isActive: true },
-    { lookupId: 2, category: 'REPORTING_CLASSIFICATION_TYPE', code: 'VAR',        displayName: 'VaR / Risk',          sortOrder: 2, isActive: true },
-    { lookupId: 3, category: 'REPORTING_CLASSIFICATION_TYPE', code: 'SETTLEMENT', displayName: 'Settlement / GL',     sortOrder: 3, isActive: true },
+    { lookupId: 1, categoryId: 1, code: 'POSITION',   displayName: 'Position Reporting', sortOrder: 1, isActive: true },
+    { lookupId: 2, categoryId: 1, code: 'VAR',        displayName: 'VaR / Risk',          sortOrder: 2, isActive: true },
+    { lookupId: 3, categoryId: 1, code: 'SETTLEMENT', displayName: 'Settlement / GL',     sortOrder: 3, isActive: true },
     // V77 — transport_operator.operator_type, converted from CHECK to lookup_value FK
-    { lookupId: 4,  category: 'operator_type', code: 'SHIPPING_LINE', displayName: 'Shipping Line',      sortOrder: 1, isActive: true },
-    { lookupId: 5,  category: 'operator_type', code: 'SHIP_MANAGER',  displayName: 'Ship Manager',       sortOrder: 2, isActive: true },
-    { lookupId: 6,  category: 'operator_type', code: 'HAULIER',       displayName: 'Haulier',            sortOrder: 3, isActive: true },
-    { lookupId: 7,  category: 'operator_type', code: 'RAIL_OPERATOR', displayName: 'Rail Operator',      sortOrder: 4, isActive: true },
-    { lookupId: 8,  category: 'operator_type', code: 'PIPELINE_TSO',  displayName: 'Pipeline TSO',       sortOrder: 5, isActive: true },
-    { lookupId: 9,  category: 'operator_type', code: 'TERMINAL_OP',   displayName: 'Terminal Operator',  sortOrder: 6, isActive: true },
-    { lookupId: 10, category: 'operator_type', code: 'MULTI_MODAL',   displayName: 'Multi-Modal',        sortOrder: 7, isActive: true },
-    { lookupId: 11, category: 'operator_type', code: 'OTHER',         displayName: 'Other',              sortOrder: 8, isActive: true },
+    { lookupId: 4,  categoryId: 2, code: 'SHIPPING_LINE', displayName: 'Shipping Line',      sortOrder: 1, isActive: true },
+    { lookupId: 5,  categoryId: 2, code: 'SHIP_MANAGER',  displayName: 'Ship Manager',       sortOrder: 2, isActive: true },
+    { lookupId: 6,  categoryId: 2, code: 'HAULIER',       displayName: 'Haulier',            sortOrder: 3, isActive: true },
+    { lookupId: 7,  categoryId: 2, code: 'RAIL_OPERATOR', displayName: 'Rail Operator',      sortOrder: 4, isActive: true },
+    { lookupId: 8,  categoryId: 2, code: 'PIPELINE_TSO',  displayName: 'Pipeline TSO',       sortOrder: 5, isActive: true },
+    { lookupId: 9,  categoryId: 2, code: 'TERMINAL_OP',   displayName: 'Terminal Operator',  sortOrder: 6, isActive: true },
+    { lookupId: 10, categoryId: 2, code: 'MULTI_MODAL',   displayName: 'Multi-Modal',        sortOrder: 7, isActive: true },
+    { lookupId: 11, categoryId: 2, code: 'OTHER',         displayName: 'Other',              sortOrder: 8, isActive: true },
+    // V81 — 5 columns (V44/V46) + 2 RIN columns (V38) finished their
+    // lookup_value conversion; rows were already seeded in real SQL, just
+    // never actually referenced by the consuming column until V81/this pass.
+    // Previously the frontend mock modelled these 6 (+gas_day_type, already
+    // correctly wired) as fake standalone PARENT_LOOKUP_TABLES entries with
+    // no real table behind them — removed those, rows moved here instead.
+    { lookupId: 12, categoryId: 3, code: 'PHYSICAL',             displayName: 'Physical Delivery',             sortOrder: 1,  isActive: true },
+    { lookupId: 13, categoryId: 3, code: 'CERTIFICATE_TRANSFER', displayName: 'Certificate Transfer (Spot)',   sortOrder: 2,  isActive: true },
+    { lookupId: 14, categoryId: 3, code: 'FORWARD',              displayName: 'Forward (OTC)',                 sortOrder: 3,  isActive: true },
+    { lookupId: 15, categoryId: 3, code: 'FUTURES',              displayName: 'Futures (Exchange)',            sortOrder: 4,  isActive: true },
+    { lookupId: 16, categoryId: 3, code: 'SWAP_FIXED_FLOAT',     displayName: 'Swap — Fixed / Float',          sortOrder: 5,  isActive: true },
+    { lookupId: 17, categoryId: 3, code: 'SWAP_FLOAT_FLOAT',     displayName: 'Swap — Float / Float (Basis)',  sortOrder: 6,  isActive: true },
+    { lookupId: 18, categoryId: 3, code: 'OPTION_LISTED',        displayName: 'Option — Listed (Exchange)',    sortOrder: 7,  isActive: true },
+    { lookupId: 19, categoryId: 3, code: 'OPTION_OTC_AMERICAN',  displayName: 'Option — OTC American',        sortOrder: 8,  isActive: true },
+    { lookupId: 20, categoryId: 3, code: 'OPTION_OTC_ASIAN',     displayName: 'Option — OTC Asian (APO)',     sortOrder: 9,  isActive: true },
+    { lookupId: 21, categoryId: 3, code: 'OPTION_OTC_EUROPEAN',  displayName: 'Option — OTC European',        sortOrder: 10, isActive: true },
+    { lookupId: 22, categoryId: 3, code: 'STORAGE_AGREEMENT',    displayName: 'Storage Agreement',            sortOrder: 11, isActive: true },
+    { lookupId: 23, categoryId: 3, code: 'TRANSPORT_AGREEMENT',  displayName: 'Transport Agreement',          sortOrder: 12, isActive: true },
+    { lookupId: 24, categoryId: 4, code: 'TANK_LEASE',    displayName: 'Tank Lease',                sortOrder: 1, isActive: true },
+    { lookupId: 25, categoryId: 4, code: 'THROUGHPUT',    displayName: 'Throughput Agreement',      sortOrder: 2, isActive: true },
+    { lookupId: 26, categoryId: 4, code: 'TERMINALLING',  displayName: 'Terminalling Agreement',    sortOrder: 3, isActive: true },
+    { lookupId: 27, categoryId: 4, code: 'WORKING_GAS',   displayName: 'Working Gas Storage',       sortOrder: 4, isActive: true },
+    { lookupId: 28, categoryId: 4, code: 'CUSHION_GAS',   displayName: 'Cushion Gas',                sortOrder: 5, isActive: true },
+    { lookupId: 29, categoryId: 4, code: 'LNG_SLOT',      displayName: 'LNG Tank Slot',              sortOrder: 6, isActive: true },
+    { lookupId: 30, categoryId: 4, code: 'REGASIFICATION',displayName: 'Regasification Slot',       sortOrder: 7, isActive: true },
+    { lookupId: 31, categoryId: 5, code: 'VOYAGE_CHARTER',         displayName: 'Voyage Charter',              sortOrder: 1,  isActive: true },
+    { lookupId: 32, categoryId: 5, code: 'TIME_CHARTER',           displayName: 'Time Charter',                sortOrder: 2,  isActive: true },
+    { lookupId: 33, categoryId: 5, code: 'BAREBOAT_CHARTER',       displayName: 'Bareboat Charter',            sortOrder: 3,  isActive: true },
+    { lookupId: 34, categoryId: 5, code: 'COA',                    displayName: 'Contract of Affreightment',   sortOrder: 4,  isActive: true },
+    { lookupId: 35, categoryId: 5, code: 'PIPELINE_FIRM',          displayName: 'Pipeline Firm Capacity',      sortOrder: 5,  isActive: true },
+    { lookupId: 36, categoryId: 5, code: 'PIPELINE_INTERRUPTIBLE', displayName: 'Pipeline Interruptible',      sortOrder: 6,  isActive: true },
+    { lookupId: 37, categoryId: 5, code: 'TRUCK_SPOT',             displayName: 'Truck Spot',                  sortOrder: 7,  isActive: true },
+    { lookupId: 38, categoryId: 5, code: 'RAIL_SPOT',              displayName: 'Rail Spot',                   sortOrder: 8,  isActive: true },
+    { lookupId: 39, categoryId: 5, code: 'BARGE_SPOT',             displayName: 'Barge Spot',                  sortOrder: 9,  isActive: true },
+    { lookupId: 40, categoryId: 5, code: 'LNG_SLOT_CHARTER',       displayName: 'LNG Slot Charter',            sortOrder: 10, isActive: true },
+    { lookupId: 41, categoryId: 6, code: 'API_GRAVITY',      displayName: 'API Gravity Differential',       sortOrder: 1,  isActive: true },
+    { lookupId: 42, categoryId: 6, code: 'DENSITY',          displayName: 'Density Correction',             sortOrder: 2,  isActive: true },
+    { lookupId: 43, categoryId: 6, code: 'HEAT_CONTENT',     displayName: 'Heat Content / Calorific Value', sortOrder: 3,  isActive: true },
+    { lookupId: 44, categoryId: 6, code: 'SULFUR',           displayName: 'Sulfur Premium / Discount',      sortOrder: 4,  isActive: true },
+    { lookupId: 45, categoryId: 6, code: 'PROTEIN',          displayName: 'Protein Content Adjustment',     sortOrder: 5,  isActive: true },
+    { lookupId: 46, categoryId: 6, code: 'MOISTURE',         displayName: 'Moisture Deduction',             sortOrder: 6,  isActive: true },
+    { lookupId: 47, categoryId: 6, code: 'TEST_WEIGHT',      displayName: 'Test Weight Adjustment',         sortOrder: 7,  isActive: true },
+    { lookupId: 48, categoryId: 6, code: 'ASSAY',            displayName: 'Assay / Payable Metal',          sortOrder: 8,  isActive: true },
+    { lookupId: 49, categoryId: 6, code: 'TREATMENT_CHARGE', displayName: 'Treatment Charge (TC)',          sortOrder: 9,  isActive: true },
+    { lookupId: 50, categoryId: 6, code: 'REFINING_CHARGE',  displayName: 'Refining Charge (RC)',           sortOrder: 10, isActive: true },
+    { lookupId: 51, categoryId: 6, code: 'QUALITY_PREMIUM',  displayName: 'Quality Premium',                sortOrder: 11, isActive: true },
+    { lookupId: 52, categoryId: 6, code: 'QUALITY_DISCOUNT', displayName: 'Quality Discount',               sortOrder: 12, isActive: true },
+    { lookupId: 53, categoryId: 6, code: 'TAX',              displayName: 'Tax',                            sortOrder: 13, isActive: true },
+    { lookupId: 54, categoryId: 6, code: 'MARKUP',           displayName: 'Commercial Markup',              sortOrder: 14, isActive: true },
+    { lookupId: 55, categoryId: 6, code: 'FX_DIFFERENTIAL',  displayName: 'FX Differential',                sortOrder: 15, isActive: true },
+    { lookupId: 56, categoryId: 7, code: 'REVERSIBLE',     displayName: 'Reversible (combined pool)',          sortOrder: 1, isActive: true },
+    { lookupId: 57, categoryId: 7, code: 'NON_REVERSIBLE', displayName: 'Non-Reversible (per-port allowance)', sortOrder: 2, isActive: true },
+    { lookupId: 58, categoryId: 7, code: 'AVERAGED',       displayName: 'Averaged',                            sortOrder: 3, isActive: true },
+    // gl_account_type — already seeded in real SQL (V37), never a missing table
+    { lookupId: 59, categoryId: 8, code: 'REVENUE',   displayName: 'Revenue',   sortOrder: 1, isActive: true },
+    { lookupId: 60, categoryId: 8, code: 'COST',      displayName: 'Cost',      sortOrder: 2, isActive: true },
+    { lookupId: 61, categoryId: 8, code: 'ASSET',     displayName: 'Asset',     sortOrder: 3, isActive: true },
+    { lookupId: 62, categoryId: 8, code: 'LIABILITY', displayName: 'Liability', sortOrder: 4, isActive: true },
+    { lookupId: 63, categoryId: 8, code: 'EQUITY',    displayName: 'Equity',    sortOrder: 5, isActive: true },
+    { lookupId: 64, categoryId: 8, code: 'PNL',       displayName: 'P&L',       sortOrder: 6, isActive: true },
+    // rin_transaction_type / rin_obligation_status — already seeded in real SQL (V38)
+    { lookupId: 65, categoryId: 9, code: 'GENERATE',      displayName: 'Generate',          sortOrder: 1, isActive: true },
+    { lookupId: 66, categoryId: 9, code: 'SEPARATE',      displayName: 'Separate',          sortOrder: 2, isActive: true },
+    { lookupId: 67, categoryId: 9, code: 'TRANSFER_BUY',  displayName: 'Transfer — Buy',    sortOrder: 3, isActive: true },
+    { lookupId: 68, categoryId: 9, code: 'TRANSFER_SELL', displayName: 'Transfer — Sell',   sortOrder: 4, isActive: true },
+    { lookupId: 69, categoryId: 9, code: 'RETIRE',        displayName: 'Retire (Surrender)',sortOrder: 5, isActive: true },
+    { lookupId: 70, categoryId: 10, code: 'OPEN',                  displayName: 'Open',                 sortOrder: 1, isActive: true },
+    { lookupId: 71, categoryId: 10, code: 'PARTIALLY_SATISFIED',   displayName: 'Partially Satisfied',  sortOrder: 2, isActive: true },
+    { lookupId: 72, categoryId: 10, code: 'SATISFIED',             displayName: 'Satisfied',            sortOrder: 3, isActive: true },
+    { lookupId: 73, categoryId: 10, code: 'OVERDUE',               displayName: 'Overdue',              sortOrder: 4, isActive: true },
+  ],
+  lookup_category: [
+    { categoryId: 1,  categoryCode: 'REPORTING_CLASSIFICATION_TYPE', categoryName: 'Reporting Classification Type', description: 'Independent per-report classification axes for Reporting Groups — Position, VaR, Settlement/GL.',        sortOrder: 1,  isActive: true },
+    { categoryId: 2,  categoryCode: 'operator_type',                 categoryName: 'Operator Type',                 description: 'Transport operator roles — shipping line, ship manager, haulier, rail/pipeline/terminal operator.',                 sortOrder: 2,  isActive: true },
+    { categoryId: 3,  categoryCode: 'instrument_type',                categoryName: 'Instrument Type',               description: 'Trade instrument classification — physical, forward, futures, swap, option, storage/transport agreement.',                sortOrder: 3,  isActive: true },
+    { categoryId: 4,  categoryCode: 'storage_agreement_type',         categoryName: 'Storage Agreement Type',        description: 'Storage deal sub-types — tank lease, throughput, terminalling, working/cushion gas, LNG slot.',                          sortOrder: 4,  isActive: true },
+    { categoryId: 5,  categoryCode: 'transport_agreement_type',       categoryName: 'Transport Agreement Type',      description: 'Transport deal sub-types — voyage/time/bareboat charter, COA, pipeline capacity, truck/rail/barge spot.',              sortOrder: 5,  isActive: true },
+    { categoryId: 6,  categoryCode: 'price_adjustment_type',          categoryName: 'Price Adjustment Type',         description: 'Order-level price adjustments — quality differentials, treatment/refining charges, tax, markup, FX.',                    sortOrder: 6,  isActive: true },
+    { categoryId: 7,  categoryCode: 'demurrage_basis',                 categoryName: 'Demurrage Basis',               description: 'How demurrage/dispatch is calculated across multiple load/discharge ports — reversible, non-reversible, averaged.',           sortOrder: 7,  isActive: true },
+    { categoryId: 8,  categoryCode: 'gl_account_type',                 categoryName: 'GL Account Type',               description: 'General ledger account classification — revenue, cost, asset, liability, equity, P&L.',                                sortOrder: 8,  isActive: true },
+    { categoryId: 9,  categoryCode: 'rin_transaction_type',            categoryName: 'RIN Transaction Type',          description: 'RFS RIN lifecycle transaction types — generate, separate, transfer, retire.',                                           sortOrder: 9,  isActive: true },
+    { categoryId: 10, categoryCode: 'rin_obligation_status',           categoryName: 'RIN Obligation Status',         description: 'RVO compliance obligation status — open, partially satisfied, satisfied, overdue.',                                    sortOrder: 10, isActive: true },
   ],
   credit_rating: [
     { creditRatingId: 1, agency: 'S&P', rating: 'AAA', numericScore: 1, riskCategory: 'INVESTMENT_GRADE', isActive: true },
