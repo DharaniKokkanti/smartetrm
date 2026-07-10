@@ -2,6 +2,7 @@ package com.etrm.system.legalentity;
 
 import com.etrm.system.common.ConflictException;
 import com.etrm.system.common.NotFoundException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,9 +14,11 @@ import java.util.List;
 public class LegalEntityService {
 
     private final LegalEntityRepository repository;
+    private final LegalEntityRowInserter rowInserter;
 
-    public LegalEntityService(LegalEntityRepository repository) {
+    public LegalEntityService(LegalEntityRepository repository, LegalEntityRowInserter rowInserter) {
         this.repository = repository;
+        this.rowInserter = rowInserter;
     }
 
     @Transactional(readOnly = true)
@@ -59,7 +62,11 @@ public class LegalEntityService {
 
     /** Mirrors the frontend's bulk-upload review flow: duplicates are
      *  rejected with a reason, not silently skipped or merged, and a
-     *  partial batch still commits everything that DID pass. */
+     *  partial batch still commits everything that DID pass — including
+     *  rows after one that fails a DB constraint (e.g. an invalid
+     *  jurisdiction/incorporation-country/base-currency code), since each
+     *  row is inserted via {@link LegalEntityRowInserter} in its own
+     *  transaction rather than this method's shared one. */
     public BulkResult bulkCreate(List<LegalEntity> inputs) {
         List<LegalEntity> created = new java.util.ArrayList<>();
         List<RejectedRow> rejected = new java.util.ArrayList<>();
@@ -69,10 +76,13 @@ public class LegalEntityService {
                 rejected.add(new RejectedRow(input, "Entity Code \"" + input.getEntityCode() + "\" already exists."));
                 continue;
             }
-            input.setLegalEntityId(null);
-            input.setIsActive(true);
-            input.setDeactivatedDate(null);
-            created.add(repository.save(input));
+            try {
+                created.add(rowInserter.insert(input));
+            } catch (DataIntegrityViolationException ex) {
+                rejected.add(new RejectedRow(input,
+                        "Row rejected — violates a database constraint (e.g. jurisdiction, incorporation country, "
+                                + "or base currency is not a recognised code)."));
+            }
         }
         return new BulkResult(created, rejected);
     }
