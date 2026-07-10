@@ -168,12 +168,12 @@ function OilSection({ locations, vessels, crudeGrades, pipelines }: {
         </Col>
       </Row>
       <Row gutter={16}>
-        <Col span={8}>
+        <Col span={motType === 'PIPELINE' ? 8 : 12}>
           <Form.Item name={['oilDetail', 'titleTransferLocationCode']} label={hint('Title Transfer', 'FOB = at load port. CIF/DES = at discharge.')}>
             <Select options={locations} placeholder="Title transfer location" allowClear showSearch />
           </Form.Item>
         </Col>
-        <Col span={8}>
+        <Col span={motType === 'PIPELINE' ? 8 : 12}>
           <Form.Item name={['oilDetail', 'vesselName']} label={hint('Vessel', 'Leave blank (TBN) and update before laycan opens.')}>
             <Select options={vessels} placeholder="Select vessel (TBN if unknown)" allowClear showSearch />
           </Form.Item>
@@ -219,9 +219,9 @@ function GasSection({ nominationTypes, gasDayTypes }: { nominationTypes: SelectO
         </Col>
       </Row>
       <Row gutter={16}>
-        <Col span={6}><Form.Item name={['gasDetail', 'gasDeliveryStart']} label="Delivery Start"><AppDatePicker /></Form.Item></Col>
-        <Col span={6}><Form.Item name={['gasDetail', 'gasDeliveryEnd']} label="Delivery End"><AppDatePicker /></Form.Item></Col>
-        <Col span={6}>
+        <Col span={8}><Form.Item name={['gasDetail', 'gasDeliveryStart']} label="Delivery Start"><AppDatePicker /></Form.Item></Col>
+        <Col span={8}><Form.Item name={['gasDetail', 'gasDeliveryEnd']} label="Delivery End"><AppDatePicker /></Form.Item></Col>
+        <Col span={8}>
           <Form.Item name={['gasDetail', 'gasDayType']} label={hint('Gas Day Type', 'STANDARD = 06:00–06:00 UK time (NBP).')}>
             <Select options={gasDayTypes} allowClear />
           </Form.Item>
@@ -286,7 +286,7 @@ function LngSection({ locations, lngPriceBases }: { locations: SelectOpt[]; lngP
         <Col span={10}><Form.Item name={['lngDetail', 'cargoVolumeMmbtu']} label={hint('Cargo Volume (MMBtu)', 'QFLEX cargo ≈ 3,400,000 MMBtu.')}><InputNumber placeholder="3400000" style={{ width: '100%' }} suffix="MMBtu" /></Form.Item></Col>
       </Row>
       <Row gutter={16}>
-        <Col span={12}><Form.Item name={['lngDetail', 'priceBasis']} label={hint('Price Basis', 'JCC for Asia. HH for US. TTF/NBP for Europe.')}><Select options={lngPriceBases} allowClear /></Form.Item></Col>
+        <Col span={24}><Form.Item name={['lngDetail', 'priceBasis']} label={hint('Price Basis', 'JCC for Asia. HH for US. TTF/NBP for Europe.')}><Select options={lngPriceBases} allowClear /></Form.Item></Col>
       </Row>
     </>
   );
@@ -308,7 +308,7 @@ function MetalsSection({ locations, metalShapes }: { locations: SelectOpt[]; met
         <Col span={8}><Form.Item name={['metalsDetail', 'warehouseLocationCode']} label="Warehouse"><Select options={locations} placeholder="LME warehouse" allowClear showSearch /></Form.Item></Col>
       </Row>
       <Row gutter={16}>
-        <Col span={12}><Form.Item name={['metalsDetail', 'titleTransferLocationCode']} label="Title Transfer Location"><Select options={locations} placeholder="Title transfer point" allowClear showSearch /></Form.Item></Col>
+        <Col span={24}><Form.Item name={['metalsDetail', 'titleTransferLocationCode']} label="Title Transfer Location"><Select options={locations} placeholder="Title transfer point" allowClear showSearch /></Form.Item></Col>
       </Row>
     </>
   );
@@ -475,7 +475,7 @@ function BalmoSection({ balmoProducts }: { balmoProducts: BalmoProduct[] }) {
         </Col>
       </Row>
       <Row gutter={16}>
-        <Col span={8}>
+        <Col span={12}>
           <Form.Item
             name={['balmoDetail', 'runningAvgPrice']}
             label={hint('Running Avg Price', 'Daily-updated arithmetic average of exchange settlements. Refreshed from the BALMO Dashboard via the sync button.')}
@@ -483,7 +483,7 @@ function BalmoSection({ balmoProducts }: { balmoProducts: BalmoProduct[] }) {
             <InputNumber placeholder="Auto-updated daily" precision={4} style={{ width: '100%' }} />
           </Form.Item>
         </Col>
-        <Col span={8}>
+        <Col span={12}>
           <Form.Item
             name={['balmoDetail', 'finalSettledPrice']}
             label={hint('Final Settled Price', 'The final arithmetic average on the last pricing day. Filled on settlement or manually entered.')}
@@ -524,12 +524,12 @@ function RinSection() {
         </Col>
       </Row>
       <Row gutter={16}>
-        <Col span={8}>
+        <Col span={12}>
           <Form.Item name={['rinDetail', 'epaBatchNumber']} label={hint('EPA Batch #', 'EMTS batch identifier from the fuel producer.')}>
             <Input placeholder="EMTS-2026-88121" />
           </Form.Item>
         </Col>
-        <Col span={8}>
+        <Col span={12}>
           <Form.Item name={['rinDetail', 'emtsTransferRef']} label={hint('EMTS Transfer Ref', 'EPA Moderated Transaction System reference once the buy/sell transfer is submitted.')}>
             <Input placeholder="Populated after EMTS submission" />
           </Form.Item>
@@ -811,12 +811,12 @@ function DeliveryFields({
 
       {sectionTitle('Risk Period')}
       <Row gutter={16}>
-        <Col span={8}>
+        <Col span={12}>
           <Form.Item name="riskStartDate" label={hint('Risk Start', 'First day this leg carries price risk.')} rules={[{ required: true, message: 'Required for position engine' }]}>
             <AppDatePicker />
           </Form.Item>
         </Col>
-        <Col span={8}>
+        <Col span={12}>
           <Form.Item name="riskEndDate" label={hint('Risk End', 'Last day this leg carries price risk.')} rules={[{ required: true, message: 'Required for position engine' }]}>
             <AppDatePicker />
           </Form.Item>
@@ -825,29 +825,27 @@ function DeliveryFields({
 
       {sectionTitle('Quantity & Pricing')}
       <Row gutter={16}>
-        <Col span={6}>
+        <Col span={5}>
           <Form.Item name="quantity" label="Quantity" rules={[{ required: true }]}>
             <InputNumber placeholder="500000" style={{ width: '100%' }} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} parser={(v) => v?.replace(/,/g, '') as unknown as number} />
           </Form.Item>
         </Col>
-        <Col span={6}>
+        <Col span={4}>
           <Form.Item name="uomCode" label="UoM" rules={[{ required: true }]}>
             <Select options={uomOpts} showSearch />
           </Form.Item>
         </Col>
-        <Col span={6}>
+        <Col span={5}>
           <Form.Item name="price" label={hint('Price', 'Leave blank for floating / TBD.')}>
             <InputNumber placeholder="82.45" precision={4} style={{ width: '100%' }} />
           </Form.Item>
         </Col>
-        <Col span={6}>
+        <Col span={5}>
           <Form.Item name="currencyCode" label="Currency" rules={[{ required: true }]}>
             <Select options={currencyOpts} showSearch />
           </Form.Item>
         </Col>
-      </Row>
-      <Row gutter={16}>
-        <Col span={8}>
+        <Col span={5}>
           <Form.Item name="settlementType" label="Settlement" rules={[{ required: true }]}>
             <Select options={SETTLEMENT_TYPES_TRADE.map((s) => ({ value: s, label: s }))} />
           </Form.Item>
@@ -856,7 +854,7 @@ function DeliveryFields({
 
       {sectionTitle('Delivery')}
       <Row gutter={16}>
-        <Col span={8}>
+        <Col span={hasVesselPhysical ? 8 : 12}>
           <Form.Item name="incotermCode" label={hint('Incoterm', 'FOB, CIF, DES.')}>
             <Select
               options={(incoterms as { incotermCode: string; incotermName: string }[]).map((i) => ({ value: i.incotermCode, label: `${i.incotermCode} — ${i.incotermName}` }))}
@@ -864,7 +862,7 @@ function DeliveryFields({
             />
           </Form.Item>
         </Col>
-        <Col span={8}>
+        <Col span={hasVesselPhysical ? 8 : 12}>
           <Form.Item name="deliveryLocationCode" label="Delivery Location">
             <Select options={locationOpts} placeholder="Delivery point" showSearch allowClear />
           </Form.Item>
@@ -879,7 +877,6 @@ function DeliveryFields({
                 options={countryOpts}
                 placeholder="Select country"
                 allowClear showSearch optionFilterProp="label"
-                style={{ width: 160 }}
               />
             </Form.Item>
           </Col>
@@ -1387,6 +1384,7 @@ export function TradeBlotter() {
   const [tradeCommodity, setTradeCommodity] = useState<CommodityTypeTrade>('OIL');
   const [tradeForm] = Form.useForm<TradeInput>();
   const watchedTermType = Form.useWatch('termType', tradeForm);
+  const watchedDirection = Form.useWatch('direction', tradeForm);
   const watchedInstrumentType = Form.useWatch('instrumentType', tradeForm);
 
   // Keep the always-mounted trade form in sync with the selected trade when not
@@ -1949,7 +1947,11 @@ export function TradeBlotter() {
             {/* Header strip + Details — one always-mounted form; fields read-only until Edit Trade */}
             <Form form={tradeForm} layout="vertical" size="small" disabled={!tradeOpen}>
               <Row gutter={12}>
-                <Col span={14}>
+                {/* Commodity Type and Term Type are Segmented pickers (need real width) only while
+                    creating a brand-new trade; once a trade exists they're locked, compact Tags — so
+                    these columns are narrower and evenly split for an existing trade instead of keeping
+                    the wide picker-sized columns, which left a large dead gap next to the tags. */}
+                <Col span={selectedTrade ? 8 : 14}>
                   <Form.Item
                     name="commodityType"
                     label={selectedTrade ? hint('Commodity Type', 'Locked once a trade exists — its legs and products are commodity-specific.') : 'Commodity Type'}
@@ -1975,12 +1977,18 @@ export function TradeBlotter() {
                     )}
                   </Form.Item>
                 </Col>
-                <Col span={4}>
+                <Col span={selectedTrade ? 8 : 4}>
                   <Form.Item name="direction" label={hint('Direction', 'BUY = long. SELL = short.')} rules={[{ required: true }]}>
-                    <Select options={DIRECTIONS.map((d) => ({ value: d, label: d }))} />
+                    {/* Pure view mode (not editing): compact Tag like Commodity/Term Type, instead of a
+                        full-width disabled dropdown that looks out of place next to them. */}
+                    {selectedTrade && !tradeOpen ? (
+                      <Tag color={DIRECTION_COLOR[watchedDirection]} style={{ fontSize: 13, padding: '3px 10px', fontWeight: 700 }}>{watchedDirection}</Tag>
+                    ) : (
+                      <Select options={DIRECTIONS.map((d) => ({ value: d, label: d }))} />
+                    )}
                   </Form.Item>
                 </Col>
-                <Col span={6}>
+                <Col span={selectedTrade ? 8 : 6}>
                   <Form.Item
                     name="termType"
                     label={selectedTrade
@@ -2057,8 +2065,8 @@ export function TradeBlotter() {
                 </Col>
               </Row>
               <Row gutter={12}>
-                <Col span={24}>
-                  <Form.Item name="specialReference" label={hint('Special Contract', 'Special contract reference — side letters, bespoke terms, non-standard clauses. Flags the deal for legal review. Max 180 characters.')}>
+                <Col span={12}>
+                  <Form.Item name="specialReference" label={hint('Special Contract', 'Special contract reference — side letters, bespoke terms, non-standard clauses. Flags the deal for legal review.', undefined, 'Max 180 characters')}>
                     <Input placeholder="e.g. Side letter 2026-04: BWAVE pricing override" maxLength={180} showCount />
                   </Form.Item>
                 </Col>
@@ -2074,8 +2082,12 @@ export function TradeBlotter() {
                     key: 'classification', label: 'Deal Classification', forceRender: true,
                     children: (
                       <>
-                        <Row gutter={16}>
-                          <Col span={16}>
+                        {/* Instrument Type gets a fixed, content-appropriate width instead of a wide
+                            Col — the status Alert (when relevant) sits inline next to it and only takes
+                            up space when it's actually rendered, instead of reserving a permanently
+                            empty column for the common case (e.g. plain PHYSICAL deals) where no alert applies. */}
+                        <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+                          <div style={{ width: 380, flexShrink: 0 }}>
                             <Form.Item name="instrumentType" label={hint('Instrument Type', 'Financial structure of the deal — PHYSICAL, FUTURES, FORWARD, SWAP (Fixed/Float or Float/Float), OPTION (Listed/OTC American/Asian/European), STORAGE_AGREEMENT, or TRANSPORT_AGREEMENT. Drives which detail panels appear on the leg.')}>
                               <Select
                                 allowClear
@@ -2111,22 +2123,23 @@ export function TradeBlotter() {
                                 })()}
                               />
                             </Form.Item>
-                          </Col>
-                          <Col span={8}>
-                            {(watchedInstrumentType === 'SWAP_FIXED_FLOAT' || watchedInstrumentType === 'SWAP_FLOAT_FLOAT') && (
-                              <Alert type="info" showIcon style={{ marginTop: 29, fontSize: 11 }}
-                                message={watchedInstrumentType === 'SWAP_FIXED_FLOAT' ? 'Swap: Fixed vs Floating index' : 'Basis Swap: two floating indices'} />
-                            )}
-                            {(watchedInstrumentType?.startsWith('OPTION_')) && (
-                              <Alert type="warning" showIcon style={{ marginTop: 29, fontSize: 11 }}
-                                message={watchedInstrumentType === 'OPTION_OTC_ASIAN' ? 'APO: payoff = Avg(index) − Strike' : 'Option: strike, expiry, put/call, premium'} />
-                            )}
-                            {(watchedInstrumentType === 'STORAGE_AGREEMENT' || watchedInstrumentType === 'TRANSPORT_AGREEMENT') && (
-                              <Alert type="success" showIcon style={{ marginTop: 29, fontSize: 11 }}
-                                message={watchedInstrumentType === 'STORAGE_AGREEMENT' ? 'Storage: capacity, tariff, in/out dates' : 'Transport: carrier, route, freight rate'} />
-                            )}
-                          </Col>
-                        </Row>
+                          </div>
+                          {(() => {
+                            if (watchedInstrumentType === 'SWAP_FIXED_FLOAT' || watchedInstrumentType === 'SWAP_FLOAT_FLOAT') {
+                              return <Alert type="info" showIcon style={{ marginTop: 29, fontSize: 11, flex: 1 }}
+                                message={watchedInstrumentType === 'SWAP_FIXED_FLOAT' ? 'Swap: Fixed vs Floating index' : 'Basis Swap: two floating indices'} />;
+                            }
+                            if (watchedInstrumentType?.startsWith('OPTION_')) {
+                              return <Alert type="warning" showIcon style={{ marginTop: 29, fontSize: 11, flex: 1 }}
+                                message={watchedInstrumentType === 'OPTION_OTC_ASIAN' ? 'APO: payoff = Avg(index) − Strike' : 'Option: strike, expiry, put/call, premium'} />;
+                            }
+                            if (watchedInstrumentType === 'STORAGE_AGREEMENT' || watchedInstrumentType === 'TRANSPORT_AGREEMENT') {
+                              return <Alert type="success" showIcon style={{ marginTop: 29, fontSize: 11, flex: 1 }}
+                                message={watchedInstrumentType === 'STORAGE_AGREEMENT' ? 'Storage: capacity, tariff, in/out dates' : 'Transport: carrier, route, freight rate'} />;
+                            }
+                            return null;
+                          })()}
+                        </div>
                         {/* RFP fields — visible only when termType = RFP */}
                         {watchedTermType === 'RFP' && (
                           <Card size="small" style={{ marginBottom: 12, border: '1px solid #d3adf7', background: 'rgba(114,46,209,0.03)' }}>
@@ -2149,12 +2162,12 @@ export function TradeBlotter() {
                               </Col>
                             </Row>
                             <Row gutter={16}>
-                              <Col span={8}>
+                              <Col span={12}>
                                 <Form.Item name="rfpStartDate" label="RFP Start Date">
                                   <AppDatePicker />
                                 </Form.Item>
                               </Col>
-                              <Col span={8}>
+                              <Col span={12}>
                                 <Form.Item name="rfpEndDate" label="RFP End Date">
                                   <AppDatePicker />
                                 </Form.Item>
@@ -2366,8 +2379,16 @@ export function TradeBlotter() {
               />
             ) : (
               <Alert
-                type="info" showIcon style={{ fontSize: 12 }}
-                message="Save the trade first — delivery legs, items, secondary costs, specifications and assay results attach to a saved trade."
+                type="info" showIcon
+                style={{ fontSize: 12 }}
+                message={
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                    <span>Save the trade to add delivery legs, items, secondary costs, specifications and assay results — they attach to a saved trade.</span>
+                    <Button size="small" type="primary" loading={saveTrade.isPending} onClick={() => { void submitTrade(false); }}>
+                      Save Trade to Continue
+                    </Button>
+                  </div>
+                }
               />
             )}
           </>
@@ -2408,12 +2429,12 @@ export function TradeBlotter() {
 
           {sectionTitle('Leg Identity')}
           <Row gutter={16}>
-            <Col span={8}>
+            <Col span={12}>
               <Form.Item name="status" label="Leg Status" rules={[{ required: true }]}>
                 <Select options={ORDER_STATUSES.map((s) => ({ value: s, label: s }))} />
               </Form.Item>
             </Col>
-            <Col span={8}>
+            <Col span={12}>
               <Form.Item name="isTemplate" label={hint('Template Leg', 'Leg #1 is the template. Subsequent legs inherit its product, pricing rule and settlement type.')}>
                 <Select options={[{ value: true, label: 'Yes — Template Leg' }, { value: false, label: 'No — Detail Leg' }]} />
               </Form.Item>
@@ -2529,16 +2550,12 @@ export function TradeBlotter() {
       >
         <Form form={itemForm} layout="vertical" size="small">
           <Form.Item name="orderId" hidden><Input /></Form.Item>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item name="productId" label="Product">
-                <Select
-                  options={productOptionsFor(selectedTrade?.commodityType ?? 'OIL')}
-                  placeholder="Select product" showSearch allowClear
-                />
-              </Form.Item>
-            </Col>
-          </Row>
+          <Form.Item name="productId" label="Product">
+            <Select
+              options={productOptionsFor(selectedTrade?.commodityType ?? 'OIL')}
+              placeholder="Select product" showSearch allowClear
+            />
+          </Form.Item>
           <Form.Item name="description" label="Description" rules={[{ required: true }]}>
             <Input placeholder="e.g. Main cargo, Operational tolerance, Pricing component" />
           </Form.Item>
