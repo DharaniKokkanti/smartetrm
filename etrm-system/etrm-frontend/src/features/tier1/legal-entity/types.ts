@@ -20,8 +20,8 @@ export interface LegalEntity {
    *  be populated (V62: added alongside a CHECK enforcing the two agree). */
   parentInd: boolean;
   parentEntityId: number | null;
-  jurisdiction: string; // CHAR(2)
-  incorporationCountry: string | null; // CHAR(2)
+  jurisdiction: string; // CHAR(2), FK -> country.country_code (V86)
+  incorporationCountry: string | null; // CHAR(2), FK -> country.country_code (V86)
   incorporationNumber: string | null;
   baseCurrency: string; // CHAR(3), FK -> currency.currency_code
   defaultTimezone: string | null;

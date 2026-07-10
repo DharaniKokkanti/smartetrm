@@ -7,6 +7,8 @@ import dayjs from 'dayjs';
 import type { LegalEntity, LegalEntityInput } from './types';
 import { useCustomConfigOptions } from '@features/tier1/counterparty/configLookups';
 import { useCreateLegalEntity, useUpdateLegalEntity, useLegalEntities } from './hooks';
+import { useCountries } from '@features/reference/countries/hooks';
+import { useCurrencies } from '@features/reference/currencies/hooks';
 import { EntityGuaranteesPanel } from '@features/tier1/guarantee/EntityGuaranteesPanel';
 import { AddressesSection } from '@features/tier1/counterparty/AddressesSection';
 import { ContactsSection } from '@features/tier1/counterparty/ContactsSection';
@@ -35,6 +37,14 @@ export function LegalEntityFormDrawer({ open, onClose, editing, onSaved }: Props
   const skipDraftReset = useDraftValues('tier1-legal-entity-v', form, open, editing);
   const { data: entities } = useLegalEntities();
   const { data: entityTypeOptions = [], isLoading: loadingEntityTypes } = useCustomConfigOptions('LEGAL_ENTITY_TYPE');
+  const { data: countries = [], isLoading: loadingCountries } = useCountries();
+  const { data: currencies = [], isLoading: loadingCurrencies } = useCurrencies();
+  const countryOptions = countries
+    .filter((c) => c.isActive)
+    .map((c) => ({ label: `${c.countryCode} — ${c.countryName}`, value: c.countryCode }));
+  const currencyOptions = currencies
+    .filter((c) => c.isActive)
+    .map((c) => ({ label: `${c.currencyCode} — ${c.currencyName}`, value: c.currencyCode }));
   const createMutation = useCreateLegalEntity();
   const updateMutation = useUpdateLegalEntity();
   const queryClient = useQueryClient();
@@ -191,12 +201,23 @@ export function LegalEntityFormDrawer({ open, onClose, editing, onSaved }: Props
                     name="jurisdiction"
                     label={hint('Jurisdiction (ISO 2)', 'The country whose law governs this entity’s trading contracts — drives which regulatory regime and default netting rules apply.', 'GB')}
                     style={{ width: '50%' }}
-                    rules={[{ required: true, message: 'Required' }, { len: 2, message: '2-letter code' }]}
+                    rules={[{ required: true, message: 'Required' }]}
                   >
-                    <Input placeholder="GB" maxLength={2} style={{ textTransform: 'uppercase' }} />
+                    <Select
+                      options={countryOptions}
+                      loading={loadingCountries}
+                      placeholder="Select country"
+                      showSearch
+                      optionFilterProp="label"
+                    />
                   </Form.Item>
-                  <Form.Item name="incorporationCountry" label="Incorporation Country" style={{ width: '50%' }} rules={[{ len: 2, message: '2-letter code' }]}>
-                    <Input placeholder="GB" maxLength={2} style={{ textTransform: 'uppercase' }} />
+                  <Form.Item name="incorporationCountry" label="Incorporation Country" style={{ width: '50%' }}>
+                    <Select
+                      options={countryOptions}
+                      loading={loadingCountries}
+                      placeholder="Select country"
+                      allowClear showSearch optionFilterProp="label"
+                    />
                   </Form.Item>
                 </Space.Compact>
 
@@ -206,9 +227,15 @@ export function LegalEntityFormDrawer({ open, onClose, editing, onSaved }: Props
                 <Form.Item
                   name="baseCurrency"
                   label={hint('Base Currency (ISO 3)', 'Functional currency this entity’s books, P&L, and financial statements are measured in.', 'USD')}
-                  rules={[{ required: true, message: 'Required' }, { len: 3, message: '3-letter code' }]}
+                  rules={[{ required: true, message: 'Required' }]}
                 >
-                  <Input placeholder="USD" maxLength={3} style={{ textTransform: 'uppercase' }} />
+                  <Select
+                    options={currencyOptions}
+                    loading={loadingCurrencies}
+                    placeholder="Select currency"
+                    showSearch
+                    optionFilterProp="label"
+                  />
                 </Form.Item>
                 <Form.Item name="defaultTimezone" label="Default Timezone">
                   <Input placeholder="Europe/London" />
