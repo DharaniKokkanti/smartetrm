@@ -69,7 +69,7 @@ export function IncotermsPage() {
           <Form.Item name="riskTransferPoint" label={hint('Risk Transfer Point', 'The precise moment ownership of loss/damage risk moves from seller to buyer. Critical for cargo insurance placement.')} rules={[{ required: true }]}>
             <Input placeholder="On board vessel at named load port" />
           </Form.Item>
-          <Form.Item name="costResponsibility" label="Cost Responsibility" rules={[{ required: true }]}>
+          <Form.Item name="costResponsibility" label={hint('Cost Responsibility', 'Where the seller\'s payment obligation ends — can differ from Risk Transfer Point above (e.g. CIF: seller pays freight/insurance to destination but risk passes at load port).')} rules={[{ required: true }]}>
             <Input.TextArea rows={2} placeholder="Seller pays freight; buyer insures from load port" />
           </Form.Item>
           <Form.Item name="titleTransfer" label="Title Transfer Point">

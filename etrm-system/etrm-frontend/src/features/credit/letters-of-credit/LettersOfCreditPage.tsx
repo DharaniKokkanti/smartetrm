@@ -204,7 +204,7 @@ export function LettersOfCreditPage() {
               </Form.Item>
             </Col>
             <Col span={10}>
-              <Form.Item name="lcType" label="LC Type" rules={[{ required: true }]}>
+              <Form.Item name="lcType" label={hint('LC Type', 'Standby = backstop, drawn only if the buyer defaults. Documentary = primary payment instrument tied to shipping docs. Revolving = auto-reinstates after each drawdown.')} rules={[{ required: true }]}>
                 <Select options={lcTypeOpts} />
               </Form.Item>
             </Col>

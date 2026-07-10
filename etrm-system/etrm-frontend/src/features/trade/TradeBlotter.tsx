@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Button, Space, Popconfirm, Tag, Drawer, Form, Input, Select,
   InputNumber, Divider, Typography, Row, Col, Segmented, Card,
-  Tooltip, Table, Alert, Badge, Empty, Switch,
+  Tooltip, Table, Alert, Badge, Empty, Switch, Tabs, Collapse, Spin, Modal,
 } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useFieldPermissions } from '@permissions/useFieldPermissions';
@@ -20,10 +20,18 @@ import {
   useCounterparties, useLegalEntities, useIncoterms, useBrokers, usePipelines,
   useTradeOrders, useSaveTradeOrder, useCancelTradeOrder, useConfirmTradeOrder,
   useTradeItems, useSaveTradeItem, useDeleteTradeItem,
+  useTradeCosts, useSaveTradeCost, useDeleteTradeCost,
+  useLegCosts, useSaveLegCost, useDeleteLegCost,
+  useAssayResults, useSaveAssayResult, useDeleteAssayResult,
+  useCustomFieldDefinitions, useSaveCustomFieldDefinition,
+  useTradeCustomFieldValues, useSaveTradeCustomFieldValue,
+  useLegCustomFieldValues, useSaveLegCustomFieldValue,
 } from './hooks';
 import type {
   Trade, TradeInput, TradeOrder, TradeOrderInput, TradeItem, TradeItemInput,
-  CommodityTypeTrade,
+  TradeCost, TradeCostInput, TradeOrderCost, TradeOrderCostInput,
+  TradeAssayResult, TradeAssayResultInput, CommodityTypeTrade,
+  CustomFieldDefinition, CustomFieldDataType,
 } from './types';
 import {
   COMMODITY_TYPES_TRADE, DIRECTIONS, TRADE_STATUSES, ORDER_STATUSES,
@@ -32,12 +40,13 @@ import {
   TERM_TYPES, DEAL_INDICATORS, RFP_FREQUENCIES,
   CONTRACT_PERIODICITIES, CONTRACT_DEAL_STATUSES, TOLERANCE_TYPES,
   INSTRUMENT_TYPES, PRICE_ADJUSTMENT_TYPES, DEMURRAGE_BASIS_TYPES,
-  RIN_ASSIGNMENT_STATUSES, ENV_PRODUCT_TYPES,
+  RIN_ASSIGNMENT_STATUSES, ENV_PRODUCT_TYPES, TRADE_COST_TYPES,
+  CUSTOM_FIELD_DATA_TYPES, CUSTOM_FIELD_APPLIES_TO,
 } from './types';
 import { useTraders } from '@features/organization/traders/hooks';
 import { useBooks } from '@features/organization/books/hooks';
-import { useProducts } from '@features/markets/products/hooks';
-import { resolveCommodityType, type CommodityRow } from '@features/markets/products/types';
+import { useProducts, useProductSpecTemplates, useSpecValues } from '@features/markets/products/hooks';
+import { resolveCommodityType, type CommodityRow, type ProductSpecValue } from '@features/markets/products/types';
 import { useMarkets } from '@features/markets/markets/hooks';
 import type { CommodityType } from '@features/organization/desks/types';
 import { usePricingRules } from '@features/pricing/pricing-rules/hooks';
@@ -901,6 +910,424 @@ function DeliveryFields({
   );
 }
 
+// ─── Secondary costs (trade-level and leg-level, V88) ────────────────────────
+// Shared editor for both cost lists — a small table of existing rows plus an
+// inline add-row form, persisted immediately per row (like Items), not
+// bundled into the trade/leg form submit.
+interface CostLike { costId: number; costType: string; description: string | null; amount: number; currencyCode: string; isEstimated: boolean; notes: string | null; }
+function CostsEditor<T extends CostLike>({ costs, isLoading, adding, onAdd, onDelete, currencyOpts }: {
+  costs: T[]; isLoading: boolean; adding: boolean;
+  onAdd: (values: { costType: string; description: string | null; amount: number; currencyCode: string; isEstimated: boolean; notes: string | null }) => void;
+  onDelete: (costId: number) => void;
+  currencyOpts: SelectOpt[];
+}) {
+  const [form] = Form.useForm();
+  const columns = [
+    { title: 'Type', dataIndex: 'costType', width: 150, render: (v: string) => <Tag>{v.replace(/_/g, ' ')}</Tag> },
+    { title: 'Description', dataIndex: 'description', ellipsis: true, render: (v: string | null) => v ?? <span style={{ color: '#9ca3af' }}>—</span> },
+    { title: 'Amount', dataIndex: 'amount', width: 130, render: (v: number, r: T) => `${r.currencyCode} ${v.toLocaleString(undefined, { minimumFractionDigits: 2 })}` },
+    { title: 'Est/Actual', dataIndex: 'isEstimated', width: 90, render: (v: boolean) => <Tag color={v ? 'orange' : 'green'}>{v ? 'Estimate' : 'Actual'}</Tag> },
+    { title: 'Notes', dataIndex: 'notes', ellipsis: true, render: (v: string | null) => v ?? '—' },
+    {
+      title: '', width: 50,
+      render: (_: unknown, r: T) => (
+        <Popconfirm title="Delete cost?" onConfirm={() => onDelete(r.costId)} okText="Delete" okButtonProps={{ danger: true }}>
+          <Tooltip title="Delete"><Button type="text" size="small" danger icon={<DeleteOutlined />} /></Tooltip>
+        </Popconfirm>
+      ),
+    },
+  ];
+  return (
+    <div>
+      <Table
+        columns={columns} dataSource={costs} rowKey="costId" size="small" pagination={false} loading={isLoading}
+        locale={{ emptyText: 'No costs recorded yet.' }} style={{ marginBottom: 10 }}
+      />
+      <Form
+        form={form} layout="inline" size="small"
+        initialValues={{ currencyCode: 'USD', isEstimated: true }}
+        onFinish={(v) => {
+          onAdd({ ...v, description: v.description ?? null, notes: v.notes ?? null, isEstimated: v.isEstimated ?? true });
+          form.resetFields();
+        }}
+      >
+        <Form.Item name="costType" rules={[{ required: true, message: 'Type' }]}>
+          <Select placeholder="Cost Type" style={{ width: 150 }} options={TRADE_COST_TYPES.map((t) => ({ value: t, label: t.replace(/_/g, ' ') }))} />
+        </Form.Item>
+        <Form.Item name="description"><Input placeholder="Description" style={{ width: 180 }} /></Form.Item>
+        <Form.Item name="amount" rules={[{ required: true, message: 'Amount' }]}><InputNumber placeholder="Amount" style={{ width: 110 }} precision={2} /></Form.Item>
+        <Form.Item name="currencyCode" rules={[{ required: true }]}><Select options={currencyOpts} style={{ width: 90 }} showSearch /></Form.Item>
+        <Form.Item name="isEstimated" valuePropName="checked"><Switch checkedChildren="Est" unCheckedChildren="Actual" /></Form.Item>
+        <Form.Item name="notes"><Input placeholder="Notes" style={{ width: 200 }} /></Form.Item>
+        <Form.Item>
+          <Button type="dashed" htmlType="submit" icon={<PlusOutlined />} loading={adding}>Add Cost</Button>
+        </Form.Item>
+      </Form>
+    </div>
+  );
+}
+
+function TradeCostsSection({ tradeId, currencyOpts }: { tradeId: number; currencyOpts: SelectOpt[] }) {
+  const { data: costs = [], isLoading } = useTradeCosts(tradeId);
+  const saveCost = useSaveTradeCost();
+  const deleteCost = useDeleteTradeCost();
+  return (
+    <CostsEditor<TradeCost>
+      costs={costs} isLoading={isLoading} adding={saveCost.isPending}
+      onAdd={(v) => saveCost.mutate({ id: null, input: { tradeId, ...v } as TradeCostInput })}
+      onDelete={(costId) => deleteCost.mutate({ id: costId, tradeId })}
+      currencyOpts={currencyOpts}
+    />
+  );
+}
+
+function LegCostsSection({ orderId, currencyOpts }: { orderId: number; currencyOpts: SelectOpt[] }) {
+  const { data: costs = [], isLoading } = useLegCosts(orderId);
+  const saveCost = useSaveLegCost();
+  const deleteCost = useDeleteLegCost();
+  return (
+    <CostsEditor<TradeOrderCost>
+      costs={costs} isLoading={isLoading} adding={saveCost.isPending}
+      onAdd={(v) => saveCost.mutate({ id: null, input: { orderId, ...v } as TradeOrderCostInput })}
+      onDelete={(costId) => deleteCost.mutate({ id: costId, orderId })}
+      currencyOpts={currencyOpts}
+    />
+  );
+}
+
+// ─── Custom Fields (governed, typed registry — see V89) ──────────────────────
+// A deliberate alternative to Endur/OpenLink's "User Defined Fields": the set of
+// fields is admin-managed (ManageCustomFieldsModal below) instead of ad-hoc
+// free-text per trader, so it stays typed, scoped, and centrally visible.
+type CustomFieldValueRow = { definitionId: number; valueText: string | null; valueNumber: number | null; valueDate: string | null; valueBoolean: boolean | null };
+
+function customFieldValueKey(dataType: CustomFieldDataType): 'valueText' | 'valueNumber' | 'valueDate' | 'valueBoolean' {
+  switch (dataType) {
+    case 'NUMBER': return 'valueNumber';
+    case 'DATE': return 'valueDate';
+    case 'BOOLEAN': return 'valueBoolean';
+    default: return 'valueText';
+  }
+}
+
+// Form.Item injects `value`/`onChange` (or `checked`/`onChange`) onto its direct child — since this is a custom
+// wrapper rather than a bare antd control, those props must be forwarded through explicitly or Form.Item's
+// internal store updates (setFieldsValue, initialValues) never reach the rendered control.
+function CustomFieldInput({ dataType, selectOptions, ...rest }: { dataType: CustomFieldDataType; selectOptions: string[] | null; [key: string]: unknown }) {
+  switch (dataType) {
+    case 'NUMBER': return <InputNumber style={{ width: '100%' }} {...rest} />;
+    case 'DATE': return <AppDatePicker {...rest} />;
+    case 'BOOLEAN': return <Switch {...rest} />;
+    case 'SELECT': return <Select options={(selectOptions ?? []).map((o) => ({ value: o, label: o }))} allowClear style={{ width: '100%' }} {...rest} />;
+    default: return <Input {...rest} />;
+  }
+}
+
+function CustomFieldsForm({ definitions, values, saving, onSave }: {
+  definitions: CustomFieldDefinition[];
+  values: CustomFieldValueRow[];
+  saving: boolean;
+  onSave: (definitionId: number, dataType: CustomFieldDataType, raw: unknown) => void;
+}) {
+  const [form] = Form.useForm();
+  const initialValues = useMemo(() => {
+    const out: Record<string, unknown> = {};
+    for (const d of definitions) {
+      const v = values.find((x) => x.definitionId === d.definitionId);
+      if (!v) continue;
+      const raw = v[customFieldValueKey(d.dataType)];
+      out[d.fieldCode] = d.dataType === 'DATE' && raw ? dayjs(raw as string) : raw;
+    }
+    return out;
+  }, [definitions, values]);
+  // `values`/`definitions` arrive asynchronously after this Form has already mounted with `initialValues={}` —
+  // antd only applies `initialValues` once, at mount, so the fetched values must be pushed in explicitly here.
+  useEffect(() => {
+    form.setFieldsValue(initialValues);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialValues]);
+  if (definitions.length === 0) {
+    return <Alert type="info" showIcon style={{ fontSize: 12 }} message="No custom fields defined for this scope/commodity yet — use Manage Custom Fields to add one." />;
+  }
+  return (
+    <Form
+      form={form} layout="vertical" size="small" initialValues={initialValues}
+      onFinish={(vals: Record<string, unknown>) => {
+        for (const d of definitions) {
+          const raw = vals[d.fieldCode];
+          const out = d.dataType === 'DATE' && raw ? (raw as Dayjs).format('YYYY-MM-DD') : raw ?? null;
+          onSave(d.definitionId, d.dataType, out);
+        }
+      }}
+    >
+      <Row gutter={16}>
+        {definitions.map((d) => (
+          <Col span={8} key={d.definitionId}>
+            <Form.Item
+              name={d.fieldCode}
+              label={d.notes ? hint(d.fieldName, d.notes) : d.fieldName}
+              valuePropName={d.dataType === 'BOOLEAN' ? 'checked' : 'value'}
+              rules={d.isRequired ? [{ required: true, message: `${d.fieldName} is required` }] : []}
+            >
+              <CustomFieldInput dataType={d.dataType} selectOptions={d.selectOptions} />
+            </Form.Item>
+          </Col>
+        ))}
+      </Row>
+      <Button type="primary" size="small" htmlType="submit" loading={saving}>Save Custom Fields</Button>
+    </Form>
+  );
+}
+
+function TradeCustomFieldsSection({ tradeId, commodityType }: { tradeId: number; commodityType: CommodityTypeTrade }) {
+  const { data: definitions = [] } = useCustomFieldDefinitions();
+  const { data: values = [] } = useTradeCustomFieldValues(tradeId);
+  const saveValue = useSaveTradeCustomFieldValue();
+  const scoped = definitions.filter((d) => d.appliesTo === 'TRADE' && d.isActive && (d.commodityType == null || d.commodityType === commodityType));
+  return (
+    <CustomFieldsForm
+      definitions={scoped} values={values} saving={saveValue.isPending}
+      onSave={(definitionId, dataType, raw) => {
+        const patch = { tradeId, definitionId, valueText: null, valueNumber: null, valueDate: null, valueBoolean: null, [customFieldValueKey(dataType)]: raw };
+        saveValue.mutate(patch as never);
+      }}
+    />
+  );
+}
+
+function LegCustomFieldsSection({ orderId, commodityType }: { orderId: number; commodityType: CommodityTypeTrade }) {
+  const { data: definitions = [] } = useCustomFieldDefinitions();
+  const { data: values = [] } = useLegCustomFieldValues(orderId);
+  const saveValue = useSaveLegCustomFieldValue();
+  const scoped = definitions.filter((d) => d.appliesTo === 'LEG' && d.isActive && (d.commodityType == null || d.commodityType === commodityType));
+  return (
+    <CustomFieldsForm
+      definitions={scoped} values={values} saving={saveValue.isPending}
+      onSave={(definitionId, dataType, raw) => {
+        const patch = { orderId, definitionId, valueText: null, valueNumber: null, valueDate: null, valueBoolean: null, [customFieldValueKey(dataType)]: raw };
+        saveValue.mutate(patch as never);
+      }}
+    />
+  );
+}
+
+function ManageCustomFieldsModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { data: definitions = [] } = useCustomFieldDefinitions();
+  const saveDefinition = useSaveCustomFieldDefinition();
+  const [form] = Form.useForm();
+  const dataType = Form.useWatch('dataType', form);
+  const columns = [
+    { title: 'Field', dataIndex: 'fieldName' },
+    { title: 'Type', dataIndex: 'dataType', width: 90 },
+    { title: 'Scope', dataIndex: 'appliesTo', width: 70 },
+    { title: 'Commodity', dataIndex: 'commodityType', width: 110, render: (v: string | null) => v ?? 'All' },
+    {
+      title: 'Active', dataIndex: 'isActive', width: 70,
+      render: (v: boolean, r: CustomFieldDefinition) => (
+        <Switch size="small" checked={v} onChange={(checked) => saveDefinition.mutate({ id: r.definitionId, input: { ...r, isActive: checked } })} />
+      ),
+    },
+  ];
+  return (
+    <Modal mask={false} title="Manage Custom Fields" open={open} onCancel={onClose} footer={null} width={760}>
+      <Table columns={columns} dataSource={definitions} rowKey="definitionId" size="small" pagination={false} style={{ marginBottom: 16 }} />
+      <Form
+        form={form} layout="inline" size="small"
+        initialValues={{ dataType: 'TEXT', appliesTo: 'TRADE', isRequired: false }}
+        onFinish={(v) => {
+          saveDefinition.mutate({
+            id: null,
+            input: {
+              fieldCode: (v.fieldName as string).toUpperCase().replace(/[^A-Z0-9]+/g, '_'),
+              fieldName: v.fieldName as string,
+              dataType: v.dataType as CustomFieldDataType,
+              appliesTo: v.appliesTo,
+              commodityType: (v.commodityType as CommodityTypeTrade) ?? null,
+              selectOptions: v.dataType === 'SELECT'
+                ? String(v.selectOptions ?? '').split(',').map((s) => s.trim()).filter(Boolean)
+                : null,
+              isRequired: v.isRequired ?? false,
+              isActive: true,
+              sortOrder: 0,
+              notes: (v.notes as string) ?? null,
+            },
+          });
+          form.resetFields();
+        }}
+      >
+        <Form.Item name="fieldName" rules={[{ required: true, message: 'Name' }]}><Input placeholder="Field name" style={{ width: 160 }} /></Form.Item>
+        <Form.Item name="dataType"><Select style={{ width: 100 }} options={CUSTOM_FIELD_DATA_TYPES.map((t) => ({ value: t, label: t }))} /></Form.Item>
+        <Form.Item name="appliesTo"><Select style={{ width: 90 }} options={CUSTOM_FIELD_APPLIES_TO.map((t) => ({ value: t, label: t }))} /></Form.Item>
+        <Form.Item name="commodityType"><Select style={{ width: 150 }} allowClear placeholder="All commodities" options={COMMODITY_TYPES_TRADE.map((c) => ({ value: c, label: c }))} /></Form.Item>
+        {dataType === 'SELECT' && <Form.Item name="selectOptions"><Input placeholder="Option1, Option2, ..." style={{ width: 200 }} /></Form.Item>}
+        <Form.Item name="notes"><Input placeholder="Notes" style={{ width: 160 }} /></Form.Item>
+        <Form.Item>
+          <Button type="dashed" htmlType="submit" icon={<PlusOutlined />} loading={saveDefinition.isPending}>Add Field</Button>
+        </Form.Item>
+      </Form>
+    </Modal>
+  );
+}
+
+// ─── Specifications (read-only reference, physical trades only) ─────────────
+function boundLabel(r: { boundDirection: string; valueMin: number | null; valueMax: number | null; valueExact: number | null; valueText?: string | null }): string {
+  switch (r.boundDirection) {
+    case 'RANGE': return `${r.valueMin ?? '—'} – ${r.valueMax ?? '—'}`;
+    case 'MIN_ONLY': return `≥ ${r.valueMin ?? '—'}`;
+    case 'MAX_ONLY': case 'NOT_EXCEED': return `≤ ${r.valueMax ?? '—'}`;
+    case 'EXACT': return `= ${r.valueExact ?? r.valueText ?? '—'}`;
+    case 'REPORT_ONLY': return 'Report only';
+    default: return '—';
+  }
+}
+
+function SpecValuesReadonly({ templateId }: { templateId: number }) {
+  const { data: values = [], isLoading } = useSpecValues(templateId);
+  if (isLoading) return <Spin size="small" />;
+  const columns = [
+    { title: 'Parameter', dataIndex: 'parameterName', width: 220 },
+    { title: 'Spec Bound', width: 140, render: (_: unknown, r: ProductSpecValue) => boundLabel(r) },
+    { title: 'Typical', dataIndex: 'valueTypical', width: 90, render: (v: number | null) => v ?? '—' },
+    { title: 'UoM', dataIndex: 'uomCode', width: 70, render: (v: string | null) => v ?? '—' },
+    { title: 'Test Method', dataIndex: 'testMethod', width: 150, render: (v: string | null) => v ?? '—' },
+    { title: 'Notes', dataIndex: 'notes', ellipsis: true, render: (v: string | null) => v ?? '—' },
+  ];
+  return <Table columns={columns} dataSource={values} rowKey="specValueId" size="small" pagination={false} />;
+}
+
+function ProductSpecCollapse({ productId, productLabel }: { productId: number; productLabel: string }) {
+  const { data: templates = [], isLoading } = useProductSpecTemplates(productId);
+  if (isLoading) return <Spin size="small" />;
+  if (templates.length === 0) {
+    return <Alert type="info" showIcon message={`No spec template on file for ${productLabel}.`} style={{ fontSize: 12 }} />;
+  }
+  return (
+    <Collapse
+      size="small"
+      defaultActiveKey={templates.filter((t) => t.isDefault).map((t) => t.templateId)}
+      items={templates.map((t) => ({
+        key: t.templateId,
+        label: <Space>{productLabel} — {t.templateName}{t.isDefault && <Tag color="blue" style={{ margin: 0 }}>Default</Tag>}</Space>,
+        children: <SpecValuesReadonly templateId={t.templateId} />,
+      }))}
+    />
+  );
+}
+
+function SpecificationsSection({ productIds, products }: { productIds: number[]; products: { productId: number; productCode: string; productName: string }[] }) {
+  if (productIds.length === 0) {
+    return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No products on this trade's legs yet." />;
+  }
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {productIds.map((pid) => {
+        const p = products.find((x) => x.productId === pid);
+        return <ProductSpecCollapse key={pid} productId={pid} productLabel={p ? `${p.productCode} — ${p.productName}` : String(pid)} />;
+      })}
+    </div>
+  );
+}
+
+// ─── Assay / quality results (actual values captured against the spec) ──────
+function AssayResultsSection({ orderId, productId }: { orderId: number; productId: number | null }) {
+  const { data: results = [], isLoading } = useAssayResults(orderId);
+  const saveResult = useSaveAssayResult();
+  const deleteResult = useDeleteAssayResult();
+  const { data: templates = [] } = useProductSpecTemplates(productId);
+  const defaultTemplate = templates.find((t) => t.isDefault) ?? templates[0];
+  const { data: specValues = [] } = useSpecValues(defaultTemplate?.templateId ?? null);
+  const [form] = Form.useForm();
+
+  if (!productId) return <Alert type="info" message="Select a product on this leg to capture assay results." style={{ fontSize: 12 }} />;
+  if (templates.length === 0) return <Alert type="info" message="No spec template on file for this leg's product." style={{ fontSize: 12 }} />;
+
+  const capturedSpecValueIds = new Set(results.map((r) => r.specValueId));
+  const availableParams = specValues.filter((v) => !capturedSpecValueIds.has(v.specValueId));
+
+  function passFail(r: TradeAssayResult): { label: string; color: string } | null {
+    if (r.actualValue == null) return null;
+    switch (r.boundDirection) {
+      case 'RANGE':
+        return (r.valueMin == null || r.actualValue >= r.valueMin) && (r.valueMax == null || r.actualValue <= r.valueMax)
+          ? { label: 'Within Spec', color: 'success' } : { label: 'Out of Spec', color: 'error' };
+      case 'MIN_ONLY':
+        return r.valueMin == null || r.actualValue >= r.valueMin ? { label: 'Within Spec', color: 'success' } : { label: 'Out of Spec', color: 'error' };
+      case 'MAX_ONLY': case 'NOT_EXCEED':
+        return r.valueMax == null || r.actualValue <= r.valueMax ? { label: 'Within Spec', color: 'success' } : { label: 'Out of Spec', color: 'error' };
+      case 'EXACT':
+        return r.valueExact == null || r.actualValue === r.valueExact ? { label: 'Matches', color: 'success' } : { label: 'Mismatch', color: 'error' };
+      case 'REPORT_ONLY':
+        return { label: 'Reported', color: 'default' };
+      default:
+        return null;
+    }
+  }
+
+  const columns = [
+    { title: 'Parameter', dataIndex: 'parameterName', width: 200 },
+    { title: 'Spec Bound', width: 140, render: (_: unknown, r: TradeAssayResult) => boundLabel(r) },
+    { title: 'Actual', dataIndex: 'actualValue', width: 90, render: (v: number | null) => v ?? '—' },
+    { title: 'Sample Point', dataIndex: 'samplePoint', width: 110, render: (v: string | null) => v ?? '—' },
+    {
+      title: 'Result', width: 110,
+      render: (_: unknown, r: TradeAssayResult) => {
+        const pf = passFail(r);
+        return pf ? <Tag color={pf.color}>{pf.label}</Tag> : <span style={{ color: '#9ca3af' }}>—</span>;
+      },
+    },
+    { title: 'Notes', dataIndex: 'notes', ellipsis: true, render: (v: string | null) => v ?? '—' },
+    {
+      title: '', width: 50,
+      render: (_: unknown, r: TradeAssayResult) => (
+        <Popconfirm title="Delete result?" onConfirm={() => deleteResult.mutate({ id: r.assayResultId, orderId })} okText="Delete" okButtonProps={{ danger: true }}>
+          <Tooltip title="Delete"><Button type="text" size="small" danger icon={<DeleteOutlined />} /></Tooltip>
+        </Popconfirm>
+      ),
+    },
+  ];
+
+  return (
+    <div>
+      <Table
+        columns={columns} dataSource={results} rowKey="assayResultId" size="small" pagination={false} loading={isLoading}
+        locale={{ emptyText: 'No assay results captured yet.' }} style={{ marginBottom: 10 }}
+      />
+      <Form
+        form={form} layout="inline" size="small"
+        onFinish={(v) => {
+          const recordedDate = v.recordedDate as Dayjs | undefined;
+          saveResult.mutate({
+            id: null,
+            input: {
+              orderId, specValueId: v.specValueId, actualValue: v.actualValue ?? null, actualText: null,
+              samplePoint: v.samplePoint ?? null, recordedDate: recordedDate ? recordedDate.format('YYYY-MM-DD') : null,
+              notes: v.notes ?? null,
+            } as TradeAssayResultInput,
+          });
+          form.resetFields();
+        }}
+      >
+        <Form.Item name="specValueId" rules={[{ required: true, message: 'Parameter' }]}>
+          <Select placeholder="Parameter" style={{ width: 200 }} options={availableParams.map((p) => ({ value: p.specValueId, label: p.parameterName }))} />
+        </Form.Item>
+        <Form.Item name="actualValue" rules={[{ required: true, message: 'Value' }]}>
+          <InputNumber placeholder="Actual value" style={{ width: 120 }} precision={4} />
+        </Form.Item>
+        <Form.Item name="samplePoint">
+          <Select placeholder="Sample point" allowClear style={{ width: 130 }} options={['LOAD', 'DISCHARGE', 'SHORE_TANK', 'OTHER'].map((s) => ({ value: s, label: s }))} />
+        </Form.Item>
+        <Form.Item name="recordedDate"><AppDatePicker /></Form.Item>
+        <Form.Item name="notes"><Input placeholder="Notes" style={{ width: 200 }} /></Form.Item>
+        <Form.Item>
+          <Button type="dashed" htmlType="submit" icon={<PlusOutlined />} loading={saveResult.isPending} disabled={availableParams.length === 0}>
+            Add Result
+          </Button>
+        </Form.Item>
+      </Form>
+    </div>
+  );
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 export function TradeBlotter() {
   // ── Reference data ──
@@ -962,6 +1389,29 @@ export function TradeBlotter() {
   const watchedTermType = Form.useWatch('termType', tradeForm);
   const watchedInstrumentType = Form.useWatch('instrumentType', tradeForm);
 
+  // Keep the always-mounted trade form in sync with the selected trade when not
+  // actively editing/creating, so the header strip + Details tab show real
+  // values in view mode (fields render `disabled` via the Form itself below).
+  useEffect(() => {
+    if (tradeOpen || !selectedTrade) return;
+    setTradeCommodity(selectedTrade.commodityType);
+    tradeForm.setFieldsValue({
+      ...selectedTrade,
+      tradeDate: selectedTrade.tradeDate ? dayjs(selectedTrade.tradeDate) : undefined,
+      executionDatetime: selectedTrade.executionDatetime ? dayjs(selectedTrade.executionDatetime) : undefined,
+      rfpStartDate: selectedTrade.rfpStartDate ? dayjs(selectedTrade.rfpStartDate) : undefined,
+      rfpEndDate: selectedTrade.rfpEndDate ? dayjs(selectedTrade.rfpEndDate) : undefined,
+    } as unknown as TradeInput);
+  }, [selectedTrade, tradeOpen, tradeForm]);
+
+  // Auto-select the first leg once a trade's legs load, so Items/Costs/Assay
+  // tabs show data without requiring an extra click.
+  useEffect(() => {
+    if (selectedTrade && orders.length > 0 && selectedOrderId === null) {
+      setSelectedOrderId(orders[0].orderId);
+    }
+  }, [selectedTrade, orders, selectedOrderId]);
+
   // ── Order / leg drawer ──
   const [orderOpen, setOrderOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState<TradeOrder | null>(null);
@@ -977,6 +1427,9 @@ export function TradeBlotter() {
     () => (pricingRules as PricingRule[]).find((r) => r.pricingRuleId === watchedOrderPricingRuleId)?.pricingType === 'BALMO',
     [pricingRules, watchedOrderPricingRuleId],
   );
+
+  // ── Manage Custom Fields modal ──
+  const [manageFieldsOpen, setManageFieldsOpen] = useState(false);
 
   // ── Item drawer ──
   const [itemOpen, setItemOpen] = useState(false);
@@ -1032,7 +1485,27 @@ export function TradeBlotter() {
   }, [uomRows]);
   const currencyOpts  = useMemo(() => (currencyRows as { currencyCode: string; currencyName: string }[]).map((r) => ({ value: r.currencyCode, label: `${r.currencyCode} — ${r.currencyName}` })), [currencyRows]);
   const countryOpts   = useMemo(() => countries.filter((c) => c.isActive).map((c) => ({ value: c.countryCode, label: `${c.countryCode} — ${c.countryName}` })), [countries]);
-  const brokerOpts    = useMemo(() => (brokers   as { brokerId: number; brokerCode: string; brokerName: string }[]).map((b) => ({ value: b.brokerId, label: `${b.brokerCode} — ${b.brokerName}` })), [brokers]);
+  const legalEntityOpts = useMemo(() => (legalEntities as unknown as { legalEntityId: number; entityCode: string; entityName: string }[]).map((le) => ({ value: le.legalEntityId, label: `${le.entityCode} — ${le.entityName}` })), [legalEntities]);
+  // Book options scoped to a leg's commodity — dbo.commodity_type ids (1-9) line up 1:1 with COMMODITY_TYPES_TRADE's
+  // order (OIL=1 ... ENVIRONMENTAL=9); a null commodityType on the book means it's a cross-commodity book (e.g. house/other).
+  const bookOptionsFor = useMemo(() => {
+    const rows = books as { bookId: number; bookCode: string; bookName: string; commodityType: number | null }[];
+    return (commodityType: CommodityTypeTrade) => {
+      const id = COMMODITY_TYPES_TRADE.indexOf(commodityType) + 1;
+      return rows
+        .filter((b) => b.commodityType == null || b.commodityType === id)
+        .map((b) => ({ value: b.bookId, label: `${b.bookCode} — ${b.bookName}` }));
+    };
+  }, [books]);
+  // Broker options scoped to a leg's commodity — Broker.commodityType is a direct CommodityTypeTrade string (V89);
+  // null means a generalist IDB offered for every commodity (e.g. TP ICAP).
+  const brokerOptionsFor = useMemo(() => {
+    const rows = brokers as unknown as { brokerId: number; brokerCode: string; brokerName: string; commodityType: CommodityTypeTrade | null }[];
+    return (commodityType: CommodityTypeTrade) =>
+      rows
+        .filter((b) => b.commodityType == null || b.commodityType === commodityType)
+        .map((b) => ({ value: b.brokerId, label: `${b.brokerCode} — ${b.brokerName}` }));
+  }, [brokers]);
   const pipelineOpts  = useMemo(() => (pipelines as { pipelineId: number; pipelineCode: string; pipelineName: string }[]).map((p) => ({ value: p.pipelineId, label: `${p.pipelineCode} — ${p.pipelineName}` })), [pipelines]);
   const crudeGradeOpts= useMemo(() => (crudeGradeRows  as { typeCode: string; typeName: string }[]).map((r) => ({ value: r.typeCode, label: `${r.typeCode} — ${r.typeName}` })), [crudeGradeRows]);
   const metalShapeOpts= useMemo(() => (metalShapeRows  as { typeCode: string; typeName: string }[]).map((r) => ({ value: r.typeCode, label: r.typeName })), [metalShapeRows]);
@@ -1064,6 +1537,8 @@ export function TradeBlotter() {
   useFormDraft('trade-item', { form: itemForm, open: itemOpen, setOpen: setItemOpen, editing: editingItem, setEditing: setEditingItem });
 
   function openNewTrade() {
+    setSelectedTradeId(null);
+    setSelectedOrderId(null);
     setEditingTrade(null);
     setTradeCommodity('OIL');
     tradeForm.resetFields();
@@ -1075,8 +1550,10 @@ export function TradeBlotter() {
       instrumentType: null,
     });
     setTradeOpen(true);
+    window.scrollTo({ top: 0 });
   }
   function openEditTrade(t: Trade) {
+    setSelectedTradeId(t.tradeId);
     setEditingTrade(t);
     setTradeCommodity(t.commodityType);
     tradeForm.resetFields();
@@ -1088,6 +1565,11 @@ export function TradeBlotter() {
       rfpEndDate: t.rfpEndDate ? dayjs(t.rfpEndDate) : undefined,
     } as unknown as TradeInput);
     setTradeOpen(true);
+    window.scrollTo({ top: 0 });
+  }
+  function closeTradeForm() {
+    setTradeOpen(false);
+    if (!editingTrade) setSelectedTradeId(null);
   }
   async function submitTrade(closeAfter = true) {
     const values = await tradeForm.validateFields();
@@ -1100,6 +1582,7 @@ export function TradeBlotter() {
       rfpEndDate: v.rfpEndDate ? v.rfpEndDate.format('YYYY-MM-DD') : null,
     };
     const saved = await saveTrade.mutateAsync({ id: editingTrade?.tradeId ?? null, input });
+    setSelectedTradeId(saved.tradeId);
     if (closeAfter) setTradeOpen(false); else setEditingTrade(saved);
   }
 
@@ -1238,7 +1721,6 @@ export function TradeBlotter() {
         <Tag color={p.value > 1 ? 'geekblue' : 'default'} style={{ fontSize: 10 }}>{p.value}</Tag>
       ),
     },
-    { field: 'brokerName', headerName: 'Broker', width: 120, valueFormatter: (p) => p.value ?? '—', cellStyle: { fontSize: 11, color: '#6b7280' } },
     {
       field: 'creditApprovalStatus', headerName: 'Credit', width: 88,
       cellRenderer: (p: { value: string | null }) => {
@@ -1357,6 +1839,26 @@ export function TradeBlotter() {
     },
   ];
 
+  // Distinct products used across this trade's legs (drives the Specifications tab)
+  const legProductIds = Array.from(new Set(orders.map((o) => o.productId).filter((p): p is number => p != null)));
+  // Specifications/Assay tabs only apply to physical deals
+  const isPhysicalTrade = selectedTrade
+    ? tradeTypeOptions.find((o) => o.value === selectedTrade.tradeType)?.label === 'Physical'
+    : false;
+  const selectedOrder = orders.find((o) => o.orderId === selectedOrderId) ?? null;
+  // Shared leg picker for the Items / Leg Costs / Assay tabs
+  const legSelector = (
+    <Space style={{ marginBottom: 10 }}>
+      <Text type="secondary" style={{ fontSize: 12 }}>Leg:</Text>
+      <Select
+        size="small" style={{ width: 280 }} value={selectedOrderId}
+        onChange={(v) => setSelectedOrderId(v)}
+        options={orders.map((o) => ({ value: o.orderId, label: `${o.orderReference} (${o.periodCode ?? '—'})` }))}
+        placeholder="Select leg"
+      />
+    </Space>
+  );
+
   // ─────────────────────────────────────────────────────────────────────────────
   return (
     <>
@@ -1366,420 +1868,517 @@ export function TradeBlotter() {
         moduleGroup="trade"
       />
 
-      {/* ── Trade master grid — fixed height so legs panel is always visible ── */}
-      <SmartGrid
-        columnDefs={tradeColDefs}
-        rowData={trades}
-        loading={tradesLoading}
-        height={360}
-        onAdd={openNewTrade}
-        addLabel="New Trade"
-        onRefresh={() => { void refetch(); }}
-        commodityFilter
-        getRowId={(p) => String(p.data.tradeId)}
-        onRowClicked={(e) => {
-          const id = (e.data as Trade).tradeId;
-          setSelectedTradeId((prev) => (prev === id ? null : id));
-          setSelectedOrderId(null);
-        }}
-        getRowStyle={(p) => (p.data as Trade).tradeId === selectedTradeId ? { background: 'rgba(22,119,255,0.06)' } : undefined}
-      />
+      {/* ── Trade master grid — hidden while creating/editing so the workspace takes the full page ── */}
+      {!tradeOpen && (
+        <SmartGrid
+          columnDefs={tradeColDefs}
+          rowData={trades}
+          loading={tradesLoading}
+          height={360}
+          onAdd={openNewTrade}
+          addLabel="New Trade"
+          onRefresh={() => { void refetch(); }}
+          commodityFilter
+          getRowId={(p) => String(p.data.tradeId)}
+          onRowClicked={(e) => {
+            const id = (e.data as Trade).tradeId;
+            setSelectedTradeId((prev) => (prev === id ? null : id));
+            setSelectedOrderId(null);
+          }}
+          getRowStyle={(p) => (p.data as Trade).tradeId === selectedTradeId ? { background: 'rgba(22,119,255,0.06)' } : undefined}
+        />
+      )}
 
-      {/* ── Legs panel ── */}
+      {/* ── Trade workspace — header strip, details sections, and sub-entity tabs, all on this page.
+             In view mode it sits below the grid; in create/edit mode it IS the page (grid hidden above). ── */}
       <Card
         size="small"
-        style={{ marginTop: 16, border: selectedTrade ? '1px solid rgba(22,119,255,0.25)' : undefined }}
-        styles={{ body: { padding: '8px 12px 12px' } }}
+        style={{ marginTop: tradeOpen ? 0 : 16, border: (selectedTrade || tradeOpen) ? '1px solid rgba(22,119,255,0.25)' : undefined }}
+        styles={{ body: { padding: '10px 14px 14px' } }}
         title={
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            {selectedTrade ? (
+            {(selectedTrade || tradeOpen) ? (
               <Space size={6}>
-                <Text strong style={{ fontSize: 13 }}>Delivery Legs</Text>
-                <Text style={{ fontSize: 12, color: '#1677ff', fontWeight: 600 }}>{selectedTrade.tradeReference}</Text>
-                <Tag color={COMMODITY_COLOR[selectedTrade.commodityType]} style={{ margin: 0 }}>{selectedTrade.commodityType}</Tag>
-                <Tag color={DIRECTION_COLOR[selectedTrade.direction]} style={{ fontWeight: 700, margin: 0 }}>{selectedTrade.direction}</Tag>
-                {(() => {
-                  const label = tradeTypeOptions.find((o) => o.value === selectedTrade.tradeType)?.label ?? '—';
-                  return <Tag color={TRADE_TYPE_COLOR[label]} style={{ margin: 0 }}>{label}</Tag>;
-                })()}
-                {selectedTrade.termType === 'RFP' && <Tag color="geekblue" style={{ margin: 0 }}>RFP</Tag>}
-                {selectedTrade.dealIndicator === 'INTERNAL' && <Tag color="purple" style={{ margin: 0 }}>INTERNAL</Tag>}
-                <Text type="secondary" style={{ fontSize: 11 }}>{selectedTrade.counterpartyName}</Text>
+                {tradeOpen && (
+                  <Tooltip title="Back to trades">
+                    <Button type="text" size="small" icon={<UnorderedListOutlined />} onClick={closeTradeForm} />
+                  </Tooltip>
+                )}
+                <SwapOutlined />
+                <Text strong style={{ fontSize: 13 }}>
+                  {tradeOpen && !editingTrade ? 'New Trade' : (selectedTrade?.tradeReference ?? editingTrade?.tradeReference)}
+                </Text>
+                {selectedTrade && (
+                  <>
+                    <Tag color={COMMODITY_COLOR[selectedTrade.commodityType]} style={{ margin: 0 }}>{selectedTrade.commodityType}</Tag>
+                    <Tag color={DIRECTION_COLOR[selectedTrade.direction]} style={{ fontWeight: 700, margin: 0 }}>{selectedTrade.direction}</Tag>
+                    {(() => {
+                      const label = tradeTypeOptions.find((o) => o.value === selectedTrade.tradeType)?.label ?? '—';
+                      return <Tag color={TRADE_TYPE_COLOR[label]} style={{ margin: 0 }}>{label}</Tag>;
+                    })()}
+                    <Tag color={STATUS_COLOR[selectedTrade.status]} style={{ margin: 0 }}>{selectedTrade.status}</Tag>
+                    {selectedTrade.termType === 'RFP' && <Tag color="geekblue" style={{ margin: 0 }}>RFP</Tag>}
+                    {selectedTrade.dealIndicator === 'INTERNAL' && <Tag color="purple" style={{ margin: 0 }}>INTERNAL</Tag>}
+                    <Text type="secondary" style={{ fontSize: 11 }}>{selectedTrade.counterpartyName}</Text>
+                  </>
+                )}
               </Space>
             ) : (
-              <Text type="secondary" style={{ fontSize: 12 }}>Delivery Legs — click a trade row above to load its legs</Text>
+              <Text type="secondary" style={{ fontSize: 12 }}>Trade Workspace — click a trade row above, or New Trade, to work on it here</Text>
             )}
-            {selectedTrade && (
-              <Button size="small" type="primary" ghost icon={<PlusOutlined />} onClick={openNewOrder}>
-                Add Leg
-              </Button>
+            {(selectedTrade || tradeOpen) && (
+              tradeOpen ? (
+                <Space>
+                  <Button size="small" onClick={closeTradeForm}>Cancel</Button>
+                  <Button size="small" onClick={() => { void submitTrade(false); }} loading={saveTrade.isPending}>Save</Button>
+                  <Button size="small" type="primary" onClick={() => { void submitTrade(true); }} loading={saveTrade.isPending}>
+                    {editingTrade ? 'Update & Close' : 'Create & Close'}
+                  </Button>
+                </Space>
+              ) : (
+                <Button size="small" icon={<EditOutlined />} onClick={() => selectedTrade && openEditTrade(selectedTrade)}>
+                  Edit Trade
+                </Button>
+              )
             )}
           </div>
         }
       >
-        {selectedTrade ? (
-          <SmartGrid
-            columnDefs={orderColDefs}
-            rowData={orders}
-            loading={ordersLoading}
-            height={260}
-            getRowId={(p) => String(p.data.orderId)}
-            onRowClicked={(e) => {
-              const id = (e.data as TradeOrder).orderId;
-              setSelectedOrderId((prev) => (prev === id ? null : id));
-            }}
-            getRowStyle={(p) => (p.data as TradeOrder).orderId === selectedOrderId ? { background: 'rgba(22,119,255,0.05)' } : undefined}
-          />
+        {(selectedTrade || tradeOpen) ? (
+          <>
+            {/* Header strip + Details — one always-mounted form; fields read-only until Edit Trade */}
+            <Form form={tradeForm} layout="vertical" size="small" disabled={!tradeOpen}>
+              <Row gutter={12}>
+                <Col span={14}>
+                  <Form.Item
+                    name="commodityType"
+                    label={selectedTrade ? hint('Commodity Type', 'Locked once a trade exists — its legs and products are commodity-specific.') : 'Commodity Type'}
+                    rules={[{ required: true }]}
+                  >
+                    {/* Only pickable while creating a brand-new trade — an existing trade's legs/products are
+                        already tied to its commodity, so it stays a fixed tag in both view and edit mode. */}
+                    {!selectedTrade ? (
+                      <Segmented
+                        options={COMMODITY_TYPES_TRADE.map((c) => ({ value: c, label: c }))}
+                        onChange={(v) => {
+                          const ct = v as CommodityTypeTrade;
+                          setTradeCommodity(ct);
+                          // clear instrumentType if it's no longer valid for the new commodity
+                          const current = tradeForm.getFieldValue('instrumentType') as string | null;
+                          if (current && !commodityInstrumentMap?.[ct]?.includes(current as never)) {
+                            tradeForm.setFieldValue('instrumentType', null);
+                          }
+                        }}
+                      />
+                    ) : (
+                      <Tag color={COMMODITY_COLOR[tradeCommodity]} style={{ fontSize: 13, padding: '3px 10px' }}>{tradeCommodity}</Tag>
+                    )}
+                  </Form.Item>
+                </Col>
+                <Col span={4}>
+                  <Form.Item name="direction" label={hint('Direction', 'BUY = long. SELL = short.')} rules={[{ required: true }]}>
+                    <Select options={DIRECTIONS.map((d) => ({ value: d, label: d }))} />
+                  </Form.Item>
+                </Col>
+                <Col span={6}>
+                  <Form.Item
+                    name="termType"
+                    label={selectedTrade
+                      ? hint('Term Type', 'Locked once a trade exists — SPOT vs. RFP determines how legs were generated.')
+                      : hint('Term Type', 'SPOT = single delivery leg. RFP = multi-period request for proposal with recurring legs.')}
+                    rules={[{ required: true }]}
+                  >
+                    {!selectedTrade ? (
+                      <Segmented options={TERM_TYPES.map((t) => ({ value: t, label: t }))} style={{ width: '100%' }} />
+                    ) : (
+                      <Tag color={watchedTermType === 'RFP' ? 'geekblue' : 'default'} style={{ fontSize: 13, padding: '3px 10px' }}>{watchedTermType}</Tag>
+                    )}
+                  </Form.Item>
+                </Col>
+              </Row>
+              <Row gutter={12}>
+                <Col span={7}>
+                  <Form.Item name="counterpartyId" label={hint('Counterparty', 'The external party you are trading with. Determines deal indicator automatically.')} rules={[{ required: true }]}>
+                    <Select
+                      options={(counterparties as unknown as { counterpartyId: number; cpCode: string; legalName: string }[]).map((cp) => ({ value: cp.counterpartyId, label: `${cp.cpCode} — ${cp.legalName}` }))}
+                      placeholder="Select counterparty" showSearch filterOption={(i, o) => (o?.label ?? '').toLowerCase().includes(i.toLowerCase())}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={4}>
+                  <Form.Item name="tradeDate" label={hint('Contract Date', 'Date the deal was agreed.')} rules={[{ required: true }]}>
+                    <AppDatePicker />
+                  </Form.Item>
+                </Col>
+                <Col span={4}>
+                  <Form.Item name="tradeType" label={hint('Trade Type', 'PHYSICAL = delivery. FINANCIAL = cash-settled. OPTION = right not obligation.')} rules={[{ required: true }]}>
+                    <Select options={tradeTypeOptions} />
+                  </Form.Item>
+                </Col>
+                <Col span={5}>
+                  <Form.Item name="traderId" label="Trader" rules={[{ required: true }]}>
+                    <Select
+                      options={(traders as { traderId: number; traderCode: string; fullName: string }[]).map((t) => ({ value: t.traderId, label: `${t.traderCode} — ${t.fullName}` }))}
+                      placeholder="Select trader" showSearch
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={4}>
+                  <Form.Item name="status" label="Trade Status" rules={[{ required: true }]}>
+                    <Select options={TRADE_STATUSES.map((s) => ({ value: s, label: s }))} />
+                  </Form.Item>
+                </Col>
+              </Row>
+              <Row gutter={12}>
+                <Col span={4}>
+                  <Form.Item name="cin" label={hint('CIN', 'Contract Identification Number — internal reference used for regulatory reporting and amendment tracking.')}>
+                    <Input placeholder="CIN-2026-0001" style={{ fontFamily: 'monospace' }} />
+                  </Form.Item>
+                </Col>
+                <Col span={4}>
+                  <Form.Item name="contractNumber" label={hint('Contract Number', 'External or counterparty contract reference (e.g. CP deal number).')}>
+                    <Input placeholder="SHE-2026-OIL-4421" style={{ fontFamily: 'monospace' }} />
+                  </Form.Item>
+                </Col>
+                <Col span={5}>
+                  <Form.Item name="dealIndicator" label={hint('Deal Indicator', 'INTERNAL = intra-group trade between related entities. Auto-populated from counterparty type.')} rules={[{ required: true }]}>
+                    <Select options={DEAL_INDICATORS.map((d) => ({ value: d, label: d }))} />
+                  </Form.Item>
+                </Col>
+                <Col span={5}>
+                  <Form.Item name="contractType" label={hint('Contract Type', 'SPOT = single event. MONTHLY / QUARTERLY = recurring profile.')}>
+                    <Select options={CONTRACT_TYPES.map((c) => ({ value: c, label: c }))} placeholder="SPOT" allowClear />
+                  </Form.Item>
+                </Col>
+                <Col span={6}>
+                  <Form.Item name="executionDatetime" label="Execution Date">
+                    <AppDatePicker showTime format="YYYY-MM-DD HH:mm:ss" />
+                  </Form.Item>
+                </Col>
+              </Row>
+              <Row gutter={12}>
+                <Col span={24}>
+                  <Form.Item name="specialReference" label={hint('Special Contract', 'Special contract reference — side letters, bespoke terms, non-standard clauses. Flags the deal for legal review. Max 180 characters.')}>
+                    <Input placeholder="e.g. Side letter 2026-04: BWAVE pricing override" maxLength={180} showCount />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              {/* Details — clearly separated, individually collapsible sections */}
+              <Collapse
+                size="small"
+                defaultActiveKey={['classification']}
+                style={{ marginBottom: 14 }}
+                items={[
+                  {
+                    key: 'classification', label: 'Deal Classification', forceRender: true,
+                    children: (
+                      <>
+                        <Row gutter={16}>
+                          <Col span={16}>
+                            <Form.Item name="instrumentType" label={hint('Instrument Type', 'Financial structure of the deal — PHYSICAL, FUTURES, FORWARD, SWAP (Fixed/Float or Float/Float), OPTION (Listed/OTC American/Asian/European), STORAGE_AGREEMENT, or TRANSPORT_AGREEMENT. Drives which detail panels appear on the leg.')}>
+                              <Select
+                                allowClear
+                                placeholder="Select instrument type (optional)"
+                                options={(() => {
+                                  const allowed = new Set(commodityInstrumentMap?.[tradeCommodity] ?? INSTRUMENT_TYPES);
+                                  const filter = (v: string) => allowed.has(v as never);
+                                  const groups = [
+                                    { label: 'Physical & Forwards', items: [
+                                      { value: 'PHYSICAL',              label: 'Physical Delivery' },
+                                      { value: 'CERTIFICATE_TRANSFER',  label: 'Certificate Transfer (Spot)' },
+                                      { value: 'FORWARD',               label: 'Forward (OTC)' },
+                                      { value: 'FUTURES',               label: 'Futures (Exchange)' },
+                                    ]},
+                                    { label: 'Swaps', items: [
+                                      { value: 'SWAP_FIXED_FLOAT',  label: 'Swap — Fixed / Float' },
+                                      { value: 'SWAP_FLOAT_FLOAT',  label: 'Swap — Float / Float (Basis)' },
+                                    ]},
+                                    { label: 'Options', items: [
+                                      { value: 'OPTION_LISTED',       label: 'Option — Listed (Exchange)' },
+                                      { value: 'OPTION_OTC_AMERICAN', label: 'Option — OTC American' },
+                                      { value: 'OPTION_OTC_ASIAN',    label: 'Option — OTC Asian (APO)' },
+                                      { value: 'OPTION_OTC_EUROPEAN', label: 'Option — OTC European' },
+                                    ]},
+                                    { label: 'Agreement Deals', items: [
+                                      { value: 'STORAGE_AGREEMENT',   label: 'Storage Agreement' },
+                                      { value: 'TRANSPORT_AGREEMENT', label: 'Transport Agreement' },
+                                    ]},
+                                  ];
+                                  return groups
+                                    .map(g => ({ label: g.label, options: g.items.filter(i => filter(i.value)) }))
+                                    .filter(g => g.options.length > 0);
+                                })()}
+                              />
+                            </Form.Item>
+                          </Col>
+                          <Col span={8}>
+                            {(watchedInstrumentType === 'SWAP_FIXED_FLOAT' || watchedInstrumentType === 'SWAP_FLOAT_FLOAT') && (
+                              <Alert type="info" showIcon style={{ marginTop: 29, fontSize: 11 }}
+                                message={watchedInstrumentType === 'SWAP_FIXED_FLOAT' ? 'Swap: Fixed vs Floating index' : 'Basis Swap: two floating indices'} />
+                            )}
+                            {(watchedInstrumentType?.startsWith('OPTION_')) && (
+                              <Alert type="warning" showIcon style={{ marginTop: 29, fontSize: 11 }}
+                                message={watchedInstrumentType === 'OPTION_OTC_ASIAN' ? 'APO: payoff = Avg(index) − Strike' : 'Option: strike, expiry, put/call, premium'} />
+                            )}
+                            {(watchedInstrumentType === 'STORAGE_AGREEMENT' || watchedInstrumentType === 'TRANSPORT_AGREEMENT') && (
+                              <Alert type="success" showIcon style={{ marginTop: 29, fontSize: 11 }}
+                                message={watchedInstrumentType === 'STORAGE_AGREEMENT' ? 'Storage: capacity, tariff, in/out dates' : 'Transport: carrier, route, freight rate'} />
+                            )}
+                          </Col>
+                        </Row>
+                        {/* RFP fields — visible only when termType = RFP */}
+                        {watchedTermType === 'RFP' && (
+                          <Card size="small" style={{ marginBottom: 12, border: '1px solid #d3adf7', background: 'rgba(114,46,209,0.03)' }}>
+                            {sectionTitle('RFP Parameters')}
+                            <Row gutter={16}>
+                              <Col span={8}>
+                                <Form.Item name="rfpMinQty" label={hint('Min Qty', 'Minimum total quantity buyer is obligated to take.')}>
+                                  <InputNumber placeholder="40000" style={{ width: '100%' }} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} parser={(v) => v?.replace(/,/g, '') as unknown as number} />
+                                </Form.Item>
+                              </Col>
+                              <Col span={8}>
+                                <Form.Item name="rfpMaxQty" label={hint('Max Qty', 'Maximum total quantity seller must make available.')}>
+                                  <InputNumber placeholder="60000" style={{ width: '100%' }} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} parser={(v) => v?.replace(/,/g, '') as unknown as number} />
+                                </Form.Item>
+                              </Col>
+                              <Col span={8}>
+                                <Form.Item name="rfpFrequency" label={hint('Frequency', 'How often legs auto-generate — DAILY, WEEKLY, MONTHLY, QUARTERLY.')}>
+                                  <Select options={RFP_FREQUENCIES.map((f) => ({ value: f, label: f }))} placeholder="MONTHLY" allowClear />
+                                </Form.Item>
+                              </Col>
+                            </Row>
+                            <Row gutter={16}>
+                              <Col span={8}>
+                                <Form.Item name="rfpStartDate" label="RFP Start Date">
+                                  <AppDatePicker />
+                                </Form.Item>
+                              </Col>
+                              <Col span={8}>
+                                <Form.Item name="rfpEndDate" label="RFP End Date">
+                                  <AppDatePicker />
+                                </Form.Item>
+                              </Col>
+                            </Row>
+                          </Card>
+                        )}
+                      </>
+                    ),
+                  },
+                  {
+                    key: 'credit', label: 'Credit & Legal', forceRender: true,
+                    children: (
+                      <Row gutter={16}>
+                        <Col span={6}>
+                          <Form.Item name="creditTermCode" label={hint('Credit Terms', 'NET_30 = 30 days after invoice. PREPAY = before delivery.')}>
+                            <Select options={CREDIT_TERM_CODES.map((c) => ({ value: c, label: c.replace('_', ' ') }))} placeholder="NET_30" allowClear />
+                          </Form.Item>
+                        </Col>
+                        <Col span={6}>
+                          <Form.Item name="creditApprovalStatus" label="Credit Approval">
+                            <Select options={CREDIT_APPROVAL_STATUSES.map((s) => ({ value: s, label: s }))} placeholder="PENDING" allowClear />
+                          </Form.Item>
+                        </Col>
+                        <Col span={6}>
+                          <Form.Item name="creditLimitUsed" label={hint('Credit Limit Used', 'Notional credit exposure consumed by this deal.')}>
+                            <InputNumber style={{ width: '100%' }} placeholder="0.00" precision={2} />
+                          </Form.Item>
+                        </Col>
+                        <Col span={6}>
+                          <Form.Item name="gtcReference" label={hint('Legal GTC', 'EFET-GAS-2002, ISDA-2002, GTMA, BIMCO-GENCON-94.')}>
+                            <Input placeholder="EFET-GAS-2002" style={{ fontFamily: 'monospace' }} />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+                    ),
+                  },
+                  {
+                    key: 'contract', label: 'Contract Controls', forceRender: true,
+                    children: (
+                      <Row gutter={16}>
+                        <Col span={7}>
+                          <Form.Item name="contractPeriodicity" label={hint('Periodicity', 'For term contracts — how often delivery legs repeat.')}>
+                            <Select options={CONTRACT_PERIODICITIES.map((p) => ({ value: p, label: p }))} allowClear placeholder="MONTHLY" />
+                          </Form.Item>
+                        </Col>
+                        <Col span={7}>
+                          <Form.Item name="contractStatus" label={hint('Contract Status', 'ACTIVE = in force. SUSPENDED = temporarily halted. TERMINATED = cancelled with final settlement.')}>
+                            <Select options={CONTRACT_DEAL_STATUSES.map((s) => ({ value: s, label: s }))} allowClear placeholder="ACTIVE" />
+                          </Form.Item>
+                        </Col>
+                        <Col span={7}>
+                          <Form.Item name="paymentCalendarCode" label={hint('Payment Calendar', 'Holiday calendar code used to calculate payment due dates (e.g. LON-USD, NY-USD).')}>
+                            <Input placeholder="LON-USD" style={{ fontFamily: 'monospace' }} />
+                          </Form.Item>
+                        </Col>
+                        <Col span={3}>
+                          <Form.Item name="hedgeFlag" label={hint('Hedge', 'Mark as accounting hedge under IAS 39 / IFRS 9. Required for hedge effectiveness testing.')} valuePropName="checked">
+                            <Switch />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+                    ),
+                  },
+                  ...(fp.canView('notes') ? [{
+                    key: 'notes', label: 'Notes', forceRender: true,
+                    children: (
+                      <Form.Item name="notes" style={{ marginBottom: 0 }}>
+                        <Input.TextArea rows={3} placeholder="Trade notes, special conditions, internal comments..." />
+                      </Form.Item>
+                    ),
+                  }] : []),
+                ]}
+              />
+            </Form>
+
+            {/* Sub-entity tabs — outside the trade form (their own CRUD, always enabled) */}
+            {selectedTrade ? (
+              <Tabs
+                size="small"
+                items={[
+                  {
+                    key: 'legs',
+                    label: <Space size={4}>Delivery Legs<Badge count={orders.length} showZero style={{ backgroundColor: orders.length ? '#1677ff' : '#d9d9d9' }} /></Space>,
+                    children: (
+                      <>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+                          <Button size="small" type="primary" ghost icon={<PlusOutlined />} onClick={openNewOrder}>
+                            Add Leg
+                          </Button>
+                        </div>
+                        <SmartGrid
+                          columnDefs={orderColDefs}
+                          rowData={orders}
+                          loading={ordersLoading}
+                          height={260}
+                          getRowId={(p) => String(p.data.orderId)}
+                          onRowClicked={(e) => {
+                            const id = (e.data as TradeOrder).orderId;
+                            setSelectedOrderId((prev) => (prev === id ? null : id));
+                          }}
+                          getRowStyle={(p) => (p.data as TradeOrder).orderId === selectedOrderId ? { background: 'rgba(22,119,255,0.05)' } : undefined}
+                        />
+                      </>
+                    ),
+                  },
+                  {
+                    key: 'items',
+                    label: <Space size={4}>Items<Badge count={items.length} showZero style={{ backgroundColor: items.length ? '#1677ff' : '#d9d9d9' }} /></Space>,
+                    children: (
+                      <>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          {legSelector}
+                          <Button size="small" icon={<PlusOutlined />} onClick={openNewItem} disabled={selectedOrderId === null}>Add Item</Button>
+                        </div>
+                        {selectedOrderId === null
+                          ? <Alert type="info" style={{ fontSize: 12 }} message="Select a leg to view its items." />
+                          : items.length === 0
+                            ? <Alert type="info" style={{ fontSize: 12 }} message="No items yet — items are optional sub-lines (multiple products, pricing components, partial shipments)." />
+                            : <Table columns={itemColumns} dataSource={items} rowKey="itemId" size="small" pagination={false} style={{ fontSize: 12 }} />
+                        }
+                      </>
+                    ),
+                  },
+                  {
+                    key: 'costs',
+                    label: 'Secondary Costs',
+                    children: (
+                      <Collapse
+                        size="small"
+                        defaultActiveKey={['trade-costs', 'leg-costs']}
+                        items={[
+                          {
+                            key: 'trade-costs', label: 'Trade-Level Costs — apply to the whole deal',
+                            children: <TradeCostsSection tradeId={selectedTrade.tradeId} currencyOpts={currencyOpts} />,
+                          },
+                          {
+                            key: 'leg-costs', label: 'Leg Costs — specific to one delivery leg',
+                            children: (
+                              <>
+                                {legSelector}
+                                {selectedOrderId === null
+                                  ? <Alert type="info" style={{ fontSize: 12 }} message="Select a leg to record its costs." />
+                                  : <LegCostsSection orderId={selectedOrderId} currencyOpts={currencyOpts} />}
+                              </>
+                            ),
+                          },
+                        ]}
+                      />
+                    ),
+                  },
+                  {
+                    key: 'custom-fields',
+                    label: 'Custom Fields',
+                    children: (
+                      <>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+                          <Button size="small" icon={<PlusOutlined />} onClick={() => setManageFieldsOpen(true)}>Manage Custom Fields</Button>
+                        </div>
+                        <Collapse
+                          size="small"
+                          defaultActiveKey={['trade-fields', 'leg-fields']}
+                          items={[
+                            {
+                              key: 'trade-fields', label: 'Trade-Level Fields — apply to the whole deal',
+                              children: <TradeCustomFieldsSection tradeId={selectedTrade.tradeId} commodityType={selectedTrade.commodityType} />,
+                            },
+                            {
+                              key: 'leg-fields', label: 'Leg Fields — specific to one delivery leg',
+                              children: (
+                                <>
+                                  {legSelector}
+                                  {selectedOrderId === null
+                                    ? <Alert type="info" style={{ fontSize: 12 }} message="Select a leg to fill in its custom fields." />
+                                    : <LegCustomFieldsSection orderId={selectedOrderId} commodityType={selectedTrade.commodityType} />}
+                                </>
+                              ),
+                            },
+                          ]}
+                        />
+                      </>
+                    ),
+                  },
+                  ...(isPhysicalTrade ? [
+                    {
+                      key: 'specs',
+                      label: 'Specifications',
+                      children: (
+                        <SpecificationsSection
+                          productIds={legProductIds}
+                          products={products as { productId: number; productCode: string; productName: string }[]}
+                        />
+                      ),
+                    },
+                    {
+                      key: 'assay',
+                      label: 'Assay / Quality',
+                      children: (
+                        <>
+                          {legSelector}
+                          {selectedOrderId === null
+                            ? <Alert type="info" style={{ fontSize: 12 }} message="Select a leg to capture assay results." />
+                            : <AssayResultsSection orderId={selectedOrderId} productId={selectedOrder?.productId ?? null} />}
+                        </>
+                      ),
+                    },
+                  ] : []),
+                ]}
+              />
+            ) : (
+              <Alert
+                type="info" showIcon style={{ fontSize: 12 }}
+                message="Save the trade first — delivery legs, items, secondary costs, specifications and assay results attach to a saved trade."
+              />
+            )}
+          </>
         ) : (
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description="Select a trade to view its delivery legs"
+            description="Select a trade above to open its workspace"
             style={{ margin: '20px 0' }}
           />
         )}
-
-        {/* ── Items panel ── */}
-        {selectedOrderId !== null && (
-          <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #f0f0f0' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-              <Space>
-                <Text strong style={{ fontSize: 12 }}>
-                  Items — {orders.find((o) => o.orderId === selectedOrderId)?.orderReference ?? `Leg #${selectedOrderId}`}
-                </Text>
-                <Badge count={items.length} showZero style={{ backgroundColor: items.length ? '#1677ff' : '#d9d9d9' }} />
-              </Space>
-              <Button size="small" icon={<PlusOutlined />} onClick={openNewItem}>Add Item</Button>
-            </div>
-            {items.length === 0
-              ? <Alert type="info" style={{ fontSize: 12 }} message="No items yet — items are optional sub-lines (multiple products, pricing components, partial shipments)." />
-              : <Table columns={itemColumns} dataSource={items} rowKey="itemId" size="small" pagination={false} style={{ fontSize: 12 }} />
-            }
-          </div>
-        )}
       </Card>
-
-      {/* ══ TRADE DRAWER — header-only fields ══════════════════════════════════ */}
-      <Drawer mask={false} forceRender
-        title={<Space><SwapOutlined />{editingTrade ? `Edit Trade — ${editingTrade.tradeReference}` : 'New Trade'}</Space>}
-        open={tradeOpen}
-        onClose={() => setTradeOpen(false)}
-        width={fullDrawerWidth}
-        footer={
-          <Space style={{ justifyContent: 'flex-end', display: 'flex' }}>
-            <Button onClick={() => setTradeOpen(false)}>Cancel</Button>
-            <Button onClick={() => { void submitTrade(false); }} loading={saveTrade.isPending}>Save</Button>
-            <Button type="primary" onClick={() => { void submitTrade(true); }} loading={saveTrade.isPending}>
-              {editingTrade ? 'Update & Close' : 'Create & Close'}
-            </Button>
-          </Space>
-        }
-      >
-        <Form form={tradeForm} layout="vertical" size="small">
-
-          {/* Commodity picker */}
-          <Card size="small" style={{ marginBottom: 12, background: 'rgba(0,0,0,0.02)' }}>
-            <Form.Item name="commodityType" label="Commodity Type" rules={[{ required: true }]} style={{ marginBottom: 0 }}>
-              <Segmented
-                options={COMMODITY_TYPES_TRADE.map((c) => ({ value: c, label: c }))}
-                onChange={(v) => {
-                  const ct = v as CommodityTypeTrade;
-                  setTradeCommodity(ct);
-                  // clear instrumentType if it's no longer valid for the new commodity
-                  const current = tradeForm.getFieldValue('instrumentType') as string | null;
-                  if (current && !commodityInstrumentMap?.[ct]?.includes(current as never)) {
-                    tradeForm.setFieldValue('instrumentType', null);
-                  }
-                }}
-              />
-            </Form.Item>
-          </Card>
-
-          {/* Two-column layout: identification & classification left, parties & credit right */}
-          <Row gutter={28}>
-          <Col span={12} style={{ borderRight: '1px solid rgba(125,125,125,0.15)' }}>
-
-          {sectionTitle('Trade Identification')}
-          <Row gutter={16}>
-            <Col span={8}>
-              <Form.Item name="tradeDate" label={hint('Trade Date', 'Date the deal was agreed.')} rules={[{ required: true }]}>
-                <AppDatePicker />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item name="tradeType" label={hint('Trade Type', 'PHYSICAL = delivery. FINANCIAL = cash-settled. OPTION = right not obligation.')} rules={[{ required: true }]}>
-                <Select options={tradeTypeOptions} />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item name="direction" label={hint('Direction', 'BUY = long. SELL = short.')} rules={[{ required: true }]}>
-                <Select options={DIRECTIONS.map((d) => ({ value: d, label: d }))} />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={16}>
-            <Col span={8}>
-              <Form.Item name="status" label="Status" rules={[{ required: true }]}>
-                <Select options={TRADE_STATUSES.map((s) => ({ value: s, label: s }))} />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item name="contractNumber" label={hint('Contract Number', 'External or counterparty contract reference (e.g. CP deal number).')}>
-                <Input placeholder="SHE-2026-OIL-4421" style={{ fontFamily: 'monospace' }} />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item name="executionDatetime" label="Execution Time">
-                <AppDatePicker showTime format="YYYY-MM-DD HH:mm:ss" />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          {sectionTitle('Deal Classification')}
-          <Row gutter={16}>
-            <Col span={8}>
-              <Form.Item name="termType" label={hint('Term Type', 'SPOT = single delivery leg. RFP = multi-period request for proposal with recurring legs.')} rules={[{ required: true }]}>
-                <Segmented options={TERM_TYPES.map((t) => ({ value: t, label: t }))} style={{ width: '100%' }} />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item name="dealIndicator" label={hint('Deal Indicator', 'INTERNAL = intra-group trade between related entities. Auto-populated from counterparty type.')} rules={[{ required: true }]}>
-                <Select options={DEAL_INDICATORS.map((d) => ({ value: d, label: d }))} />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item name="contractType" label={hint('Contract Type', 'SPOT = single event. MONTHLY / QUARTERLY = recurring profile.')}>
-                <Select options={CONTRACT_TYPES.map((c) => ({ value: c, label: c }))} placeholder="SPOT" allowClear />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={16}>
-            <Col span={16}>
-              <Form.Item name="instrumentType" label={hint('Instrument Type', 'Financial structure of the deal — PHYSICAL, FUTURES, FORWARD, SWAP (Fixed/Float or Float/Float), OPTION (Listed/OTC American/Asian/European), STORAGE_AGREEMENT, or TRANSPORT_AGREEMENT. Drives which detail panels appear on the leg.')}>
-                <Select
-                  allowClear
-                  placeholder="Select instrument type (optional)"
-                  options={(() => {
-                    const allowed = new Set(commodityInstrumentMap?.[tradeCommodity] ?? INSTRUMENT_TYPES);
-                    const filter = (v: string) => allowed.has(v as never);
-                    const groups = [
-                      { label: 'Physical & Forwards', items: [
-                        { value: 'PHYSICAL',              label: 'Physical Delivery' },
-                        { value: 'CERTIFICATE_TRANSFER',  label: 'Certificate Transfer (Spot)' },
-                        { value: 'FORWARD',               label: 'Forward (OTC)' },
-                        { value: 'FUTURES',               label: 'Futures (Exchange)' },
-                      ]},
-                      { label: 'Swaps', items: [
-                        { value: 'SWAP_FIXED_FLOAT',  label: 'Swap — Fixed / Float' },
-                        { value: 'SWAP_FLOAT_FLOAT',  label: 'Swap — Float / Float (Basis)' },
-                      ]},
-                      { label: 'Options', items: [
-                        { value: 'OPTION_LISTED',       label: 'Option — Listed (Exchange)' },
-                        { value: 'OPTION_OTC_AMERICAN', label: 'Option — OTC American' },
-                        { value: 'OPTION_OTC_ASIAN',    label: 'Option — OTC Asian (APO)' },
-                        { value: 'OPTION_OTC_EUROPEAN', label: 'Option — OTC European' },
-                      ]},
-                      { label: 'Agreement Deals', items: [
-                        { value: 'STORAGE_AGREEMENT',   label: 'Storage Agreement' },
-                        { value: 'TRANSPORT_AGREEMENT', label: 'Transport Agreement' },
-                      ]},
-                    ];
-                    return groups
-                      .map(g => ({ label: g.label, options: g.items.filter(i => filter(i.value)) }))
-                      .filter(g => g.options.length > 0);
-                  })()}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              {(watchedInstrumentType === 'SWAP_FIXED_FLOAT' || watchedInstrumentType === 'SWAP_FLOAT_FLOAT') && (
-                <Alert type="info" showIcon style={{ marginTop: 29, fontSize: 11 }}
-                  message={watchedInstrumentType === 'SWAP_FIXED_FLOAT' ? 'Swap: Fixed vs Floating index' : 'Basis Swap: two floating indices'} />
-              )}
-              {(watchedInstrumentType?.startsWith('OPTION_')) && (
-                <Alert type="warning" showIcon style={{ marginTop: 29, fontSize: 11 }}
-                  message={watchedInstrumentType === 'OPTION_OTC_ASIAN' ? 'APO: payoff = Avg(index) − Strike' : 'Option: strike, expiry, put/call, premium'} />
-              )}
-              {(watchedInstrumentType === 'STORAGE_AGREEMENT' || watchedInstrumentType === 'TRANSPORT_AGREEMENT') && (
-                <Alert type="success" showIcon style={{ marginTop: 29, fontSize: 11 }}
-                  message={watchedInstrumentType === 'STORAGE_AGREEMENT' ? 'Storage: capacity, tariff, in/out dates' : 'Transport: carrier, route, freight rate'} />
-              )}
-            </Col>
-          </Row>
-
-          {/* RFP fields — visible only when termType = RFP */}
-          {watchedTermType === 'RFP' && (
-            <Card size="small" style={{ marginBottom: 12, border: '1px solid #d3adf7', background: 'rgba(114,46,209,0.03)' }}>
-              {sectionTitle('RFP Parameters')}
-              <Row gutter={16}>
-                <Col span={8}>
-                  <Form.Item name="rfpMinQty" label={hint('Min Qty', 'Minimum total quantity buyer is obligated to take.')}>
-                    <InputNumber placeholder="40000" style={{ width: '100%' }} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} parser={(v) => v?.replace(/,/g, '') as unknown as number} />
-                  </Form.Item>
-                </Col>
-                <Col span={8}>
-                  <Form.Item name="rfpMaxQty" label={hint('Max Qty', 'Maximum total quantity seller must make available.')}>
-                    <InputNumber placeholder="60000" style={{ width: '100%' }} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} parser={(v) => v?.replace(/,/g, '') as unknown as number} />
-                  </Form.Item>
-                </Col>
-                <Col span={8}>
-                  <Form.Item name="rfpFrequency" label={hint('Frequency', 'How often legs auto-generate — DAILY, WEEKLY, MONTHLY, QUARTERLY.')}>
-                    <Select options={RFP_FREQUENCIES.map((f) => ({ value: f, label: f }))} placeholder="MONTHLY" allowClear />
-                  </Form.Item>
-                </Col>
-              </Row>
-              <Row gutter={16}>
-                <Col span={8}>
-                  <Form.Item name="rfpStartDate" label="RFP Start Date">
-                    <AppDatePicker />
-                  </Form.Item>
-                </Col>
-                <Col span={8}>
-                  <Form.Item name="rfpEndDate" label="RFP End Date">
-                    <AppDatePicker />
-                  </Form.Item>
-                </Col>
-              </Row>
-            </Card>
-          )}
-
-          </Col>
-          <Col span={12}>
-
-          {sectionTitle('Counterparty & Book')}
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item name="counterpartyId" label={hint('Counterparty', 'The external party you are trading with. Determines deal indicator automatically.')} rules={[{ required: true }]}>
-                <Select
-                  options={(counterparties as { counterpartyId: number; counterpartyCode: string; name: string }[]).map((cp) => ({ value: cp.counterpartyId, label: `${cp.counterpartyCode} — ${cp.name}` }))}
-                  placeholder="Select counterparty" showSearch filterOption={(i, o) => (o?.label ?? '').toLowerCase().includes(i.toLowerCase())}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item name="legalEntityId" label={hint('Legal Entity', 'Your company entity — jurisdiction, currency, tax treatment.')} rules={[{ required: true }]}>
-                <Select
-                  options={(legalEntities as { legalEntityId: number; entityCode: string; name: string }[]).map((le) => ({ value: le.legalEntityId, label: `${le.entityCode} — ${le.name}` }))}
-                  placeholder="Select legal entity" showSearch
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item name="traderId" label="Trader" rules={[{ required: true }]}>
-                <Select
-                  options={(traders as { traderId: number; traderCode: string; fullName: string }[]).map((t) => ({ value: t.traderId, label: `${t.traderCode} — ${t.fullName}` }))}
-                  placeholder="Select trader" showSearch
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item name="bookId" label={hint('Book', 'Trading book for P&L attribution and position aggregation.')} rules={[{ required: true }]}>
-                <Select
-                  options={(books as { bookId: number; bookCode: string; bookName: string }[]).map((b) => ({ value: b.bookId, label: `${b.bookCode} — ${b.bookName}` }))}
-                  placeholder="Select book" showSearch
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          {sectionTitle('Broker')}
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item name="brokerId" label={hint('Broker', 'IDB that intermediated this trade. Leave blank for direct bilateral.')}>
-                <Select options={brokerOpts} placeholder="Select broker (blank if direct)" allowClear showSearch />
-              </Form.Item>
-            </Col>
-            <Col span={6}>
-              <Form.Item name="brokerFeeType" label="Fee Type">
-                <Select options={BROKER_FEE_TYPES.map((t) => ({ value: t, label: t }))} placeholder="FIXED / %" allowClear />
-              </Form.Item>
-            </Col>
-            <Col span={6}>
-              <Form.Item name="brokerFee" label="Broker Fee">
-                <InputNumber precision={4} placeholder="0.02" style={{ width: '100%' }} />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={16}>
-            <Col span={8}>
-              <Form.Item name="brokerFeeCurrencyCode" label="Fee Currency">
-                <Select options={currencyOpts} showSearch allowClear placeholder="USD" />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          {sectionTitle('Credit & Legal')}
-          <Row gutter={16}>
-            <Col span={8}>
-              <Form.Item name="creditTermCode" label={hint('Credit Terms', 'NET_30 = 30 days after invoice. PREPAY = before delivery.')}>
-                <Select options={CREDIT_TERM_CODES.map((c) => ({ value: c, label: c.replace('_', ' ') }))} placeholder="NET_30" allowClear />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item name="creditApprovalStatus" label="Credit Approval">
-                <Select options={CREDIT_APPROVAL_STATUSES.map((s) => ({ value: s, label: s }))} placeholder="PENDING" allowClear />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item name="creditLimitUsed" label={hint('Credit Limit Used', 'Notional credit exposure consumed by this deal.')}>
-                <InputNumber style={{ width: '100%' }} placeholder="0.00" precision={2} />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item name="gtcReference" label={hint('Legal GTC', 'EFET-GAS-2002, ISDA-2002, GTMA, BIMCO-GENCON-94.')}>
-                <Input placeholder="EFET-GAS-2002" style={{ fontFamily: 'monospace' }} />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          </Col>
-          </Row>
-
-          {sectionTitle('Contract Controls')}
-          <Row gutter={16}>
-            <Col span={4}>
-              <Form.Item name="cin" label={hint('CIN', 'Contract Identification Number — internal reference used for regulatory reporting and amendment tracking.')}>
-                <Input placeholder="CIN-2026-0001" style={{ fontFamily: 'monospace' }} />
-              </Form.Item>
-            </Col>
-            <Col span={4}>
-              <Form.Item name="contractPeriodicity" label={hint('Periodicity', 'For term contracts — how often delivery legs repeat.')}>
-                <Select options={CONTRACT_PERIODICITIES.map((p) => ({ value: p, label: p }))} allowClear placeholder="MONTHLY" />
-              </Form.Item>
-            </Col>
-            <Col span={4}>
-              <Form.Item name="contractStatus" label={hint('Contract Status', 'ACTIVE = in force. SUSPENDED = temporarily halted. TERMINATED = cancelled with final settlement.')}>
-                <Select options={CONTRACT_DEAL_STATUSES.map((s) => ({ value: s, label: s }))} allowClear placeholder="ACTIVE" />
-              </Form.Item>
-            </Col>
-            <Col span={4}>
-              <Form.Item name="paymentCalendarCode" label={hint('Payment Calendar', 'Holiday calendar code used to calculate payment due dates (e.g. LON-USD, NY-USD).')}>
-                <Input placeholder="LON-USD" style={{ fontFamily: 'monospace' }} />
-              </Form.Item>
-            </Col>
-            <Col span={2}>
-              <Form.Item name="hedgeFlag" label={hint('Hedge', 'Mark as accounting hedge under IAS 39 / IFRS 9. Required for hedge effectiveness testing.')} valuePropName="checked">
-                <Switch />
-              </Form.Item>
-            </Col>
-            <Col span={6}>
-              <Form.Item name="specialReference" label={hint('Special Reference', 'Special contract reference — side letters, bespoke terms, non-standard clauses. Flags the deal for legal review. Max 180 characters.')}>
-                <Input placeholder="e.g. Side letter 2026-04: BWAVE pricing override" maxLength={180} showCount />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          {fp.canView('notes') && sectionTitle('Notes')}
-          {fp.canView('notes') && (
-            <Form.Item name="notes">
-              <Input.TextArea rows={3} placeholder="Trade notes, special conditions, internal comments..." />
-            </Form.Item>
-          )}
-        </Form>
-      </Drawer>
 
       {/* ══ LEG DRAWER — all delivery detail ════════════════════════════════════ */}
       <Drawer mask={false} forceRender
@@ -1817,6 +2416,44 @@ export function TradeBlotter() {
             <Col span={8}>
               <Form.Item name="isTemplate" label={hint('Template Leg', 'Leg #1 is the template. Subsequent legs inherit its product, pricing rule and settlement type.')}>
                 <Select options={[{ value: true, label: 'Yes — Template Leg' }, { value: false, label: 'No — Detail Leg' }]} />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          {sectionTitle('Entity & Book')}
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item name="legalEntityId" label={hint('Legal Entity', 'Your company entity — jurisdiction, currency, tax treatment. Independent per leg — a multi-leg strip can book different legs to different entities.')} rules={[{ required: true }]}>
+                <Select options={legalEntityOpts} placeholder="Select legal entity" showSearch />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="bookId" label={hint('Book', 'Trading book for P&L attribution and position aggregation, scoped to this leg\'s commodity. Independent per leg.')} rules={[{ required: true }]}>
+                <Select options={bookOptionsFor(orderCommodity)} placeholder="Select book" showSearch />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          {sectionTitle('Broker')}
+          <Row gutter={16}>
+            <Col span={10}>
+              <Form.Item name="brokerId" label={hint('Broker', 'IDB that executed this leg, scoped to its commodity. Leave blank for direct bilateral. Independent per leg — a strip\'s legs can go through different brokers on different days.')}>
+                <Select options={brokerOptionsFor(orderCommodity)} placeholder="Select broker (blank if direct)" allowClear showSearch />
+              </Form.Item>
+            </Col>
+            <Col span={5}>
+              <Form.Item name="brokerFeeType" label="Fee Type">
+                <Select options={BROKER_FEE_TYPES.map((t) => ({ value: t, label: t }))} placeholder="FIXED / %" allowClear />
+              </Form.Item>
+            </Col>
+            <Col span={4}>
+              <Form.Item name="brokerFee" label="Broker Fee">
+                <InputNumber precision={4} placeholder="0.02" style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+            <Col span={5}>
+              <Form.Item name="brokerFeeCurrencyCode" label="Fee Currency">
+                <Select options={currencyOpts} showSearch allowClear placeholder="USD" />
               </Form.Item>
             </Col>
           </Row>
@@ -1916,6 +2553,8 @@ export function TradeBlotter() {
           </Form.Item>
         </Form>
       </Drawer>
+
+      <ManageCustomFieldsModal open={manageFieldsOpen} onClose={() => setManageFieldsOpen(false)} />
     </>
   );
 }

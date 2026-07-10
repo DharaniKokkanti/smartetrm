@@ -129,7 +129,7 @@ export function GlAccountsPage() {
             <Form.Item name="accountCode" label={hint('Account Code', 'Numeric or alphanumeric GL code — e.g. 4100, 5200.')} rules={[{ required: true }]} style={{ flex: 1 }}>
               <Input placeholder="4100" style={{ fontFamily: 'monospace' }} />
             </Form.Item>
-            <Form.Item name="accountType" label="Account Type" rules={[{ required: true }]} style={{ flex: 1 }}>
+            <Form.Item name="accountType" label={hint('Account Type', 'Drives normal balance (Debit/Credit) and which financial statement this account rolls up into — Revenue/Cost hit the P&L, Asset/Liability/Equity hit the balance sheet.')} rules={[{ required: true }]} style={{ flex: 1 }}>
               <Select options={accountTypeOpts} />
             </Form.Item>
           </Space>

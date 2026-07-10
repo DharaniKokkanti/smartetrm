@@ -178,7 +178,13 @@ export function CreditLimitsPage() {
       cellRenderer: (p: { data: CreditLimit }) => (
         <Space size={2}>
           <Tag color={LIMIT_TYPE_COLOR[p.data.limitType] ?? 'default'} style={{ fontSize: 10 }}>{p.data.limitType.replace(/_/g, ' ')}</Tag>
-          {p.data.limitBasis === 'ALLOCATED' && <Tooltip title={`Allocated from limit #${p.data.parentLimitId}`}><Tag color="cyan" style={{ fontSize: 9 }}>ALLOC</Tag></Tooltip>}
+          {p.data.limitBasis === 'ALLOCATED' && (() => {
+            const parent = data.find((l) => l.creditLimitId === p.data.parentLimitId);
+            const label = parent
+              ? `${parent.counterpartyName} — ${parent.limitType.replace(/_/g, ' ')} ${parent.limitCurrency} ${parent.limitAmount.toLocaleString()}`
+              : `#${p.data.parentLimitId}`;
+            return <Tooltip title={`Allocated from ${label}`}><Tag color="cyan" style={{ fontSize: 9 }}>ALLOC</Tag></Tooltip>;
+          })()}
         </Space>
       ),
     },
@@ -241,7 +247,7 @@ export function CreditLimitsPage() {
         </Space>
       ),
     },
-  ], [suspend, reinstate, today]);
+  ], [suspend, reinstate, today, data]);
 
   return (
     <>

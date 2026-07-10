@@ -1,4 +1,9 @@
-import type { Trade, TradeInput, TradeFilter, TradeOrder, TradeOrderInput, TradeItem, TradeItemInput } from './types';
+import type {
+  Trade, TradeInput, TradeFilter, TradeOrder, TradeOrderInput, TradeItem, TradeItemInput,
+  TradeCost, TradeCostInput, TradeOrderCost, TradeOrderCostInput, TradeAssayResult, TradeAssayResultInput,
+  CustomFieldDefinition, CustomFieldDefinitionInput, TradeCustomFieldValue, TradeCustomFieldValueInput,
+  TradeOrderCustomFieldValue, TradeOrderCustomFieldValueInput,
+} from './types';
 
 const BASE = '/api/v1';
 
@@ -102,8 +107,148 @@ export async function deleteTradeItem(id: number): Promise<void> {
   if (!res.ok) throw new Error('Failed to delete item');
 }
 
+// ─── Trade Costs (trade-level secondary costs, V88) ──────────────────────────
+
+export async function fetchTradeCosts(tradeId: number): Promise<TradeCost[]> {
+  const res = await fetch(`${BASE}/trade-costs?tradeId=${tradeId}`);
+  if (!res.ok) throw new Error('Failed to fetch trade costs');
+  return res.json() as Promise<TradeCost[]>;
+}
+
+export async function createTradeCost(input: TradeCostInput): Promise<TradeCost> {
+  const res = await fetch(`${BASE}/trade-costs`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
+  if (!res.ok) throw new Error('Failed to create trade cost');
+  return res.json() as Promise<TradeCost>;
+}
+
+export async function updateTradeCost(id: number, input: Partial<TradeCostInput>): Promise<TradeCost> {
+  const res = await fetch(`${BASE}/trade-costs/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
+  if (!res.ok) throw new Error('Failed to update trade cost');
+  return res.json() as Promise<TradeCost>;
+}
+
+export async function deleteTradeCost(id: number): Promise<void> {
+  const res = await fetch(`${BASE}/trade-costs/${id}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error('Failed to delete trade cost');
+}
+
+// ─── Leg Costs (order-level secondary costs, V88) ────────────────────────────
+
+export async function fetchLegCosts(orderId: number): Promise<TradeOrderCost[]> {
+  const res = await fetch(`${BASE}/trade-order-costs?orderId=${orderId}`);
+  if (!res.ok) throw new Error('Failed to fetch leg costs');
+  return res.json() as Promise<TradeOrderCost[]>;
+}
+
+export async function createLegCost(input: TradeOrderCostInput): Promise<TradeOrderCost> {
+  const res = await fetch(`${BASE}/trade-order-costs`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
+  if (!res.ok) throw new Error('Failed to create leg cost');
+  return res.json() as Promise<TradeOrderCost>;
+}
+
+export async function updateLegCost(id: number, input: Partial<TradeOrderCostInput>): Promise<TradeOrderCost> {
+  const res = await fetch(`${BASE}/trade-order-costs/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
+  if (!res.ok) throw new Error('Failed to update leg cost');
+  return res.json() as Promise<TradeOrderCost>;
+}
+
+export async function deleteLegCost(id: number): Promise<void> {
+  const res = await fetch(`${BASE}/trade-order-costs/${id}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error('Failed to delete leg cost');
+}
+
+// ─── Assay Results (physical-leg quality results, V88) ───────────────────────
+
+export async function fetchAssayResults(orderId: number): Promise<TradeAssayResult[]> {
+  const res = await fetch(`${BASE}/trade-order-assay-results?orderId=${orderId}`);
+  if (!res.ok) throw new Error('Failed to fetch assay results');
+  return res.json() as Promise<TradeAssayResult[]>;
+}
+
+export async function createAssayResult(input: TradeAssayResultInput): Promise<TradeAssayResult> {
+  const res = await fetch(`${BASE}/trade-order-assay-results`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
+  if (!res.ok) throw new Error('Failed to create assay result');
+  return res.json() as Promise<TradeAssayResult>;
+}
+
+export async function updateAssayResult(id: number, input: Partial<TradeAssayResultInput>): Promise<TradeAssayResult> {
+  const res = await fetch(`${BASE}/trade-order-assay-results/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
+  if (!res.ok) throw new Error('Failed to update assay result');
+  return res.json() as Promise<TradeAssayResult>;
+}
+
+export async function deleteAssayResult(id: number): Promise<void> {
+  const res = await fetch(`${BASE}/trade-order-assay-results/${id}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error('Failed to delete assay result');
+}
+
+// ─── Custom field definitions (governed registry, V89) ────────────────────────
+
+export async function fetchCustomFieldDefinitions(): Promise<CustomFieldDefinition[]> {
+  const res = await fetch(`${BASE}/custom-field-definitions`);
+  if (!res.ok) throw new Error('Failed to fetch custom field definitions');
+  return res.json() as Promise<CustomFieldDefinition[]>;
+}
+
+export async function createCustomFieldDefinition(input: CustomFieldDefinitionInput): Promise<CustomFieldDefinition> {
+  const res = await fetch(`${BASE}/custom-field-definitions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
+  if (!res.ok) throw new Error('Failed to create custom field definition');
+  return res.json() as Promise<CustomFieldDefinition>;
+}
+
+export async function updateCustomFieldDefinition(id: number, input: Partial<CustomFieldDefinitionInput>): Promise<CustomFieldDefinition> {
+  const res = await fetch(`${BASE}/custom-field-definitions/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
+  if (!res.ok) throw new Error('Failed to update custom field definition');
+  return res.json() as Promise<CustomFieldDefinition>;
+}
+
+// ─── Trade-level custom field values (V89) ────────────────────────────────────
+
+export async function fetchTradeCustomFieldValues(tradeId: number): Promise<TradeCustomFieldValue[]> {
+  const res = await fetch(`${BASE}/trade-custom-field-values?tradeId=${tradeId}`);
+  if (!res.ok) throw new Error('Failed to fetch trade custom field values');
+  return res.json() as Promise<TradeCustomFieldValue[]>;
+}
+
+export async function saveTradeCustomFieldValue(input: TradeCustomFieldValueInput): Promise<TradeCustomFieldValue> {
+  const res = await fetch(`${BASE}/trade-custom-field-values`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
+  if (!res.ok) throw new Error('Failed to save trade custom field value');
+  return res.json() as Promise<TradeCustomFieldValue>;
+}
+
+export async function deleteTradeCustomFieldValue(id: number): Promise<void> {
+  const res = await fetch(`${BASE}/trade-custom-field-values/${id}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error('Failed to delete trade custom field value');
+}
+
+// ─── Leg-level custom field values (V89) ──────────────────────────────────────
+
+export async function fetchLegCustomFieldValues(orderId: number): Promise<TradeOrderCustomFieldValue[]> {
+  const res = await fetch(`${BASE}/trade-order-custom-field-values?orderId=${orderId}`);
+  if (!res.ok) throw new Error('Failed to fetch leg custom field values');
+  return res.json() as Promise<TradeOrderCustomFieldValue[]>;
+}
+
+export async function saveLegCustomFieldValue(input: TradeOrderCustomFieldValueInput): Promise<TradeOrderCustomFieldValue> {
+  const res = await fetch(`${BASE}/trade-order-custom-field-values`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
+  if (!res.ok) throw new Error('Failed to save leg custom field value');
+  return res.json() as Promise<TradeOrderCustomFieldValue>;
+}
+
+export async function deleteLegCustomFieldValue(id: number): Promise<void> {
+  const res = await fetch(`${BASE}/trade-order-custom-field-values/${id}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error('Failed to delete leg custom field value');
+}
+
 // ─── Reference data dropdowns ─────────────────────────────────────────────────
 
+// NOTE: these declared shapes are stale — /counterparties and /legal-entities
+// are actually served by the tier1 handlers (registered before etrmHandlers in
+// mocks/browser.ts), whose rows use cpCode/legalName and entityCode/entityName.
+// ~12 consuming pages cast to this stale shape, so labels built from
+// counterpartyCode/name render "undefined" at runtime. Kept as-is here to
+// avoid a mass ripple; fix consumers to cpCode/legalName as they're touched
+// (TradeBlotter already reads the real fields).
 export interface Counterparty { counterpartyId: number; counterpartyCode: string; name: string; }
 export interface LegalEntity { legalEntityId: number; entityCode: string; name: string; }
 export interface Incoterm { incotermId: number; incotermCode: string; incotermName: string; }

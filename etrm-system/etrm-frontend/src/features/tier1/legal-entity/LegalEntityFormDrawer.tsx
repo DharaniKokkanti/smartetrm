@@ -175,7 +175,7 @@ export function LegalEntityFormDrawer({ open, onClose, editing, onSaved }: Props
                 >
                   <Input placeholder="20-character Legal Entity Identifier" />
                 </Form.Item>
-                <Form.Item name="entityType" label="Entity Type" rules={[{ required: true, message: 'Required' }]}>
+                <Form.Item name="entityType" label={hint('Entity Type', 'Determines regulatory scope and guarantor eligibility — Holding companies don\'t trade directly; Branches inherit the parent\'s licence rather than holding their own.')} rules={[{ required: true, message: 'Required' }]}>
                   <Select options={entityTypeOptions} loading={loadingEntityTypes} placeholder="Select type" />
                 </Form.Item>
                 <Form.Item

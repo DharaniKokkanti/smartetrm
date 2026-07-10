@@ -158,7 +158,7 @@ export function CommercialTermsPage() {
           <Form.Item name="paymentTermId" label="Payment Term" rules={[{ required: true }]}>
             <Select options={paymentTermOpts} showSearch optionFilterProp="label" />
           </Form.Item>
-          <Form.Item name="creditTermId" label="Credit Term" rules={[{ required: true }]}>
+          <Form.Item name="creditTermId" label={hint('Credit Term', 'e.g. NET_30 = payment due 30 days after invoice date. PREPAY = payment required before delivery.')} rules={[{ required: true }]}>
             <Select options={creditTermOpts} showSearch optionFilterProp="label" />
           </Form.Item>
           <Form.Item name="defaultCurrencyId" label="Default Currency">

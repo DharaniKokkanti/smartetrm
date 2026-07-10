@@ -6,6 +6,7 @@ import { PageHeader } from '@components/layout/PageHeader';
 import { SmartGrid } from '@components/smart/SmartGrid';
 import { ActiveTag } from '@components/smart/StatusTag';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
+import { hint } from '@components/smart/FieldHint';
 import { useFormDraft } from '@components/smart/formDraft';
 import dayjs, { type Dayjs } from 'dayjs';
 import { usePipelines } from '@features/trade/hooks';
@@ -156,10 +157,10 @@ export function PipelineTariffsPage() {
           <Form.Item name="productId" label="Product (blank = all)">
             <Select options={productOpts} allowClear showSearch optionFilterProp="label" />
           </Form.Item>
-          <Form.Item name="tariffType" label="Tariff Type" rules={[{ required: true }]}>
+          <Form.Item name="tariffType" label={hint('Tariff Type', 'FIRM = guaranteed capacity, priority in curtailment. INTERRUPTIBLE = can be bumped. CAPACITY_BOOKING = reserved slot regardless of use.')} rules={[{ required: true }]}>
             <Select options={TARIFF_TYPES.map((t) => ({ value: t, label: t.replace(/_/g, ' ') }))} />
           </Form.Item>
-          <Form.Item name="capacityType" label="Capacity Type" rules={[{ required: true }]}>
+          <Form.Item name="capacityType" label={hint('Capacity Type', 'ENTRY/EXIT = one side of an entry-exit gas transport system. ENTRY_EXIT = both. WITHIN_ZONE = capacity that never crosses a zone boundary.')} rules={[{ required: true }]}>
             <Select options={CAPACITY_TYPES.map((t) => ({ value: t, label: t.replace(/_/g, ' ') }))} />
           </Form.Item>
           <Space.Compact block>

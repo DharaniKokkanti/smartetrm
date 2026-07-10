@@ -83,6 +83,7 @@ export interface Broker {
   brokerId: number;
   brokerCode: string;
   brokerName: string;
+  commodityType: CommodityTypeTrade | null; // null = generalist, offered for every commodity
   isActive: boolean;
 }
 
@@ -239,6 +240,17 @@ export interface PriceAdjustment {
 export const DEMURRAGE_BASIS_TYPES = ['REVERSIBLE', 'NON_REVERSIBLE', 'AVERAGED'] as const;
 export type DemurrageBasis = (typeof DEMURRAGE_BASIS_TYPES)[number];
 
+// ─── Secondary costs (trade-level and leg-level) ─────────────────────────────
+// Ancillary costs beyond the deal price itself — freight, insurance, storage,
+// port dues, etc. Modeled as two separate lists: trade-level (whole deal, e.g.
+// legal/documentation) and leg-level (cargo-specific, e.g. freight/insurance
+// for one delivery), per V88.
+export const TRADE_COST_TYPES = [
+  'FREIGHT', 'INSURANCE', 'STORAGE', 'PORT_DUES', 'CUSTOMS_DUTY',
+  'INSPECTION_SURVEY', 'BANK_CHARGES', 'LEGAL_DOCUMENTATION', 'AGENCY_FEES', 'OTHER',
+] as const;
+export type TradeCostType = (typeof TRADE_COST_TYPES)[number];
+
 // ─── Swap detail (SWAP_FIXED_FLOAT and SWAP_FLOAT_FLOAT) ─────────────────────
 export const SWAP_RESET_FREQUENCIES = ['DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY', 'ANNUAL'] as const;
 export type SwapResetFrequency = (typeof SWAP_RESET_FREQUENCIES)[number];
@@ -386,28 +398,17 @@ export interface Trade {
   contractType: ContractType | null;
   instrumentType: InstrumentType | null; // financial structure — FUTURES, SWAP_*, OPTION_*, AGREEMENT, etc.
   status: TradeStatus;
-  // Counterparty & book
+  // Counterparty
   counterpartyId: number;
   counterpartyName: string;
   traderId: number;
   traderCode: string;
-  bookId: number;
-  bookCode: string;
-  legalEntityId: number;
-  legalEntityName: string;
   // RFP-specific (only when termType = 'RFP')
   rfpMinQty: number | null;
   rfpMaxQty: number | null;
   rfpStartDate: string | null;
   rfpEndDate: string | null;
   rfpFrequency: RfpFrequency | null; // how often legs repeat
-  // Broker (deal-level — same for all legs)
-  brokerId: number | null;
-  brokerCode: string | null;
-  brokerName: string | null;
-  brokerFeeType: BrokerFeeType | null;
-  brokerFee: number | null;
-  brokerFeeCurrencyCode: string | null;
   // Credit & legal
   creditTermCode: CreditTermCode | null;
   creditApprovalStatus: CreditApprovalStatus | null;
@@ -430,8 +431,7 @@ export interface Trade {
 }
 
 export type TradeInput = Omit<Trade,
-  'tradeId' | 'tradeReference' | 'counterpartyName' | 'traderCode' | 'bookCode' |
-  'legalEntityName' | 'brokerCode' | 'brokerName' |
+  'tradeId' | 'tradeReference' | 'counterpartyName' | 'traderCode' |
   'orderCount' | 'amendmentNumber' | 'isLatestVersion' | 'createdAt' | 'updatedAt'
 >;
 
@@ -449,6 +449,21 @@ export interface TradeOrder {
   periodCode: string | null;
   riskStartDate: string;
   riskEndDate: string;
+  // Entity & Book — independent per leg, no fallback to the trade (a multi-leg
+  // strip can book different legs to different desks/entities).
+  legalEntityId: number;
+  legalEntityName: string;
+  bookId: number;
+  bookCode: string;
+  // Broker — independent per leg (a strip's legs can be executed via different
+  // IDBs on different days). Commodity-scoped: options are filtered to brokers
+  // whose `commodityType` is null (generalist) or matches this leg's commodity.
+  brokerId: number | null;
+  brokerCode: string | null;
+  brokerName: string | null;
+  brokerFeeType: BrokerFeeType | null;
+  brokerFee: number | null;
+  brokerFeeCurrencyCode: string | null;
   productId: number | null;
   productCode: string | null;
   productName: string | null;
@@ -497,7 +512,8 @@ export interface TradeOrder {
 }
 
 export type TradeOrderInput = Omit<TradeOrder,
-  'orderId' | 'orderReference' | 'productCode' | 'productName' | 'marketCode' | 'pricingRuleCode' | 'createdAt' | 'updatedAt'
+  'orderId' | 'orderReference' | 'productCode' | 'productName' | 'marketCode' | 'pricingRuleCode' |
+  'legalEntityName' | 'bookCode' | 'brokerCode' | 'brokerName' | 'createdAt' | 'updatedAt'
 >;
 
 // ─── TradeItem (line item within an order) ───────────────────────────────────
@@ -519,6 +535,110 @@ export interface TradeItem {
 }
 
 export type TradeItemInput = Omit<TradeItem, 'itemId' | 'productCode'>;
+
+// ─── TradeCost / TradeOrderCost (secondary costs, V88) ───────────────────────
+export interface TradeCost {
+  costId: number;
+  tradeId: number;
+  costType: TradeCostType;
+  description: string | null;
+  amount: number;
+  currencyCode: string;
+  isEstimated: boolean;
+  notes: string | null;
+}
+export type TradeCostInput = Omit<TradeCost, 'costId'>;
+
+export interface TradeOrderCost {
+  costId: number;
+  orderId: number;
+  costType: TradeCostType;
+  description: string | null;
+  amount: number;
+  currencyCode: string;
+  isEstimated: boolean;
+  notes: string | null;
+}
+export type TradeOrderCostInput = Omit<TradeOrderCost, 'costId'>;
+
+// ─── TradeAssayResult (physical-leg quality results, V88) ────────────────────
+// Actual measured values captured against the product's existing quality spec
+// (product_spec_template / spec_parameter / product_spec_value) for a physical
+// delivery leg — e.g. Certificate of Quality/Analysis results. The joined
+// parameter/bound fields are read-only, sourced from product_spec_value via
+// specValueId — mirrors the productCode-alongside-productId pattern already
+// used by TradeItem above.
+export interface TradeAssayResult {
+  assayResultId: number;
+  orderId: number;
+  specValueId: number;
+  parameterCode: string;
+  parameterName: string;
+  uomCode: string | null;
+  valueMin: number | null;
+  valueMax: number | null;
+  valueTypical: number | null;
+  valueExact: number | null;
+  boundDirection: string;
+  testMethod: string | null;
+  actualValue: number | null;
+  actualText: string | null;
+  samplePoint: 'LOAD' | 'DISCHARGE' | 'SHORE_TANK' | 'OTHER' | null;
+  recordedDate: string | null;
+  notes: string | null;
+}
+export type TradeAssayResultInput = Omit<TradeAssayResult,
+  'assayResultId' | 'parameterCode' | 'parameterName' | 'uomCode' | 'valueMin' | 'valueMax' | 'valueTypical' | 'valueExact' | 'boundDirection' | 'testMethod'
+>;
+
+// ─── Custom field registry (V89) ──────────────────────────────────────────────
+// A governed, typed alternative to Endur/OpenLink's "User Defined Fields" —
+// those let anyone type an untyped single value with no validation, which in
+// practice causes field sprawl and values nobody can reliably report on. Here
+// an admin defines each field once (name, data type, whether it's a Trade- or
+// Leg-level field, optional commodity scoping) and every trade/leg gets a
+// validated input for each active definition — still no code to add a field,
+// but typed and centrally visible instead of free-text sprawl.
+export const CUSTOM_FIELD_DATA_TYPES = ['TEXT', 'NUMBER', 'DATE', 'BOOLEAN', 'SELECT'] as const;
+export type CustomFieldDataType = (typeof CUSTOM_FIELD_DATA_TYPES)[number];
+
+export const CUSTOM_FIELD_APPLIES_TO = ['TRADE', 'LEG'] as const;
+export type CustomFieldAppliesTo = (typeof CUSTOM_FIELD_APPLIES_TO)[number];
+
+export interface CustomFieldDefinition {
+  definitionId: number;
+  fieldCode: string;
+  fieldName: string;
+  dataType: CustomFieldDataType;
+  appliesTo: CustomFieldAppliesTo;
+  commodityType: CommodityTypeTrade | null; // null = applies to every commodity
+  selectOptions: string[] | null;           // only for dataType = 'SELECT'
+  isRequired: boolean;
+  isActive: boolean;
+  sortOrder: number;
+  notes: string | null;
+}
+export type CustomFieldDefinitionInput = Omit<CustomFieldDefinition, 'definitionId'>;
+
+/** One typed value slot per data type — only the matching one is populated. */
+interface CustomFieldValueBase {
+  definitionId: number;
+  valueText: string | null;
+  valueNumber: number | null;
+  valueDate: string | null;
+  valueBoolean: boolean | null;
+}
+export interface TradeCustomFieldValue extends CustomFieldValueBase {
+  valueId: number;
+  tradeId: number;
+}
+export type TradeCustomFieldValueInput = Omit<TradeCustomFieldValue, 'valueId'>;
+
+export interface TradeOrderCustomFieldValue extends CustomFieldValueBase {
+  valueId: number;
+  orderId: number;
+}
+export type TradeOrderCustomFieldValueInput = Omit<TradeOrderCustomFieldValue, 'valueId'>;
 
 export interface TradeFilter {
   commodityType?: CommodityTypeTrade;

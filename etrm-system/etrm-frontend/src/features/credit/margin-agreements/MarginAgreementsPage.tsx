@@ -192,7 +192,7 @@ export function MarginAgreementsPage() {
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item name="agreementType" label="Agreement Type" rules={[{ required: true }]}>
+              <Form.Item name="agreementType" label={hint('Agreement Type', 'CSA = ISDA Credit Support Annex (bilateral = both sides post; one-way = only one side posts collateral). PLEDGE/CTA = simpler unilateral collateral arrangements outside an ISDA.')} rules={[{ required: true }]}>
                 <Select options={agreementTypeOpts} />
               </Form.Item>
             </Col>

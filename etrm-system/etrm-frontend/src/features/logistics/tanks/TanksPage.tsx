@@ -127,7 +127,7 @@ export function TanksPage() {
           <Form.Item name="tankName" label="Tank Name">
             <Input />
           </Form.Item>
-          <Form.Item name="tankType" label="Tank Type" rules={[{ required: true }]}>
+          <Form.Item name="tankType" label={hint('Tank Type', 'Floating/internal-float roofs reduce vapor loss for volatile products. Cryogenic is LNG-only. Pressure spheres are for LPG/NGLs.')} rules={[{ required: true }]}>
             <Select options={TANK_TYPES.map((t) => ({ value: t, label: t.replace(/_/g, ' ') }))} />
           </Form.Item>
           <Form.Item name="commodityType" label="Commodity Type" rules={[{ required: true }]}>

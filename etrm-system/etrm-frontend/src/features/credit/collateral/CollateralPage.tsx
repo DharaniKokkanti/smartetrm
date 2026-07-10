@@ -137,7 +137,7 @@ export function CollateralPage() {
         }
       >
         <Form form={form} layout="vertical">
-          <Form.Item name="collateralTypeId" label="Collateral Type" rules={[{ required: true }]}>
+          <Form.Item name="collateralTypeId" label={hint('Collateral Type', 'Determines the standard haircut applied — cash needs none, government/corporate bonds and letters of credit carry a discount to face value.')} rules={[{ required: true }]}>
             <Select options={collateralTypeOpts} showSearch optionFilterProp="label" />
           </Form.Item>
           <Form.Item name="direction" label={hint('Direction', 'POSTED = we gave collateral to a counterparty/exchange. RECEIVED = a counterparty gave collateral to us.')} rules={[{ required: true }]}>

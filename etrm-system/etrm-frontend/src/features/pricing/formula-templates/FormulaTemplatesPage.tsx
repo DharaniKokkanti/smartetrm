@@ -119,10 +119,10 @@ export function FormulaTemplatesPage() {
           <Form.Item name="formulaExpression" label={hint('Formula Expression', 'Human-readable expression — not executed by the system, for documentation/reference.', '(INDEX_A * WEIGHT_A) + (INDEX_B * WEIGHT_B) + DIFFERENTIAL')}>
             <Input.TextArea rows={2} style={{ fontFamily: 'monospace' }} />
           </Form.Item>
-          <Form.Item name="averagingType" label="Averaging Type">
+          <Form.Item name="averagingType" label={hint('Averaging Type', 'How the daily prices within the Averaging Period are combined — e.g. simple daily average vs. volume-weighted.')}>
             <Select options={AVERAGING_TYPES.map((t) => ({ value: t, label: t.replace(/_/g, ' ') }))} allowClear />
           </Form.Item>
-          <Form.Item name="averagingPeriodType" label="Averaging Period">
+          <Form.Item name="averagingPeriodType" label={hint('Averaging Period', 'The date range being averaged — e.g. the whole delivery month, or a fixed custom window.')}>
             <Select options={AVERAGING_PERIOD_TYPES.map((t) => ({ value: t, label: t.replace(/_/g, ' ') }))} allowClear />
           </Form.Item>
           <Form.Item name="fxConversionRequired" label="FX Conversion Required" valuePropName="checked">

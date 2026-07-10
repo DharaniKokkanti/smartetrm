@@ -5,6 +5,7 @@ import type { ColDef } from 'ag-grid-community';
 import { PageHeader } from '@components/layout/PageHeader';
 import { SmartGrid } from '@components/smart/SmartGrid';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
+import { hint } from '@components/smart/FieldHint';
 import { useFormDraft } from '@components/smart/formDraft';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useVessels } from '@features/logistics/vessels/hooks';
@@ -108,7 +109,7 @@ export function VesselCertificatesPage() {
           <Form.Item name="vesselId" label="Vessel" rules={[{ required: true }]}>
             <Select options={vesselOpts} showSearch optionFilterProp="label" />
           </Form.Item>
-          <Form.Item name="certType" label="Certificate Type" rules={[{ required: true }]}>
+          <Form.Item name="certType" label={hint('Certificate Type', 'SIRE/CDI = tanker vetting inspections. ISM/ISPS = safety/security management codes. Class = classification society survey. PI/Hull = insurance cover.')} rules={[{ required: true }]}>
             <Select options={CERT_TYPES.map((t) => ({ value: t, label: t }))} />
           </Form.Item>
           <Form.Item name="certNumber" label="Certificate Number">

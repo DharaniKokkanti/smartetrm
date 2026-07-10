@@ -186,7 +186,7 @@ export function CounterpartyFormPage() {
                     name="leiCode"
                     label={hint('LEI Code', 'Global Legal Entity Identifier (ISO 17442) — required for EMIR/Dodd-Frank trade reporting.', '5493001KJTIIGC8Y1R12')}
                   ><Input maxLength={20} /></Form.Item>
-                  <Form.Item name="cpType" label="Counterparty Type" rules={[{ required: true }]}>
+                  <Form.Item name="cpType" label={hint('Counterparty Type', 'FCM/Prime Broker = the legal counterparty on exchange trades, not a fee-only broker (those are IDBs, tracked separately). Intercompany = internal affiliate — nets out at group level rather than carrying external credit risk.')} rules={[{ required: true }]}>
                     <Select options={cpTypeOptions} loading={loadingCpTypes} />
                   </Form.Item>
                   <Form.Item

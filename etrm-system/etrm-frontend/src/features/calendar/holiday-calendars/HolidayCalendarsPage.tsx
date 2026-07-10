@@ -50,10 +50,10 @@ function AddHolidayModal({ calendarId, open, onClose }: { calendarId: number; op
           <Input placeholder="New Year's Day" />
         </Form.Item>
         <Space size={24}>
-          <Form.Item name="isSettlementHoliday" label="Settlement Holiday" valuePropName="checked">
+          <Form.Item name="isSettlementHoliday" label={hint('Settlement Holiday', 'Blocks payment/delivery date rolls. A day can be a settlement holiday without closing the exchange itself.')} valuePropName="checked">
             <Switch />
           </Form.Item>
-          <Form.Item name="isTradingHoliday" label="Trading Holiday" valuePropName="checked">
+          <Form.Item name="isTradingHoliday" label={hint('Trading Holiday', 'Closes the exchange/market itself — a day can be this without blocking settlement, or vice versa.')} valuePropName="checked">
             <Switch />
           </Form.Item>
         </Space>

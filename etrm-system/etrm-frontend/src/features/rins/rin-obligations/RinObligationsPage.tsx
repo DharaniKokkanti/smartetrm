@@ -149,7 +149,7 @@ export function RinObligationsPage() {
             <Select options={leOpts} showSearch optionFilterProp="label" placeholder="Select obligated party" />
           </Form.Item>
           <Space style={{ width: '100%' }} size={12}>
-            <Form.Item name="dCode" label="D-Code" rules={[{ required: true }]} style={{ flex: 1 }}>
+            <Form.Item name="dCode" label={hint('D-Code', 'EPA RFS category: D3=cellulosic biofuel, D4=biomass-based diesel, D5=advanced biofuel, D6=renewable fuel (ethanol), D7=cellulosic diesel.')} rules={[{ required: true }]} style={{ flex: 1 }}>
               <Select options={dCodeOpts} />
             </Form.Item>
             <Form.Item name="complianceYear" label={hint('Compliance Year', 'Calendar year for which this RVO applies. Deadline is typically March 31 of the following year.')} rules={[{ required: true }]} style={{ flex: 1 }}>
