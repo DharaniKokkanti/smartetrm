@@ -7,10 +7,12 @@ import {
 import dayjs from 'dayjs';
 import { PageHeader } from '@components/layout/PageHeader';
 import type { AddressAssignment, BankAccount, ContactAssignment, CounterpartyInput, TaxRegistration } from './types';
-import { CURRENCY_LOOKUP, CREDIT_RATING_LOOKUP } from './staticLookups';
+import { CREDIT_RATING_LOOKUP } from './staticLookups';
 import { useCounterparty, useCounterparties, useCounterpartyChildren, useSaveCounterpartyDraft } from './hooks';
 import { useCustomConfigOptions } from './configLookups';
 import { useLegalEntities } from '@features/tier1/legal-entity/hooks';
+import { useCountries } from '@features/reference/countries/hooks';
+import { useCurrencies } from '@features/reference/currencies/hooks';
 import { ContactsSection } from './ContactsSection';
 import { BankAccountsSection } from './BankAccountsSection';
 import { AddressesSection } from './AddressesSection';
@@ -20,7 +22,6 @@ import { usePageFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import { hint } from '@components/smart/FieldHint';
 
-const CURRENCY_OPTIONS = CURRENCY_LOOKUP.map((c) => ({ label: c.currencyCode, value: c.currencyId }));
 const RATING_OPTIONS = CREDIT_RATING_LOOKUP.map((r) => ({ label: `${r.agency} ${r.rating}`, value: r.creditRatingId }));
 
 type CoreFormValues = Omit<CounterpartyInput, 'creditReviewDate' | 'kycApprovedDate' | 'kycExpiryDate' | 'onboardedDate'> & {
@@ -44,6 +45,17 @@ export function CounterpartyFormPage() {
   const saveDraft = useSaveCounterpartyDraft();
   const { data: cpTypeOptions = [], isLoading: loadingCpTypes } = useCustomConfigOptions('COUNTERPARTY_TYPE');
   const { data: kycStatusOptions = [], isLoading: loadingKycStatus } = useCustomConfigOptions('KYC_STATUS');
+  const { data: countries = [], isLoading: loadingCountries } = useCountries();
+  const { data: currencies = [], isLoading: loadingCurrencies } = useCurrencies();
+  const countryOptions = countries
+    .filter((c) => c.isActive)
+    .map((c) => ({ label: `${c.countryCode} — ${c.countryName}`, value: c.countryCode }));
+  const currencyCodeOptions = currencies
+    .filter((c) => c.isActive)
+    .map((c) => ({ label: `${c.currencyCode} — ${c.currencyName}`, value: c.currencyCode }));
+  const currencyIdOptions = currencies
+    .filter((c) => c.isActive)
+    .map((c) => ({ label: `${c.currencyCode} — ${c.currencyName}`, value: c.currencyId }));
 
   const [contacts, setContacts] = useState<ContactAssignment[]>([]);
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
@@ -155,7 +167,7 @@ export function CounterpartyFormPage() {
       />
 
       {loading ? <Spin /> : (
-        <Form form={coreForm} layout="vertical" initialValues={{ jurisdiction: '', creditLimitCurrency: 'USD', settlementDays: 2, isIntercompany: false, parentInd: false }}>
+        <Form form={coreForm} layout="vertical" initialValues={{ creditLimitCurrency: 'USD', settlementDays: 2, isIntercompany: false, parentInd: false }}>
           <Tabs defaultActiveKey="core" items={[
             {
               key: 'core', label: 'Core',
@@ -180,9 +192,9 @@ export function CounterpartyFormPage() {
                   <Form.Item
                     name="jurisdiction"
                     label={hint('Jurisdiction (ISO 2)', 'The country whose law governs contracts with this counterparty — drives default netting and dispute-resolution rules.', 'GB')}
-                    rules={[{ required: true }, { len: 2, message: '2-letter code' }]}
+                    rules={[{ required: true }]}
                   >
-                    <Input maxLength={2} style={{ textTransform: 'uppercase' }} />
+                    <Select options={countryOptions} loading={loadingCountries} showSearch optionFilterProp="label" placeholder="Select country" />
                   </Form.Item>
                   <Form.Item
                     name="isIntercompany"
@@ -239,8 +251,8 @@ export function CounterpartyFormPage() {
                     >
                       <InputNumber style={{ width: '100%' }} min={0} />
                     </Form.Item>
-                    <Form.Item name="creditLimitCurrency" label="Currency" style={{ width: '40%' }} rules={[{ required: true }, { len: 3 }]}>
-                      <Input maxLength={3} style={{ textTransform: 'uppercase' }} />
+                    <Form.Item name="creditLimitCurrency" label="Currency" style={{ width: '40%' }} rules={[{ required: true }]}>
+                      <Select options={currencyCodeOptions} loading={loadingCurrencies} showSearch optionFilterProp="label" />
                     </Form.Item>
                   </Space.Compact>
                   <Form.Item name="creditReviewDate" label="Credit Review Date"><AppDatePicker /></Form.Item>
@@ -252,7 +264,7 @@ export function CounterpartyFormPage() {
                     <InputNumber style={{ width: '100%' }} min={0} max={365} />
                   </Form.Item>
                   <Form.Item name="defaultCurrencyId" label="Default Currency">
-                    <Select options={CURRENCY_OPTIONS} allowClear />
+                    <Select options={currencyIdOptions} loading={loadingCurrencies} allowClear showSearch optionFilterProp="label" />
                   </Form.Item>
                   <Form.Item
                     name="kycStatus"

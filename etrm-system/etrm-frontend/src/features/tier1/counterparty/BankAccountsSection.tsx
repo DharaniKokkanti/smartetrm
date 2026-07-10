@@ -2,14 +2,10 @@ import { Form, Input, Select, Switch } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { ChildRecordSection, PrimaryTag } from './ChildRecordSection';
 import type { BankAccount } from './types';
-import { CURRENCY_LOOKUP } from './staticLookups';
 import { localId } from '@utils/localId';
 import { useCustomConfigOptions } from './configLookups';
+import { useCurrencies } from '@features/reference/currencies/hooks';
 import { hint } from '@components/smart/FieldHint';
-const CURRENCY_OPTIONS = CURRENCY_LOOKUP.map((c) => ({
-  label: `${c.currencyCode} — ${c.currencyName}`,
-  value: c.currencyId,
-}));
 
 interface Props {
   items: BankAccount[];
@@ -18,6 +14,10 @@ interface Props {
 
 export function BankAccountsSection({ items, onChange }: Props) {
   const { data: typeOptions = [], isLoading } = useCustomConfigOptions('BANK_ACCOUNT_TYPE');
+  const { data: currencies = [], isLoading: loadingCurrencies } = useCurrencies();
+  const currencyOptions = currencies
+    .filter((c) => c.isActive)
+    .map((c) => ({ label: `${c.currencyCode} — ${c.currencyName}`, value: c.currencyId }));
   const columns: ColumnsType<BankAccount> = [
     { title: 'Account Name', dataIndex: 'accountName' },
     { title: 'Bank', dataIndex: 'bankName' },
@@ -41,7 +41,7 @@ export function BankAccountsSection({ items, onChange }: Props) {
         entityType: 'COUNTERPARTY',
         entityId: 0,
         accountType: typeOptions.find((o) => o.label === 'Settlement')?.value ?? 0,
-        currencyId: CURRENCY_LOOKUP[0].currencyId,
+        currencyId: currencies[0]?.currencyId ?? 0,
         isPrimary: items.length === 0,
         bankName: '',
         bankCode: null,
@@ -64,7 +64,7 @@ export function BankAccountsSection({ items, onChange }: Props) {
             <Select options={typeOptions} loading={isLoading} />
           </Form.Item>
           <Form.Item name="currencyId" label="Currency" rules={[{ required: true }]}>
-            <Select options={CURRENCY_OPTIONS} />
+            <Select options={currencyOptions} loading={loadingCurrencies} showSearch optionFilterProp="label" />
           </Form.Item>
           <Form.Item name="accountName" label="Account Name" rules={[{ required: true }]}>
             <Input placeholder="Name on the account" />

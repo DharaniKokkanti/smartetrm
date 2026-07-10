@@ -1001,12 +1001,12 @@ const rinObligationsStore: unknown[] = [
 
 // ─── GENERAL TERMS & CONDITIONS ────────────────────────────────────────────────
 const gtcsStore: unknown[] = [
-  { gtcId: 1, gtcCode: 'BP-OIL-2020', gtcName: 'BP Standard Crude Oil GTCs 2020', gtcType: 'CRUDE_OIL', version: '2020-v3', effectiveDate: '2020-01-01', expiryDate: null, jurisdiction: 'England & Wales', governingLaw: 'English Law', disputeResolution: 'LCIA', documentRef: 'DOC-GTC-001', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { gtcId: 2, gtcCode: 'EFET-GAS-2019', gtcName: 'EFET General Agreement Gas 2019', gtcType: 'GAS', version: '2019-v2', effectiveDate: '2019-07-01', expiryDate: null, jurisdiction: 'England & Wales', governingLaw: 'English Law', disputeResolution: 'ICC', documentRef: 'DOC-GTC-002', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { gtcId: 3, gtcCode: 'LME-METALS-2021', gtcName: 'LME Contract Rules & Regulations 2021', gtcType: 'METALS', version: '2021-v1', effectiveDate: '2021-01-01', expiryDate: null, jurisdiction: 'England & Wales', governingLaw: 'English Law', disputeResolution: 'Court', documentRef: 'DOC-GTC-003', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { gtcId: 4, gtcCode: 'GAFTA-100', gtcName: 'GAFTA Contract No.100 (Grains CIF)', gtcType: 'AGRICULTURAL', version: 'Rev 2024', effectiveDate: '2024-01-01', expiryDate: null, jurisdiction: 'England & Wales', governingLaw: 'English Law', disputeResolution: 'GAFTA Arbitration', documentRef: 'DOC-GTC-004', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { gtcId: 5, gtcCode: 'ISDA-2002-MA', gtcName: 'ISDA 2002 Master Agreement (Derivatives)', gtcType: 'GENERIC', version: '2002', effectiveDate: '2002-01-01', expiryDate: null, jurisdiction: 'New York', governingLaw: 'New York Law', disputeResolution: 'Court (SDNY)', documentRef: 'DOC-GTC-005', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { gtcId: 6, gtcCode: 'NAESB-GAS-2013', gtcName: 'NAESB Base Contract for Sale of Natural Gas', gtcType: 'GAS', version: '2013', effectiveDate: '2013-01-01', expiryDate: null, jurisdiction: 'Texas', governingLaw: 'Texas Law', disputeResolution: 'AAA', documentRef: 'DOC-GTC-006', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { gtcId: 1, gtcCode: 'BP-OIL-2020', gtcName: 'BP Standard Crude Oil GTCs 2020', gtcType: 'CRUDE_OIL', version: '2020-v3', effectiveDate: '2020-01-01', expiryDate: null, jurisdiction: 'GB', governingLaw: 'English Law', disputeResolution: 'LCIA', documentRef: 'DOC-GTC-001', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { gtcId: 2, gtcCode: 'EFET-GAS-2019', gtcName: 'EFET General Agreement Gas 2019', gtcType: 'GAS', version: '2019-v2', effectiveDate: '2019-07-01', expiryDate: null, jurisdiction: 'GB', governingLaw: 'English Law', disputeResolution: 'ICC', documentRef: 'DOC-GTC-002', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { gtcId: 3, gtcCode: 'LME-METALS-2021', gtcName: 'LME Contract Rules & Regulations 2021', gtcType: 'METALS', version: '2021-v1', effectiveDate: '2021-01-01', expiryDate: null, jurisdiction: 'GB', governingLaw: 'English Law', disputeResolution: 'Court', documentRef: 'DOC-GTC-003', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { gtcId: 4, gtcCode: 'GAFTA-100', gtcName: 'GAFTA Contract No.100 (Grains CIF)', gtcType: 'AGRICULTURAL', version: 'Rev 2024', effectiveDate: '2024-01-01', expiryDate: null, jurisdiction: 'GB', governingLaw: 'English Law', disputeResolution: 'GAFTA Arbitration', documentRef: 'DOC-GTC-004', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { gtcId: 5, gtcCode: 'ISDA-2002-MA', gtcName: 'ISDA 2002 Master Agreement (Derivatives)', gtcType: 'GENERIC', version: '2002', effectiveDate: '2002-01-01', expiryDate: null, jurisdiction: 'US', governingLaw: 'New York Law', disputeResolution: 'Court (SDNY)', documentRef: 'DOC-GTC-005', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { gtcId: 6, gtcCode: 'NAESB-GAS-2013', gtcName: 'NAESB Base Contract for Sale of Natural Gas', gtcType: 'GAS', version: '2013', effectiveDate: '2013-01-01', expiryDate: null, jurisdiction: 'US', governingLaw: 'Texas Law', disputeResolution: 'AAA', documentRef: 'DOC-GTC-006', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
 ];
 
 // ─── TRUCKS ───────────────────────────────────────────────────────────────────
@@ -1217,6 +1217,9 @@ const countriesStore: unknown[] = [
   { countryCode: 'FR', countryName: 'France', region: 'EUROPE', phoneCode: '+33', fatfStatus: 'COMPLIANT', sanctionStatus: 'CLEAR', isActive: true },
   { countryCode: 'CA', countryName: 'Canada', region: 'AMERICAS', phoneCode: '+1', fatfStatus: 'COMPLIANT', sanctionStatus: 'CLEAR', isActive: true },
   { countryCode: 'QA', countryName: 'Qatar', region: 'MIDDLE_EAST', phoneCode: '+974', fatfStatus: 'COMPLIANT', sanctionStatus: 'CLEAR', isActive: true },
+  { countryCode: 'CL', countryName: 'Chile', region: 'AMERICAS', phoneCode: '+56', fatfStatus: 'COMPLIANT', sanctionStatus: 'CLEAR', isActive: true },
+  { countryCode: 'PL', countryName: 'Poland', region: 'EUROPE', phoneCode: '+48', fatfStatus: 'COMPLIANT', sanctionStatus: 'CLEAR', isActive: true },
+  { countryCode: 'NG', countryName: 'Nigeria', region: 'AFRICA', phoneCode: '+234', fatfStatus: 'COMPLIANT', sanctionStatus: 'CLEAR', isActive: true },
 ];
 
 // ─── INCOTERMS REFERENCE ──────────────────────────────────────────────────────

@@ -3,6 +3,7 @@ import type { ColumnsType } from 'antd/es/table';
 import { ChildRecordSection, PrimaryTag } from './ChildRecordSection';
 import type { PolymorphicEntityType, TaxRegistration } from './types';
 import { useCustomConfigOptions } from './configLookups';
+import { useCountries } from '@features/reference/countries/hooks';
 import { localId } from '@utils/localId';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import dayjs from 'dayjs';
@@ -20,6 +21,10 @@ interface Props {
  *  BankAccountsSection (no pooling — each registration belongs to one entity). */
 export function TaxRegistrationsSection({ items, onChange, entityType = 'COUNTERPARTY' }: Props) {
   const { data: taxTypeOptions = [], isLoading: loadingTaxTypes } = useCustomConfigOptions('TAX_TYPE');
+  const { data: countries = [], isLoading: loadingCountries } = useCountries();
+  const countryOptions = countries
+    .filter((c) => c.isActive)
+    .map((c) => ({ label: `${c.countryCode} — ${c.countryName}`, value: c.countryCode }));
   const columns: ColumnsType<TaxRegistration> = [
     { title: 'Type', dataIndex: 'taxType', width: 90, render: (v: number) => taxTypeOptions.find((o) => o.value === v)?.label ?? '—' },
     { title: 'Registration No.', dataIndex: 'taxId' },
@@ -43,7 +48,7 @@ export function TaxRegistrationsSection({ items, onChange, entityType = 'COUNTER
         entityId: 0,
         taxType: taxTypeOptions.find((o) => o.label === 'VAT')?.value ?? 0,
         taxId: '',
-        jurisdiction: '',
+        jurisdiction: countries[0]?.countryCode ?? '',
         issuingAuthority: null,
         registrationDate: null,
         validFrom: null,
@@ -71,9 +76,9 @@ export function TaxRegistrationsSection({ items, onChange, entityType = 'COUNTER
           <Form.Item
             name="jurisdiction"
             label={hint('Jurisdiction (ISO 2)', 'The country this registration was issued in — an entity can hold multiple registrations across jurisdictions it operates in.', 'GB')}
-            rules={[{ required: true }, { len: 2, message: '2-letter code' }]}
+            rules={[{ required: true }]}
           >
-            <Input maxLength={2} style={{ textTransform: 'uppercase' }} />
+            <Select options={countryOptions} loading={loadingCountries} showSearch optionFilterProp="label" placeholder="Select country" />
           </Form.Item>
           <Form.Item name="issuingAuthority" label="Issuing Authority">
             <Input placeholder="e.g. HMRC" />

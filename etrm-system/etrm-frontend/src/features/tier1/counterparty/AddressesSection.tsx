@@ -9,6 +9,7 @@ import { PrimaryTag } from './ChildRecordSection';
 import type { Address, AddressAssignment, PolymorphicEntityType } from './types';
 import { localId } from '@utils/localId';
 import { useCustomConfigOptions } from './configLookups';
+import { useCountries } from '@features/reference/countries/hooks';
 import { useAddressPool } from './hooks';
 import { hint } from '@components/smart/FieldHint';
 
@@ -21,6 +22,10 @@ interface Props {
 export function AddressesSection({ items, onChange, entityType = 'COUNTERPARTY' }: Props) {
   const { data: typeOptions = [], isLoading: loadingTypes } = useCustomConfigOptions('ADDRESS_TYPE');
   const { data: pool = [] } = useAddressPool();
+  const { data: countries = [], isLoading: loadingCountries } = useCountries();
+  const countryOptions = countries
+    .filter((c) => c.isActive)
+    .map((c) => ({ label: `${c.countryCode} — ${c.countryName}`, value: c.countryCode }));
 
   const [modalOpen, setModalOpen] = useState(false);
   const [mode, setMode] = useState<'new' | 'link'>('new');
@@ -248,8 +253,8 @@ export function AddressesSection({ items, onChange, entityType = 'COUNTERPARTY' 
               <Form.Item name="postalCode" label="Postal Code">
                 <Input />
               </Form.Item>
-              <Form.Item name="countryCode" label="Country (ISO 2)" rules={[{ required: true }, { len: 2, message: '2-letter code' }]}>
-                <Input maxLength={2} style={{ textTransform: 'uppercase' }} />
+              <Form.Item name="countryCode" label="Country (ISO 2)" rules={[{ required: true }]}>
+                <Select options={countryOptions} loading={loadingCountries} showSearch optionFilterProp="label" placeholder="Select country" />
               </Form.Item>
               <Form.Item name="phoneNumber" label="Phone Number">
                 <Input placeholder="+1 212 555 0100" />

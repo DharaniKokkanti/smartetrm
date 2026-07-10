@@ -52,6 +52,7 @@ import type { Uom } from '@features/reference/uom/types';
 import { useCommodityInstrumentMap } from '@features/reference/commodity-instrument-map/hooks';
 import { useTableRows } from '@features/tier2/hooks';
 import { useCustomConfigOptions } from '@features/tier1/counterparty/configLookups';
+import { useCountries } from '@features/reference/countries/hooks';
 import { useUiStore } from '@store/uiStore';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
@@ -305,13 +306,13 @@ function MetalsSection({ locations, metalShapes }: { locations: SelectOpt[]; met
 }
 
 // ─── AGRI detail section ──────────────────────────────────────────────────────
-function AgriSection() {
+function AgriSection({ countryOpts }: { countryOpts: SelectOpt[] }) {
   return (
     <>
       {sectionTitle('Agricultural / Grain Details')}
       <Row gutter={16}>
         <Col span={6}><Form.Item name={['agriDetail', 'cropYear']} label={hint('Crop Year', 'Marketing year — wheat 2026/27 = harvested Jul 2026.')}><InputNumber placeholder="2026" style={{ width: '100%' }} /></Form.Item></Col>
-        <Col span={6}><Form.Item name={['agriDetail', 'originCountry']} label={hint('Origin', 'ISO 3166-2 code.')}><Input placeholder="FR" maxLength={2} style={{ textTransform: 'uppercase', fontFamily: 'monospace' }} /></Form.Item></Col>
+        <Col span={6}><Form.Item name={['agriDetail', 'originCountry']} label={hint('Origin (ISO 2)', 'ISO 3166-1 alpha-2 country of origin.')}><Select options={countryOpts} placeholder="Select country" allowClear showSearch optionFilterProp="label" /></Form.Item></Col>
         <Col span={12}><Form.Item name={['agriDetail', 'gradeQuality']} label="Grade / Quality"><Input placeholder="EU MILLING WHEAT MIN 12% PROTEIN" /></Form.Item></Col>
       </Row>
       <Row gutter={16}>
@@ -736,11 +737,11 @@ function DemurrageSection({ currencyOpts }: { currencyOpts: SelectOpt[] }) {
 
 // ─── Delivery fields (legs only) ──────────────────────────────────────────────
 function DeliveryFields({
-  commodityType, locationOpts, vesselOpts, uomOpts, currencyOpts, incoterms, productOpts, marketOpts, pricingRules, periods,
+  commodityType, locationOpts, vesselOpts, uomOpts, currencyOpts, countryOpts, incoterms, productOpts, marketOpts, pricingRules, periods,
   crudeGradeOpts, metalShapeOpts, gasDayTypeOpts, nominationOpts, lngPriceOpts, powerLoadOpts, pipelineOpts, isTas, isBalmo, balmoProducts,
 }: {
   commodityType: CommodityTypeTrade;
-  locationOpts: SelectOpt[]; vesselOpts: SelectOpt[]; uomOpts: SelectOpt[]; currencyOpts: SelectOpt[];
+  locationOpts: SelectOpt[]; vesselOpts: SelectOpt[]; uomOpts: SelectOpt[]; currencyOpts: SelectOpt[]; countryOpts: SelectOpt[];
   incoterms: unknown[]; productOpts: SelectOpt[]; marketOpts: SelectOpt[]; pricingRules: unknown[]; periods: unknown[];
   crudeGradeOpts: SelectOpt[]; metalShapeOpts: SelectOpt[]; gasDayTypeOpts: SelectOpt[];
   nominationOpts: SelectOpt[]; lngPriceOpts: SelectOpt[]; powerLoadOpts: SelectOpt[]; pipelineOpts: SelectOpt[];
@@ -865,11 +866,11 @@ function DeliveryFields({
               name="originCountryCode"
               label={hint('Origin Country', 'ISO 3166-1 alpha-2 country where the commodity was produced. Required for sanctions screening — e.g. GB (Forties), RU (Urals), SA (Arab Light).')}
             >
-              <Input
-                placeholder="GB / SA / NG / RU"
-                maxLength={2}
-                style={{ textTransform: 'uppercase', fontFamily: 'monospace', width: 90 }}
-                onChange={(e) => e.target.value = e.target.value.toUpperCase()}
+              <Select
+                options={countryOpts}
+                placeholder="Select country"
+                allowClear showSearch optionFilterProp="label"
+                style={{ width: 160 }}
               />
             </Form.Item>
           </Col>
@@ -884,7 +885,7 @@ function DeliveryFields({
       {commodityType === 'POWER'        && <PowerSection   powerLoadTypes={powerLoadOpts} />}
       {commodityType === 'LNG'          && <LngSection     locations={locationOpts} lngPriceBases={lngPriceOpts} />}
       {commodityType === 'METALS'       && <MetalsSection  locations={locationOpts} metalShapes={metalShapeOpts} />}
-      {commodityType === 'AGRICULTURAL'  && <AgriSection />}
+      {commodityType === 'AGRICULTURAL'  && <AgriSection countryOpts={countryOpts} />}
       {commodityType === 'FREIGHT'       && <FreightSection locations={locationOpts} />}
       {commodityType === 'RINS'          && <RinSection />}
       {commodityType === 'ENVIRONMENTAL' && <EnvironmentalSection />}
@@ -925,6 +926,7 @@ export function TradeBlotter() {
   const { sidebarCollapsed } = useUiStore();
   const fullDrawerWidth = `calc(100vw - ${sidebarCollapsed ? 80 : 210}px)`;
   const { data: currencyRows = [] }       = useTableRows('currency');
+  const { data: countries = [] }          = useCountries();
   const { data: crudeGradeRows = [] }     = useTableRows('crude_grade_type');
   const { data: metalShapeRows = [] }     = useTableRows('metal_shape');
   const { data: gasDayTypeRows = [] }     = useTableRows('gas_day_type');
@@ -1029,6 +1031,7 @@ export function TradeBlotter() {
         .map((r) => ({ value: r.uomCode, label: r.uomCode }));
   }, [uomRows]);
   const currencyOpts  = useMemo(() => (currencyRows as { currencyCode: string; currencyName: string }[]).map((r) => ({ value: r.currencyCode, label: `${r.currencyCode} — ${r.currencyName}` })), [currencyRows]);
+  const countryOpts   = useMemo(() => countries.filter((c) => c.isActive).map((c) => ({ value: c.countryCode, label: `${c.countryCode} — ${c.countryName}` })), [countries]);
   const brokerOpts    = useMemo(() => (brokers   as { brokerId: number; brokerCode: string; brokerName: string }[]).map((b) => ({ value: b.brokerId, label: `${b.brokerCode} — ${b.brokerName}` })), [brokers]);
   const pipelineOpts  = useMemo(() => (pipelines as { pipelineId: number; pipelineCode: string; pipelineName: string }[]).map((p) => ({ value: p.pipelineId, label: `${p.pipelineCode} — ${p.pipelineName}` })), [pipelines]);
   const crudeGradeOpts= useMemo(() => (crudeGradeRows  as { typeCode: string; typeName: string }[]).map((r) => ({ value: r.typeCode, label: `${r.typeCode} — ${r.typeName}` })), [crudeGradeRows]);
@@ -1039,7 +1042,7 @@ export function TradeBlotter() {
   const powerLoadOpts = useMemo(() => (powerLoadTypeRows  as { typeCode: string; typeName: string }[]).map((r) => ({ value: r.typeCode, label: r.typeName })), [powerLoadTypeRows]);
 
   const deliveryFieldProps = {
-    locationOpts: locationOptionsFor(orderCommodity), vesselOpts, uomOpts: uomOptionsFor(orderCommodity), currencyOpts, incoterms,
+    locationOpts: locationOptionsFor(orderCommodity), vesselOpts, uomOpts: uomOptionsFor(orderCommodity), currencyOpts, countryOpts, incoterms,
     productOpts: productOptionsFor(orderCommodity), marketOpts: marketOptionsFor(orderCommodity),
     pricingRules, periods, crudeGradeOpts, metalShapeOpts, gasDayTypeOpts,
     nominationOpts, lngPriceOpts, powerLoadOpts, pipelineOpts,

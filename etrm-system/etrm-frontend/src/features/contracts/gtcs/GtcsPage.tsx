@@ -10,6 +10,7 @@ import { hint } from '@components/smart/FieldHint';
 import { useGtcs, useSaveGtc, useDeactivateGtc } from './hooks';
 import { GTC_TYPES, type Gtc, type GtcInput, type GtcType } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { useCountries } from '@features/reference/countries/hooks';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 
 const TYPE_COLOR: Record<GtcType, string> = {
@@ -32,6 +33,10 @@ export function GtcsPage() {
   const [editing, setEditing] = useState<Gtc | null>(null);
   const [form] = Form.useForm<GtcInput>();
   useFormDraft('contracts-gtcs', { form, open, setOpen, editing, setEditing });
+  const { data: countries = [], isLoading: loadingCountries } = useCountries();
+  const countryOptions = countries
+    .filter((c) => c.isActive)
+    .map((c) => ({ label: `${c.countryCode} — ${c.countryName}`, value: c.countryCode }));
 
   function openNew() {
     setEditing(null);
@@ -188,13 +193,13 @@ export function GtcsPage() {
           <Form.Item
             name="jurisdiction"
             label={hint(
-              'Jurisdiction',
-              'Legal jurisdiction of the contract. Affects enforcement, VAT, and regulatory reporting. Most oil trading: English law.',
-              'England & Wales',
+              'Jurisdiction (ISO 2)',
+              'Country whose law governs the contract, driving enforcement, VAT, and regulatory reporting. The specific legal system (e.g. "English Law", "New York Law") is captured separately below.',
+              'GB',
             )}
             rules={[{ required: true }]}
           >
-            <Input placeholder="England & Wales" />
+            <Select options={countryOptions} loading={loadingCountries} showSearch optionFilterProp="label" placeholder="Select country" />
           </Form.Item>
 
           <Form.Item

@@ -4,7 +4,7 @@ import { EditOutlined, StopOutlined } from '@ant-design/icons';
 import type { ParentCompanyGuarantee, PcgStatus } from './types';
 import { useEntityResolver } from './useEntityResolver';
 import { useDeactivateGuarantee } from './hooks';
-import { CURRENCY_LOOKUP } from '@features/tier1/counterparty/staticLookups';
+import { useCurrencies } from '@features/reference/currencies/hooks';
 
 const STATUS_COLOR: Record<PcgStatus, string> = {
   DRAFT: 'default',
@@ -28,6 +28,7 @@ interface Props {
 export function GuaranteeTable({ guarantees, loading, onEdit, highlightEntityId }: Props) {
   const { resolve } = useEntityResolver();
   const deactivateMutation = useDeactivateGuarantee();
+  const { data: currencies = [] } = useCurrencies();
 
   const columns: ColumnsType<ParentCompanyGuarantee> = [
     { title: 'Reference', dataIndex: 'pcgReference', width: 140 },
@@ -60,7 +61,7 @@ export function GuaranteeTable({ guarantees, loading, onEdit, highlightEntityId 
       key: 'amount',
       width: 150,
       render: (_, r) => {
-        const ccy = CURRENCY_LOOKUP.find((c) => c.currencyId === r.currencyId)?.currencyCode ?? '';
+        const ccy = currencies.find((c) => c.currencyId === r.currencyId)?.currencyCode ?? '';
         return `${ccy} ${r.guaranteeAmount.toLocaleString()}`;
       },
     },

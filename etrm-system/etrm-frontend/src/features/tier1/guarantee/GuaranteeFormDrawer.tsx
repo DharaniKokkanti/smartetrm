@@ -24,7 +24,7 @@ import type { PolymorphicEntityType } from '@features/tier1/counterparty/types';
 import { useSaveGuarantee } from './hooks';
 import { useLegalEntities } from '@features/tier1/legal-entity/hooks';
 import { useCounterparties } from '@features/tier1/counterparty/hooks';
-import { CURRENCY_LOOKUP } from '@features/tier1/counterparty/staticLookups';
+import { useCurrencies } from '@features/reference/currencies/hooks';
 import { useDraftValues } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import { hint } from '@components/smart/FieldHint';
@@ -34,10 +34,6 @@ const DIRECTION_OPTIONS = [
   { label: 'Issued — our parent guarantees to them', value: 'ISSUED' },
 ];
 const STATUS_OPTIONS = PCG_STATUSES.map((s) => ({ label: s, value: s }));
-const CURRENCY_OPTIONS = CURRENCY_LOOKUP.map((c) => ({
-  label: c.currencyCode,
-  value: c.currencyId,
-}));
 const ROLE_TYPE_OPTIONS = [
   { label: 'Legal Entity (us)', value: 'LEGAL_ENTITY' },
   { label: 'Counterparty', value: 'COUNTERPARTY' },
@@ -118,6 +114,10 @@ export function GuaranteeFormDrawer({ open, onClose, editing, prefill }: Props) 
   const saveGuarantee = useSaveGuarantee();
   const { data: legalEntities } = useLegalEntities();
   const { data: counterparties } = useCounterparties();
+  const { data: currencies = [] } = useCurrencies();
+  const currencyOptions = currencies
+    .filter((c) => c.isActive)
+    .map((c) => ({ label: `${c.currencyCode} — ${c.currencyName}`, value: c.currencyId }));
 
   const [guarantorType, setGuarantorType] = useState<PolymorphicEntityType>('COUNTERPARTY');
   const [principalType, setPrincipalType] = useState<PolymorphicEntityType>('COUNTERPARTY');
@@ -306,7 +306,7 @@ export function GuaranteeFormDrawer({ open, onClose, editing, prefill }: Props) 
             style={{ width: '35%' }}
             rules={[{ required: true }]}
           >
-            <Select options={CURRENCY_OPTIONS} />
+            <Select options={currencyOptions} showSearch optionFilterProp="label" />
           </Form.Item>
         </Space.Compact>
 

@@ -9,6 +9,7 @@ import { ActiveTag } from '@components/smart/StatusTag';
 import { useBrokers, useSaveBroker, useDeactivateBroker } from './hooks';
 import { BROKER_TYPES, BROKER_TYPE_META, type Broker, type BrokerInput, type BrokerType } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { useCountries } from '@features/reference/countries/hooks';
 
 const { Text } = Typography;
 
@@ -31,6 +32,10 @@ export function BrokersPage() {
   const [selectedType, setSelectedType] = useState<BrokerType>('VOICE');
   const [form] = Form.useForm<BrokerInput>();
   useFormDraft('org-brokers', { form, open, setOpen, editing, setEditing });
+  const { data: countries = [], isLoading: loadingCountries } = useCountries();
+  const countryOptions = countries
+    .filter((c) => c.isActive)
+    .map((c) => ({ label: `${c.countryCode} — ${c.countryName}`, value: c.countryCode }));
 
   function openNew() {
     setEditing(null);
@@ -199,7 +204,7 @@ export function BrokersPage() {
             name="countryCode"
             label={hint('Country Code', 'ISO 3166-1 alpha-2 country of the broker\'s primary regulatory domicile — affects KYC jurisdiction and reporting obligations.', 'GB')}
           >
-            <Input placeholder="GB" maxLength={2} style={{ fontFamily: 'monospace', textTransform: 'uppercase', width: 80 }} />
+            <Select options={countryOptions} loading={loadingCountries} allowClear showSearch optionFilterProp="label" placeholder="Select country" style={{ width: 220 }} />
           </Form.Item>
 
           <Form.Item
