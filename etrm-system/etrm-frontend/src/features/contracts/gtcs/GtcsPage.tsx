@@ -36,7 +36,8 @@ export function GtcsPage() {
   const { data: countries = [], isLoading: loadingCountries } = useCountries();
   const countryOptions = countries
     .filter((c) => c.isActive)
-    .map((c) => ({ label: `${c.countryCode} — ${c.countryName}`, value: c.countryCode }));
+    .map((c) => ({ label: `${c.countryCode} — ${c.countryName}`, value: c.countryId }));
+  const countryNameById = useMemo(() => new Map(countries.map((c) => [c.countryId, c.countryCode])), [countries]);
 
   function openNew() {
     setEditing(null);
@@ -54,7 +55,7 @@ export function GtcsPage() {
       version: g.version,
       effectiveDate: g.effectiveDate ? (dayjs(g.effectiveDate) as unknown as string) : undefined,
       expiryDate: g.expiryDate ? (dayjs(g.expiryDate) as unknown as string) : undefined,
-      jurisdiction: g.jurisdiction,
+      jurisdictionId: g.jurisdictionId ?? undefined,
       governingLaw: g.governingLaw,
       disputeResolution: g.disputeResolution,
       documentRef: g.documentRef ?? undefined,
@@ -85,7 +86,10 @@ export function GtcsPage() {
     },
     { field: 'version', headerName: 'Version', width: 110 },
     { field: 'effectiveDate', headerName: 'Effective', width: 120 },
-    { field: 'jurisdiction', headerName: 'Jurisdiction', flex: 0.8 },
+    {
+      headerName: 'Jurisdiction', flex: 0.8,
+      valueGetter: (p) => p.data?.jurisdictionId != null ? countryNameById.get(p.data.jurisdictionId) ?? '—' : '—',
+    },
     { field: 'isActive', headerName: 'Active', width: 90, cellRenderer: (p: { value: boolean }) => <ActiveTag active={p.value} /> },
     {
       headerName: '', width: 90, sortable: false, filter: false, pinned: 'right',
@@ -100,7 +104,7 @@ export function GtcsPage() {
         </Space>
       ),
     },
-  ], [deactivate]);
+  ], [deactivate, countryNameById]);
 
   return (
     <>
@@ -191,9 +195,9 @@ export function GtcsPage() {
           </Space>
 
           <Form.Item
-            name="jurisdiction"
+            name="jurisdictionId"
             label={hint(
-              'Jurisdiction (ISO 2)',
+              'Jurisdiction',
               'Country whose law governs the contract, driving enforcement, VAT, and regulatory reporting. The specific legal system (e.g. "English Law", "New York Law") is captured separately below.',
               'GB',
             )}

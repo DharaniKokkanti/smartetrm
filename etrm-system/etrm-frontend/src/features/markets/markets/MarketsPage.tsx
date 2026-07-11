@@ -20,6 +20,7 @@ import { MARKET_TYPES, SETTLEMENT_TYPES_MKT, type Market, type MarketInput, type
 import { COMMODITY_TYPES } from '@features/organization/desks/types';
 import { useProducts } from '@features/markets/products/hooks';
 import { useFormDraft } from '@components/smart/formDraft';
+import { useCountries } from '@features/reference/countries/hooks';
 
 const MKT_TYPE_COLOR: Record<MarketType, string> = {
   EXCHANGE: 'blue', OTC_CLEARED: 'cyan', OTC_BILATERAL: 'orange', OTC_PHYSICAL: 'green', BROKER: 'purple', INTERNAL: 'default',
@@ -70,7 +71,7 @@ function MarketProductDetail({ mp, onClose }: { mp: MarketProduct; onClose: () =
               {addPeriodOpen && (
                 <div style={{ marginTop: 16, padding: 12, border: '1px solid #d9d9d9', borderRadius: 6 }}>
                   <Form layout="inline" onFinish={(v: { periodId: number }) => { addPeriod.mutate(v.periodId); setAddPeriodOpen(false); }}>
-                    <Form.Item name="periodId" label="Period ID" rules={[{ required: true }]}>
+                    <Form.Item name="periodId" label={hint('Period ID', 'Contract-month/delivery-period identifier per the venue\'s ID convention — not a free-text label.')} rules={[{ required: true }]}>
                       <InputNumber placeholder="Period ID" />
                     </Form.Item>
                     <Form.Item>
@@ -243,6 +244,8 @@ export function MarketsPage() {
   const { data, isLoading, refetch } = useMarkets();
   const save = useSaveMarket();
   const deactivate = useDeactivateMarket();
+  const { data: countries = [] } = useCountries();
+  const countryOptions = countries.map((c) => ({ value: c.countryId, label: `${c.countryCode} — ${c.countryName}` }));
   const [editOpen, setEditOpen] = useState(false);
   const [detailMarket, setDetailMarket] = useState<Market | null>(null);
   const [editing, setEditing] = useState<Market | null>(null);
@@ -255,7 +258,7 @@ export function MarketsPage() {
     form.setFieldsValue({
       exchangeId: m.exchangeId, commodityType: m.commodityType, marketCode: m.marketCode,
       marketName: m.marketName, marketType: m.marketType, settlementType: m.settlementType,
-      currencyCode: m.currencyCode, timezone: m.timezone, countryCode: m.countryCode ?? undefined,
+      currencyCode: m.currencyCode, timezone: m.timezone, countryId: m.countryId ?? undefined,
       clearingHouse: m.clearingHouse ?? undefined, contractSize: m.contractSize,
       contractUomCode: m.contractUomCode ?? undefined, priceQuotation: m.priceQuotation ?? undefined,
       tickSize: m.tickSize, isActive: m.isActive,
@@ -349,8 +352,8 @@ export function MarketsPage() {
             <Form.Item name="currencyCode" label={hint('Currency', 'Market quoting currency. Most crude oil markets: USD. European gas/power: EUR. UK gas: GBP. LME base metals: USD.', 'USD, EUR, GBP')} rules={[{ required: true }]} style={{ flex: 1 }}>
               <Input placeholder="USD" maxLength={3} style={{ fontFamily: 'monospace', textTransform: 'uppercase' }} />
             </Form.Item>
-            <Form.Item name="countryCode" label="Country" style={{ flex: 1 }}>
-              <Input placeholder="GB" maxLength={2} style={{ fontFamily: 'monospace', textTransform: 'uppercase' }} />
+            <Form.Item name="countryId" label="Country" style={{ flex: 1 }}>
+              <Select options={countryOptions} showSearch optionFilterProp="label" allowClear placeholder="Select country" />
             </Form.Item>
           </Space>
           <Form.Item name="timezone" label={hint('Timezone', 'IANA timezone for market hours, session open/close, and last trading day calculations.', 'Europe/London, America/New_York, Asia/Singapore')} rules={[{ required: true }]}>

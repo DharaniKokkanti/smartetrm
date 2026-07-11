@@ -61,7 +61,7 @@ export function CurrenciesPage() {
             <Input placeholder="USD" maxLength={3} style={{ fontFamily: 'monospace', textTransform: 'uppercase', fontWeight: 700 }} />
           </Form.Item>
           <Form.Item name="currencyName" label="Currency Name" rules={[{ required: true }]}>
-            <Input placeholder="US Dollar" />
+            <Input placeholder="US Dollar" maxLength={100} showCount />
           </Form.Item>
           <Form.Item name="symbol" label="Symbol" rules={[{ required: true }]}>
             <Input placeholder="$" maxLength={4} />

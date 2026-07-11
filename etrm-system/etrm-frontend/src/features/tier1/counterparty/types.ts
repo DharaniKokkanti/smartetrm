@@ -15,11 +15,11 @@ export interface Counterparty {
   legalName: string;
   shortName: string;
   leiCode: string | null;
-  jurisdiction: string;
+  jurisdictionId: number; // FK -> dbo.country(country_id) (V95, was CHAR(2) jurisdiction)
   cpType: CpType;
   creditRatingId: number | null;
   creditLimit: number | null;
-  creditLimitCurrency: string;
+  creditLimitCurrencyId: number; // FK -> dbo.currency(currency_id), NOT NULL default USD (V95, was CHAR(3) creditLimitCurrency)
   creditReviewDate: string | null;
   settlementDays: number;
   defaultCurrencyId: number | null;
@@ -61,7 +61,7 @@ export interface Address {
   city: string;
   stateProvince: string | null;
   postalCode: string | null;
-  countryCode: string;
+  countryId: number;
   poBox: string | null;
   phoneNumber: string | null;
   isActive: boolean;
@@ -160,7 +160,7 @@ export interface TaxRegistration {
   entityId: number;
   taxType: TaxType;
   taxId: string;
-  jurisdiction: string; // ISO 2
+  jurisdictionId: number; // FK -> dbo.country(country_id)
   issuingAuthority: string | null;
   registrationDate: string | null;
   validFrom: string | null;

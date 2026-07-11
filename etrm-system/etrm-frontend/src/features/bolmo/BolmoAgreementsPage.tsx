@@ -23,6 +23,9 @@ import { useCounterparties, useLegalEntities } from '@features/trade/hooks';
 import { COMMODITY_TYPES_TRADE } from '@features/trade/types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
+import { useUom } from '@features/reference/uom/hooks';
+import { useLocations } from '@features/logistics/locations/hooks';
+import { useCurrencies } from '@features/reference/currencies/hooks';
 
 const { Text } = Typography;
 
@@ -49,6 +52,16 @@ export function BolmoAgreementsPage() {
 
   const { data: counterparties = [] } = useCounterparties();
   const { data: legalEntities  = [] } = useLegalEntities();
+  const { data: uoms = [] } = useUom();
+  const { data: locations = [] } = useLocations();
+  const uomOptions = useMemo(() => uoms.map((u) => ({ value: u.uomId, label: u.uomCode })), [uoms]);
+  const locationOptions = useMemo(
+    () => locations.map((l) => ({ value: l.locationId, label: `${l.locationCode} — ${l.locationName}` })),
+    [locations],
+  );
+  const defaultUomId = useMemo(() => uoms.find((u) => u.uomCode === 'BBL')?.uomId, [uoms]);
+  const { data: currencies = [] } = useCurrencies();
+  const currencyOptions = useMemo(() => currencies.map((c) => ({ value: c.currencyId, label: c.currencyCode })), [currencies]);
 
   // ── selected agreement for legs panel ──
   const [selectedBolmoId, setSelectedBolmoId] = useState<number | null>(null);
@@ -75,7 +88,7 @@ export function BolmoAgreementsPage() {
   function openNew() {
     setEditing(null);
     agForm.resetFields();
-    agForm.setFieldsValue({ status: 'PENDING', currencyCode: 'USD', uomCode: 'BBL' });
+    agForm.setFieldsValue({ status: 'PENDING', currencyId: 1, uomId: defaultUomId });
     setDrawerOpen(true);
   }
   function openEdit(a: BolmoAgreement) {
@@ -84,10 +97,10 @@ export function BolmoAgreementsPage() {
       counterpartyId: a.counterpartyId, legalEntityId: a.legalEntityId,
       agreementDate: a.agreementDate ? dayjs(a.agreementDate) : undefined,
       settlementDate: a.settlementDate ? dayjs(a.settlementDate) : undefined,
-      commodityType: a.commodityType, deliveryLocationCode: a.deliveryLocationCode ?? undefined,
+      commodityType: a.commodityType, deliveryLocationId: a.deliveryLocationId ?? undefined,
       deliveryPeriodCode: a.deliveryPeriodCode ?? undefined,
-      netQuantity: a.netQuantity, uomCode: a.uomCode,
-      nettingPrice: a.nettingPrice ?? undefined, currencyCode: a.currencyCode,
+      netQuantity: a.netQuantity, uomId: a.uomId,
+      nettingPrice: a.nettingPrice ?? undefined, currencyId: a.currencyId,
       status: a.status, notes: a.notes ?? undefined,
     } as unknown as BolmoAgreementInput);
     setDrawerOpen(true);
@@ -106,7 +119,7 @@ export function BolmoAgreementsPage() {
 
   function openAddLeg() {
     legForm.resetFields();
-    legForm.setFieldsValue({ bolmoId: selectedBolmoId ?? 0, direction: 'BUY', uomCode: selectedAgreement?.uomCode ?? 'BBL' });
+    legForm.setFieldsValue({ bolmoId: selectedBolmoId ?? 0, direction: 'BUY', uomId: selectedAgreement?.uomId ?? defaultUomId });
     setLegDrawerOpen(true);
   }
   async function submitLeg(closeAfter = true) {
@@ -114,7 +127,7 @@ export function BolmoAgreementsPage() {
     await addLeg.mutateAsync(v);
     if (closeAfter) { setLegDrawerOpen(false); } else {
       legForm.resetFields();
-      legForm.setFieldsValue({ bolmoId: selectedBolmoId ?? 0, direction: 'BUY', uomCode: selectedAgreement?.uomCode ?? 'BBL' });
+      legForm.setFieldsValue({ bolmoId: selectedBolmoId ?? 0, direction: 'BUY', uomId: selectedAgreement?.uomId ?? defaultUomId });
     }
   }
 
@@ -137,7 +150,7 @@ export function BolmoAgreementsPage() {
              style={{ fontSize: 10 }}>{p.value}</Tag>
       ),
     },
-    { field: 'deliveryLocationCode', headerName: 'Location', width: 130, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },
+    { field: 'deliveryLocationName', headerName: 'Location', flex: 1, minWidth: 160, valueFormatter: (p) => p.value ?? '—', tooltipValueGetter: (p) => p.value },
     { field: 'deliveryPeriodCode', headerName: 'Period', width: 100, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },
     {
       headerName: 'Net Qty / UoM', width: 140,
@@ -200,6 +213,8 @@ export function BolmoAgreementsPage() {
     },
   ], [agree, complete, dispute, cancel, selectedBolmoId]);
 
+  const uomCodeById = useMemo(() => new Map(uoms.map((u) => [u.uomId, u.uomCode])), [uoms]);
+
   const legColumns = [
     {
       title: 'B/S', dataIndex: 'direction', width: 55,
@@ -210,8 +225,8 @@ export function BolmoAgreementsPage() {
     },
     {
       title: 'Qty / UoM', width: 130,
-      render: (_: unknown, r: { quantity: number; uomCode: string }) =>
-        <span style={{ fontFamily: 'monospace', fontSize: 11 }}>{Number(r.quantity).toLocaleString()} {r.uomCode}</span>,
+      render: (_: unknown, r: { quantity: number; uomId: number }) =>
+        <span style={{ fontFamily: 'monospace', fontSize: 11 }}>{Number(r.quantity).toLocaleString()} {uomCodeById.get(r.uomId) ?? ''}</span>,
     },
     {
       title: 'Price', dataIndex: 'price', width: 100,
@@ -374,8 +389,13 @@ export function BolmoAgreementsPage() {
           </Row>
           <Row gutter={12}>
             <Col span={12}>
-              <Form.Item name="deliveryLocationCode" label={hint('Delivery Location', 'Pipeline hub, terminal, or storage point where obligations would have been delivered.')}>
-                <Input placeholder="SULLOM-VOE" style={{ fontFamily: 'monospace' }} />
+              <Form.Item name="deliveryLocationId" label={hint('Delivery Location', 'Pipeline hub, terminal, or storage point where obligations would have been delivered.')}>
+                <Select
+                  showSearch allowClear
+                  options={locationOptions}
+                  filterOption={(i, o) => (o?.label ?? '').toLowerCase().includes(i.toLowerCase())}
+                  placeholder="Select location"
+                />
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -395,8 +415,8 @@ export function BolmoAgreementsPage() {
               </Form.Item>
             </Col>
             <Col span={4}>
-              <Form.Item name="uomCode" label="UoM" rules={[{ required: true }]}>
-                <Input placeholder="BBL" style={{ fontFamily: 'monospace' }} />
+              <Form.Item name="uomId" label="UoM" rules={[{ required: true }]}>
+                <Select options={uomOptions} showSearch optionFilterProp="label" placeholder="BBL" />
               </Form.Item>
             </Col>
             <Col span={8}>
@@ -405,8 +425,8 @@ export function BolmoAgreementsPage() {
               </Form.Item>
             </Col>
             <Col span={4}>
-              <Form.Item name="currencyCode" label="CCY" rules={[{ required: true }]}>
-                <Input placeholder="USD" maxLength={3} style={{ fontFamily: 'monospace' }} />
+              <Form.Item name="currencyId" label="CCY" rules={[{ required: true }]}>
+                <Select options={currencyOptions} showSearch optionFilterProp="label" placeholder="USD" />
               </Form.Item>
             </Col>
           </Row>
@@ -453,8 +473,8 @@ export function BolmoAgreementsPage() {
               </Form.Item>
             </Col>
             <Col span={10}>
-              <Form.Item name="uomCode" label="UoM" rules={[{ required: true }]}>
-                <Input placeholder="BBL" style={{ fontFamily: 'monospace' }} />
+              <Form.Item name="uomId" label="UoM" rules={[{ required: true }]}>
+                <Select options={uomOptions} showSearch optionFilterProp="label" placeholder="BBL" />
               </Form.Item>
             </Col>
           </Row>

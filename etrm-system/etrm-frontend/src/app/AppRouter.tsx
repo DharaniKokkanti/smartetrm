@@ -108,6 +108,21 @@ const BrokerFeeAgreementsPage = lazy1(() => import('@features/contracts/broker-f
 const TrucksPage = lazy1(() => import('@features/logistics/trucks/TrucksPage'), 'TrucksPage');
 const StoragePage = lazy1(() => import('@features/logistics/storage/StoragePage'), 'StoragePage');
 
+// Physical Operations
+const NominationsPage = lazy1(() => import('@features/operations/nominations/NominationsPage'), 'NominationsPage');
+const DeliveryInstructionsPage = lazy1(() => import('@features/operations/delivery-instructions/DeliveryInstructionsPage'), 'DeliveryInstructionsPage');
+
+// Products & Markets / Freight (new master data pages)
+const ProductSpecTemplatesPage = lazy1(() => import('@features/markets/spec-templates/ProductSpecTemplatesPage'), 'ProductSpecTemplatesPage');
+const TransportRoutesPage = lazy1(() => import('@features/logistics/transport-routes/TransportRoutesPage'), 'TransportRoutesPage');
+const PriceIndexSourcesPage = lazy1(() => import('@features/pricing/price-index-sources/PriceIndexSourcesPage'), 'PriceIndexSourcesPage');
+
+// Directory pages (cross-entity, previously inline-only)
+const ContactsDirectoryPage = lazy1(() => import('@features/organization/contacts/ContactsDirectoryPage'), 'ContactsDirectoryPage');
+const TaxRegistrationsDirectoryPage = lazy1(() => import('@features/credit/tax-registrations/TaxRegistrationsDirectoryPage'), 'TaxRegistrationsDirectoryPage');
+const BankAccountsDirectoryPage = lazy1(() => import('@features/finance/bank-accounts/BankAccountsDirectoryPage'), 'BankAccountsDirectoryPage');
+const PcgDirectoryPage = lazy1(() => import('@features/credit/pcg/PcgDirectoryPage'), 'PcgDirectoryPage');
+
 // Reference
 const CurrenciesPage = lazy1(() => import('@features/reference/currencies/CurrenciesPage'), 'CurrenciesPage');
 const UomPage = lazy1(() => import('@features/reference/uom/UomPage'), 'UomPage');
@@ -150,11 +165,13 @@ export function AppRouter() {
         <Route path="/markets/products" element={<S><ProductsPage /></S>} />
         <Route path="/markets/price-indices" element={<S><PriceIndicesPage /></S>} />
         <Route path="/markets/exchanges" element={<S><ExchangesPage /></S>} />
+        <Route path="/markets/spec-templates" element={<S><ProductSpecTemplatesPage /></S>} />
 
         {/* Logistics */}
         <Route path="/logistics/locations" element={<S><LocationsPage /></S>} />
         <Route path="/logistics/vessels" element={<S><VesselsPage /></S>} />
         <Route path="/logistics/pipelines" element={<S><PipelinesPage /></S>} />
+        <Route path="/freight/routes" element={<S><TransportRoutesPage /></S>} />
 
         {/* Calendar */}
         <Route path="/calendar/holiday-calendars" element={<S><HolidayCalendarsPage /></S>} />
@@ -168,9 +185,12 @@ export function AppRouter() {
         <Route path="/pricing/balmo-products" element={<S><BalmoProductsPage /></S>} />
         <Route path="/pricing/balmo" element={<S><BalmoDashboardPage /></S>} />
         <Route path="/pricing/formula-templates" element={<S><FormulaTemplatesPage /></S>} />
+        <Route path="/pricing/price-index-sources" element={<S><PriceIndexSourcesPage /></S>} />
 
-        {/* BOLMO */}
+        {/* BOLMO / Physical Operations */}
         <Route path="/bolmo" element={<S><BolmoAgreementsPage /></S>} />
+        <Route path="/operations/nominations" element={<S><NominationsPage /></S>} />
+        <Route path="/operations/delivery-instructions" element={<S><DeliveryInstructionsPage /></S>} />
 
         {/* Trade */}
         <Route path="/trade/blotter" element={<S><TradeBlotter /></S>} />
@@ -202,6 +222,10 @@ export function AppRouter() {
         <Route path="/logistics/pipeline-cycles" element={<S><PipelineCyclesPage /></S>} />
         <Route path="/credit/limits" element={<S><CreditLimitsPage /></S>} />
         <Route path="/credit/letters-of-credit" element={<S><LettersOfCreditPage /></S>} />
+        <Route path="/credit/tax" element={<S><TaxRegistrationsDirectoryPage /></S>} />
+        <Route path="/credit/pcg" element={<S><PcgDirectoryPage /></S>} />
+        <Route path="/finance/bank-accounts" element={<S><BankAccountsDirectoryPage /></S>} />
+        <Route path="/org/contacts" element={<S><ContactsDirectoryPage /></S>} />
 
         {/* RINs — Renewable Fuel Standard — no standalone hub; the Master Data
             Hub's "RIN & Renewable Fuels" group is the entry point, individual

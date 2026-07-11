@@ -35,6 +35,12 @@ export const counterpartyApi = {
   },
 
   bankAccounts: {
+    /** Every bank account across every counterparty — used by the
+     *  cross-entity Bank Accounts Directory page. */
+    listAll: async (): Promise<BankAccount[]> => {
+      const { data } = await apiClient.get<BankAccount[]>('/bank-accounts');
+      return data;
+    },
     create: async (cpId: number, b: Omit<BankAccount, 'bankAccountId' | '_localId'>): Promise<BankAccount> => {
       const { data } = await apiClient.post<BankAccount>(`${BASE}/${cpId}/bank-accounts`, b);
       return data;
@@ -115,6 +121,13 @@ export async function fetchEntityContacts(entityType: PolymorphicEntityType, ent
   return data;
 }
 
+/** Every contact assignment across every entity — used by the cross-entity
+ *  Contacts Directory page (not scoped to one counterparty/legal entity). */
+export async function fetchAllContactAssignments(): Promise<ContactAssignment[]> {
+  const { data } = await apiClient.get<ContactAssignment[]>('/entity-contacts');
+  return data;
+}
+
 export async function saveContactAssignment(
   assignment: ContactAssignment,
 ): Promise<ContactAssignment> {
@@ -150,6 +163,13 @@ export async function fetchEntityTaxRegistrations(entityType: PolymorphicEntityT
   const { data } = await apiClient.get<TaxRegistration[]>(
     `/entity-tax-registrations?entityType=${entityType}&entityId=${entityId}`,
   );
+  return data;
+}
+
+/** Every tax registration across every entity — used by the cross-entity
+ *  Tax Registrations Directory page (not scoped to one entity). */
+export async function fetchAllTaxRegistrations(): Promise<TaxRegistration[]> {
+  const { data } = await apiClient.get<TaxRegistration[]>('/entity-tax-registrations');
   return data;
 }
 

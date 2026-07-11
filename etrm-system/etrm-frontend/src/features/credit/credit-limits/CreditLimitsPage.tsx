@@ -11,6 +11,8 @@ import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import { useCounterparties } from '@features/trade/hooks';
 import { useSystemUsers } from '@features/admin/system-users/hooks';
+import { useCurrencies } from '@features/reference/currencies/hooks';
+import { useCountries } from '@features/reference/countries/hooks';
 import { COMMODITY_TYPES } from '@features/organization/desks/types';
 import { useCreditLimits, useSaveCreditLimit, useSuspendCreditLimit, useReinstateCreditLimit } from './hooks';
 import type { CreditLimit, CreditLimitInput } from './types';
@@ -61,6 +63,19 @@ export function CreditLimitsPage() {
   const reinstate  = useReinstateCreditLimit();
   const { data: counterparties = [] } = useCounterparties();
   const { data: users = [] }          = useSystemUsers();
+  const { data: currencies = [] }     = useCurrencies();
+  const { data: countries = [] }      = useCountries();
+  const currencyOpts = useMemo(
+    () => currencies.map((c) => ({ value: c.currencyId, label: `${c.currencyCode} — ${c.currencyName}` })),
+    [currencies],
+  );
+  const currencyCodeById = useMemo(() => new Map(currencies.map((c) => [c.currencyId, c.currencyCode])), [currencies]);
+  const countryOpts = useMemo(
+    () => countries.map((c) => ({ value: c.countryId, label: `${c.countryCode} — ${c.countryName}` })),
+    [countries],
+  );
+  const countryById = useMemo(() => new Map(countries.map((c) => [c.countryId, c])), [countries]);
+  const countryIdByCode = useMemo(() => new Map(countries.map((c) => [c.countryCode, c.countryId])), [countries]);
 
   const [open, setOpen]       = useState(false);
   const [editing, setEditing] = useState<CreditLimit | null>(null);
@@ -71,7 +86,7 @@ export function CreditLimitsPage() {
   const watchedAlertCp   = Form.useWatch('alertCounterparty', form);
   const watchedCpId      = Form.useWatch('counterpartyId', form);
 
-  type CpRow = { counterpartyId: number; counterpartyCode: string; name: string; countryCode?: string };
+  type CpRow = { counterpartyId: number; counterpartyCode: string; name: string; jurisdiction?: string };
   const cpRows = counterparties as CpRow[];
   const cpOpts = useMemo(
     () => cpRows.map((c) => ({ value: c.counterpartyId, label: `${c.counterpartyCode} — ${c.name}` })),
@@ -95,7 +110,7 @@ export function CreditLimitsPage() {
     () => data
       .filter((l) => l.limitBasis === 'DIRECT' && l.creditLimitId !== editing?.creditLimitId
         && (watchedCpId == null || l.counterpartyId === watchedCpId))
-      .map((l) => ({ value: l.creditLimitId, label: `#${l.creditLimitId} ${l.counterpartyName} — ${l.limitType.replace(/_/g, ' ')} ${l.limitCurrency} ${l.limitAmount.toLocaleString()}` })),
+      .map((l) => ({ value: l.creditLimitId, label: `#${l.creditLimitId} ${l.counterpartyName} — ${l.limitType.replace(/_/g, ' ')} ${currencyCodeById.get(l.limitCurrencyId) ?? ''} ${l.limitAmount.toLocaleString()}` })),
     [data, editing, watchedCpId],
   );
 
@@ -106,7 +121,7 @@ export function CreditLimitsPage() {
     form.resetFields();
     form.setFieldsValue({
       limitType: 'PRE_SETTLEMENT', limitBasis: 'DIRECT', commodityType: 'ALL',
-      limitCurrency: 'USD', usedAmount: 0, collateralOffset: 0,
+      limitCurrencyId: 1, usedAmount: 0, collateralOffset: 0,
       warningThresholdPct: 80, criticalThresholdPct: 95, breachAction: 'ALERT_ONLY',
       alertInternal: true, alertCounterparty: false,
       reviewFrequencyDays: 365,
@@ -154,7 +169,8 @@ export function CreditLimitsPage() {
   // auto-fill country when counterparty changes
   function onCpChange(cpId: number) {
     const cp = cpRows.find((c) => c.counterpartyId === cpId);
-    if (cp?.countryCode) form.setFieldValue('cpCountryCode', cp.countryCode);
+    const countryId = cp?.jurisdiction ? countryIdByCode.get(cp.jurisdiction) : undefined;
+    if (countryId != null) form.setFieldValue('cpCountryId', countryId);
   }
 
   const today = new Date().toISOString().slice(0, 10);
@@ -162,10 +178,10 @@ export function CreditLimitsPage() {
   const colDefs = useMemo<ColDef<CreditLimit>[]>(() => [
     { field: 'counterpartyName', headerName: 'Counterparty', flex: 1, minWidth: 170, pinned: 'left' },
     {
-      field: 'cpCountryCode', headerName: 'Ctry', width: 70,
-      cellRenderer: (p: { data: CreditLimit }) => p.data.cpCountryCode
+      field: 'cpCountryId', headerName: 'Ctry', width: 70,
+      cellRenderer: (p: { data: CreditLimit }) => p.data.cpCountryId
         ? <Tooltip title={`Country risk: ${p.data.countryRiskRating ?? '—'}`}>
-            <Tag color={COUNTRY_RISK_COLOR[p.data.countryRiskRating ?? ''] ?? 'default'} style={{ fontSize: 10, fontFamily: 'monospace' }}>{p.data.cpCountryCode}</Tag>
+            <Tag color={COUNTRY_RISK_COLOR[p.data.countryRiskRating ?? ''] ?? 'default'} style={{ fontSize: 10, fontFamily: 'monospace' }}>{countryById.get(p.data.cpCountryId)?.countryCode ?? p.data.cpCountryId}</Tag>
           </Tooltip>
         : '—',
     },
@@ -181,7 +197,7 @@ export function CreditLimitsPage() {
           {p.data.limitBasis === 'ALLOCATED' && (() => {
             const parent = data.find((l) => l.creditLimitId === p.data.parentLimitId);
             const label = parent
-              ? `${parent.counterpartyName} — ${parent.limitType.replace(/_/g, ' ')} ${parent.limitCurrency} ${parent.limitAmount.toLocaleString()}`
+              ? `${parent.counterpartyName} — ${parent.limitType.replace(/_/g, ' ')} ${currencyCodeById.get(parent.limitCurrencyId) ?? ''} ${parent.limitAmount.toLocaleString()}`
               : `#${p.data.parentLimitId}`;
             return <Tooltip title={`Allocated from ${label}`}><Tag color="cyan" style={{ fontSize: 9 }}>ALLOC</Tag></Tooltip>;
           })()}
@@ -190,7 +206,7 @@ export function CreditLimitsPage() {
     },
     {
       headerName: 'Limit', width: 140,
-      valueGetter: (p) => `${p.data?.limitCurrency} ${(p.data?.limitAmount ?? 0).toLocaleString()}`,
+      valueGetter: (p) => `${p.data ? currencyCodeById.get(p.data.limitCurrencyId) ?? '' : ''} ${(p.data?.limitAmount ?? 0).toLocaleString()}`,
       cellClass: 'cell-mono',
     },
     {
@@ -207,10 +223,10 @@ export function CreditLimitsPage() {
     },
     {
       headerName: 'Available', width: 130,
-      valueGetter: (p) => `${p.data?.limitCurrency} ${(p.data?.availableAmount ?? 0).toLocaleString()}`,
+      valueGetter: (p) => `${p.data ? currencyCodeById.get(p.data.limitCurrencyId) ?? '' : ''} ${(p.data?.availableAmount ?? 0).toLocaleString()}`,
       cellClass: 'cell-mono',
     },
-    { field: 'creditAnalystName', headerName: 'Analyst', width: 115, valueFormatter: (p) => p.value ?? '—' },
+    { field: 'creditAnalystName', headerName: 'Analyst', flex: 1, minWidth: 115, valueFormatter: (p) => p.value ?? '—', tooltipValueGetter: (p) => p.value },
     {
       field: 'nextReviewDate', headerName: 'Next Review', width: 110, cellClass: 'cell-mono',
       cellRenderer: (p: { value: string | null }) => p.value
@@ -247,7 +263,7 @@ export function CreditLimitsPage() {
         </Space>
       ),
     },
-  ], [suspend, reinstate, today, data]);
+  ], [suspend, reinstate, today, data, currencyCodeById, countryById]);
 
   return (
     <>
@@ -291,8 +307,8 @@ export function CreditLimitsPage() {
               </Form.Item>
             </Col>
             <Col span={4}>
-              <Form.Item name="cpCountryCode" label={hint('Country', 'ISO country of the counterparty — auto-filled from the counterparty record. Drives country risk.')}>
-                <Input maxLength={2} style={{ fontFamily: 'monospace', textTransform: 'uppercase' }} placeholder="GB" />
+              <Form.Item name="cpCountryId" label={hint('Country', 'Country of the counterparty — auto-filled from the counterparty record. Drives country risk.')}>
+                <Select options={countryOpts} showSearch optionFilterProp="label" allowClear placeholder="Select country" />
               </Form.Item>
             </Col>
             <Col span={4}>
@@ -332,8 +348,8 @@ export function CreditLimitsPage() {
               </Form.Item>
             </Col>
             <Col span={6}>
-              <Form.Item name="limitCurrency" label="Currency" rules={[{ required: true }]}>
-                <Input placeholder="USD" maxLength={3} style={{ fontFamily: 'monospace', textTransform: 'uppercase' }} />
+              <Form.Item name="limitCurrencyId" label="Currency" rules={[{ required: true }]}>
+                <Select options={currencyOpts} showSearch optionFilterProp="label" placeholder="Select currency" />
               </Form.Item>
             </Col>
             <Col span={8}>
@@ -373,7 +389,7 @@ export function CreditLimitsPage() {
               </Form.Item>
             </Col>
             <Col span={8}>
-              <Form.Item name="tempUpliftExpiry" label="Uplift Expiry">
+              <Form.Item name="tempUpliftExpiry" label={hint('Uplift Expiry', 'Date the temporary limit increase (uplift) lapses and the limit reverts to its normal level.')}>
                 <AppDatePicker />
               </Form.Item>
             </Col>

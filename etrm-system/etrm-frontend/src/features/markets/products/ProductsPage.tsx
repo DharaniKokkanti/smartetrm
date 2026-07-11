@@ -130,7 +130,7 @@ function PriceIndicesTab({ productId }: { productId: number }) {
                 style={{ width: 300 }}
               />
             </Form.Item>
-            <Form.Item name="role" label="Role" rules={[{ required: true }]}
+            <Form.Item name="role" label={hint('Role', 'How this price index is used: Primary MTM values the position daily, Settlement fixes final settlement price, Backup is a fallback if primary is unavailable, Reference is informational only.')} rules={[{ required: true }]}
               initialValue="PRIMARY_MTM">
               <Select style={{ width: 140 }} options={[
                 { value: 'PRIMARY_MTM',  label: 'Primary MTM' },
@@ -573,7 +573,7 @@ function SpecTemplateValues({ templateId, commodityType }: { templateId: number;
             />
           </Form.Item>
           <Space style={{ width: '100%' }} size={12}>
-            <Form.Item name="boundDirection" label="Bound Type" rules={[{ required: true }]} style={{ flex: 1 }}>
+            <Form.Item name="boundDirection" label={hint('Bound Type', 'MIN/MAX enforce a single limit, RANGE requires both, EXACT requires an exact match value — determines which value fields below are shown.')} rules={[{ required: true }]} style={{ flex: 1 }}>
               <Select options={BOUND_OPTIONS} />
             </Form.Item>
             <Form.Item name="uomCode" label="UoM (override)" style={{ flex: 1 }}>
@@ -608,7 +608,7 @@ function SpecTemplateValues({ templateId, commodityType }: { templateId: number;
             )}
           </Space>
           <Space style={{ width: '100%' }} size={12}>
-            <Form.Item name="testMethod" label="Test Method" style={{ flex: 1 }}>
+            <Form.Item name="testMethod" label={hint('Test Method', 'The lab/standard method used to measure this parameter, e.g. ASTM D86 for distillation, ISO 6976 for gas composition.')} style={{ flex: 1 }}>
               <Input placeholder="ASTM D4294 / ISO 6976 / etc." />
             </Form.Item>
             <Form.Item name="isMandatory" label="Mandatory" valuePropName="checked" style={{ flex: 0, minWidth: 90 }}>
@@ -897,10 +897,10 @@ function SpecsTab({ product, isBlend }: { product: Product; isBlend: boolean }) 
             <Input placeholder="EN 590 Ultra-Low Sulphur Diesel — European Road Fuel Standard" />
           </Form.Item>
           <Space style={{ width: '100%' }} size={12}>
-            <Form.Item name="issuingBody" label="Issuing Body" style={{ flex: 1 }}>
+            <Form.Item name="issuingBody" label={hint('Issuing Body', 'The standards body, exchange, or industry group that defines this specification — e.g. ASTM, ISO, EFET, ICE, or the LME for metals contract specs.')} style={{ flex: 1 }}>
               <Input placeholder="CEN / LME / ICE / Internal" />
             </Form.Item>
-            <Form.Item name="standardRef" label="Standard Reference" style={{ flex: 1 }}>
+            <Form.Item name="standardRef" label={hint('Standard Reference', 'The specific published standard or clause this template implements, e.g. ASTM D86 for distillation, or EN 590 for road diesel.')} style={{ flex: 1 }}>
               <Input placeholder="EN 590:2022+A1" />
             </Form.Item>
           </Space>
@@ -1030,7 +1030,7 @@ export function ProductsPage() {
 
   const colDefs = useMemo<ColDef<Product>[]>(() => [
     { field: 'productCode', headerName: 'Code', cellClass: 'cell-mono', width: 160, pinned: 'left' },
-    { field: 'productName', headerName: 'Product', flex: 1.4, minWidth: 200 },
+    { field: 'productName', headerName: 'Product', flex: 1.4, minWidth: 260, tooltipValueGetter: (p) => p.value },
     {
       field: 'commodityId', headerName: 'Commodity', width: 115,
       cellRenderer: (p: { value: number }) => {
@@ -1133,10 +1133,10 @@ export function ProductsPage() {
             Settlement & Pricing Defaults
           </Divider>
           <Space style={{ width: '100%' }} size={12}>
-            <Form.Item name="settlementType" label="Settlement Type" style={{ flex: 1 }} rules={[{ required: true }]}>
+            <Form.Item name="settlementType" label={hint('Settlement Type', 'PHYSICAL = delivered, FINANCIAL = cash-settled, BOTH = deal-level choice.')} style={{ flex: 1 }} rules={[{ required: true }]}>
               <Select options={settlementTypeOptions} loading={loadingSettlementTypes} />
             </Form.Item>
-            <Form.Item name="defaultPricingTypeCode" label="Default Pricing" style={{ flex: 1 }} rules={[{ required: true }]}>
+            <Form.Item name="defaultPricingTypeCode" label={hint('Default Pricing', 'FIXED = agreed price, FLOATING = index-linked, FORMULA = calculated from a pricing formula — default pre-fills new deals for this product.')} style={{ flex: 1 }} rules={[{ required: true }]}>
               <Select options={PRICING_TYPE_OPTIONS.map((p) => ({ label: p, value: p }))} />
             </Form.Item>
           </Space>
@@ -1147,7 +1147,7 @@ export function ProductsPage() {
             <Form.Item name="defaultCurrencyCode" label="Default Currency" style={{ flex: 1 }}>
               <Input placeholder="USD" style={{ fontFamily: 'monospace', width: 90 }} maxLength={3} />
             </Form.Item>
-            <Form.Item name="defaultIncotermCode" label="Default Incoterm" style={{ flex: 1 }}>
+            <Form.Item name="defaultIncotermCode" label={hint('Default Incoterm', 'ICC-standard delivery term (e.g. FOB, CIF, DAP) that pre-fills new deals — defines the point where risk/cost transfers.')} style={{ flex: 1 }}>
               <Input placeholder="FOB" style={{ fontFamily: 'monospace', width: 90 }} maxLength={10} />
             </Form.Item>
           </Space>
@@ -1381,7 +1381,7 @@ export function ProductsPage() {
             <Form.Item name="isExchangeTraded" label="Exchange-Traded" valuePropName="checked">
               <Switch />
             </Form.Item>
-            <Form.Item name="isOtc" label="OTC" valuePropName="checked">
+            <Form.Item name="isOtc" label={hint('OTC', 'Over-the-counter — traded bilaterally off-exchange rather than on a listed venue.')} valuePropName="checked">
               <Switch />
             </Form.Item>
             <Form.Item name="isBlend" label={hint('Blend Product', 'Enable if this product is manufactured by blending two or more component products (e.g. GAS97 = ULSD + Ethanol). Unlocks the Quality Specs tab where you can define the blend recipe.', 'Off')} valuePropName="checked">

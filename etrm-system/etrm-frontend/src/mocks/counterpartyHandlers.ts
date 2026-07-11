@@ -211,9 +211,16 @@ export const counterpartyHandlers = [
   }),
 
   // ── Contact assignments ───────────────────────────────────────────────────
+  // GET /entity-contacts with no query params — unscoped, returns every
+  // assignment across every entity (used by the cross-entity Contacts
+  // Directory page); with entityType/entityId it stays scoped to one entity,
+  // same as before.
   http.get(`${API}/entity-contacts`, ({ request }) => {
     const url = new URL(request.url);
     const entityType = url.searchParams.get('entityType');
+    if (entityType === null) {
+      return HttpResponse.json(contactAssignments.filter((c) => c.isActive));
+    }
     const entityId = Number(url.searchParams.get('entityId'));
     return HttpResponse.json(
       contactAssignments.filter(
@@ -278,6 +285,9 @@ export const counterpartyHandlers = [
   }),
 
   // ── Bank accounts (unchanged shape) ──────────────────────────────────────
+  // GET /bank-accounts — unscoped, every account across every counterparty
+  // (used by the cross-entity Bank Accounts Directory page).
+  http.get(`${API}/bank-accounts`, () => HttpResponse.json(bankAccountStore)),
   http.get(`${API}/counterparties/:id/bank-accounts`, ({ params }) =>
     HttpResponse.json(bankAccountStore.filter((b) => b.entityId === Number(params.id))),
   ),
@@ -296,9 +306,15 @@ export const counterpartyHandlers = [
   }),
 
   // ── Tax registrations (dbo.tax_registration) — polymorphic, no pool ───────
+  // GET /entity-tax-registrations with no query params — unscoped, every
+  // registration across every entity (used by the cross-entity Tax
+  // Registrations Directory page).
   http.get(`${API}/entity-tax-registrations`, ({ request }) => {
     const url = new URL(request.url);
     const entityType = url.searchParams.get('entityType');
+    if (entityType === null) {
+      return HttpResponse.json(taxRegistrationStore.filter((t) => t.isActive));
+    }
     const entityId = Number(url.searchParams.get('entityId'));
     return HttpResponse.json(
       taxRegistrationStore.filter(

@@ -7,6 +7,7 @@ import { SmartGrid } from '@components/smart/SmartGrid';
 import { ActiveTag } from '@components/smart/StatusTag';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import { useFormDraft } from '@components/smart/formDraft';
+import { hint } from '@components/smart/FieldHint';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useTableRows } from '@features/tier2/hooks';
 import { useCountries } from '@features/reference/countries/hooks';
@@ -128,7 +129,7 @@ export function RailcarsPage() {
   function openNew() {
     setEditing(null);
     form.resetFields();
-    form.setFieldsValue({ carType: 'TANK_CAR', countryCode: 'US', isActive: true } as unknown as RailcarInput);
+    form.setFieldsValue({ carType: 'TANK_CAR', countryId: 2, isActive: true } as unknown as RailcarInput);
     setOpen(true);
   }
 
@@ -162,7 +163,7 @@ export function RailcarsPage() {
     [operatorRows],
   );
   const countryOpts = useMemo(
-    () => countries.map((c) => ({ value: c.countryCode, label: `${c.countryCode} — ${c.countryName}` })),
+    () => countries.map((c) => ({ value: c.countryId, label: `${c.countryCode} — ${c.countryName}` })),
     [countries],
   );
 
@@ -248,10 +249,10 @@ export function RailcarsPage() {
             </Form.Item>
           </Space.Compact>
           <Space.Compact block>
-            <Form.Item name="dotClass" label="DOT Class" style={{ width: '50%' }}>
+            <Form.Item name="dotClass" label={hint('DOT Class', 'US DOT hazmat tank car classification, e.g. DOT-117 for crude/ethanol service.')} style={{ width: '50%' }}>
               <Input placeholder="DOT-117" />
             </Form.Item>
-            <Form.Item name="aarClass" label="AAR Class" style={{ width: '50%' }}>
+            <Form.Item name="aarClass" label={hint('AAR Class', 'Association of American Railroads car type code, identifying tank car design/capacity.')} style={{ width: '50%' }}>
               <Input />
             </Form.Item>
           </Space.Compact>
@@ -259,7 +260,7 @@ export function RailcarsPage() {
             <Form.Item name="buildYear" label="Build Year" style={{ width: '50%' }}>
               <InputNumber style={{ width: '100%' }} min={1900} max={2100} precision={0} />
             </Form.Item>
-            <Form.Item name="grossRailLoadLbs" label="Gross Rail Load (lbs)" style={{ width: '50%' }}>
+            <Form.Item name="grossRailLoadLbs" label={hint('Gross Rail Load (lbs)', 'AAR/FRA weight class for the loaded car — governs which track infrastructure it may run on.')} style={{ width: '50%' }}>
               <InputNumber style={{ width: '100%' }} min={0} step={1000} placeholder="286000" />
             </Form.Item>
           </Space.Compact>
@@ -275,7 +276,7 @@ export function RailcarsPage() {
           <Form.Item name="homeRailroad" label="Home Railroad">
             <Input />
           </Form.Item>
-          <Form.Item name="countryCode" label="Country" rules={[{ required: true }]}>
+          <Form.Item name="countryId" label="Country" rules={[{ required: true }]}>
             <Select options={countryOpts} showSearch optionFilterProp="label" />
           </Form.Item>
           <Form.Item name="notes" label="Notes">

@@ -87,7 +87,18 @@ GO
 ALTER TABLE dbo.holiday_calendar                  ADD CONSTRAINT fk_hc_country             FOREIGN KEY (country_code)         REFERENCES dbo.country(country_code);
 ALTER TABLE dbo.address                           ADD CONSTRAINT fk_address_country        FOREIGN KEY (country_code)         REFERENCES dbo.country(country_code);
 ALTER TABLE dbo.location                          ADD CONSTRAINT fk_location_country       FOREIGN KEY (country_code)         REFERENCES dbo.country(country_code);
-ALTER TABLE dbo.pipeline                          ADD CONSTRAINT fk_pipeline_country       FOREIGN KEY (country_code)         REFERENCES dbo.country(country_code);
+-- dbo.pipeline has no singular country_code column on the live table —
+-- 04_product_spec_mot_pipeline.sql drops and recreates dbo.pipeline with
+-- only a CSV country_codes VARCHAR(100) column (multi-value, cross-border
+-- pipelines). This ALTER would fail with "invalid column name" on any real
+-- sequential run; guarded here (found and fixed during V95, same discipline
+-- as V30/V91's precedent of fixing a historical migration file's body when
+-- its bug is discovered, rather than leaving broken SQL live) so a fresh
+-- run no-ops instead of erroring. dbo.pipeline is excluded from V95's
+-- surrogate-key conversion entirely — there is no single-value column to
+-- convert.
+IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.pipeline') AND name = 'country_code')
+  ALTER TABLE dbo.pipeline                        ADD CONSTRAINT fk_pipeline_country       FOREIGN KEY (country_code)         REFERENCES dbo.country(country_code);
 ALTER TABLE dbo.exchange                          ADD CONSTRAINT fk_exchange_country       FOREIGN KEY (country_code)         REFERENCES dbo.country(country_code);
 ALTER TABLE dbo.market                            ADD CONSTRAINT fk_market_country         FOREIGN KEY (country_code)         REFERENCES dbo.country(country_code);
 ALTER TABLE dbo.transport_operator                ADD CONSTRAINT fk_transport_op_country   FOREIGN KEY (country_code)         REFERENCES dbo.country(country_code);

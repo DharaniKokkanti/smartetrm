@@ -10,6 +10,7 @@ import { SmartGrid } from '@components/smart/SmartGrid';
 import { hint } from '@components/smart/FieldHint';
 import { useCounterparties, useLegalEntities } from '@features/trade/hooks';
 import { useTableRows } from '@features/tier2/hooks';
+import { useCurrencies } from '@features/reference/currencies/hooks';
 import { useLettersOfCredit, useSaveLetterOfCredit, useCancelLetterOfCredit } from './hooks';
 import type { LetterOfCredit, LetterOfCreditInput } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
@@ -42,10 +43,16 @@ export function LettersOfCreditPage() {
   const { data: legalEntities = [] }  = useLegalEntities();
   const { data: lcTypeRows = [] }     = useTableRows('lc_type');
   const { data: lcStatusRows = [] }   = useTableRows('lc_status_type');
+  const { data: currencies = [] }     = useCurrencies();
 
   type LookupRow = { typeCode: string; typeName: string };
   const lcTypeOpts   = (lcTypeRows   as LookupRow[]).map((r) => ({ value: r.typeCode, label: r.typeName }));
   const lcStatusOpts = (lcStatusRows as LookupRow[]).map((r) => ({ value: r.typeCode, label: r.typeName }));
+  const currencyOpts = useMemo(
+    () => currencies.map((c) => ({ value: c.currencyId, label: `${c.currencyCode} — ${c.currencyName}` })),
+    [currencies],
+  );
+  const currencyCodeById = useMemo(() => new Map(currencies.map((c) => [c.currencyId, c.currencyCode])), [currencies]);
 
   const [open, setOpen]       = useState(false);
   const [editing, setEditing] = useState<LetterOfCredit | null>(null);
@@ -56,7 +63,7 @@ export function LettersOfCreditPage() {
     setEditing(null);
     form.resetFields();
     form.setFieldsValue({
-      lcType: 'STANDBY', status: 'ACTIVE', lcCurrency: 'USD',
+      lcType: 'STANDBY', status: 'ACTIVE', lcCurrencyId: 1,
       drawdownAmount: 0, issuedAmount: 0, isEvergreen: false,
       issueDate: dayjs(),
     } as unknown as LetterOfCreditInput);
@@ -117,17 +124,17 @@ export function LettersOfCreditPage() {
     { field: 'issuingBankName', headerName: 'Issuing Bank', flex: 1, minWidth: 130 },
     {
       headerName: 'Face Value', width: 140,
-      valueGetter: (p) => `${p.data?.lcCurrency} ${(p.data?.lcAmount ?? 0).toLocaleString()}`,
+      valueGetter: (p) => `${p.data ? currencyCodeById.get(p.data.lcCurrencyId) ?? '' : ''} ${(p.data?.lcAmount ?? 0).toLocaleString()}`,
       cellClass: 'cell-mono',
     },
     {
       headerName: 'Drawn', width: 130,
-      valueGetter: (p) => `${p.data?.lcCurrency} ${(p.data?.drawdownAmount ?? 0).toLocaleString()}`,
+      valueGetter: (p) => `${p.data ? currencyCodeById.get(p.data.lcCurrencyId) ?? '' : ''} ${(p.data?.drawdownAmount ?? 0).toLocaleString()}`,
       cellClass: 'cell-mono',
     },
     {
       headerName: 'Available', width: 130,
-      valueGetter: (p) => `${p.data?.lcCurrency} ${(p.data?.availableAmount ?? 0).toLocaleString()}`,
+      valueGetter: (p) => `${p.data ? currencyCodeById.get(p.data.lcCurrencyId) ?? '' : ''} ${(p.data?.availableAmount ?? 0).toLocaleString()}`,
       cellClass: 'cell-mono',
     },
     { field: 'issueDate', headerName: 'Issue Date', width: 100, cellClass: 'cell-mono' },
@@ -153,7 +160,7 @@ export function LettersOfCreditPage() {
         </Space>
       ),
     },
-  ], [cancel]);
+  ], [cancel, currencyCodeById]);
 
   return (
     <>
@@ -239,8 +246,8 @@ export function LettersOfCreditPage() {
               </Form.Item>
             </Col>
             <Col span={6}>
-              <Form.Item name="lcCurrency" label="Currency" rules={[{ required: true }]}>
-                <Input placeholder="USD" style={{ fontFamily: 'monospace' }} />
+              <Form.Item name="lcCurrencyId" label="Currency" rules={[{ required: true }]}>
+                <Select options={currencyOpts} showSearch optionFilterProp="label" placeholder="Select currency" />
               </Form.Item>
             </Col>
             <Col span={8}>

@@ -4,6 +4,7 @@ import dayjs, { type Dayjs } from 'dayjs';
 import { useSaveBook } from './hooks';
 import { BOOK_TYPES, type Book, type BookInput } from './types';
 import { COMMODITY_TYPE_LOOKUP } from '../desks/types';
+import { useCurrencies } from '@features/reference/currencies/hooks';
 import { useDraftValues } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import { hint } from '@components/smart/FieldHint';
@@ -19,6 +20,10 @@ export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
   const [form] = Form.useForm<BookInput>();
   const save = useSaveBook();
   const skipDraftReset = useDraftValues('org-books-v', form, open, editing);
+  const { data: currencies = [], isLoading: loadingCurrencies } = useCurrencies();
+  const currencyOptions = currencies
+    .filter((c) => c.isActive)
+    .map((c) => ({ label: `${c.currencyCode} — ${c.currencyName}`, value: c.currencyId }));
 
   useEffect(() => {
     if (skipDraftReset.current) { if (open) skipDraftReset.current = false; return; }
@@ -33,7 +38,7 @@ export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
           legalEntityId:       editing.legalEntityId,
           responsibleTraderId: editing.responsibleTraderId,
           commodityType:       editing.commodityType,
-          currencyCode:        editing.currencyCode,
+          baseCurrencyId:      editing.baseCurrencyId,
           positionLimit:       editing.positionLimit,
           pnlLimit:            editing.pnlLimit,
           varLimit:            editing.varLimit,
@@ -42,7 +47,7 @@ export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
           isActive:            editing.isActive,
         } as unknown as BookInput);
       } else {
-        form.setFieldsValue({ isActive: true, bookType: 'TRADING', currencyCode: 'USD' });
+        form.setFieldsValue({ isActive: true, bookType: 'TRADING', baseCurrencyId: 1 });
       }
     }
   }, [open, editing, form]);
@@ -112,12 +117,12 @@ export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
             options={COMMODITY_TYPE_LOOKUP.map((l) => ({ label: l.label, value: l.lookupId }))} />
         </Form.Item>
         <Form.Item
-          name="currencyCode"
+          name="baseCurrencyId"
           label={hint('Base Currency', 'The functional currency this book’s P&L, positions, and limits are measured in.')}
           rules={[{ required: true }]}
         >
-          <Select options={['USD', 'EUR', 'GBP', 'JPY', 'CAD', 'SGD'].map((c) => ({ label: c, value: c }))}
-            placeholder="USD" style={{ width: 120 }} />
+          <Select options={currencyOptions} loading={loadingCurrencies}
+            showSearch optionFilterProp="label" placeholder="Select currency" style={{ width: 220 }} />
         </Form.Item>
         <Form.Item
           name="responsibleTraderId"

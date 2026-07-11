@@ -41,10 +41,10 @@ export function LegalEntityFormDrawer({ open, onClose, editing, onSaved }: Props
   const { data: currencies = [], isLoading: loadingCurrencies } = useCurrencies();
   const countryOptions = countries
     .filter((c) => c.isActive)
-    .map((c) => ({ label: `${c.countryCode} — ${c.countryName}`, value: c.countryCode }));
+    .map((c) => ({ label: `${c.countryCode} — ${c.countryName}`, value: c.countryId }));
   const currencyOptions = currencies
     .filter((c) => c.isActive)
-    .map((c) => ({ label: `${c.currencyCode} — ${c.currencyName}`, value: c.currencyCode }));
+    .map((c) => ({ label: `${c.currencyCode} — ${c.currencyName}`, value: c.currencyId }));
   const createMutation = useCreateLegalEntity();
   const updateMutation = useUpdateLegalEntity();
   const queryClient = useQueryClient();
@@ -158,7 +158,7 @@ export function LegalEntityFormDrawer({ open, onClose, editing, onSaved }: Props
             key: 'details',
             label: 'Details',
             children: (
-              <Form form={form} layout="vertical" initialValues={{ isInternal: true, baseCurrency: 'USD', parentInd: false }}>
+              <Form form={form} layout="vertical" initialValues={{ isInternal: true, baseCurrencyId: 1, parentInd: false }}>
                 <Form.Item name="entityCode" label="Entity Code" rules={[{ required: true, message: 'Required' }, { max: 20 }]}>
                   <Input placeholder="e.g. ACME-UK" disabled={!!editing} />
                 </Form.Item>
@@ -198,8 +198,8 @@ export function LegalEntityFormDrawer({ open, onClose, editing, onSaved }: Props
 
                 <Space.Compact block>
                   <Form.Item
-                    name="jurisdiction"
-                    label={hint('Jurisdiction (ISO 2)', 'The country whose law governs this entity’s trading contracts — drives which regulatory regime and default netting rules apply.', 'GB')}
+                    name="jurisdictionId"
+                    label={hint('Jurisdiction', 'The country whose law governs this entity’s trading contracts — drives which regulatory regime and default netting rules apply.', 'GB')}
                     style={{ width: '50%' }}
                     rules={[{ required: true, message: 'Required' }]}
                   >
@@ -211,7 +211,7 @@ export function LegalEntityFormDrawer({ open, onClose, editing, onSaved }: Props
                       optionFilterProp="label"
                     />
                   </Form.Item>
-                  <Form.Item name="incorporationCountry" label="Incorporation Country" style={{ width: '50%' }}>
+                  <Form.Item name="incorporationCountryId" label="Incorporation Country" style={{ width: '50%' }}>
                     <Select
                       options={countryOptions}
                       loading={loadingCountries}
@@ -225,8 +225,8 @@ export function LegalEntityFormDrawer({ open, onClose, editing, onSaved }: Props
                   <Input placeholder="Companies House number, etc." />
                 </Form.Item>
                 <Form.Item
-                  name="baseCurrency"
-                  label={hint('Base Currency (ISO 3)', 'Functional currency this entity’s books, P&L, and financial statements are measured in.', 'USD')}
+                  name="baseCurrencyId"
+                  label={hint('Base Currency', 'Functional currency this entity’s books, P&L, and financial statements are measured in.', 'USD')}
                   rules={[{ required: true, message: 'Required' }]}
                 >
                   <Select

@@ -9,6 +9,8 @@ import { buildAgGridTheme } from '@theme/ag-grid-theme';
 import { useThemeStore } from '@store/themeStore';
 import { useCounterparties, useDeactivateCounterparty } from './hooks';
 import { useCustomConfigOptions } from './configLookups';
+import { useCountries } from '@features/reference/countries/hooks';
+import { useCurrencies } from '@features/reference/currencies/hooks';
 import type { Counterparty } from './types';
 
 const KYC_TAG_COLOR: Record<string, string> = {
@@ -26,6 +28,10 @@ export function CounterpartyListPage() {
   const deactivateMutation = useDeactivateCounterparty();
   const { data: cpTypeOptions = [] } = useCustomConfigOptions('COUNTERPARTY_TYPE');
   const { data: kycStatusOptions = [] } = useCustomConfigOptions('KYC_STATUS');
+  const { data: countries = [] } = useCountries();
+  const { data: currencies = [] } = useCurrencies();
+  const countryCodeById = (id: number) => countries.find((c) => c.countryId === id)?.countryCode ?? '—';
+  const currencyCodeById = (id: number) => currencies.find((c) => c.currencyId === id)?.currencyCode ?? '—';
   const [kycFilter, setKycFilter] = useState<number | 'ALL'>('ALL');
   const mode = useThemeStore((s) => s.mode);
   const gridTheme = useMemo(() => buildAgGridTheme(mode), [mode]);
@@ -48,7 +54,10 @@ export function CounterpartyListPage() {
         field: 'cpType', headerName: 'Type', width: 130,
         cellRenderer: (p: { value: number }) => cpTypeOptions.find((o) => o.value === p.value)?.label ?? '—',
       },
-      { field: 'jurisdiction', headerName: 'Jur.', width: 80, cellClass: 'cell-mono' },
+      {
+        field: 'jurisdictionId', headerName: 'Jur.', width: 80, cellClass: 'cell-mono',
+        cellRenderer: (p: { value: number }) => countryCodeById(p.value),
+      },
       {
         field: 'kycStatus',
         headerName: 'KYC Status',
@@ -64,7 +73,7 @@ export function CounterpartyListPage() {
         width: 150,
         cellClass: 'cell-mono',
         valueFormatter: (p) =>
-          p.value == null ? '—' : `${p.data?.creditLimitCurrency} ${Number(p.value).toLocaleString()}`,
+          p.value == null ? '—' : `${currencyCodeById(p.data?.creditLimitCurrencyId ?? 0)} ${Number(p.value).toLocaleString()}`,
       },
       {
         field: 'isActive',
@@ -103,7 +112,7 @@ export function CounterpartyListPage() {
         ),
       },
     ],
-    [deactivateMutation, navigate, cpTypeOptions, kycStatusOptions],
+    [deactivateMutation, navigate, cpTypeOptions, kycStatusOptions, countries, currencies],
   );
 
   return (

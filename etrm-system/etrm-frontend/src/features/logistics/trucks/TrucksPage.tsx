@@ -12,6 +12,7 @@ import { useTrucks, useSaveTruck, useDeactivateTruck } from './hooks';
 import { VEHICLE_TYPES, VEHICLE_STATUS_CODES, type Truck, type TruckInput, type VehicleType, type VehicleStatusCode } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
+import { useCountries } from '@features/reference/countries/hooks';
 
 const TYPE_COLOR: Record<VehicleType, string> = {
   ROAD_TANKER: 'blue',
@@ -33,6 +34,9 @@ export function TrucksPage() {
   const { data, isLoading, refetch } = useTrucks();
   const save = useSaveTruck();
   const deactivate = useDeactivateTruck();
+  const { data: countries = [] } = useCountries();
+  const countryOptions = countries.map((c) => ({ value: c.countryId, label: `${c.countryCode} — ${c.countryName}` }));
+  const countryLabelById = new Map(countries.map((c) => [c.countryId, `${c.countryCode} — ${c.countryName}`]));
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Truck | null>(null);
   const [form] = Form.useForm<TruckInput>();
@@ -56,7 +60,7 @@ export function TrucksPage() {
       operatorName: t.operatorName,
       capacity: t.capacity,
       capacityUomCode: t.capacityUomCode,
-      countryCode: t.countryCode,
+      countryId: t.countryId,
       gvwTonnes: t.gvwTonnes ?? undefined,
       licenseExpiryDate: t.licenseExpiryDate ? (dayjs(t.licenseExpiryDate) as unknown as string) : undefined,
       inspectionExpiryDate: t.inspectionExpiryDate ? (dayjs(t.inspectionExpiryDate) as unknown as string) : undefined,
@@ -103,7 +107,7 @@ export function TrucksPage() {
       headerName: 'Capacity', width: 130,
       valueGetter: (p) => p.data ? `${p.data.capacity.toLocaleString()} ${p.data.capacityUomCode}` : '',
     },
-    { field: 'countryCode', headerName: 'Country', width: 90 },
+    { field: 'countryId', headerName: 'Country', width: 130, valueFormatter: (p) => countryLabelById.get(p.value) ?? String(p.value) },
     {
       field: 'inspectionExpiryDate', headerName: 'Inspection Expiry', width: 160,
       cellRenderer: (p: { value: string | null }) =>
@@ -134,7 +138,7 @@ export function TrucksPage() {
         </Space>
       ),
     },
-  ], [deactivate]);
+  ], [deactivate, countryLabelById]);
 
   return (
     <>
@@ -225,11 +229,11 @@ export function TrucksPage() {
           </Space>
 
           <Form.Item
-            name="countryCode"
-            label="Country Code"
-            rules={[{ required: true, message: 'Country code is required' }]}
+            name="countryId"
+            label="Country"
+            rules={[{ required: true, message: 'Country is required' }]}
           >
-            <Input placeholder="GB" maxLength={2} style={{ fontFamily: 'monospace', textTransform: 'uppercase' }} />
+            <Select options={countryOptions} showSearch optionFilterProp="label" placeholder="Select country" />
           </Form.Item>
 
           <Form.Item

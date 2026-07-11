@@ -327,8 +327,12 @@ export function ReferenceDataTable({ table }: Props) {
   // batch (useQueries handles the variable-length list safely; this
   // component remounts per table via Tier2HomePage's `key`, so the list is
   // stable for the component's lifetime).
+  // `country` is handled as a special case below (real /countries API, keyed
+  // by the numeric countryId now on that entity — see the countryRows/
+  // countryFkOptions block further down) rather than through the generic
+  // /reference-data/:table fetch, so it's excluded from the generic fetch list.
   const fkTables = useMemo(
-    () => Array.from(new Set(editableColumns.filter((c) => c.kind === 'foreign_key' && c.foreignKeyTable).map((c) => c.foreignKeyTable as string))),
+    () => Array.from(new Set(editableColumns.filter((c) => c.kind === 'foreign_key' && c.foreignKeyTable && c.foreignKeyTable !== 'country').map((c) => c.foreignKeyTable as string))),
     [editableColumns],
   );
   const fkResults = useQueries({
@@ -369,9 +373,23 @@ export function ReferenceDataTable({ table }: Props) {
     () => new Map((lookupCategoryRows as ReferenceDataRow[]).map((r) => [r['categoryCode'] as string, r['categoryId'] as number])),
     [lookupCategoryRows],
   );
+  // Every table in this app fetches the real /countries API once (unconditional
+  // hook call — cheap, cached) and reuses it for both the ISO_3166_COLS
+  // string-code special case below and any `foreign_key` column pointing at
+  // 'country' (numeric countryId FK, e.g. regulatory_report_type.jurisdictionId).
+  const { data: countryRows = [] } = useCountries();
+  const countryFkOptions = useMemo(
+    () => countryRows.map((c) => ({ value: c.countryId, label: `${c.countryCode} — ${c.countryName}` })),
+    [countryRows],
+  );
+
   const fkOptions = useMemo(() => {
     const map: Record<string, { value: number; label: string }[]> = {};
     fkTargets.forEach(([key, { table, category }]) => {
+      if (table === 'country') {
+        map[key] = countryFkOptions;
+        return;
+      }
       const i = fkTables.indexOf(table);
       let targetRows = (fkResults[i]?.data ?? []) as ReferenceDataRow[];
       if (category) {
@@ -382,13 +400,13 @@ export function ReferenceDataTable({ table }: Props) {
       map[key] = targetRows.map((r) => ({ value: r[pkField] as number, label: fkOptionLabel(r, r[pkField] as number) }));
     });
     return map;
-  }, [fkTargets, fkTables, fkResults, fkMetaResults, categoryIdByCode]);
+  }, [fkTargets, fkTables, fkResults, fkMetaResults, categoryIdByCode, countryFkOptions]);
 
   // ISO_3166_COLS columns (countryCode/jurisdictionCode/incorporationCountry)
-  // resolve against the real country reference entity, fetched once here and
-  // reused by name across every table — see fieldControl's doc comment.
+  // resolve against the real country reference entity — see fieldControl's
+  // doc comment. Keyed by countryCode (string), distinct from the numeric
+  // countryFkOptions above used by `foreign_key` columns.
   const hasCountryColumn = useMemo(() => editableColumns.some((c) => ISO_3166_COLS.has(c.name)), [editableColumns]);
-  const { data: countryRows = [] } = useCountries();
   const countryOptions = useMemo(
     () => (hasCountryColumn ? countryRows.map((c) => ({ value: c.countryCode, label: `${c.countryCode} — ${c.countryName}` })) : []),
     [hasCountryColumn, countryRows],

@@ -222,9 +222,9 @@ function RoleFormModal({ open, editing, modules, functions, onClose }: RoleFormM
             <Form.Item
               name="roleCode"
               label={hint('Role Code', 'Short unique identifier for this custom role — always stored uppercase. System roles are seeded and cannot be edited or created here.', 'CRUDE_TRADER')}
-              rules={[{ required: true }, { max: 50 }]}
+              rules={[{ required: true }, { max: 30 }]}
             >
-              <Input placeholder="e.g. CRUDE_TRADER" disabled={!!editing || isSystem} style={{ textTransform: 'uppercase' }} />
+              <Input placeholder="e.g. CRUDE_TRADER" maxLength={30} showCount disabled={!!editing || isSystem} style={{ textTransform: 'uppercase' }} />
             </Form.Item>
           </Col>
           <Col span={14}>

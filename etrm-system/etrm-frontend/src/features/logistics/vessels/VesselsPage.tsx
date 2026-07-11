@@ -12,6 +12,7 @@ import { useVessels, useSaveVessel, useDeactivateVessel } from './hooks';
 import { VESSEL_TYPES, VESSEL_STATUS_CODES, type Vessel, type VesselInput, type VesselType, type VesselStatusCode } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
+import { useCountries } from '@features/reference/countries/hooks';
 
 const TYPE_COLOR: Record<VesselType, string> = {
   VLCC: 'blue', SUEZMAX: 'geekblue', AFRAMAX: 'purple', PANAMAX: 'cyan',
@@ -29,6 +30,9 @@ export function VesselsPage() {
   const { data, isLoading, refetch } = useVessels();
   const save = useSaveVessel();
   const deactivate = useDeactivateVessel();
+  const { data: countries = [] } = useCountries();
+  const countryOptions = countries.map((c) => ({ value: c.countryId, label: `${c.countryCode} — ${c.countryName}` }));
+  const countryLabelById = new Map(countries.map((c) => [c.countryId, `${c.countryCode} — ${c.countryName}`]));
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Vessel | null>(null);
   const [form] = Form.useForm<VesselInput>();
@@ -40,7 +44,7 @@ export function VesselsPage() {
     setEditing(v);
     form.setFieldsValue({
       imoNumber: v.imoNumber, vesselName: v.vesselName, vesselType: v.vesselType, dwt: v.dwt,
-      grossTonnage: v.grossTonnage, buildYear: v.buildYear, flag: v.flag, owner: v.owner ?? undefined,
+      grossTonnage: v.grossTonnage, buildYear: v.buildYear, flagCountryId: v.flagCountryId, buildCountryId: v.buildCountryId ?? undefined, owner: v.owner ?? undefined,
       operator: v.operator ?? undefined, classificationSociety: v.classificationSociety ?? undefined,
       vettingExpiry: v.vettingExpiry ? (dayjs(v.vettingExpiry) as unknown as string) : undefined,
       sireInspectionDate: v.sireInspectionDate ? (dayjs(v.sireInspectionDate) as unknown as string) : undefined,
@@ -69,7 +73,7 @@ export function VesselsPage() {
     { field: 'vesselType', headerName: 'Type', width: 140, cellRenderer: (p: { value: VesselType }) => <Tag color={TYPE_COLOR[p.value] ?? 'default'}>{p.value.replace(/_/g, ' ')}</Tag> },
     { field: 'dwt', headerName: 'DWT (MT)', width: 115, cellClass: 'cell-mono', valueFormatter: (p) => p.value != null ? Number(p.value).toLocaleString() : '—',
       tooltipValueGetter: () => 'Deadweight Tonnage — maximum cargo carrying capacity in metric tons. VLCC: 250,000-320,000 DWT. Aframax: 80,000-120,000 DWT.' },
-    { field: 'flag', headerName: 'Flag', width: 80, cellClass: 'cell-mono' },
+    { field: 'flagCountryId', headerName: 'Flag', width: 130, valueFormatter: (p) => countryLabelById.get(p.value) ?? String(p.value) },
     { field: 'classificationSociety', headerName: 'Class', width: 120, valueFormatter: (p) => p.value ?? '—',
       tooltipValueGetter: () => 'Classification society certifying vessel seaworthiness: LR (Lloyd\'s Register), DNV, Bureau Veritas, ABS, ClassNK, RINA' },
     { field: 'vettingExpiry', headerName: 'Vetting Expiry', width: 160,
@@ -90,7 +94,7 @@ export function VesselsPage() {
         </Space>
       ),
     },
-  ], [deactivate]);
+  ], [deactivate, countryLabelById]);
 
   return (
     <>
@@ -148,13 +152,16 @@ export function VesselsPage() {
             </Space>
           )}
           <Space style={{ width: '100%', gap: 12 }}>
-            <Form.Item name="flag" label={hint('Flag State', 'ISO 3166-1 alpha-2 country code of vessel registry. Determines which maritime law governs the vessel. Common flags: LR (Liberia), MH (Marshall Islands), PA (Panama), BS (Bahamas).', 'LR')} rules={[{ required: true }]} style={{ flex: 1 }}>
-              <Input placeholder="LR" maxLength={2} style={{ fontFamily: 'monospace', textTransform: 'uppercase' }} />
+            <Form.Item name="flagCountryId" label={hint('Flag State', 'Country of vessel registry. Determines which maritime law governs the vessel. Common flags: Liberia, Marshall Islands, Panama, Bahamas.', 'LR')} rules={[{ required: true }]} style={{ flex: 1 }}>
+              <Select options={countryOptions} showSearch optionFilterProp="label" placeholder="Select flag state" />
             </Form.Item>
-            <Form.Item name="classificationSociety" label={hint('Classification Society', 'Technical body that certifies vessel structural integrity and equipment. IACS members: LR (Lloyd\'s Register), DNV (Det Norske Veritas), BV (Bureau Veritas), ABS, ClassNK, RINA. Required for vetting approval.', 'DNV')} style={{ flex: 1 }}>
-              <Input placeholder="DNV" style={{ fontFamily: 'monospace' }} />
+            <Form.Item name="buildCountryId" label={hint('Build Country', 'Country where the vessel was constructed — recorded from the shipyard, not the flag state.', 'JP')} style={{ flex: 1 }}>
+              <Select options={countryOptions} showSearch optionFilterProp="label" allowClear placeholder="Select build country" />
             </Form.Item>
           </Space>
+          <Form.Item name="classificationSociety" label={hint('Classification Society', 'Technical body that certifies vessel structural integrity and equipment. IACS members: LR (Lloyd\'s Register), DNV (Det Norske Veritas), BV (Bureau Veritas), ABS, ClassNK, RINA. Required for vetting approval.', 'DNV')}>
+            <Input placeholder="DNV" style={{ fontFamily: 'monospace' }} />
+          </Form.Item>
           <Form.Item name="owner" label={hint('Owner', 'Registered shipowner (legal owner). May differ from commercial operator — important for sanctions screening.', 'Nordic Tankers AS')}>
             <Input placeholder="Shipowner name" />
           </Form.Item>

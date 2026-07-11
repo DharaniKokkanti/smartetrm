@@ -6,7 +6,7 @@ export interface HolidayCalendar {
   calendarCode: string;
   calendarName: string;
   calendarType: CalendarType;
-  countryCode: string | null;
+  countryId: number | null;
   currencyCode: string | null;
   description: string | null;
   isActive: boolean;

@@ -24,11 +24,12 @@ export function TaxRegistrationsSection({ items, onChange, entityType = 'COUNTER
   const { data: countries = [], isLoading: loadingCountries } = useCountries();
   const countryOptions = countries
     .filter((c) => c.isActive)
-    .map((c) => ({ label: `${c.countryCode} — ${c.countryName}`, value: c.countryCode }));
+    .map((c) => ({ label: `${c.countryCode} — ${c.countryName}`, value: c.countryId }));
+  const countryLabelById = new Map(countries.map((c) => [c.countryId, `${c.countryCode} — ${c.countryName}`]));
   const columns: ColumnsType<TaxRegistration> = [
     { title: 'Type', dataIndex: 'taxType', width: 90, render: (v: number) => taxTypeOptions.find((o) => o.value === v)?.label ?? '—' },
     { title: 'Registration No.', dataIndex: 'taxId' },
-    { title: 'Jurisdiction', dataIndex: 'jurisdiction', width: 100 },
+    { title: 'Jurisdiction', dataIndex: 'jurisdictionId', width: 100, render: (v: number) => countryLabelById.get(v) ?? '—' },
     { title: 'Issuing Authority', dataIndex: 'issuingAuthority', render: (v) => v || '—' },
     { title: '', key: 'primary', width: 80, render: (_, r) => <PrimaryTag isPrimary={r.isPrimary} /> },
   ];
@@ -48,7 +49,7 @@ export function TaxRegistrationsSection({ items, onChange, entityType = 'COUNTER
         entityId: 0,
         taxType: taxTypeOptions.find((o) => o.label === 'VAT')?.value ?? 0,
         taxId: '',
-        jurisdiction: countries[0]?.countryCode ?? '',
+        jurisdictionId: countries[0]?.countryId ?? 0,
         issuingAuthority: null,
         registrationDate: null,
         validFrom: null,
@@ -74,8 +75,8 @@ export function TaxRegistrationsSection({ items, onChange, entityType = 'COUNTER
             <Input placeholder="e.g. GB123456789" />
           </Form.Item>
           <Form.Item
-            name="jurisdiction"
-            label={hint('Jurisdiction (ISO 2)', 'The country this registration was issued in — an entity can hold multiple registrations across jurisdictions it operates in.', 'GB')}
+            name="jurisdictionId"
+            label={hint('Jurisdiction', 'The country this registration was issued in — an entity can hold multiple registrations across jurisdictions it operates in.', 'GB')}
             rules={[{ required: true }]}
           >
             <Select options={countryOptions} loading={loadingCountries} showSearch optionFilterProp="label" placeholder="Select country" />

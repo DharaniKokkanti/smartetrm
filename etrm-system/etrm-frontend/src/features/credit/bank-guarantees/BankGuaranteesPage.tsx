@@ -133,7 +133,7 @@ export function BankGuaranteesPage() {
         }
       >
         <Form form={form} layout="vertical">
-          <Form.Item name="bgNumber" label="BG Number" rules={[{ required: true }]}>
+          <Form.Item name="bgNumber" label={hint('BG Number', 'BG = Bank Guarantee — the issuing bank\'s reference number for this instrument.')} rules={[{ required: true }]}>
             <Input placeholder="BG-2026-0001" style={{ fontFamily: 'monospace' }} />
           </Form.Item>
           <Form.Item
@@ -189,7 +189,7 @@ export function BankGuaranteesPage() {
           <Form.Item noStyle shouldUpdate={(prev, cur) => prev.bgStatus !== cur.bgStatus}>
             {({ getFieldValue }) =>
               getFieldValue('bgStatus') === 'CALLED' && (
-                <Form.Item name="amountCalled" label="Amount Called" rules={[{ required: true }, { type: 'number', min: 0 }]}>
+                <Form.Item name="amountCalled" label={hint('Amount Called', 'Portion of the guarantee amount actually drawn/invoked by the beneficiary.')} rules={[{ required: true }, { type: 'number', min: 0 }]}>
                   <InputNumber style={{ width: '100%' }} min={0} />
                 </Form.Item>
               )

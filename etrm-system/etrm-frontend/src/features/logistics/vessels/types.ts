@@ -12,7 +12,8 @@ export interface Vessel {
   dwt: number | null;
   grossTonnage: number | null;
   buildYear: number | null;
-  flag: string;
+  flagCountryId: number;
+  buildCountryId: number | null;
   owner: string | null;
   operator: string | null;
   classificationSociety: string | null;

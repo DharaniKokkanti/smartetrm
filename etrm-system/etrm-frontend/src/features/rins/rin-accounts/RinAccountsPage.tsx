@@ -57,11 +57,12 @@ export function RinAccountsPage() {
   const colDefs = useMemo<ColDef<RinAccount>[]>(() => [
     { field: 'accountCode', headerName: 'Account Code', width: 140, pinned: 'left', cellClass: 'cell-mono' },
     { field: 'accountName', headerName: 'Account Name', flex: 1.2, minWidth: 180 },
-    { field: 'accountType', headerName: 'Type', width: 200,
+    { field: 'accountType', headerName: 'Type', flex: 1, minWidth: 200,
       cellRenderer: (p: { value: string }) => {
         const label = ACCOUNT_TYPE_OPTS.find((o) => o.value === p.value)?.label ?? p.value;
         return <Tag color={ACCOUNT_TYPE_COLOR[p.value] ?? 'default'} style={{ fontSize: 10 }}>{label}</Tag>;
-      } },
+      },
+      tooltipValueGetter: (p) => ACCOUNT_TYPE_OPTS.find((o) => o.value === p.value)?.label ?? p.value },
     { field: 'entityName',    headerName: 'Legal Entity',   flex: 1, minWidth: 160 },
     { field: 'epaCompanyId',  headerName: 'EPA Company ID', width: 140, cellClass: 'cell-mono' },
     { field: 'epaFacilityId', headerName: 'EPA Facility ID', width: 145, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },

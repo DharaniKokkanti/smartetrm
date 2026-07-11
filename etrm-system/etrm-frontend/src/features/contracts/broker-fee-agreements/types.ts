@@ -55,8 +55,10 @@ export interface BrokerFeeAgreement {
   tradeType: 'PHYSICAL' | 'FINANCIAL' | null;
   feeType: FeeType;
   feeRate: number;
-  feeCurrencyCode: string;
-  uomCode: string | null;
+  feeCurrencyId: number;
+  feeCurrencyCode: string;   // denormalized display code, e.g. USD
+  uomId: number | null;
+  uomCode: string | null;   // denormalized display code, e.g. BBL
   payPeriod: PayPeriod;
   paymentDueDays: number;
   minimumFee: number | null;
@@ -69,5 +71,5 @@ export interface BrokerFeeAgreement {
 
 export type BrokerFeeAgreementInput = Omit<
   BrokerFeeAgreement,
-  'agreementId' | 'brokerCode' | 'brokerName' | 'productName' | 'createdAt'
+  'agreementId' | 'brokerCode' | 'brokerName' | 'productName' | 'uomCode' | 'feeCurrencyCode' | 'createdAt'
 >;

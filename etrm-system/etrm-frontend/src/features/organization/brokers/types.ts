@@ -8,9 +8,9 @@ export interface Broker {
   contactEmail: string | null;
   contactPhone: string | null;
   website: string | null;
-  countryCode: string | null;
+  countryId: number | null; // FK -> dbo.country(country_id)
   legalDocId: string | null;        // Master agreement / OBA reference, e.g. OBA-ICAP-2024-001
-  commissionUomCode: string | null; // UoM for commission rate (BBL, MT, MWH)
+  commissionUomId: number | null;   // UoM for commission rate (BBL, MT, MWH)
   commissionNotes: string | null;   // Fee schedule or special commission terms
   isActive: boolean;
   createdAt: string;

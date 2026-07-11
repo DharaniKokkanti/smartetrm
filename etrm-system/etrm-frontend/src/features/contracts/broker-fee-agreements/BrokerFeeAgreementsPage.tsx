@@ -21,6 +21,8 @@ import {
 } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { useTableRows } from '@features/tier2/hooks';
+import { useUom } from '@features/reference/uom/hooks';
+import { useCurrencies } from '@features/reference/currencies/hooks';
 
 const { Text } = Typography;
 
@@ -48,6 +50,13 @@ export function BrokerFeeAgreementsPage() {
   const deactivate = useDeactivateBrokerFeeAgreement();
   const { data: brokers = [] } = useBrokers();
   const { data: products = [] } = useProducts();
+  const { data: uoms = [] } = useUom();
+  const uomOptions = useMemo(() => uoms.map((u) => ({ value: u.uomId, label: u.uomCode })), [uoms]);
+  const { data: currencies = [] } = useCurrencies();
+  const currencyOptions = useMemo(
+    () => currencies.map((c) => ({ value: c.currencyId, label: `${c.currencyCode} — ${c.currencyName}` })),
+    [currencies],
+  );
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<BrokerFeeAgreement | null>(null);
@@ -69,7 +78,7 @@ export function BrokerFeeAgreementsPage() {
     setSelectedCommodity(null);
     setSelectedFeeType('PER_LOT');
     form.resetFields();
-    form.setFieldsValue({ feeType: 'PER_LOT', payPeriod: 'MONTHLY', paymentDueDays: 30, isActive: true });
+    form.setFieldsValue({ feeType: 'PER_LOT', feeCurrencyId: 1, payPeriod: 'MONTHLY', paymentDueDays: 30, isActive: true });
     setOpen(true);
   }
 
@@ -86,8 +95,8 @@ export function BrokerFeeAgreementsPage() {
       tradeType:        row.tradeType ?? undefined,
       feeType:          row.feeType,
       feeRate:          row.feeRate,
-      feeCurrencyCode:  row.feeCurrencyCode,
-      uomCode:          row.uomCode ?? undefined,
+      feeCurrencyId:    row.feeCurrencyId,
+      uomId:            row.uomId ?? undefined,
       payPeriod:        row.payPeriod,
       paymentDueDays:   row.paymentDueDays,
       minimumFee:       row.minimumFee ?? undefined,
@@ -112,7 +121,7 @@ export function BrokerFeeAgreementsPage() {
         <Tag color="geekblue" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{p.value}</Tag>
       ),
     },
-    { field: 'brokerName', headerName: 'Broker', width: 200 },
+    { field: 'brokerName', headerName: 'Broker', flex: 1, minWidth: 200, tooltipValueGetter: (p) => p.value },
     {
       field: 'commodityType', headerName: 'Commodity', width: 110,
       cellRenderer: (p: { value: string | null }) =>
@@ -121,8 +130,9 @@ export function BrokerFeeAgreementsPage() {
           : <Text type="secondary" style={{ fontSize: 11 }}>All</Text>,
     },
     {
-      field: 'productName', headerName: 'Product', width: 160,
+      field: 'productName', headerName: 'Product', flex: 1, minWidth: 160,
       valueFormatter: (p) => p.value ?? '—',
+      tooltipValueGetter: (p) => p.value,
       cellStyle: { fontSize: 12, color: '#6b7280' },
     },
     {
@@ -352,28 +362,31 @@ export function BrokerFeeAgreementsPage() {
             </Form.Item>
 
             <Form.Item
-              name="feeCurrencyCode"
+              name="feeCurrencyId"
               label="Currency"
               rules={[{ required: true }]}
               style={{ flex: 1 }}
             >
               <Select
                 showSearch
-                placeholder="USD"
-                options={['USD', 'EUR', 'GBP', 'JPY', 'SGD', 'AUD'].map((c) => ({ value: c, label: c }))}
+                optionFilterProp="label"
+                placeholder="Select currency"
+                options={currencyOptions}
               />
             </Form.Item>
 
             {selectedFeeType === 'PER_LOT' && (
               <Form.Item
-                name="uomCode"
+                name="uomId"
                 label={hint('UoM', 'Unit of measure the rate applies to.')}
                 rules={[{ required: true, message: 'Select UoM for per-lot fee' }]}
                 style={{ flex: 1 }}
               >
                 <Select
                   placeholder="BBL"
-                  options={['BBL', 'MT', 'MWH', 'MMBTU', 'THERM', 'M3', 'LOT'].map((u) => ({ value: u, label: u }))}
+                  showSearch
+                  optionFilterProp="label"
+                  options={uomOptions}
                 />
               </Form.Item>
             )}

@@ -13,6 +13,8 @@ import {
 import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import dayjs, { type Dayjs } from 'dayjs';
+import { useUom } from '@features/reference/uom/hooks';
+import { useCurrencies } from '@features/reference/currencies/hooks';
 
 const STATUS_COLOR: Record<BalmoProductStatus, string> = {
   ACTIVE: 'success', EXPIRED: 'default', SUSPENDED: 'warning',
@@ -25,11 +27,15 @@ export function BalmoProductsPage() {
   const [editing, setEditing] = useState<BalmoProduct | null>(null);
   const [form] = Form.useForm<BalmoProductInput>();
   useFormDraft('pricing-balmo-products', { form, open, setOpen, editing, setEditing });
+  const { data: uoms = [] } = useUom();
+  const uomOptions = uoms.map((u) => ({ value: u.uomId, label: u.uomCode }));
+  const { data: currencies = [] } = useCurrencies();
+  const currencyOptions = currencies.map((c) => ({ value: c.currencyId, label: c.currencyCode }));
 
   function openNew() {
     setEditing(null);
     form.resetFields();
-    form.setFieldsValue({ status: 'ACTIVE', tickCurrency: 'USD', priceSource: 'CME', tickSize: 0.01 });
+    form.setFieldsValue({ status: 'ACTIVE', tickCurrencyId: 1, priceSource: 'CME', tickSize: 0.01 });
     setOpen(true);
   }
   function openEdit(r: BalmoProduct) {
@@ -124,7 +130,7 @@ export function BalmoProductsPage() {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item name="productCode" label={hint('Product Code', 'Unique code — convention: BALMO-{SERIES}-{YYYY}-{MM}. Example: BALMO-CL-2026-07.')} rules={[{ required: true }]}>
-                <Input placeholder="BALMO-CL-2026-07" style={{ fontFamily: 'monospace' }} />
+                <Input placeholder="BALMO-CL-2026-07" maxLength={30} showCount style={{ fontFamily: 'monospace' }} />
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -184,13 +190,13 @@ export function BalmoProductsPage() {
               </Form.Item>
             </Col>
             <Col span={8}>
-              <Form.Item name="tickCurrency" label="Tick Currency" rules={[{ required: true }]}>
-                <Input placeholder="USD" maxLength={3} style={{ fontFamily: 'monospace', textTransform: 'uppercase' }} />
+              <Form.Item name="tickCurrencyId" label="Tick Currency" rules={[{ required: true }]}>
+                <Select options={currencyOptions} showSearch optionFilterProp="label" placeholder="USD" />
               </Form.Item>
             </Col>
             <Col span={8}>
-              <Form.Item name="uomCode" label="UoM" rules={[{ required: true }]}>
-                <Input placeholder="BBL" maxLength={10} style={{ fontFamily: 'monospace' }} />
+              <Form.Item name="uomId" label="UoM" rules={[{ required: true }]}>
+                <Select options={uomOptions} showSearch optionFilterProp="label" placeholder="BBL" />
               </Form.Item>
             </Col>
           </Row>

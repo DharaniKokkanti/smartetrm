@@ -245,10 +245,10 @@ export function GuaranteeFormDrawer({ open, onClose, editing, prefill }: Props) 
       <Form form={form} layout="vertical">
         <Form.Item
           name="pcgReference"
-          label="PCG Reference"
-          rules={[{ required: true }, { max: 50 }]}
+          label={hint('PCG Reference', 'PCG = Parent Company Guarantee — reference number for the guaranteeing document.')}
+          rules={[{ required: true }, { max: 30 }]}
         >
-          <Input placeholder="e.g. PCG-2026-0001" disabled={!!editing} />
+          <Input placeholder="e.g. PCG-2026-0001" maxLength={30} showCount disabled={!!editing} />
         </Form.Item>
         <Form.Item
           name="direction"

@@ -14,7 +14,7 @@ export interface Book {
   responsibleTraderName: string | null;
   // FK to lookup_value(lookup_id), category='commodity_type' — see desks/types.ts COMMODITY_TYPE_LOOKUP.
   commodityType: number | null;
-  currencyCode: string;
+  baseCurrencyId: number; // FK -> dbo.currency(currency_id), NOT NULL default USD
   positionLimit: number | null;
   pnlLimit: number | null;
   varLimit: number | null;

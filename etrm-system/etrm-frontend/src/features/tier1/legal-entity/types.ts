@@ -20,10 +20,10 @@ export interface LegalEntity {
    *  be populated (V62: added alongside a CHECK enforcing the two agree). */
   parentInd: boolean;
   parentEntityId: number | null;
-  jurisdiction: string; // CHAR(2), FK -> country.country_code (V86)
-  incorporationCountry: string | null; // CHAR(2), FK -> country.country_code (V86)
+  jurisdictionId: number; // FK -> dbo.country(country_id) (V95, was CHAR(2) jurisdiction)
+  incorporationCountryId: number | null; // FK -> dbo.country(country_id) (V95, was CHAR(2) incorporationCountry)
   incorporationNumber: string | null;
-  baseCurrency: string; // CHAR(3), FK -> currency.currency_code
+  baseCurrencyId: number; // FK -> dbo.currency(currency_id), NOT NULL default USD (V95, was CHAR(3) baseCurrency)
   defaultTimezone: string | null;
   regulator: string | null;
   regulatoryLicence: string | null;
@@ -44,8 +44,13 @@ export type LegalEntityInput = Omit<
   'legalEntityId' | 'isActive' | 'deactivatedDate' | 'createdAt' | 'createdBy' | 'updatedAt' | 'updatedBy'
 >;
 
-/** Row shape produced by Excel upload parsing, before it's been validated/sent. */
+/** Row shape produced by Excel upload parsing, before it's been validated/sent.
+ *  _jurisdictionCode/_baseCurrencyCode carry the raw ISO codes typed into the
+ *  spreadsheet, purely for display in the review table (the real values sent
+ *  on import are the resolved jurisdictionId/baseCurrencyId). */
 export interface LegalEntityUploadRow extends LegalEntityInput {
   _rowNumber: number;
   _errors: string[];
+  _jurisdictionCode: string;
+  _baseCurrencyCode: string;
 }

@@ -11,6 +11,7 @@ import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import { useCounterparties } from '@features/trade/hooks';
 import { useTableRows } from '@features/tier2/hooks';
+import { useCurrencies } from '@features/reference/currencies/hooks';
 import { useMarginAgreements, useSaveMarginAgreement, useDeactivateMarginAgreement } from './hooks';
 import type { MarginAgreement, MarginAgreementInput } from './types';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
@@ -47,11 +48,17 @@ export function MarginAgreementsPage() {
   const { data: agreementTypeRows = [] }     = useTableRows('margin_agreement_type');
   const { data: valuationFreqRows = [] }     = useTableRows('valuation_frequency_type');
   const { data: governingLawRows = [] }      = useTableRows('governing_law_type');
+  const { data: currencies = [] }            = useCurrencies();
 
   type LookupRow = { typeCode: string; typeName: string };
   const agreementTypeOpts = (agreementTypeRows as LookupRow[]).map((r) => ({ value: r.typeCode, label: r.typeName }));
   const valuationFreqOpts = (valuationFreqRows as LookupRow[]).map((r) => ({ value: r.typeCode, label: r.typeName }));
   const governingLawOpts  = (governingLawRows  as LookupRow[]).map((r) => ({ value: r.typeCode, label: r.typeName }));
+  const currencyOpts = useMemo(
+    () => currencies.map((c) => ({ value: c.currencyId, label: `${c.currencyCode} — ${c.currencyName}` })),
+    [currencies],
+  );
+  const currencyCodeById = useMemo(() => new Map(currencies.map((c) => [c.currencyId, c.currencyCode])), [currencies]);
 
   const [open, setOpen]       = useState(false);
   const [editing, setEditing] = useState<MarginAgreement | null>(null);
@@ -63,9 +70,9 @@ export function MarginAgreementsPage() {
     form.resetFields();
     form.setFieldsValue({
       agreementType: 'CSA_BILATERAL',
-      thresholdAmount: 0, thresholdCurrency: 'USD',
-      cpThresholdAmount: 0, cpThresholdCurrency: 'USD',
-      mtaAmount: 100000, mtaCurrency: 'USD',
+      thresholdAmount: 0, thresholdCurrencyId: 1,
+      cpThresholdAmount: 0, cpThresholdCurrencyId: 1,
+      mtaAmount: 100000, mtaCurrencyId: 1,
       roundingAmount: 1000,
       valuationFrequency: 'DAILY',
       govLaw: 'ENGLISH',
@@ -116,17 +123,17 @@ export function MarginAgreementsPage() {
     { field: 'counterpartyName', headerName: 'Counterparty', flex: 1, minWidth: 150 },
     {
       headerName: 'Our Threshold', width: 145,
-      valueGetter: (p) => `${p.data?.thresholdCurrency} ${(p.data?.thresholdAmount ?? 0).toLocaleString()}`,
+      valueGetter: (p) => `${p.data ? currencyCodeById.get(p.data.thresholdCurrencyId) ?? '' : ''} ${(p.data?.thresholdAmount ?? 0).toLocaleString()}`,
       cellClass: 'cell-mono',
     },
     {
       headerName: 'CP Threshold', width: 145,
-      valueGetter: (p) => `${p.data?.cpThresholdCurrency} ${(p.data?.cpThresholdAmount ?? 0).toLocaleString()}`,
+      valueGetter: (p) => `${p.data ? currencyCodeById.get(p.data.cpThresholdCurrencyId) ?? '' : ''} ${(p.data?.cpThresholdAmount ?? 0).toLocaleString()}`,
       cellClass: 'cell-mono',
     },
     {
       headerName: 'MTA', width: 130,
-      valueGetter: (p) => `${p.data?.mtaCurrency} ${(p.data?.mtaAmount ?? 0).toLocaleString()}`,
+      valueGetter: (p) => `${p.data ? currencyCodeById.get(p.data.mtaCurrencyId) ?? '' : ''} ${(p.data?.mtaAmount ?? 0).toLocaleString()}`,
       cellClass: 'cell-mono',
     },
     { field: 'valuationFrequency', headerName: 'Valuation', width: 95 },
@@ -150,7 +157,7 @@ export function MarginAgreementsPage() {
         </Space>
       ),
     },
-  ], [deactivate]);
+  ], [deactivate, currencyCodeById]);
 
   return (
     <>
@@ -222,8 +229,8 @@ export function MarginAgreementsPage() {
               </Form.Item>
             </Col>
             <Col span={10}>
-              <Form.Item name="thresholdCurrency" label="Currency" rules={[{ required: true }]}>
-                <Input placeholder="USD" style={{ fontFamily: 'monospace' }} />
+              <Form.Item name="thresholdCurrencyId" label="Currency" rules={[{ required: true }]}>
+                <Select options={currencyOpts} showSearch optionFilterProp="label" placeholder="Select currency" />
               </Form.Item>
             </Col>
           </Row>
@@ -238,8 +245,8 @@ export function MarginAgreementsPage() {
               </Form.Item>
             </Col>
             <Col span={10}>
-              <Form.Item name="cpThresholdCurrency" label="Currency" rules={[{ required: true }]}>
-                <Input placeholder="USD" style={{ fontFamily: 'monospace' }} />
+              <Form.Item name="cpThresholdCurrencyId" label="Currency" rules={[{ required: true }]}>
+                <Select options={currencyOpts} showSearch optionFilterProp="label" placeholder="Select currency" />
               </Form.Item>
             </Col>
           </Row>
@@ -256,8 +263,8 @@ export function MarginAgreementsPage() {
               </Form.Item>
             </Col>
             <Col span={10}>
-              <Form.Item name="mtaCurrency" label="Currency" rules={[{ required: true }]}>
-                <Input placeholder="USD" style={{ fontFamily: 'monospace' }} />
+              <Form.Item name="mtaCurrencyId" label="Currency" rules={[{ required: true }]}>
+                <Select options={currencyOpts} showSearch optionFilterProp="label" placeholder="Select currency" />
               </Form.Item>
             </Col>
           </Row>
@@ -290,8 +297,8 @@ export function MarginAgreementsPage() {
               </Form.Item>
             </Col>
             <Col span={10}>
-              <Form.Item name="independentAmountCurrency" label="Currency">
-                <Input placeholder="USD" style={{ fontFamily: 'monospace' }} />
+              <Form.Item name="independentAmountCurrencyId" label="Currency">
+                <Select options={currencyOpts} showSearch optionFilterProp="label" placeholder="Select currency" allowClear />
               </Form.Item>
             </Col>
           </Row>

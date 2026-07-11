@@ -92,7 +92,7 @@ export function EnvironmentalProductsPage() {
             <Form.Item name="productCode" label={hint('Product Code', 'Short code used in trade capture — EUA, EUAA, UKA, CCA, REC, GO, VCU, CER.')} rules={[{ required: true }]} style={{ flex: 1 }}>
               <Input placeholder="EUA" style={{ fontFamily: 'monospace', textTransform: 'uppercase' }} />
             </Form.Item>
-            <Form.Item name="productType" label="Type" rules={[{ required: true }]} style={{ flex: 1 }}>
+            <Form.Item name="productType" label={hint('Type', 'ALLOWANCE = compliance right to emit (e.g. EUA). OFFSET = credit from an emission-reduction project. REC/GO = renewable energy attribute certificate.')} rules={[{ required: true }]} style={{ flex: 1 }}>
               <Select options={productTypeOpts} />
             </Form.Item>
           </Space>

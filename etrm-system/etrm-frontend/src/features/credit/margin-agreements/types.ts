@@ -17,16 +17,16 @@ export interface MarginAgreement {
   counterpartyName: string;
   // Our threshold — MTM > threshold means CP must post collateral
   thresholdAmount: number;
-  thresholdCurrency: string;
+  thresholdCurrencyId: number;
   // CP's threshold — MTM < −threshold means we must post
   cpThresholdAmount: number;
-  cpThresholdCurrency: string;
+  cpThresholdCurrencyId: number;
   // Minimum Transfer Amount
   mtaAmount: number;
-  mtaCurrency: string;
+  mtaCurrencyId: number;
   // Initial margin / independent amount
   independentAmount: number | null;
-  independentAmountCurrency: string | null;
+  independentAmountCurrencyId: number | null;
   roundingAmount: number | null;
   valuationFrequency: ValuationFrequency;
   eligibleCollateral: string | null;

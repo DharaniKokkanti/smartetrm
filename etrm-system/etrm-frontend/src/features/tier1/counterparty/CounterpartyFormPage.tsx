@@ -49,10 +49,7 @@ export function CounterpartyFormPage() {
   const { data: currencies = [], isLoading: loadingCurrencies } = useCurrencies();
   const countryOptions = countries
     .filter((c) => c.isActive)
-    .map((c) => ({ label: `${c.countryCode} — ${c.countryName}`, value: c.countryCode }));
-  const currencyCodeOptions = currencies
-    .filter((c) => c.isActive)
-    .map((c) => ({ label: `${c.currencyCode} — ${c.currencyName}`, value: c.currencyCode }));
+    .map((c) => ({ label: `${c.countryCode} — ${c.countryName}`, value: c.countryId }));
   const currencyIdOptions = currencies
     .filter((c) => c.isActive)
     .map((c) => ({ label: `${c.currencyCode} — ${c.currencyName}`, value: c.currencyId }));
@@ -167,7 +164,7 @@ export function CounterpartyFormPage() {
       />
 
       {loading ? <Spin /> : (
-        <Form form={coreForm} layout="vertical" initialValues={{ creditLimitCurrency: 'USD', settlementDays: 2, isIntercompany: false, parentInd: false }}>
+        <Form form={coreForm} layout="vertical" initialValues={{ creditLimitCurrencyId: 1, settlementDays: 2, isIntercompany: false, parentInd: false }}>
           <Tabs defaultActiveKey="core" items={[
             {
               key: 'core', label: 'Core',
@@ -190,8 +187,8 @@ export function CounterpartyFormPage() {
                     <Select options={cpTypeOptions} loading={loadingCpTypes} />
                   </Form.Item>
                   <Form.Item
-                    name="jurisdiction"
-                    label={hint('Jurisdiction (ISO 2)', 'The country whose law governs contracts with this counterparty — drives default netting and dispute-resolution rules.', 'GB')}
+                    name="jurisdictionId"
+                    label={hint('Jurisdiction', 'The country whose law governs contracts with this counterparty — drives default netting and dispute-resolution rules.', 'GB')}
                     rules={[{ required: true }]}
                   >
                     <Select options={countryOptions} loading={loadingCountries} showSearch optionFilterProp="label" placeholder="Select country" />
@@ -251,8 +248,8 @@ export function CounterpartyFormPage() {
                     >
                       <InputNumber style={{ width: '100%' }} min={0} />
                     </Form.Item>
-                    <Form.Item name="creditLimitCurrency" label="Currency" style={{ width: '40%' }} rules={[{ required: true }]}>
-                      <Select options={currencyCodeOptions} loading={loadingCurrencies} showSearch optionFilterProp="label" />
+                    <Form.Item name="creditLimitCurrencyId" label="Currency" style={{ width: '40%' }} rules={[{ required: true }]}>
+                      <Select options={currencyIdOptions} loading={loadingCurrencies} showSearch optionFilterProp="label" />
                     </Form.Item>
                   </Space.Compact>
                   <Form.Item name="creditReviewDate" label="Credit Review Date"><AppDatePicker /></Form.Item>

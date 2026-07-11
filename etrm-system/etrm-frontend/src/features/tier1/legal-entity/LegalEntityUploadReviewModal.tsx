@@ -27,7 +27,7 @@ export function LegalEntityUploadReviewModal({ open, rows, onClose, entityTypeLo
       onClose();
       return;
     }
-    const inputs = validRows.map(({ _rowNumber: _rn, _errors: _e, ...rest }) => rest);
+    const inputs = validRows.map(({ _rowNumber: _rn, _errors: _e, _jurisdictionCode: _jc, _baseCurrencyCode: _bc, ...rest }) => rest);
     const result = await bulkCreate.mutateAsync(inputs);
     message.success(
       `Imported ${result.created.length} legal entit${result.created.length === 1 ? 'y' : 'ies'}.` +
@@ -73,8 +73,8 @@ export function LegalEntityUploadReviewModal({ open, rows, onClose, entityTypeLo
                   { title: 'Code', dataIndex: 'entityCode' },
                   { title: 'Name', dataIndex: 'entityName' },
                   { title: 'Type', dataIndex: 'entityType', render: (v: number) => entityTypeLookup.find((r) => r.legalEntityTypeId === v)?.typeCode ?? v },
-                  { title: 'Jurisdiction', dataIndex: 'jurisdiction' },
-                  { title: 'Currency', dataIndex: 'baseCurrency' },
+                  { title: 'Jurisdiction', dataIndex: '_jurisdictionCode' },
+                  { title: 'Currency', dataIndex: '_baseCurrencyCode' },
                 ]}
               />
             ),

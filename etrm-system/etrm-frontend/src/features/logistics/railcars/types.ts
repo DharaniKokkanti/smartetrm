@@ -17,7 +17,7 @@ export interface Railcar {
   nextTestDate: string | null;
   certExpiry: string | null;
   homeRailroad: string | null;
-  countryCode: string;
+  countryId: number;
   countryName: string | null;
   isActive: boolean;
   notes: string | null;

@@ -22,6 +22,8 @@ import { useDraftState } from '@components/smart/formDraft';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@services/api';
 import type { ReferenceDataRow } from '@models/referenceData';
+import { useCountries } from '@features/reference/countries/hooks';
+import { useCurrencies } from '@features/reference/currencies/hooks';
 
 export function LegalEntityListPage() {
   const { data: entities, isLoading } = useLegalEntities();
@@ -53,6 +55,10 @@ export function LegalEntityListPage() {
     legalEntityTypeId: Number(r.legalEntityTypeId),
   }));
   const entityTypeLabel = (id: number) => entityTypeRows.find((r) => r.legalEntityTypeId === id)?.typeName as string | undefined ?? '—';
+  const { data: countries = [] } = useCountries();
+  const { data: currencies = [] } = useCurrencies();
+  const countryCodeById = (id: number) => countries.find((c) => c.countryId === id)?.countryCode ?? '—';
+  const currencyCodeById = (id: number) => currencies.find((c) => c.currencyId === id)?.currencyCode ?? '—';
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editing, setEditing] = useState<LegalEntity | null>(null);
@@ -74,7 +80,7 @@ export function LegalEntityListPage() {
     e.target.value = ''; // allow re-selecting the same file later
     if (!file) return;
     try {
-      const rows = await parseLegalEntityUpload(file, entities ?? [], entityTypeLookup);
+      const rows = await parseLegalEntityUpload(file, entities ?? [], entityTypeLookup, countries, currencies);
       if (rows.length === 0) {
         message.warning('No data rows found in that file.');
         return;
@@ -106,8 +112,14 @@ export function LegalEntityListPage() {
         // shape (ProductsPage's Settlement column, TradeBlotter's Type column).
         cellRenderer: (p: { value: number }) => entityTypeLabel(p.value),
       },
-      { field: 'jurisdiction', headerName: 'Jur.', width: 80, cellClass: 'cell-mono' },
-      { field: 'baseCurrency', headerName: 'Ccy', width: 80, cellClass: 'cell-mono' },
+      {
+        field: 'jurisdictionId', headerName: 'Jur.', width: 80, cellClass: 'cell-mono',
+        cellRenderer: (p: { value: number }) => countryCodeById(p.value),
+      },
+      {
+        field: 'baseCurrencyId', headerName: 'Ccy', width: 80, cellClass: 'cell-mono',
+        cellRenderer: (p: { value: number }) => currencyCodeById(p.value),
+      },
       {
         field: 'isInternal',
         headerName: 'Internal',
@@ -152,7 +164,7 @@ export function LegalEntityListPage() {
         ),
       },
     ],
-    [deactivateMutation, entityTypeRows],
+    [deactivateMutation, entityTypeRows, countries, currencies],
   );
 
   return (

@@ -10,6 +10,7 @@ import { useLocations, useSaveLocation, useDeactivateLocation } from './hooks';
 import { LOCATION_TYPE_CODES, type Location, type LocationInput, type LocationTypeCode } from './types';
 import { COMMODITY_TYPES, type CommodityType } from '@features/organization/desks/types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { useCountries } from '@features/reference/countries/hooks';
 
 const TYPE_COLOR: Record<LocationTypeCode, string> = {
   PORT: 'blue', PIPELINE_HUB: 'purple', GAS_HUB: 'cyan', GRID_NODE: 'gold',
@@ -21,13 +22,16 @@ export function LocationsPage() {
   const { data, isLoading, refetch } = useLocations();
   const save = useSaveLocation();
   const deactivate = useDeactivateLocation();
+  const { data: countries = [] } = useCountries();
+  const countryOptions = countries.map((c) => ({ value: c.countryId, label: `${c.countryCode} — ${c.countryName}` }));
+  const countryLabelById = new Map(countries.map((c) => [c.countryId, `${c.countryCode} — ${c.countryName}`]));
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Location | null>(null);
   const [form] = Form.useForm<LocationInput>();
   useFormDraft('logistics-locations', { form, open, setOpen, editing, setEditing });
 
   function openNew() { setEditing(null); form.resetFields(); form.setFieldValue('isActive', true); setOpen(true); }
-  function openEdit(l: Location) { setEditing(l); form.setFieldsValue({ locationCode: l.locationCode, locationName: l.locationName, locationTypeCode: l.locationTypeCode, commodityType: l.commodityType, countryCode: l.countryCode, portCode: l.portCode ?? undefined, unlocode: l.unlocode ?? undefined, operator: l.operator ?? undefined, capacity: l.capacity, capacityUomCode: l.capacityUomCode ?? undefined, latitude: l.latitude, longitude: l.longitude, isActive: l.isActive }); setOpen(true); }
+  function openEdit(l: Location) { setEditing(l); form.setFieldsValue({ locationCode: l.locationCode, locationName: l.locationName, locationTypeCode: l.locationTypeCode, commodityType: l.commodityType, countryId: l.countryId, portCode: l.portCode ?? undefined, unlocode: l.unlocode ?? undefined, operator: l.operator ?? undefined, capacity: l.capacity, capacityUomCode: l.capacityUomCode ?? undefined, latitude: l.latitude, longitude: l.longitude, isActive: l.isActive }); setOpen(true); }
   async function submit(closeAfter = true) {
     const v = await form.validateFields();
     const saved = await save.mutateAsync({ id: editing?.locationId ?? null, input: v });
@@ -41,10 +45,10 @@ export function LocationsPage() {
     { field: 'locationTypeCode', headerName: 'Type', width: 140, cellRenderer: (p: { value: LocationTypeCode }) => <Tag color={TYPE_COLOR[p.value] ?? 'default'}>{p.value.replace('_', ' ')}</Tag> },
     { field: 'commodityType', headerName: 'Commodity', width: 120, valueFormatter: (p) => p.value ?? 'MULTI',
       cellRenderer: (p: { value: CommodityType | null }) => p.value ? <Tag>{p.value}</Tag> : <Tag color="default">MULTI</Tag> },
-    { field: 'countryCode', headerName: 'Country', width: 90, cellClass: 'cell-mono' },
+    { field: 'countryId', headerName: 'Country', width: 130, valueFormatter: (p) => countryLabelById.get(p.value) ?? String(p.value) },
     { field: 'unlocode', headerName: 'UN/LOCODE', width: 120, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—',
       tooltipValueGetter: () => 'UN/LOCODE — 5-character code (2-letter country + 3-letter place). Standard for ports and logistics hubs. E.g. GBSUL = Sullom Voe, UK.' },
-    { field: 'operator', headerName: 'Operator', width: 160, valueFormatter: (p) => p.value ?? '—' },
+    { field: 'operator', headerName: 'Operator', flex: 1, minWidth: 160, valueFormatter: (p) => p.value ?? '—', tooltipValueGetter: (p) => p.value },
     { field: 'capacity', headerName: 'Capacity', width: 120, cellClass: 'cell-mono',
       valueFormatter: (p) => p.value != null ? `${Number(p.value).toLocaleString()} ${p.data?.capacityUomCode ?? ''}` : '—' },
     { field: 'isActive', headerName: 'Status', width: 100, cellRenderer: (p: { value: boolean }) => <ActiveTag active={p.value} /> },
@@ -61,7 +65,7 @@ export function LocationsPage() {
         </Space>
       ),
     },
-  ], [deactivate]);
+  ], [deactivate, countryLabelById]);
 
   return (
     <>
@@ -84,8 +88,8 @@ export function LocationsPage() {
             <Select allowClear placeholder="Multi-commodity if blank" options={COMMODITY_TYPES.map((c) => ({ label: c, value: c }))} />
           </Form.Item>
           <Space style={{ width: '100%', gap: 12 }}>
-            <Form.Item name="countryCode" label={hint('Country', 'ISO 3166-1 alpha-2 country code.', 'GB, NL, SA, US')} rules={[{ required: true }]} style={{ flex: 1 }}>
-              <Input placeholder="GB" maxLength={2} style={{ fontFamily: 'monospace', textTransform: 'uppercase' }} />
+            <Form.Item name="countryId" label={hint('Country', 'Country where this location is situated.', 'GB, NL, SA, US')} rules={[{ required: true }]} style={{ flex: 1 }}>
+              <Select options={countryOptions} showSearch optionFilterProp="label" placeholder="Select country" />
             </Form.Item>
             <Form.Item name="unlocode" label={hint('UN/LOCODE', '5-character international location code: 2-letter country + 3-letter place identifier. Used on Bills of Lading, shipping documents, and customs declarations.', 'GBSUL = Sullom Voe', 'CCPPP')} style={{ flex: 1 }}>
               <Input placeholder="GBSUL" maxLength={5} style={{ fontFamily: 'monospace', textTransform: 'uppercase' }} />

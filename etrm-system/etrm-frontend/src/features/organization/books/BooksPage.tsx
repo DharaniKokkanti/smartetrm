@@ -40,7 +40,7 @@ export function BooksPage() {
     { field: 'legalEntityCode', headerName: 'Entity', width: 110, cellClass: 'cell-mono' },
     { field: 'commodityType', headerName: 'Commodity', width: 120,
       cellRenderer: (p: { value: number | null }) => p.value != null ? <Tag>{commodityLabel(p.value)}</Tag> : <Tag color="default">MULTI</Tag> },
-    { field: 'responsibleTraderName', headerName: 'Trader', width: 150, valueFormatter: (p) => p.value ?? '—' },
+    { field: 'responsibleTraderName', headerName: 'Trader', flex: 1, minWidth: 150, valueFormatter: (p) => p.value ?? '—', tooltipValueGetter: (p) => p.value },
     {
       field: 'positionLimit',
       headerName: 'Pos. Limit',

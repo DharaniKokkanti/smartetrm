@@ -17,7 +17,7 @@ export interface LetterOfCredit {
   issuingBankBic: string | null;
   confirmingBankName: string | null;
   lcAmount: number;
-  lcCurrency: string;
+  lcCurrencyId: number;
   issuedAmount: number;         // same as lcAmount typically; may differ for revolving
   drawdownAmount: number;       // cumulative amount drawn
   availableAmount: number;      // computed: lcAmount - drawdownAmount

@@ -15,7 +15,7 @@ export interface Market {
   settlementType: SettlementTypeMkt;
   currencyCode: string;
   timezone: string;
-  countryCode: string | null;
+  countryId: number | null;
   clearingHouse: string | null;
   contractSize: number | null;
   contractUomCode: string | null;

@@ -28,7 +28,7 @@ export function DesksPage() {
       cellRenderer: (p: { value: number | null }) =>
         p.value != null ? <Tag>{commodityLabel(p.value)}</Tag> : <Tag color="default">MULTI</Tag>,
     },
-    { field: 'headTraderName', headerName: 'Head Trader', width: 160, valueFormatter: (p) => p.value ?? '—' },
+    { field: 'headTraderName', headerName: 'Head Trader', flex: 1, minWidth: 160, valueFormatter: (p) => p.value ?? '—', tooltipValueGetter: (p) => p.value },
     {
       field: 'isActive',
       headerName: 'Status',

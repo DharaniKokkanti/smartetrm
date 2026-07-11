@@ -13,6 +13,18 @@ export interface EntityTypeLookupRow {
   legalEntityTypeId: number;
 }
 
+/** Country/currency rows used to resolve the spreadsheet's human-readable
+ *  ISO codes (jurisdiction, incorporation country, base currency) to the
+ *  numeric surrogate ids the LegalEntity type now stores (V95). */
+export interface CountryLookupRow {
+  countryCode: string;
+  countryId: number;
+}
+export interface CurrencyLookupRow {
+  currencyCode: string;
+  currencyId: number;
+}
+
 function cellText(value: ExcelJS.CellValue): string {
   if (value === null || value === undefined) return '';
   if (typeof value === 'object' && 'text' in value) return String(value.text ?? '');
@@ -34,6 +46,8 @@ export async function parseLegalEntityUpload(
   file: File,
   existingEntities: LegalEntity[],
   entityTypeRows: EntityTypeLookupRow[],
+  countryRows: CountryLookupRow[],
+  currencyRows: CurrencyLookupRow[],
 ): Promise<LegalEntityUploadRow[]> {
   const workbook = new ExcelJS.Workbook();
   const buffer = await file.arrayBuffer();
@@ -89,6 +103,21 @@ export async function parseLegalEntityUpload(
       errors.push('Go Live Date is not a valid date (use YYYY-MM-DD).');
     }
 
+    const jurisdictionId = countryRows.find((c) => c.countryCode === jurisdiction)?.countryId ?? null;
+    if (ISO2.test(jurisdiction) && jurisdictionId === null) {
+      errors.push(`Jurisdiction "${jurisdiction}" is not a recognised country code.`);
+    }
+    const incorporationCountryId = incorporationCountry
+      ? (countryRows.find((c) => c.countryCode === incorporationCountry)?.countryId ?? null)
+      : null;
+    if (incorporationCountry && ISO2.test(incorporationCountry) && incorporationCountryId === null) {
+      errors.push(`Incorporation Country "${incorporationCountry}" is not a recognised country code.`);
+    }
+    const baseCurrencyId = currencyRows.find((c) => c.currencyCode === baseCurrency)?.currencyId ?? null;
+    if (ISO3.test(baseCurrency) && baseCurrencyId === null) {
+      errors.push(`Base Currency "${baseCurrency}" is not a recognised currency code.`);
+    }
+
     // duplicate rejection — against existing DB records and within this batch
     if (entityCode) {
       if (existingCodes.has(entityCode)) {
@@ -111,6 +140,8 @@ export async function parseLegalEntityUpload(
     rows.push({
       _rowNumber: rowNum,
       _errors: errors,
+      _jurisdictionCode: jurisdiction,
+      _baseCurrencyCode: baseCurrency,
       entityCode,
       entityName,
       shortName,
@@ -118,10 +149,10 @@ export async function parseLegalEntityUpload(
       entityType: (entityTypeId ?? 0) as never,
       parentInd: parentEntityId !== null,
       parentEntityId,
-      jurisdiction,
-      incorporationCountry,
+      jurisdictionId: jurisdictionId ?? 0,
+      incorporationCountryId,
       incorporationNumber,
-      baseCurrency,
+      baseCurrencyId: baseCurrencyId ?? 0,
       defaultTimezone,
       regulator,
       regulatoryLicence,

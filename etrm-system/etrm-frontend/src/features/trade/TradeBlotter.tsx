@@ -157,19 +157,19 @@ function OilSection({ locations, vessels, crudeGrades, pipelines }: {
           </Form.Item>
         </Col>
         <Col span={8}>
-          <Form.Item name={['oilDetail', 'loadLocationCode']} label="Load Port / Terminal">
+          <Form.Item name={['oilDetail', 'loadLocationId']} label="Load Port / Terminal">
             <Select options={locations} placeholder="Load port" allowClear showSearch />
           </Form.Item>
         </Col>
         <Col span={8}>
-          <Form.Item name={['oilDetail', 'dischargeLocationCode']} label="Discharge Port">
+          <Form.Item name={['oilDetail', 'dischargeLocationId']} label="Discharge Port">
             <Select options={locations} placeholder="Discharge port" allowClear showSearch />
           </Form.Item>
         </Col>
       </Row>
       <Row gutter={16}>
         <Col span={motType === 'PIPELINE' ? 8 : 12}>
-          <Form.Item name={['oilDetail', 'titleTransferLocationCode']} label={hint('Title Transfer', 'FOB = at load port. CIF/DES = at discharge.')}>
+          <Form.Item name={['oilDetail', 'titleTransferLocationId']} label={hint('Title Transfer', 'FOB = at load port. CIF/DES = at discharge.')}>
             <Select options={locations} placeholder="Title transfer location" allowClear showSearch />
           </Form.Item>
         </Col>
@@ -281,7 +281,7 @@ function LngSection({ locations, lngPriceBases }: { locations: SelectOpt[]; lngP
         <Col span={12}><Form.Item name={['lngDetail', 'dischargeTerminalCode']} label="Discharge Terminal"><Select options={locations} placeholder="Discharge terminal" allowClear showSearch /></Form.Item></Col>
       </Row>
       <Row gutter={16}>
-        <Col span={8}><Form.Item name={['lngDetail', 'titleTransferLocationCode']} label={hint('Title Transfer', 'FOB LNG = loading flange. DES/DAP = discharge terminal.')}><Select options={locations} placeholder="Title transfer point" allowClear showSearch /></Form.Item></Col>
+        <Col span={8}><Form.Item name={['lngDetail', 'titleTransferLocationId']} label={hint('Title Transfer', 'FOB LNG = loading flange. DES/DAP = discharge terminal.')}><Select options={locations} placeholder="Title transfer point" allowClear showSearch /></Form.Item></Col>
         <Col span={6}><Form.Item name={['lngDetail', 'motType']} label="MOT"><Select options={[{ value: 'SHIP', label: 'SHIP (LNG Tanker)' }]} placeholder="SHIP" allowClear /></Form.Item></Col>
         <Col span={10}><Form.Item name={['lngDetail', 'cargoVolumeMmbtu']} label={hint('Cargo Volume (MMBtu)', 'QFLEX cargo ≈ 3,400,000 MMBtu.')}><InputNumber placeholder="3400000" style={{ width: '100%' }} suffix="MMBtu" /></Form.Item></Col>
       </Row>
@@ -308,7 +308,7 @@ function MetalsSection({ locations, metalShapes }: { locations: SelectOpt[]; met
         <Col span={8}><Form.Item name={['metalsDetail', 'warehouseLocationCode']} label="Warehouse"><Select options={locations} placeholder="LME warehouse" allowClear showSearch /></Form.Item></Col>
       </Row>
       <Row gutter={16}>
-        <Col span={24}><Form.Item name={['metalsDetail', 'titleTransferLocationCode']} label="Title Transfer Location"><Select options={locations} placeholder="Title transfer point" allowClear showSearch /></Form.Item></Col>
+        <Col span={24}><Form.Item name={['metalsDetail', 'titleTransferLocationId']} label="Title Transfer Location"><Select options={locations} placeholder="Title transfer point" allowClear showSearch /></Form.Item></Col>
       </Row>
     </>
   );
@@ -321,7 +321,7 @@ function AgriSection({ countryOpts }: { countryOpts: SelectOpt[] }) {
       {sectionTitle('Agricultural / Grain Details')}
       <Row gutter={16}>
         <Col span={6}><Form.Item name={['agriDetail', 'cropYear']} label={hint('Crop Year', 'Marketing year — wheat 2026/27 = harvested Jul 2026.')}><InputNumber placeholder="2026" style={{ width: '100%' }} /></Form.Item></Col>
-        <Col span={6}><Form.Item name={['agriDetail', 'originCountry']} label={hint('Origin (ISO 2)', 'ISO 3166-1 alpha-2 country of origin.')}><Select options={countryOpts} placeholder="Select country" allowClear showSearch optionFilterProp="label" /></Form.Item></Col>
+        <Col span={6}><Form.Item name={['agriDetail', 'originCountryId']} label={hint('Origin', 'Country of origin.')}><Select options={countryOpts} placeholder="Select country" allowClear showSearch optionFilterProp="label" /></Form.Item></Col>
         <Col span={12}><Form.Item name={['agriDetail', 'gradeQuality']} label="Grade / Quality"><Input placeholder="EU MILLING WHEAT MIN 12% PROTEIN" /></Form.Item></Col>
       </Row>
       <Row gutter={16}>
@@ -634,8 +634,8 @@ function PriceAdjustmentsSection({ currencyOpts, uomOpts }: { currencyOpts: Sele
                 add({
                   adjustmentType: value >= 0 ? 'QUALITY_PREMIUM' : 'QUALITY_DISCOUNT',
                   adjustmentValue: value,
-                  adjustmentCurrency: g.adjustmentCurrencyCode ?? 'USD',
-                  adjustmentUomCode: g.adjustmentUomCode ?? null,
+                  adjustmentCurrencyId: g.adjustmentCurrencyId ?? 1,
+                  adjustmentUomId: g.adjustmentUomId ?? null,
                   gradeStandardId: g.gradeStandardId,
                   notes: `Grade delivered: ${g.gradeName as string} (${g.issuingBody as string})`,
                 });
@@ -664,12 +664,12 @@ function PriceAdjustmentsSection({ currencyOpts, uomOpts }: { currencyOpts: Sele
                   </Form.Item>
                 </Col>
                 <Col span={3}>
-                  <Form.Item name={[name, 'adjustmentCurrency']} style={{ marginBottom: 0 }}>
+                  <Form.Item name={[name, 'adjustmentCurrencyId']} style={{ marginBottom: 0 }}>
                     <Select placeholder="CCY" options={currencyOpts} allowClear showSearch />
                   </Form.Item>
                 </Col>
                 <Col span={3}>
-                  <Form.Item name={[name, 'adjustmentUomCode']} style={{ marginBottom: 0 }}>
+                  <Form.Item name={[name, 'adjustmentUomId']} style={{ marginBottom: 0 }}>
                     <Select placeholder="per UoM" options={uomOpts} allowClear showSearch />
                   </Form.Item>
                 </Col>
@@ -684,7 +684,7 @@ function PriceAdjustmentsSection({ currencyOpts, uomOpts }: { currencyOpts: Sele
               </Row>
             ))}
             <Button
-              type="dashed" onClick={() => add({ adjustmentType: null, adjustmentValue: null, adjustmentCurrency: 'USD', adjustmentUomCode: null, gradeStandardId: null, notes: null })}
+              type="dashed" onClick={() => add({ adjustmentType: null, adjustmentValue: null, adjustmentCurrencyId: 1, adjustmentUomId: null, gradeStandardId: null, notes: null })}
               icon={<PlusOutlined />} size="small" style={{ marginTop: 4 }}
             >
               Add Adjustment
@@ -713,7 +713,7 @@ function DemurrageSection({ currencyOpts }: { currencyOpts: SelectOpt[] }) {
           </Form.Item>
         </Col>
         <Col span={4}>
-          <Form.Item name="demurrageCurrency" label="Currency">
+          <Form.Item name="demurrageCurrencyId" label="Currency">
             <Select options={currencyOpts} placeholder="USD" allowClear showSearch />
           </Form.Item>
         </Col>
@@ -831,7 +831,7 @@ function DeliveryFields({
           </Form.Item>
         </Col>
         <Col span={4}>
-          <Form.Item name="uomCode" label="UoM" rules={[{ required: true }]}>
+          <Form.Item name="uomId" label="UoM" rules={[{ required: true }]}>
             <Select options={uomOpts} showSearch />
           </Form.Item>
         </Col>
@@ -841,7 +841,7 @@ function DeliveryFields({
           </Form.Item>
         </Col>
         <Col span={5}>
-          <Form.Item name="currencyCode" label="Currency" rules={[{ required: true }]}>
+          <Form.Item name="currencyId" label="Currency" rules={[{ required: true }]}>
             <Select options={currencyOpts} showSearch />
           </Form.Item>
         </Col>
@@ -863,14 +863,14 @@ function DeliveryFields({
           </Form.Item>
         </Col>
         <Col span={hasVesselPhysical ? 8 : 12}>
-          <Form.Item name="deliveryLocationCode" label="Delivery Location">
+          <Form.Item name="deliveryLocationId" label="Delivery Location">
             <Select options={locationOpts} placeholder="Delivery point" showSearch allowClear />
           </Form.Item>
         </Col>
         {hasVesselPhysical && (
           <Col span={8}>
             <Form.Item
-              name="originCountryCode"
+              name="originCountryId"
               label={hint('Origin Country', 'ISO 3166-1 alpha-2 country where the commodity was produced. Required for sanctions screening — e.g. GB (Forties), RU (Urals), SA (Arab Light).')}
             >
               <Select
@@ -911,10 +911,10 @@ function DeliveryFields({
 // Shared editor for both cost lists — a small table of existing rows plus an
 // inline add-row form, persisted immediately per row (like Items), not
 // bundled into the trade/leg form submit.
-interface CostLike { costId: number; costType: string; description: string | null; amount: number; currencyCode: string; isEstimated: boolean; notes: string | null; }
+interface CostLike { costId: number; costType: string; description: string | null; amount: number; currencyId: number; currencyCode: string; isEstimated: boolean; notes: string | null; }
 function CostsEditor<T extends CostLike>({ costs, isLoading, adding, onAdd, onDelete, currencyOpts }: {
   costs: T[]; isLoading: boolean; adding: boolean;
-  onAdd: (values: { costType: string; description: string | null; amount: number; currencyCode: string; isEstimated: boolean; notes: string | null }) => void;
+  onAdd: (values: { costType: string; description: string | null; amount: number; currencyId: number; isEstimated: boolean; notes: string | null }) => void;
   onDelete: (costId: number) => void;
   currencyOpts: SelectOpt[];
 }) {
@@ -942,7 +942,7 @@ function CostsEditor<T extends CostLike>({ costs, isLoading, adding, onAdd, onDe
       />
       <Form
         form={form} layout="inline" size="small"
-        initialValues={{ currencyCode: 'USD', isEstimated: true }}
+        initialValues={{ currencyId: 1, isEstimated: true }}
         onFinish={(v) => {
           onAdd({ ...v, description: v.description ?? null, notes: v.notes ?? null, isEstimated: v.isEstimated ?? true });
           form.resetFields();
@@ -953,7 +953,7 @@ function CostsEditor<T extends CostLike>({ costs, isLoading, adding, onAdd, onDe
         </Form.Item>
         <Form.Item name="description"><Input placeholder="Description" style={{ width: 180 }} /></Form.Item>
         <Form.Item name="amount" rules={[{ required: true, message: 'Amount' }]}><InputNumber placeholder="Amount" style={{ width: 110 }} precision={2} /></Form.Item>
-        <Form.Item name="currencyCode" rules={[{ required: true }]}><Select options={currencyOpts} style={{ width: 90 }} showSearch /></Form.Item>
+        <Form.Item name="currencyId" rules={[{ required: true }]}><Select options={currencyOpts} style={{ width: 90 }} showSearch /></Form.Item>
         <Form.Item name="isEstimated" valuePropName="checked"><Switch checkedChildren="Est" unCheckedChildren="Actual" /></Form.Item>
         <Form.Item name="notes"><Input placeholder="Notes" style={{ width: 200 }} /></Form.Item>
         <Form.Item>
@@ -1445,11 +1445,11 @@ export function TradeBlotter() {
   // handle multiple commodities), otherwise only shows up for its own commodity (e.g. an LNG terminal shouldn't
   // appear as a candidate discharge port for an oil trade).
   const locationOptionsFor = useMemo(() => {
-    const rows = locations as { locationCode: string; locationName: string; commodityType: CommodityType | null }[];
+    const rows = locations as { locationId: number; locationCode: string; locationName: string; commodityType: CommodityType | null }[];
     return (commodityType: CommodityTypeTrade) =>
       rows
         .filter((l) => !l.commodityType || l.commodityType === commodityType)
-        .map((l) => ({ value: l.locationCode, label: `${l.locationCode} — ${l.locationName}` }));
+        .map((l) => ({ value: l.locationId, label: `${l.locationCode} — ${l.locationName}` }));
   }, [locations]);
   // Product options scoped to a commodity via the broad commodity bucket resolved from Product.commodityId — mirrors
   // the filter ProductsPage.tsx already applies to its own list, just never applied here before.
@@ -1479,10 +1479,10 @@ export function TradeBlotter() {
     return (commodityType: CommodityTypeTrade) =>
       rows
         .filter((r) => !r.commodityTypes || r.commodityTypes.includes(commodityType))
-        .map((r) => ({ value: r.uomCode, label: r.uomCode }));
+        .map((r) => ({ value: r.uomId, label: r.uomCode }));
   }, [uomRows]);
-  const currencyOpts  = useMemo(() => (currencyRows as { currencyCode: string; currencyName: string }[]).map((r) => ({ value: r.currencyCode, label: `${r.currencyCode} — ${r.currencyName}` })), [currencyRows]);
-  const countryOpts   = useMemo(() => countries.filter((c) => c.isActive).map((c) => ({ value: c.countryCode, label: `${c.countryCode} — ${c.countryName}` })), [countries]);
+  const currencyOpts  = useMemo(() => (currencyRows as { currencyId: number; currencyCode: string; currencyName: string }[]).map((r) => ({ value: r.currencyId, label: `${r.currencyCode} — ${r.currencyName}` })), [currencyRows]);
+  const countryOpts   = useMemo(() => countries.filter((c) => c.isActive).map((c) => ({ value: c.countryId, label: `${c.countryCode} — ${c.countryName}` })), [countries]);
   const legalEntityOpts = useMemo(() => (legalEntities as unknown as { legalEntityId: number; entityCode: string; entityName: string }[]).map((le) => ({ value: le.legalEntityId, label: `${le.entityCode} — ${le.entityName}` })), [legalEntities]);
   // Book options scoped to a leg's commodity — dbo.commodity_type ids (1-9) line up 1:1 with COMMODITY_TYPES_TRADE's
   // order (OIL=1 ... ENVIRONMENTAL=9); a null commodityType on the book means it's a cross-commodity book (e.g. house/other).
@@ -1590,14 +1590,16 @@ export function TradeBlotter() {
     setEditingOrder(null);
     setOrderCommodity(selectedTrade.commodityType);
     orderForm.resetFields();
-    const defaultUom: Record<string, string> = { OIL: 'BBL', GAS: 'MWH', POWER: 'MWH', LNG: 'MMBTU', METALS: 'MT', AGRICULTURAL: 'MT', FREIGHT: 'MT', RINS: 'GAL', ENVIRONMENTAL: 'MT' };
+    const defaultUomCode: Record<string, string> = { OIL: 'BBL', GAS: 'MWH', POWER: 'MWH', LNG: 'MMBTU', METALS: 'MT', AGRICULTURAL: 'MT', FREIGHT: 'MT', RINS: 'GAL', ENVIRONMENTAL: 'MT' };
+    const wantedUomCode = defaultUomCode[selectedTrade.commodityType] ?? 'BBL';
+    const defaultUomRow = (uomRows as Uom[]).find((r) => r.uomCode === wantedUomCode);
     orderForm.setFieldsValue({
       tradeId: selectedTrade.tradeId,
       isTemplate: false,
       status: 'WORKING',
       settlementType: 'PHYSICAL',
-      currencyCode: 'USD',
-      uomCode: defaultUom[selectedTrade.commodityType] ?? 'BBL',
+      currencyId: 1,
+      uomId: defaultUomRow?.uomId,
       toleranceForScheduling: false,
     });
     setOrderOpen(true);
@@ -1658,7 +1660,7 @@ export function TradeBlotter() {
   function openNewItem() {
     setEditingItem(null);
     itemForm.resetFields();
-    itemForm.setFieldsValue({ orderId: selectedOrderId ?? 0, currencyCode: 'USD' });
+    itemForm.setFieldsValue({ orderId: selectedOrderId ?? 0, currencyId: 1 });
     setItemOpen(true);
   }
   function openEditItem(item: TradeItem) {
@@ -2059,7 +2061,7 @@ export function TradeBlotter() {
                   </Form.Item>
                 </Col>
                 <Col span={6}>
-                  <Form.Item name="executionDatetime" label="Execution Date">
+                  <Form.Item name="executionDatetime" label={hint('Execution Date', 'Precise timestamp the trade was executed on the market/with the counterparty — distinct from Trade Date (booking day) and Contract Date.')}>
                     <AppDatePicker showTime format="YYYY-MM-DD HH:mm:ss" />
                   </Form.Item>
                 </Col>
@@ -2188,7 +2190,7 @@ export function TradeBlotter() {
                           </Form.Item>
                         </Col>
                         <Col span={6}>
-                          <Form.Item name="creditApprovalStatus" label="Credit Approval">
+                          <Form.Item name="creditApprovalStatus" label={hint('Credit Approval', 'PENDING/APPROVED/REJECTED — gates whether this trade can be released.')}>
                             <Select options={CREDIT_APPROVAL_STATUSES.map((s) => ({ value: s, label: s }))} placeholder="PENDING" allowClear />
                           </Form.Item>
                         </Col>
@@ -2463,7 +2465,7 @@ export function TradeBlotter() {
               </Form.Item>
             </Col>
             <Col span={5}>
-              <Form.Item name="brokerFeeType" label="Fee Type">
+              <Form.Item name="brokerFeeType" label={hint('Fee Type', 'FIXED = flat amount per deal/unit. Percentage = calculated off the trade notional.')}>
                 <Select options={BROKER_FEE_TYPES.map((t) => ({ value: t, label: t }))} placeholder="FIXED / %" allowClear />
               </Form.Item>
             </Col>
@@ -2473,7 +2475,7 @@ export function TradeBlotter() {
               </Form.Item>
             </Col>
             <Col span={5}>
-              <Form.Item name="brokerFeeCurrencyCode" label="Fee Currency">
+              <Form.Item name="brokerFeeCurrencyId" label="Fee Currency">
                 <Select options={currencyOpts} showSearch allowClear placeholder="USD" />
               </Form.Item>
             </Col>
@@ -2561,9 +2563,9 @@ export function TradeBlotter() {
           </Form.Item>
           <Row gutter={16}>
             <Col span={7}><Form.Item name="quantity" label="Quantity" rules={[{ required: true }]}><InputNumber placeholder="500000" style={{ width: '100%' }} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} parser={(v) => v?.replace(/,/g, '') as unknown as number} /></Form.Item></Col>
-            <Col span={5}><Form.Item name="uomCode" label="UoM" rules={[{ required: true }]}><Select options={uomOptionsFor(selectedTrade?.commodityType ?? 'OIL')} showSearch /></Form.Item></Col>
+            <Col span={5}><Form.Item name="uomId" label="UoM" rules={[{ required: true }]}><Select options={uomOptionsFor(selectedTrade?.commodityType ?? 'OIL')} showSearch /></Form.Item></Col>
             <Col span={7}><Form.Item name="unitPrice" label="Unit Price"><InputNumber placeholder="82.45" precision={4} style={{ width: '100%' }} /></Form.Item></Col>
-            <Col span={5}><Form.Item name="currencyCode" label="CCY" rules={[{ required: true }]}><Select options={currencyOpts} showSearch /></Form.Item></Col>
+            <Col span={5}><Form.Item name="currencyId" label="CCY" rules={[{ required: true }]}><Select options={currencyOpts} showSearch /></Form.Item></Col>
           </Row>
           <Form.Item name="notes" label="Notes">
             <Input.TextArea rows={2} placeholder="Item notes..." />

@@ -22,8 +22,9 @@ export interface BalmoProduct {
   lastTradingDate: string;       // Last day the BALMO can be transacted
   settlementPriceTicker: string; // Front-month futures ticker used for daily settlements: CLN26, BZN26
   tickSize: number;
-  tickCurrency: string;
-  uomCode: string;
+  tickCurrencyId: number;
+  tickCurrency: string;          // denormalized display code, e.g. USD
+  uomId: number;
   priceSource: BalmoPriceSource;
   status: BalmoProductStatus;
   notes: string | null;
@@ -31,4 +32,4 @@ export interface BalmoProduct {
   updatedAt: string;
 }
 
-export type BalmoProductInput = Omit<BalmoProduct, 'balmoProductId' | 'createdAt' | 'updatedAt'>;
+export type BalmoProductInput = Omit<BalmoProduct, 'balmoProductId' | 'tickCurrency' | 'createdAt' | 'updatedAt'>;

@@ -17,6 +17,7 @@ import { useFormDraft } from '@components/smart/formDraft';
 import { downloadBlob, generateHolidayTemplate } from './excelTemplateHolidays';
 import { parseHolidayUpload } from './excelUploadHolidays';
 import { HolidayUploadReviewModal } from './HolidayUploadReviewModal';
+import { useCountries } from '@features/reference/countries/hooks';
 
 const TYPE_COLOR: Record<CalendarType, string> = {
   BANKING: 'blue', COMMODITY: 'gold', EXCHANGE: 'purple', CUSTOM: 'default',
@@ -138,6 +139,9 @@ export function HolidayCalendarsPage() {
   const { data, isLoading, refetch } = useHolidayCalendars();
   const save = useSaveHolidayCalendar();
   const deactivate = useDeactivateHolidayCalendar();
+  const { data: countries = [] } = useCountries();
+  const countryOptions = countries.map((c) => ({ value: c.countryId, label: `${c.countryCode} — ${c.countryName}` }));
+  const countryLabelById = new Map(countries.map((c) => [c.countryId, `${c.countryCode} — ${c.countryName}`]));
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<HolidayCalendar | null>(null);
   const [viewingCal, setViewingCal] = useState<HolidayCalendar | null>(null);
@@ -147,7 +151,7 @@ export function HolidayCalendarsPage() {
   function openNew() { setEditing(null); form.resetFields(); form.setFieldValue('isActive', true); setOpen(true); }
   function openEdit(c: HolidayCalendar) {
     setEditing(c);
-    form.setFieldsValue({ calendarCode: c.calendarCode, calendarName: c.calendarName, calendarType: c.calendarType, countryCode: c.countryCode ?? undefined, currencyCode: c.currencyCode ?? undefined, description: c.description ?? undefined, isActive: c.isActive });
+    form.setFieldsValue({ calendarCode: c.calendarCode, calendarName: c.calendarName, calendarType: c.calendarType, countryId: c.countryId ?? undefined, currencyCode: c.currencyCode ?? undefined, description: c.description ?? undefined, isActive: c.isActive });
     setOpen(true);
   }
   async function submit(closeAfter = true) {
@@ -161,7 +165,7 @@ export function HolidayCalendarsPage() {
       tooltipValueGetter: () => 'Calendar code used in trade/pricing configuration. Standard codes: LON (London), NYC (New York), TOK (Tokyo), NYMEX, LME' },
     { field: 'calendarName', headerName: 'Calendar', flex: 1.4, minWidth: 200 },
     { field: 'calendarType', headerName: 'Type', width: 110, cellRenderer: (p: { value: CalendarType }) => <Tag color={TYPE_COLOR[p.value] ?? 'default'}>{p.value}</Tag> },
-    { field: 'countryCode', headerName: 'Country', width: 90, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },
+    { field: 'countryId', headerName: 'Country', width: 130, valueFormatter: (p) => (p.value != null ? countryLabelById.get(p.value) ?? String(p.value) : '—') },
     { field: 'currencyCode', headerName: 'CCY', width: 75, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—',
       tooltipValueGetter: () => 'Settlement currency this calendar covers — e.g. USD (Fed), GBP (BoE), EUR (ECB)' },
     { field: 'holidayCount', headerName: 'Holidays', width: 100, cellClass: 'cell-mono',
@@ -182,7 +186,7 @@ export function HolidayCalendarsPage() {
         </Space>
       ),
     },
-  ], [deactivate]);
+  ], [deactivate, countryLabelById]);
 
   return (
     <>
@@ -195,7 +199,7 @@ export function HolidayCalendarsPage() {
         footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
         <Form form={form} layout="vertical">
           <Form.Item name="calendarCode" label={hint('Calendar Code', 'Short code used in trade pricing configuration, payment date calculations, and settlement. Industry-standard codes: LON (London banking), NYC (Fed/SIFMA), NYMEX, LME, ECB, TOCOM.', 'LON, NYC, NYMEX, LME')} rules={[{ required: true }]}>
-            <Input placeholder="LON" style={{ fontFamily: 'monospace', textTransform: 'uppercase' }} />
+            <Input placeholder="LON" maxLength={20} showCount style={{ fontFamily: 'monospace', textTransform: 'uppercase' }} />
           </Form.Item>
           <Form.Item name="calendarName" label="Calendar Name" rules={[{ required: true }]}>
             <Input placeholder="London Banking Days" />
@@ -204,15 +208,15 @@ export function HolidayCalendarsPage() {
             <Select options={CALENDAR_TYPES.map((t) => ({ label: t, value: t }))} />
           </Form.Item>
           <Space style={{ width: '100%', gap: 12 }}>
-            <Form.Item name="countryCode" label={hint('Country', 'ISO 3166-1 alpha-2 code of the country whose public holidays are included.', 'GB, US, JP')} style={{ flex: 1 }}>
-              <Input placeholder="GB" maxLength={2} style={{ fontFamily: 'monospace', textTransform: 'uppercase' }} />
+            <Form.Item name="countryId" label={hint('Country', 'Country whose public holidays are included.', 'GB, US, JP')} style={{ flex: 1 }}>
+              <Select options={countryOptions} showSearch optionFilterProp="label" allowClear placeholder="Select country" />
             </Form.Item>
             <Form.Item name="currencyCode" label={hint('Currency', '3-letter ISO currency code — links this calendar to its settlement currency. LON → GBP, NYC → USD, ECB → EUR. Used to determine applicable calendar for FX payments.', 'GBP')} style={{ flex: 1 }}>
               <Input placeholder="GBP" maxLength={3} style={{ fontFamily: 'monospace', textTransform: 'uppercase' }} />
             </Form.Item>
           </Space>
           <Form.Item name="description" label="Description">
-            <Input.TextArea rows={2} placeholder="UK public holidays and Bank Holidays as observed by the London interbank market" />
+            <Input.TextArea rows={2} maxLength={500} showCount placeholder="UK public holidays and Bank Holidays as observed by the London interbank market" />
           </Form.Item>
           <Form.Item name="isActive" label="Active" valuePropName="checked"><Switch /></Form.Item>
         </Form>

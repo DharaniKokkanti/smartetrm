@@ -25,7 +25,8 @@ export function AddressesSection({ items, onChange, entityType = 'COUNTERPARTY' 
   const { data: countries = [], isLoading: loadingCountries } = useCountries();
   const countryOptions = countries
     .filter((c) => c.isActive)
-    .map((c) => ({ label: `${c.countryCode} — ${c.countryName}`, value: c.countryCode }));
+    .map((c) => ({ label: `${c.countryCode} — ${c.countryName}`, value: c.countryId }));
+  const countryLabelById = new Map(countries.map((c) => [c.countryId, `${c.countryCode} — ${c.countryName}`]));
 
   const [modalOpen, setModalOpen] = useState(false);
   const [mode, setMode] = useState<'new' | 'link'>('new');
@@ -47,7 +48,7 @@ export function AddressesSection({ items, onChange, entityType = 'COUNTERPARTY' 
     },
     {
       title: 'Address', key: 'address',
-      render: (_, r) => [r.address.addressLine1, r.address.city, r.address.countryCode].filter(Boolean).join(', '),
+      render: (_, r) => [r.address.addressLine1, r.address.city, countryLabelById.get(r.address.countryId) ?? r.address.countryId].filter(Boolean).join(', '),
     },
     { title: 'Postal', dataIndex: ['address', 'postalCode'], width: 100, render: (v) => v || '—' },
     { title: 'Phone', dataIndex: ['address', 'phoneNumber'], width: 140, render: (v) => v || '—' },
@@ -130,7 +131,7 @@ export function AddressesSection({ items, onChange, entityType = 'COUNTERPARTY' 
         city: values.city as string,
         stateProvince: values.stateProvince as string | null ?? null,
         postalCode: values.postalCode as string | null ?? null,
-        countryCode: (values.countryCode as string).toUpperCase(),
+        countryId: values.countryId as number,
         poBox: null,
         phoneNumber: values.phoneNumber as string | null ?? null,
         isActive: true,
@@ -163,7 +164,7 @@ export function AddressesSection({ items, onChange, entityType = 'COUNTERPARTY' 
     .filter((a) => a.isActive)
     .map((a) => ({
       value: a.addressId!,
-      label: `${a.addressLine1}, ${a.city}, ${a.countryCode}${a.postalCode ? ` ${a.postalCode}` : ''}`,
+      label: `${a.addressLine1}, ${a.city}, ${countryLabelById.get(a.countryId) ?? a.countryId}${a.postalCode ? ` ${a.postalCode}` : ''}`,
       disabled: assignedIds.has(a.addressId!) && selectedPoolId !== a.addressId,
     }));
 
@@ -195,7 +196,7 @@ export function AddressesSection({ items, onChange, entityType = 'COUNTERPARTY' 
           <Segmented
             block
             value={mode}
-            onChange={(v) => { setMode(v as 'new' | 'link'); form.resetFields(['addressLine1','addressLine2','city','stateProvince','postalCode','countryCode','phoneNumber']); setSelectedPoolId(null); }}
+            onChange={(v) => { setMode(v as 'new' | 'link'); form.resetFields(['addressLine1','addressLine2','city','stateProvince','postalCode','countryId','phoneNumber']); setSelectedPoolId(null); }}
             options={[
               { label: 'New Address', value: 'new' },
               { label: <><LinkOutlined style={{ marginRight: 4 }} />Link Existing</>, value: 'link' },
@@ -230,7 +231,7 @@ export function AddressesSection({ items, onChange, entityType = 'COUNTERPARTY' 
                 const a = pool.find((x) => x.addressId === selectedPoolId);
                 return a ? (
                   <div style={{ marginTop: 8, padding: '8px 10px', background: '#f9f9f9', borderRadius: 4, fontSize: 12, color: '#595959' }}>
-                    {[a.addressLine1, a.addressLine2, a.city, a.stateProvince, a.postalCode, a.countryCode].filter(Boolean).join(', ')}
+                    {[a.addressLine1, a.addressLine2, a.city, a.stateProvince, a.postalCode, countryLabelById.get(a.countryId) ?? a.countryId].filter(Boolean).join(', ')}
                     {a.phoneNumber && <div style={{ marginTop: 2 }}>{a.phoneNumber}</div>}
                   </div>
                 ) : null;
@@ -253,7 +254,7 @@ export function AddressesSection({ items, onChange, entityType = 'COUNTERPARTY' 
               <Form.Item name="postalCode" label="Postal Code">
                 <Input />
               </Form.Item>
-              <Form.Item name="countryCode" label="Country (ISO 2)" rules={[{ required: true }]}>
+              <Form.Item name="countryId" label="Country" rules={[{ required: true }]}>
                 <Select options={countryOptions} loading={loadingCountries} showSearch optionFilterProp="label" placeholder="Select country" />
               </Form.Item>
               <Form.Item name="phoneNumber" label="Phone Number">

@@ -10,6 +10,7 @@ import { useBrokers, useSaveBroker, useDeactivateBroker } from './hooks';
 import { BROKER_TYPES, BROKER_TYPE_META, type Broker, type BrokerInput, type BrokerType } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { useCountries } from '@features/reference/countries/hooks';
+import { useUom } from '@features/reference/uom/hooks';
 
 const { Text } = Typography;
 
@@ -35,7 +36,9 @@ export function BrokersPage() {
   const { data: countries = [], isLoading: loadingCountries } = useCountries();
   const countryOptions = countries
     .filter((c) => c.isActive)
-    .map((c) => ({ label: `${c.countryCode} — ${c.countryName}`, value: c.countryCode }));
+    .map((c) => ({ label: `${c.countryCode} — ${c.countryName}`, value: c.countryId }));
+  const { data: uoms = [] } = useUom();
+  const uomOptions = uoms.map((u) => ({ value: u.uomId, label: u.uomCode }));
 
   function openNew() {
     setEditing(null);
@@ -57,9 +60,9 @@ export function BrokersPage() {
       contactEmail: b.contactEmail ?? undefined,
       contactPhone: b.contactPhone ?? undefined,
       website: b.website ?? undefined,
-      countryCode: b.countryCode ?? undefined,
+      countryId: b.countryId ?? undefined,
       legalDocId: b.legalDocId ?? undefined,
-      commissionUomCode: b.commissionUomCode ?? undefined,
+      commissionUomId: b.commissionUomId ?? undefined,
       commissionNotes: b.commissionNotes ?? undefined,
       isActive: b.isActive,
     });
@@ -92,7 +95,10 @@ export function BrokersPage() {
       valueFormatter: (p) => p.value ?? '—',
       cellStyle: { fontSize: 12, color: '#6b7280' },
     },
-    { field: 'countryCode', headerName: 'Country', width: 90, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },
+    {
+      field: 'countryId', headerName: 'Country', width: 90, cellClass: 'cell-mono',
+      cellRenderer: (p: { value: number | null }) => countries.find((c) => c.countryId === p.value)?.countryCode ?? '—',
+    },
     { field: 'contactName',  headerName: 'Contact',  flex: 1, minWidth: 140, valueFormatter: (p) => p.value ?? '—' },
     { field: 'contactEmail', headerName: 'Email',    flex: 1.2, minWidth: 180, valueFormatter: (p) => p.value ?? '—' },
     { field: 'isActive', headerName: 'Status', width: 90, cellRenderer: (p: { value: boolean }) => <ActiveTag active={p.value} /> },
@@ -114,7 +120,7 @@ export function BrokersPage() {
         </Space>
       ),
     },
-  ], [deactivate]);
+  ], [deactivate, countries]);
 
   return (
     <>
@@ -201,8 +207,8 @@ export function BrokersPage() {
           </Form.Item>
 
           <Form.Item
-            name="countryCode"
-            label={hint('Country Code', 'ISO 3166-1 alpha-2 country of the broker\'s primary regulatory domicile — affects KYC jurisdiction and reporting obligations.', 'GB')}
+            name="countryId"
+            label={hint('Country', 'Country of the broker\'s primary regulatory domicile — affects KYC jurisdiction and reporting obligations.', 'GB')}
           >
             <Select options={countryOptions} loading={loadingCountries} allowClear showSearch optionFilterProp="label" placeholder="Select country" style={{ width: 220 }} />
           </Form.Item>
@@ -248,10 +254,10 @@ export function BrokersPage() {
           </Form.Item>
 
           <Form.Item
-            name="commissionUomCode"
+            name="commissionUomId"
             label={hint('Commission UoM', 'Unit of measure for the commission rate agreed with this broker — e.g. BBL, MT, MWH, MMBTU. Determines the unit used in fee calculations.')}
           >
-            <Input placeholder="BBL" style={{ fontFamily: 'monospace', textTransform: 'uppercase', width: 100 }} />
+            <Select options={uomOptions} showSearch optionFilterProp="label" allowClear placeholder="BBL" style={{ width: 100 }} />
           </Form.Item>
 
           <Form.Item

@@ -159,10 +159,10 @@ export function MarginAccountsPage() {
           >
             <InputNumber style={{ width: '100%' }} min={0} />
           </Form.Item>
-          <Form.Item name="variationMargin" label="Variation Margin">
+          <Form.Item name="variationMargin" label={hint('Variation Margin', 'Daily margin call driven by mark-to-market moves, as distinct from Initial Margin (upfront) or Excess Margin (buffer above required).')}>
             <InputNumber style={{ width: '100%' }} />
           </Form.Item>
-          <Form.Item name="excessMargin" label="Excess Margin">
+          <Form.Item name="excessMargin" label={hint('Excess Margin', 'Margin posted above the required maintenance level — a buffer against future calls.')}>
             <InputNumber style={{ width: '100%' }} />
           </Form.Item>
           <Form.Item name="marginLimit" label="Margin Limit" rules={[{ type: 'number', min: 0 }]}>

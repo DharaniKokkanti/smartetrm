@@ -11,7 +11,7 @@ export interface BolmoLeg {
   orderReference: string | null;
   direction: BolmoDirection;
   quantity: number;
-  uomCode: string;
+  uomId: number;
   price: number | null;
   notes: string | null;
   createdAt: string;
@@ -29,12 +29,15 @@ export interface BolmoAgreement {
   agreementDate: string;
   settlementDate: string | null;
   commodityType: string;
-  deliveryLocationCode: string | null;
+  deliveryLocationId: number | null;
+  deliveryLocationName: string | null;
   deliveryPeriodCode: string | null;
   netQuantity: number;
-  uomCode: string;
+  uomId: number;
+  uomCode: string | null;       // denormalized display code, e.g. BBL
   nettingPrice: number | null;  // agreed cash settlement price
-  currencyCode: string;
+  currencyId: number;
+  currencyCode: string;         // denormalized display code, e.g. USD
   status: BolmoStatus;
   notes: string | null;
   legs: BolmoLeg[];
@@ -45,5 +48,6 @@ export interface BolmoAgreement {
 
 export type BolmoAgreementInput = Omit<
   BolmoAgreement,
-  'bolmoId' | 'bolmoReference' | 'counterpartyName' | 'legalEntityName' | 'legs' | 'legCount' | 'createdAt' | 'updatedAt'
+  | 'bolmoId' | 'bolmoReference' | 'counterpartyName' | 'legalEntityName' | 'legs' | 'legCount'
+  | 'deliveryLocationName' | 'uomCode' | 'currencyCode' | 'createdAt' | 'updatedAt'
 >;

@@ -176,7 +176,7 @@ export function InsurancePoliciesPage() {
               <Select options={PREMIUM_FREQUENCIES.map((f) => ({ value: f, label: f.replace(/_/g, ' ') }))} allowClear />
             </Form.Item>
           </Space.Compact>
-          <Form.Item name="inceptionDate" label="Inception Date" rules={[{ required: true }]}>
+          <Form.Item name="inceptionDate" label={hint('Inception Date', 'Insurance term for the date cover starts (policy start date).')} rules={[{ required: true }]}>
             <AppDatePicker />
           </Form.Item>
           <Form.Item

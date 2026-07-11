@@ -148,7 +148,7 @@ export function PipelineSegmentsPage() {
               <InputNumber style={{ width: '100%' }} min={0} />
             </Form.Item>
           </Space.Compact>
-          <Form.Item name="tariffZone" label="Tariff Zone">
+          <Form.Item name="tariffZone" label={hint('Tariff Zone', 'Pricing zone used to look up the applicable transport tariff for this segment.')}>
             <Input />
           </Form.Item>
           <Form.Item name="operationalStatus" label="Operational Status" rules={[{ required: true }]}>

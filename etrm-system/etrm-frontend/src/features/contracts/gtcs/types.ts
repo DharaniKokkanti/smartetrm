@@ -9,7 +9,7 @@ export interface Gtc {
   version: string;
   effectiveDate: string;
   expiryDate: string | null;
-  jurisdiction: string;
+  jurisdictionId: number | null;
   governingLaw: string;
   disputeResolution: string;
   documentRef: string | null;

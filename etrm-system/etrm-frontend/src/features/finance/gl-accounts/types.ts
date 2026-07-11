@@ -20,7 +20,7 @@ export interface GlAccount {
   parentAccountCode: string | null;
   normalBalance: NormalBalance;
   /** Null = follows the booking entity's base currency rather than a fixed one. */
-  currencyCode: string | null;
+  currencyId: number | null;
   /** Mapping code to the external ERP/GL system of record (SAP, Oracle, etc). */
   externalGlCode: string | null;
   /** Summary/rollup account that should not receive direct postings. */

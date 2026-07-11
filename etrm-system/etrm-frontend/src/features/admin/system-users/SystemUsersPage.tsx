@@ -58,7 +58,10 @@ export function SystemUsersPage() {
     { field: 'fullName', headerName: 'Full Name', flex: 1 },
     { field: 'email', headerName: 'Email', flex: 1.2 },
     {
-      field: 'roles', headerName: 'Roles', width: 220,
+      field: 'roles', headerName: 'Roles', flex: 1, minWidth: 220,
+      tooltipValueGetter: (p) => p.data?.roles.length
+        ? p.data.roles.map((r) => `${r.roleName}${r.status === 'PENDING_APPROVAL' ? ' (Pending)' : ''}`).join(', ')
+        : 'No role',
       cellRenderer: (p: { data: SystemUser }) => p.data.roles.length ? (
         <Space size={4} wrap>
           {p.data.roles.map((r) => (
@@ -70,7 +73,7 @@ export function SystemUsersPage() {
       ) : <Tag color="default">No role</Tag>,
     },
     { field: 'department', headerName: 'Department', flex: 0.8, valueFormatter: (p) => p.value ?? '—' },
-    { field: 'officeLocation', headerName: 'Location', width: 120, valueFormatter: (p) => p.value ?? '—' },
+    { field: 'officeLocation', headerName: 'Location', flex: 1, minWidth: 120, valueFormatter: (p) => p.value ?? '—', tooltipValueGetter: (p) => p.value },
     { field: 'preferredLocale', headerName: 'Locale', width: 100, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },
     {
       field: 'lastLogin', headerName: 'Last Login', width: 160,

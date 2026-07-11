@@ -87,7 +87,7 @@ export interface CreditLimit {
   creditLimitId: number;
   counterpartyId: number;
   counterpartyName: string;             // denormalized
-  cpCountryCode: string | null;         // denormalized from counterparty — country risk dimension
+  cpCountryId: number | null;           // FK -> dbo.country; denormalized from counterparty — country risk dimension
   countryRiskRating: CountryRiskRating | null;
 
   // Scope
@@ -98,7 +98,7 @@ export interface CreditLimit {
 
   // Amounts
   limitAmount: number;
-  limitCurrency: string;
+  limitCurrencyId: number;
   usedAmount: number;
   availableAmount: number;              // computed: limit + uplift + collateral − used
   utilisationPct: number;               // computed

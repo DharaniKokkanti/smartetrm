@@ -11,8 +11,9 @@ export interface SettlementPrice {
   settleDate: string;
   settlePrice: number;
   tickSize: number;
-  tickCurrency: string;
-  uomCode: string;
+  tickCurrencyId: number;
+  uomId: number;
+  uomCode: string | null;   // denormalized display code, e.g. BBL
   isConfirmed: boolean;
   source: SettlementSource;
   notes: string | null;
@@ -20,7 +21,7 @@ export interface SettlementPrice {
   updatedAt: string;
 }
 
-export type SettlementPriceInput = Omit<SettlementPrice, 'settlementPriceId' | 'createdAt' | 'updatedAt'>;
+export type SettlementPriceInput = Omit<SettlementPrice, 'settlementPriceId' | 'uomCode' | 'createdAt' | 'updatedAt'>;
 
 // Contract series metadata used for display
 export const CL_MONTH_CODES: Record<string, string> = {

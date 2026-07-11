@@ -5,6 +5,7 @@ export type FatfStatus = (typeof FATF_STATUSES)[number];
 export const SANCTION_STATUSES = ['CLEAR', 'OFAC', 'EU_SANCTIONS', 'UN_SANCTIONS'] as const;
 export type SanctionStatus = (typeof SANCTION_STATUSES)[number];
 export interface Country {
+  countryId: number;
   countryCode: string;
   countryName: string;
   region: Region;
@@ -13,4 +14,4 @@ export interface Country {
   sanctionStatus: SanctionStatus;
   isActive: boolean;
 }
-export type CountryInput = Country;
+export type CountryInput = Omit<Country, 'countryId'>;

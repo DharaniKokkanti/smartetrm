@@ -93,9 +93,9 @@ export interface OilDetail {
   apiGravity: number | null;
   sulphurPct: number | null;
   motType: MotType | null;
-  loadLocationCode: string | null;
-  dischargeLocationCode: string | null;
-  titleTransferLocationCode: string | null;
+  loadLocationId: number | null;
+  dischargeLocationId: number | null;
+  titleTransferLocationId: number | null;
   vesselName: string | null;
   laycanStart: string | null;
   laycanEnd: string | null;
@@ -127,7 +127,7 @@ export interface PowerDetail {
 export interface LngDetail {
   loadTerminalCode: string | null;
   dischargeTerminalCode: string | null;
-  titleTransferLocationCode: string | null;
+  titleTransferLocationId: number | null;
   motType: MotType | null;
   cargoVolumeMmbtu: number | null;
   priceBasis: 'JCC' | 'HH' | 'TTF' | 'NBP' | 'CUSTOM' | null;
@@ -139,14 +139,14 @@ export interface MetalsDetail {
   motType: MotType | null;
   lmeDate: string | null;
   warehouseLocationCode: string | null;
-  titleTransferLocationCode: string | null;
+  titleTransferLocationId: number | null;
   brand: string | null;
 }
 
 export interface AgriDetail {
   cropYear: number | null;
   gradeQuality: string | null;
-  originCountry: string | null;
+  originCountryId: number | null;
   deliveryBasis: string | null;
   motType: MotType | null;
 }
@@ -223,8 +223,8 @@ export interface PriceAdjustment {
   adjustmentId?: number;
   adjustmentType: PriceAdjustmentType;
   adjustmentValue: number;       // positive = adds to price; negative = subtracts
-  adjustmentCurrency: string | null;
-  adjustmentUomCode: string | null;
+  adjustmentCurrencyId: number | null;
+  adjustmentUomId: number | null;
   // Traces this adjustment back to the published commodity_grade_standard
   // row it was auto-derived from (V69) — null for manually-entered or
   // assay-computed adjustments (crude API gravity/sulfur, LNG cargo, etc.).
@@ -257,14 +257,14 @@ export type SwapResetFrequency = (typeof SWAP_RESET_FREQUENCIES)[number];
 
 export interface SwapDetail {
   fixedRate: number | null;              // fixed leg rate (for SWAP_FIXED_FLOAT)
-  fixedCurrencyCode: string | null;
-  fixedUomCode: string | null;
+  fixedCurrencyId: number | null;
+  fixedUomId: number | null;
   floatingIndexCode: string | null;      // primary floating leg price index
   floatingIndex2Code: string | null;     // second floating leg (SWAP_FLOAT_FLOAT only)
   resetFrequency: SwapResetFrequency | null;
   paymentFrequency: SwapResetFrequency | null;
   notionalQuantity: number | null;
-  notionalUomCode: string | null;
+  notionalUomId: number | null;
   averagingMethod: 'ARITHMETIC' | 'WEIGHTED' | null;
 }
 
@@ -275,12 +275,12 @@ export type OptionPutCall = (typeof OPTION_PUT_CALLS)[number];
 export interface OptionDetail {
   putCall: OptionPutCall | null;
   strikePrice: number | null;
-  strikeCurrencyCode: string | null;
-  strikeUomCode: string | null;
+  strikeCurrencyId: number | null;
+  strikeUomId: number | null;
   expiryDate: string | null;
   exerciseDate: string | null;           // last date exercised (= expiryDate for European)
   premiumAmount: number | null;
-  premiumCurrencyCode: string | null;
+  premiumCurrencyId: number | null;
   premiumPayDate: string | null;
   underlyingProductCode: string | null;
   underlyingContractCode: string | null; // e.g. CLZ26 for listed options
@@ -305,16 +305,16 @@ export type StorageAgreementType = (typeof STORAGE_AGREEMENT_TYPES)[number];
 export interface StorageAgreementDetail {
   storageAgreementType: StorageAgreementType | null;
   storageFacilityCode: string | null;
-  storageCountryCode: string | null;
+  storageCountryId: number | null;
   capacityReserved: number | null;
-  capacityUomCode: string | null;
+  capacityUomId: number | null;
   injectionRatePerDay: number | null;
   withdrawalRatePerDay: number | null;
   storageStartDate: string | null;
   storageEndDate: string | null;
   tariffRate: number | null;
-  tariffCurrencyCode: string | null;
-  tariffUomCode: string | null;          // per BBL, per MT, per MWH, or FLAT_MONTHLY
+  tariffCurrencyId: number | null;
+  tariffUomId: number | null;          // per BBL, per MT, per MWH, or FLAT_MONTHLY
   minimumThroughput: number | null;      // take-or-pay floor
 }
 
@@ -339,11 +339,11 @@ export interface TransportAgreementDetail {
   vesselName: string | null;
   vesselImoNumber: string | null;
   pipelineCode: string | null;
-  loadLocationCode: string | null;
-  dischargeLocationCode: string | null;
+  loadLocationId: number | null;
+  dischargeLocationId: number | null;
   routeCode: string | null;             // e.g. TD3C, TC2, C3 worldscale routes
   capacityPerLift: number | null;
-  capacityUomCode: string | null;
+  capacityUomId: number | null;
   laycanStart: string | null;
   laycanEnd: string | null;
   agreementStartDate: string | null;
@@ -351,7 +351,7 @@ export interface TransportAgreementDetail {
   numberOfLifts: number | null;         // total contracted voyages for COA
   freightRate: number | null;
   freightRateType: FreightRateType | null;
-  freightCurrencyCode: string | null;
+  freightCurrencyId: number | null;
 }
 
 // ─── TAS detail (Trade at Settlement pricing) ────────────────────────────────
@@ -463,7 +463,7 @@ export interface TradeOrder {
   brokerName: string | null;
   brokerFeeType: BrokerFeeType | null;
   brokerFee: number | null;
-  brokerFeeCurrencyCode: string | null;
+  brokerFeeCurrencyId: number | null;
   productId: number | null;
   productCode: string | null;
   productName: string | null;
@@ -472,11 +472,14 @@ export interface TradeOrder {
   pricingRuleId: number | null;
   pricingRuleCode: string | null;
   quantity: number;
+  uomId: number;
   uomCode: string;
   price: number | null;
+  currencyId: number;
   currencyCode: string;
   incotermCode: string | null;
-  deliveryLocationCode: string | null;
+  deliveryLocationId: number | null;
+  deliveryLocationName: string | null;
   settlementType: SettlementTypeTrade;
   // Operational tolerance (not used for risk — risk always = contract qty)
   toleranceType: ToleranceType | null;
@@ -484,9 +487,9 @@ export interface TradeOrder {
   toleranceMinus: number | null;
   toleranceForScheduling: boolean; // false = tolerance for actuals only
   // Physical delivery enrichments (order-level, not commodity-specific)
-  originCountryCode: string | null;    // ISO 3166-1 alpha-2; used for sanctions screening
+  originCountryId: number | null;      // used for sanctions screening
   demurrageRate: number | null;        // $/day or currency/day penalty for excess laytime
-  demurrageCurrency: string | null;
+  demurrageCurrencyId: number | null;
   demurrageBasis: DemurrageBasis | null;
   allowedLaytimeHours: number | null;  // free laytime before demurrage starts
   despatchRate: number | null;         // reward for early completion (typically 50% of demurrage)
@@ -513,7 +516,8 @@ export interface TradeOrder {
 
 export type TradeOrderInput = Omit<TradeOrder,
   'orderId' | 'orderReference' | 'productCode' | 'productName' | 'marketCode' | 'pricingRuleCode' |
-  'legalEntityName' | 'bookCode' | 'brokerCode' | 'brokerName' | 'createdAt' | 'updatedAt'
+  'legalEntityName' | 'bookCode' | 'brokerCode' | 'brokerName' | 'createdAt' | 'updatedAt' |
+  'uomCode' | 'deliveryLocationName' | 'currencyCode'
 >;
 
 // ─── TradeItem (line item within an order) ───────────────────────────────────
@@ -528,13 +532,15 @@ export interface TradeItem {
   productCode: string | null;
   description: string;
   quantity: number;
+  uomId: number;
   uomCode: string;
   unitPrice: number | null;
+  currencyId: number;
   currencyCode: string;
   notes: string | null;
 }
 
-export type TradeItemInput = Omit<TradeItem, 'itemId' | 'productCode'>;
+export type TradeItemInput = Omit<TradeItem, 'itemId' | 'productCode' | 'uomCode' | 'currencyCode'>;
 
 // ─── TradeCost / TradeOrderCost (secondary costs, V88) ───────────────────────
 export interface TradeCost {
@@ -543,11 +549,12 @@ export interface TradeCost {
   costType: TradeCostType;
   description: string | null;
   amount: number;
+  currencyId: number;
   currencyCode: string;
   isEstimated: boolean;
   notes: string | null;
 }
-export type TradeCostInput = Omit<TradeCost, 'costId'>;
+export type TradeCostInput = Omit<TradeCost, 'costId' | 'currencyCode'>;
 
 export interface TradeOrderCost {
   costId: number;
@@ -555,11 +562,12 @@ export interface TradeOrderCost {
   costType: TradeCostType;
   description: string | null;
   amount: number;
+  currencyId: number;
   currencyCode: string;
   isEstimated: boolean;
   notes: string | null;
 }
-export type TradeOrderCostInput = Omit<TradeOrderCost, 'costId'>;
+export type TradeOrderCostInput = Omit<TradeOrderCost, 'costId' | 'currencyCode'>;
 
 // ─── TradeAssayResult (physical-leg quality results, V88) ────────────────────
 // Actual measured values captured against the product's existing quality spec

@@ -5,11 +5,15 @@ import {
   addressApi,
   contactApi,
   fetchCounterpartyChildren,
+  fetchAllContactAssignments,
+  fetchAllTaxRegistrations,
   saveAddressAssignment,
   saveContactAssignment,
   saveTaxRegistrationAssignment,
+  deactivateContactAssignment,
+  deactivateTaxRegistrationAssignment,
 } from './api';
-import type { CounterpartyDraft } from './types';
+import type { BankAccount, ContactAssignment, CounterpartyDraft, TaxRegistration } from './types';
 import type { ProblemDetail } from '@services/api';
 
 const LIST_KEY = ['counterparties'] as const;
@@ -135,5 +139,98 @@ export function useSaveCounterpartyDraft() {
     onError: (err: ProblemDetail) => {
       message.error(err.detail ?? err.title ?? 'Save failed.');
     },
+  });
+}
+
+// ── Cross-entity directory queries/mutations ──────────────────────────────────
+// Unscoped — every record across every counterparty/legal entity — used by
+// the standalone directory pages (Contacts, Tax Registrations, Bank
+// Accounts), as opposed to the entity-scoped Sections embedded in the
+// Counterparty/Legal Entity forms above.
+
+const ALL_CONTACTS_KEY = ['entity-contacts', 'all'] as const;
+const ALL_TAX_REGISTRATIONS_KEY = ['entity-tax-registrations', 'all'] as const;
+const ALL_BANK_ACCOUNTS_KEY = ['bank-accounts', 'all'] as const;
+
+export function useAllContactAssignments() {
+  return useQuery({ queryKey: ALL_CONTACTS_KEY, queryFn: fetchAllContactAssignments });
+}
+
+export function useSaveContactAssignment() {
+  const queryClient = useQueryClient();
+  const { message } = AntApp.useApp();
+  return useMutation({
+    mutationFn: (assignment: ContactAssignment) => saveContactAssignment(assignment),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ALL_CONTACTS_KEY });
+      queryClient.invalidateQueries({ queryKey: ['contact-pool'] });
+      message.success('Contact saved.');
+    },
+    onError: (err: ProblemDetail) => message.error(err.detail ?? err.title ?? 'Save failed.'),
+  });
+}
+
+export function useDeactivateContactAssignment() {
+  const queryClient = useQueryClient();
+  const { message } = AntApp.useApp();
+  return useMutation({
+    mutationFn: (entityContactId: number) => deactivateContactAssignment(entityContactId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ALL_CONTACTS_KEY });
+      message.success('Contact removed.');
+    },
+    onError: (err: ProblemDetail) => message.error(err.detail ?? err.title ?? 'Remove failed.'),
+  });
+}
+
+export function useAllTaxRegistrations() {
+  return useQuery({ queryKey: ALL_TAX_REGISTRATIONS_KEY, queryFn: fetchAllTaxRegistrations });
+}
+
+export function useSaveTaxRegistration() {
+  const queryClient = useQueryClient();
+  const { message } = AntApp.useApp();
+  return useMutation({
+    mutationFn: (reg: TaxRegistration) => saveTaxRegistrationAssignment(reg),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ALL_TAX_REGISTRATIONS_KEY });
+      message.success('Tax registration saved.');
+    },
+    onError: (err: ProblemDetail) => message.error(err.detail ?? err.title ?? 'Save failed.'),
+  });
+}
+
+export function useDeactivateTaxRegistration() {
+  const queryClient = useQueryClient();
+  const { message } = AntApp.useApp();
+  return useMutation({
+    mutationFn: (taxRegId: number) => deactivateTaxRegistrationAssignment(taxRegId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ALL_TAX_REGISTRATIONS_KEY });
+      message.success('Tax registration removed.');
+    },
+    onError: (err: ProblemDetail) => message.error(err.detail ?? err.title ?? 'Remove failed.'),
+  });
+}
+
+export function useAllBankAccounts() {
+  return useQuery({ queryKey: ALL_BANK_ACCOUNTS_KEY, queryFn: counterpartyApi.bankAccounts.listAll });
+}
+
+export function useSaveBankAccount() {
+  const queryClient = useQueryClient();
+  const { message } = AntApp.useApp();
+  return useMutation({
+    mutationFn: ({ entityId, account }: { entityId: number; account: BankAccount }) => {
+      const { _localId: _l, bankAccountId, ...rest } = account;
+      return bankAccountId === null
+        ? counterpartyApi.bankAccounts.create(entityId, rest)
+        : counterpartyApi.bankAccounts.update(entityId, bankAccountId, rest);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ALL_BANK_ACCOUNTS_KEY });
+      message.success('Bank account saved.');
+    },
+    onError: (err: ProblemDetail) => message.error(err.detail ?? err.title ?? 'Save failed.'),
   });
 }

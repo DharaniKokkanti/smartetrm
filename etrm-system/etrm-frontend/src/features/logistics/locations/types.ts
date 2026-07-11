@@ -9,7 +9,7 @@ export interface Location {
   locationName: string;
   locationTypeCode: LocationTypeCode;
   commodityType: CommodityType | null;
-  countryCode: string;
+  countryId: number;
   portCode: string | null;
   unlocode: string | null;
   operator: string | null;

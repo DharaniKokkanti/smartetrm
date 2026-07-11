@@ -8,6 +8,7 @@ import { SmartGrid } from '@components/smart/SmartGrid';
 import { ActiveTag } from '@components/smart/StatusTag';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import { useFormDraft } from '@components/smart/formDraft';
+import { hint } from '@components/smart/FieldHint';
 import { usePipelines } from '@features/trade/hooks';
 import { useHolidayCalendars } from '@features/calendar/holiday-calendars/hooks';
 import { useTableRows } from '@features/tier2/hooks';
@@ -91,7 +92,7 @@ export function PipelineCyclesPage() {
     { field: 'cycleCode', headerName: 'Code', width: 90, cellClass: 'cell-mono' },
     { field: 'cycleName', headerName: 'Cycle Name', flex: 1, minWidth: 140 },
     { field: 'cycleType', headerName: 'Type', width: 110, cellRenderer: (p: { value: string }) => <Tag color={TYPE_COLOR[p.value] ?? 'default'} style={{ fontSize: 10 }}>{p.value}</Tag> },
-    { field: 'productName', headerName: 'Product', width: 130, valueFormatter: (p) => p.value ?? 'All products' },
+    { field: 'productName', headerName: 'Product', flex: 1, minWidth: 130, valueFormatter: (p) => p.value ?? 'All products', tooltipValueGetter: (p) => p.value ?? 'All products' },
     { field: 'effectiveFrom', headerName: 'Valid From', width: 105, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },
     { field: 'effectiveTo', headerName: 'Valid To', width: 105, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },
     { field: 'nominationDeadline', headerName: 'Nom. Deadline', width: 120, cellClass: 'cell-mono' },
@@ -159,7 +160,7 @@ export function PipelineCyclesPage() {
               <Input placeholder="Within Day 1" />
             </Form.Item>
           </Space.Compact>
-          <Form.Item name="cycleType" label="Cycle Type" rules={[{ required: true }]}>
+          <Form.Item name="cycleType" label={hint('Cycle Type', 'INTRADAY/DAILY/MONTHLY/ADHOC — how often this nomination cycle runs.')} rules={[{ required: true }]}>
             <Select options={CYCLE_TYPES.map((t) => ({ value: t, label: t }))} />
           </Form.Item>
           <Form.Item name="productId" label="Product (blank = all products on this pipeline)">
@@ -210,7 +211,7 @@ export function PipelineCyclesPage() {
             <Select options={calendarOpts} allowClear showSearch optionFilterProp="label" />
           </Form.Item>
           <Space.Compact block>
-            <Form.Item name="appliesToDays" label="Applies To" style={{ width: '50%' }} rules={[{ required: true }]}>
+            <Form.Item name="appliesToDays" label={hint('Applies To', 'Which days this cycle\'s nomination schedule is valid for — weekdays only, weekends, or every day.')} style={{ width: '50%' }} rules={[{ required: true }]}>
               <Select options={APPLIES_TO_DAYS.map((d) => ({ value: d, label: d }))} />
             </Form.Item>
             <Form.Item name="cyclePriority" label="Priority (1 = highest)" style={{ width: '50%' }} rules={[{ required: true }]}>

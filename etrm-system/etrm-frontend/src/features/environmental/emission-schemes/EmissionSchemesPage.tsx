@@ -74,7 +74,7 @@ export function EmissionSchemesPage() {
             <Form.Item name="schemeCode" label={hint('Scheme Code', 'Short system identifier — EU_ETS, UK_ETS, CA_CAP, RGGI, VCS, GS.')} rules={[{ required: true }]} style={{ flex: 1 }}>
               <Input placeholder="EU_ETS" style={{ fontFamily: 'monospace', textTransform: 'uppercase' }} />
             </Form.Item>
-            <Form.Item name="schemeType" label="Type" rules={[{ required: true }]} style={{ flex: 1 }}>
+            <Form.Item name="schemeType" label={hint('Type', 'CAP_AND_TRADE = fixed emissions cap with tradable allowances. BASELINE_CREDIT = credits earned for beating a baseline. VOLUNTARY = non-compliance market.')} rules={[{ required: true }]} style={{ flex: 1 }}>
               <Select options={schemeTypeOpts} />
             </Form.Item>
           </Space>

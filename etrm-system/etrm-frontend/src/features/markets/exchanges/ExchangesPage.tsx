@@ -9,6 +9,7 @@ import { hint } from '@components/smart/FieldHint';
 import { useExchanges, useSaveExchange, useDeactivateExchange } from './hooks';
 import { EXCHANGE_TYPES, type Exchange, type ExchangeInput } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { useCountries } from '@features/reference/countries/hooks';
 
 const TYPE_COLOR: Record<string, string> = {
   EXCHANGE: 'blue', ECN: 'purple', OTC_PLATFORM: 'cyan', DARK_POOL: 'default',
@@ -18,13 +19,16 @@ export function ExchangesPage() {
   const { data, isLoading, refetch } = useExchanges();
   const save = useSaveExchange();
   const deactivate = useDeactivateExchange();
+  const { data: countries = [] } = useCountries();
+  const countryOptions = countries.map((c) => ({ value: c.countryId, label: `${c.countryCode} — ${c.countryName}` }));
+  const countryLabelById = new Map(countries.map((c) => [c.countryId, `${c.countryCode} — ${c.countryName}`]));
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Exchange | null>(null);
   const [form] = Form.useForm<ExchangeInput>();
   useFormDraft('markets-exchanges', { form, open, setOpen, editing, setEditing });
 
   function openNew() { setEditing(null); form.resetFields(); form.setFieldValue('isActive', true); setOpen(true); }
-  function openEdit(e: Exchange) { setEditing(e); form.setFieldsValue({ exchangeCode: e.exchangeCode, exchangeName: e.exchangeName, exchangeType: e.exchangeType, countryCode: e.countryCode, timezone: e.timezone, currencyCode: e.currencyCode, regulator: e.regulator ?? undefined, micCode: e.micCode ?? undefined, clearingHouse: e.clearingHouse ?? undefined, isActive: e.isActive }); setOpen(true); }
+  function openEdit(e: Exchange) { setEditing(e); form.setFieldsValue({ exchangeCode: e.exchangeCode, exchangeName: e.exchangeName, exchangeType: e.exchangeType, countryId: e.countryId, timezone: e.timezone, currencyCode: e.currencyCode, regulator: e.regulator ?? undefined, micCode: e.micCode ?? undefined, clearingHouse: e.clearingHouse ?? undefined, isActive: e.isActive }); setOpen(true); }
   async function submit(closeAfter = true) {
     const v = await form.validateFields();
     const saved = await save.mutateAsync({ id: editing?.exchangeId ?? null, input: v });
@@ -35,7 +39,7 @@ export function ExchangesPage() {
     { field: 'exchangeCode', headerName: 'Code', cellClass: 'cell-mono', width: 100, pinned: 'left' },
     { field: 'exchangeName', headerName: 'Exchange', flex: 1.4, minWidth: 180 },
     { field: 'exchangeType', headerName: 'Type', width: 130, cellRenderer: (p: { value: string }) => <Tag color={TYPE_COLOR[p.value] ?? 'default'}>{p.value}</Tag> },
-    { field: 'countryCode', headerName: 'Country', width: 90, cellClass: 'cell-mono' },
+    { field: 'countryId', headerName: 'Country', width: 130, valueFormatter: (p) => countryLabelById.get(p.value) ?? String(p.value) },
     { field: 'timezone', headerName: 'Timezone', width: 160 },
     { field: 'currencyCode', headerName: 'CCY', width: 75, cellClass: 'cell-mono' },
     { field: 'micCode', headerName: 'MIC', width: 90, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—',
@@ -58,7 +62,7 @@ export function ExchangesPage() {
         </Space>
       ),
     },
-  ], [deactivate]);
+  ], [deactivate, countryLabelById]);
 
   return (
     <>
@@ -78,8 +82,8 @@ export function ExchangesPage() {
             <Select options={EXCHANGE_TYPES.map((t) => ({ label: t, value: t }))} />
           </Form.Item>
           <Space style={{ width: '100%', gap: 12 }}>
-            <Form.Item name="countryCode" label={hint('Country', 'ISO 3166-1 alpha-2 country code where the exchange is domiciled.', 'GB, US, DE')} rules={[{ required: true }]} style={{ flex: 1 }}>
-              <Input placeholder="GB" maxLength={2} style={{ fontFamily: 'monospace', textTransform: 'uppercase' }} />
+            <Form.Item name="countryId" label={hint('Country', 'Country where the exchange is domiciled.', 'GB, US, DE')} rules={[{ required: true }]} style={{ flex: 1 }}>
+              <Select options={countryOptions} showSearch optionFilterProp="label" placeholder="Select country" />
             </Form.Item>
             <Form.Item name="currencyCode" label={hint('Currency', 'Primary settlement currency of the exchange.', 'USD')} rules={[{ required: true }]} style={{ flex: 1 }}>
               <Input placeholder="USD" maxLength={3} style={{ fontFamily: 'monospace', textTransform: 'uppercase' }} />

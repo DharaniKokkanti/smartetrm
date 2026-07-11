@@ -10,6 +10,8 @@ import { TAS_EXCHANGES, SETTLEMENT_SOURCES, type SettlementPrice, type Settlemen
 import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import dayjs, { type Dayjs } from 'dayjs';
+import { useUom } from '@features/reference/uom/hooks';
+import { useCurrencies } from '@features/reference/currencies/hooks';
 
 const EXCHANGE_COLOR: Record<TasExchange, string> = {
   CME_NYMEX: 'blue', ICE_EUROPE: 'orange', ICE_US: 'cyan',
@@ -23,11 +25,15 @@ export function SettlementPricesPage() {
   const [editing, setEditing] = useState<SettlementPrice | null>(null);
   const [form] = Form.useForm<SettlementPriceInput>();
   useFormDraft('pricing-settlement-prices', { form, open, setOpen, editing, setEditing });
+  const { data: uoms = [] } = useUom();
+  const uomOptions = uoms.map((u) => ({ value: u.uomId, label: u.uomCode }));
+  const { data: currencies = [] } = useCurrencies();
+  const currencyOptions = currencies.map((c) => ({ value: c.currencyId, label: c.currencyCode }));
 
   function openNew() {
     setEditing(null);
     form.resetFields();
-    form.setFieldsValue({ tickCurrency: 'USD', isConfirmed: false, source: 'MANUAL' });
+    form.setFieldsValue({ tickCurrencyId: 1, isConfirmed: false, source: 'MANUAL' });
     setOpen(true);
   }
   function openEdit(r: SettlementPrice) {
@@ -35,8 +41,8 @@ export function SettlementPricesPage() {
     form.setFieldsValue({
       exchange: r.exchange, contractTicker: r.contractTicker,
       settleDate: r.settleDate ? dayjs(r.settleDate) : undefined,
-      settlePrice: r.settlePrice, tickSize: r.tickSize, tickCurrency: r.tickCurrency,
-      uomCode: r.uomCode, isConfirmed: r.isConfirmed, source: r.source, notes: r.notes ?? undefined,
+      settlePrice: r.settlePrice, tickSize: r.tickSize, tickCurrencyId: r.tickCurrencyId,
+      uomId: r.uomId, isConfirmed: r.isConfirmed, source: r.source, notes: r.notes ?? undefined,
     } as unknown as SettlementPriceInput);
     setOpen(true);
   }
@@ -143,13 +149,13 @@ export function SettlementPricesPage() {
             <Form.Item name="tickSize" label={hint('Tick Size', 'Minimum price increment. CL: 0.01 ($/bbl). NG: 0.001 ($/mmbtu). HO/RB: 0.0001 ($/gal). BZ: 0.01 ($/bbl).')} rules={[{ required: true }]} style={{ flex: 1 }}>
               <InputNumber style={{ width: '100%' }} precision={6} step={0.001} placeholder="0.01" min={0.0001} />
             </Form.Item>
-            <Form.Item name="tickCurrency" label="Tick CCY" rules={[{ required: true }]} style={{ flex: 1 }}>
-              <Input placeholder="USD" maxLength={3} style={{ fontFamily: 'monospace' }} />
+            <Form.Item name="tickCurrencyId" label="Tick CCY" rules={[{ required: true }]} style={{ flex: 1 }}>
+              <Select options={currencyOptions} showSearch optionFilterProp="label" placeholder="USD" />
             </Form.Item>
           </Space>
           <Space style={{ width: '100%', gap: 12 }}>
-            <Form.Item name="uomCode" label="UoM" rules={[{ required: true }]} style={{ flex: 1 }}>
-              <Input placeholder="BBL" style={{ fontFamily: 'monospace' }} />
+            <Form.Item name="uomId" label="UoM" rules={[{ required: true }]} style={{ flex: 1 }}>
+              <Select options={uomOptions} showSearch optionFilterProp="label" placeholder="BBL" />
             </Form.Item>
             <Form.Item name="source" label="Source" rules={[{ required: true }]} style={{ flex: 1 }}>
               <Select options={SETTLEMENT_SOURCES.map((s) => ({ value: s, label: s }))} />

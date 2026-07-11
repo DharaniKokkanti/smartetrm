@@ -83,7 +83,7 @@ export function CollateralPage() {
   );
 
   const colDefs = useMemo<ColDef<Collateral>[]>(() => [
-    { field: 'collateralTypeName', headerName: 'Collateral Type', width: 160 },
+    { field: 'collateralTypeName', headerName: 'Collateral Type', flex: 1, minWidth: 160, tooltipValueGetter: (p) => p.value },
     { field: 'direction', headerName: 'Direction', width: 100, cellRenderer: (p: { value: string }) => <Tag color={p.value === 'POSTED' ? 'orange' : 'green'} style={{ fontSize: 10 }}>{p.value}</Tag> },
     { field: 'legalEntityName', headerName: 'Legal Entity', flex: 1, minWidth: 140 },
     { field: 'counterpartyName', headerName: 'Counterparty', flex: 1, minWidth: 140, valueFormatter: (p) => p.value ?? '—' },
@@ -152,7 +152,7 @@ export function CollateralPage() {
             >
               <Select options={SECURED_ENTITY_TYPES.map((t) => ({ value: t, label: t.replace(/_/g, ' ') }))} />
             </Form.Item>
-            <Form.Item name="securedEntityId" label="Secured Entity ID" style={{ width: '45%' }} rules={[{ required: true }]}>
+            <Form.Item name="securedEntityId" label={hint('Secured Entity ID', 'Identifies the obligation this collateral secures — e.g. a trade, account, or credit line.')} style={{ width: '45%' }} rules={[{ required: true }]}>
               <InputNumber style={{ width: '100%' }} />
             </Form.Item>
           </Space.Compact>
@@ -176,7 +176,7 @@ export function CollateralPage() {
           <Form.Item name="haircutPct" label={hint('Haircut %', 'Discount applied to market value for margin purposes — pre-filled from the Collateral Type\'s standard haircut, override if needed.')} rules={[{ type: 'number', min: 0, max: 100 }]}>
             <InputNumber style={{ width: '100%' }} min={0} max={100} />
           </Form.Item>
-          <Form.Item name="instrumentIsin" label="Instrument ISIN">
+          <Form.Item name="instrumentIsin" label={hint('Instrument ISIN', 'ISIN = International Securities Identification Number — unique code for the pledged security.')}>
             <Input maxLength={12} style={{ textTransform: 'uppercase', fontFamily: 'monospace' }} />
           </Form.Item>
           <Form.Item name="instrumentDesc" label="Instrument Description">

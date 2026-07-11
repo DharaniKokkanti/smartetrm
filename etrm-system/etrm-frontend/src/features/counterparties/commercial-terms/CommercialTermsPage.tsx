@@ -91,8 +91,8 @@ export function CommercialTermsPage() {
   const colDefs = useMemo<ColDef<CpCommercialTerms>[]>(() => [
     { field: 'counterpartyName', headerName: 'Counterparty', flex: 1, minWidth: 150 },
     { field: 'legalEntityName', headerName: 'Legal Entity', flex: 1, minWidth: 150 },
-    { field: 'paymentTermName', headerName: 'Payment Term', width: 150 },
-    { field: 'creditTermName', headerName: 'Credit Term', width: 150 },
+    { field: 'paymentTermName', headerName: 'Payment Term', flex: 1, minWidth: 150, tooltipValueGetter: (p) => p.value },
+    { field: 'creditTermName', headerName: 'Credit Term', flex: 1, minWidth: 150, tooltipValueGetter: (p) => p.value },
     {
       field: 'commodityType', headerName: 'Commodity', width: 110,
       cellRenderer: (p: { value: string | null }) => p.value ? <Tag>{p.value}</Tag> : <span style={{ opacity: 0.45 }}>All</span>,

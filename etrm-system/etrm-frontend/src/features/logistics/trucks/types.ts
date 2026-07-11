@@ -13,7 +13,7 @@ export interface Truck {
   operatorName: string;
   capacity: number;
   capacityUomCode: string;
-  countryCode: string;
+  countryId: number;
   gvwTonnes: number | null;
   licenseExpiryDate: string | null;
   inspectionExpiryDate: string | null;

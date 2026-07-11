@@ -37,7 +37,8 @@ export function GlAccountsPage() {
   const { data: books = [] } = useBooks();
   const bookOpts = books.map((b) => ({ value: b.bookId, label: `${b.bookCode} — ${b.bookName}` }));
   const { data: currencies = [] } = useCurrencies();
-  const currencyOpts = currencies.map((c) => ({ value: c.currencyCode, label: `${c.currencyCode} — ${c.currencyName}` }));
+  const currencyOpts = currencies.map((c) => ({ value: c.currencyId, label: `${c.currencyCode} — ${c.currencyName}` }));
+  const currencyLabelById = new Map(currencies.map((c) => [c.currencyId, `${c.currencyCode} — ${c.currencyName}`]));
 
   const [open, setOpen]       = useState(false);
   const [editing, setEditing] = useState<GlAccount | null>(null);
@@ -63,7 +64,7 @@ export function GlAccountsPage() {
       legalEntityId: r.legalEntityId ?? undefined,
       bookId: r.bookId ?? undefined,
       parentAccountId: r.parentAccountId ?? undefined,
-      currencyCode: r.currencyCode ?? undefined,
+      currencyId: r.currencyId ?? undefined,
       externalGlCode: r.externalGlCode ?? undefined,
     });
     setOpen(true);
@@ -80,7 +81,7 @@ export function GlAccountsPage() {
         legalEntityId: v.legalEntityId ?? null,
         bookId: v.bookId ?? null,
         parentAccountId: v.parentAccountId ?? null,
-        currencyCode: v.currencyCode ?? null,
+        currencyId: v.currencyId ?? null,
         externalGlCode: v.externalGlCode ?? null,
       },
     });
@@ -98,7 +99,7 @@ export function GlAccountsPage() {
     { field: 'bookCode', headerName: 'Book', width: 130, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },
     { field: 'parentAccountCode', headerName: 'Parent Account', width: 130, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },
     { field: 'commodityType', headerName: 'Commodity', width: 110, valueFormatter: (p) => p.value != null ? commodityLabel(p.value) : 'All' },
-    { field: 'currencyCode', headerName: 'Currency', width: 95, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },
+    { field: 'currencyId', headerName: 'Currency', width: 130, valueFormatter: (p) => (p.value != null ? currencyLabelById.get(p.value) ?? String(p.value) : '—') },
     { field: 'costCenter',    headerName: 'Cost Centre', width: 120, valueFormatter: (p) => p.value ?? '—' },
     { field: 'externalGlCode', headerName: 'External GL Code', width: 130, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },
     { field: 'isControlAccount', headerName: 'Control', width: 85,
@@ -116,7 +117,7 @@ export function GlAccountsPage() {
           )}
         </Space>
       ) },
-  ], [deactivate]);
+  ], [deactivate, currencyLabelById]);
 
   return (
     <>
@@ -156,7 +157,7 @@ export function GlAccountsPage() {
             <Form.Item name="parentAccountId" label={hint('Parent Account', 'For chart-of-accounts hierarchy and rollups. Leave blank for a top-level account.')} style={{ flex: 1 }}>
               <Select allowClear placeholder="Top level" options={parentAccountOpts} showSearch optionFilterProp="label" />
             </Form.Item>
-            <Form.Item name="currencyCode" label={hint('Currency', 'Leave blank to follow the booking entity\'s base currency.')} style={{ flex: 1 }}>
+            <Form.Item name="currencyId" label={hint('Currency', 'Leave blank to follow the booking entity\'s base currency.')} style={{ flex: 1 }}>
               <Select allowClear placeholder="Entity base currency" options={currencyOpts} showSearch optionFilterProp="label" />
             </Form.Item>
           </Space>

@@ -6,7 +6,7 @@ export interface Exchange {
   exchangeCode: string;
   exchangeName: string;
   exchangeType: ExchangeType;
-  countryCode: string;
+  countryId: number;
   timezone: string;
   currencyCode: string;
   regulator: string | null;

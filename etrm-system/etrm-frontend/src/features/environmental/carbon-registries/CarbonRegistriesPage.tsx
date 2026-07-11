@@ -74,7 +74,7 @@ export function CarbonRegistriesPage() {
             <Form.Item name="registryCode" label={hint('Registry Code', 'Short identifier — EU_UNION, UK_REG, VERRA, GOLD_STD, ACR, APX.')} rules={[{ required: true }]} style={{ flex: 1 }}>
               <Input placeholder="EU_UNION" style={{ fontFamily: 'monospace', textTransform: 'uppercase' }} />
             </Form.Item>
-            <Form.Item name="registryType" label="Type" rules={[{ required: true }]} style={{ flex: 1 }}>
+            <Form.Item name="registryType" label={hint('Type', 'Compliance = government-mandated scheme registry (e.g. EU Union Registry). Voluntary = non-mandatory market registry (e.g. Verra).')} rules={[{ required: true }]} style={{ flex: 1 }}>
               <Select options={registryTypeOpts} />
             </Form.Item>
           </Space>

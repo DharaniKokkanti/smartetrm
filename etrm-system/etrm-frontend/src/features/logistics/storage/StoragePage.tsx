@@ -246,7 +246,7 @@ export function StoragePage() {
             </Form.Item>
             <Form.Item
               name="withdrawalRate"
-              label="Withdrawal Rate (per day)"
+              label={hint('Withdrawal Rate (per day)', 'Max commodity withdrawal per day — pairs with Injection Rate to define the storage facility\'s swing capacity.')}
               style={{ flex: 1 }}
             >
               <InputNumber style={{ width: '100%' }} placeholder="15000" min={0} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
