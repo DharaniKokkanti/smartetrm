@@ -1,6 +1,6 @@
 import type { Counterparty, Address, AddressAssignment, Contact, ContactAssignment, BankAccount, TaxRegistration } from '@features/tier1/counterparty/types';
 
-let nextCpId = 4;
+let nextCpId = 21;
 let nextContactId = 4;
 let nextBankAccountId = 3;
 let nextAddressId = 4;
@@ -98,6 +98,98 @@ export const counterpartySeed: Counterparty[] = [
     createdBy: 'SYSTEM',
     updatedAt: '2026-01-15T09:00:00Z',
     updatedBy: 'SYSTEM',
+  },
+  // ── Trading counterparties referenced by the seed trades (mocks/etrmHandlers.ts
+  // tradesStore) — added so the Trade Blotter's counterparty Select can actually
+  // resolve every seed trade's counterpartyId to a name instead of falling back
+  // to displaying the raw numeric id. ────────────────────────────────────────
+  {
+    counterpartyId: 10, cpCode: 'BP-OIL', legalName: 'BP Oil International Limited', shortName: 'BP Oil Trading',
+    leiCode: null, jurisdiction: 'GB', cpType: 1, creditRatingId: 2, creditLimit: 40000000, creditLimitCurrency: 'USD',
+    creditReviewDate: '2026-05-01', settlementDays: 2, defaultCurrencyId: 1, isIntercompany: false, internalEntityId: null,
+    parentInd: false, parentCounterpartyId: null, isActive: true, kycStatus: 2, kycApprovedDate: '2026-01-10',
+    kycExpiryDate: '2027-01-10', onboardedDate: '2026-01-10', deactivatedDate: null, notes: null,
+    createdAt: '2026-01-10T09:00:00Z', createdBy: 'SYSTEM', updatedAt: '2026-01-10T09:00:00Z', updatedBy: 'SYSTEM',
+  },
+  {
+    counterpartyId: 11, cpCode: 'BP-ENERGY', legalName: 'BP Energy Europe Limited', shortName: 'BP Energy Europe',
+    leiCode: null, jurisdiction: 'GB', cpType: 1, creditRatingId: 2, creditLimit: 30000000, creditLimitCurrency: 'USD',
+    creditReviewDate: '2026-05-01', settlementDays: 2, defaultCurrencyId: 1, isIntercompany: false, internalEntityId: null,
+    parentInd: false, parentCounterpartyId: null, isActive: true, kycStatus: 2, kycApprovedDate: '2026-01-10',
+    kycExpiryDate: '2027-01-10', onboardedDate: '2026-01-10', deactivatedDate: null, notes: null,
+    createdAt: '2026-01-10T09:00:00Z', createdBy: 'SYSTEM', updatedAt: '2026-01-10T09:00:00Z', updatedBy: 'SYSTEM',
+  },
+  {
+    counterpartyId: 12, cpCode: 'EQUINOR', legalName: 'Equinor Energy AS', shortName: 'Equinor',
+    leiCode: null, jurisdiction: 'NO', cpType: 1, creditRatingId: 1, creditLimit: 35000000, creditLimitCurrency: 'USD',
+    creditReviewDate: '2026-04-01', settlementDays: 2, defaultCurrencyId: 1, isIntercompany: false, internalEntityId: null,
+    parentInd: false, parentCounterpartyId: null, isActive: true, kycStatus: 2, kycApprovedDate: '2026-01-10',
+    kycExpiryDate: '2027-01-10', onboardedDate: '2026-01-10', deactivatedDate: null, notes: null,
+    createdAt: '2026-01-10T09:00:00Z', createdBy: 'SYSTEM', updatedAt: '2026-01-10T09:00:00Z', updatedBy: 'SYSTEM',
+  },
+  {
+    counterpartyId: 13, cpCode: 'TRAFIGURA', legalName: 'Trafigura Group Pte Ltd', shortName: 'Trafigura',
+    leiCode: null, jurisdiction: 'SG', cpType: 1, creditRatingId: 3, creditLimit: 45000000, creditLimitCurrency: 'USD',
+    creditReviewDate: '2026-04-01', settlementDays: 3, defaultCurrencyId: 1, isIntercompany: false, internalEntityId: null,
+    parentInd: false, parentCounterpartyId: null, isActive: true, kycStatus: 2, kycApprovedDate: '2026-01-10',
+    kycExpiryDate: '2027-01-10', onboardedDate: '2026-01-10', deactivatedDate: null, notes: null,
+    createdAt: '2026-01-10T09:00:00Z', createdBy: 'SYSTEM', updatedAt: '2026-01-10T09:00:00Z', updatedBy: 'SYSTEM',
+  },
+  {
+    counterpartyId: 14, cpCode: 'GLEN-METALS', legalName: 'Glencore Metals & Minerals AG', shortName: 'Glencore Metals',
+    leiCode: null, jurisdiction: 'CH', cpType: 3, creditRatingId: 4, creditLimit: 25000000, creditLimitCurrency: 'USD',
+    creditReviewDate: '2026-04-01', settlementDays: 3, defaultCurrencyId: 1, isIntercompany: false, internalEntityId: null,
+    parentInd: false, parentCounterpartyId: 2, isActive: true, kycStatus: 2, kycApprovedDate: '2026-01-10',
+    kycExpiryDate: '2027-01-10', onboardedDate: '2026-01-10', deactivatedDate: null, notes: 'Metals trading subsidiary of Glencore International AG.',
+    createdAt: '2026-01-10T09:00:00Z', createdBy: 'SYSTEM', updatedAt: '2026-01-10T09:00:00Z', updatedBy: 'SYSTEM',
+  },
+  {
+    counterpartyId: 15, cpCode: 'RWE-ST', legalName: 'RWE Supply & Trading GmbH', shortName: 'RWE S&T',
+    leiCode: null, jurisdiction: 'DE', cpType: 1, creditRatingId: 2, creditLimit: 20000000, creditLimitCurrency: 'USD',
+    creditReviewDate: '2026-04-01', settlementDays: 2, defaultCurrencyId: 1, isIntercompany: false, internalEntityId: null,
+    parentInd: false, parentCounterpartyId: null, isActive: true, kycStatus: 2, kycApprovedDate: '2026-01-10',
+    kycExpiryDate: '2027-01-10', onboardedDate: '2026-01-10', deactivatedDate: null, notes: null,
+    createdAt: '2026-01-10T09:00:00Z', createdBy: 'SYSTEM', updatedAt: '2026-01-10T09:00:00Z', updatedBy: 'SYSTEM',
+  },
+  {
+    counterpartyId: 16, cpCode: 'EXXON-GT', legalName: 'ExxonMobil Global Trading Company', shortName: 'ExxonMobil Trading',
+    leiCode: null, jurisdiction: 'US', cpType: 1, creditRatingId: 1, creditLimit: 50000000, creditLimitCurrency: 'USD',
+    creditReviewDate: '2026-04-01', settlementDays: 2, defaultCurrencyId: 1, isIntercompany: false, internalEntityId: null,
+    parentInd: false, parentCounterpartyId: null, isActive: true, kycStatus: 2, kycApprovedDate: '2026-01-10',
+    kycExpiryDate: '2027-01-10', onboardedDate: '2026-01-10', deactivatedDate: null, notes: null,
+    createdAt: '2026-01-10T09:00:00Z', createdBy: 'SYSTEM', updatedAt: '2026-01-10T09:00:00Z', updatedBy: 'SYSTEM',
+  },
+  {
+    counterpartyId: 17, cpCode: 'CENTRICA', legalName: 'Centrica Energy Trading Limited', shortName: 'Centrica Energy',
+    leiCode: null, jurisdiction: 'GB', cpType: 1, creditRatingId: 3, creditLimit: 15000000, creditLimitCurrency: 'USD',
+    creditReviewDate: '2026-04-01', settlementDays: 2, defaultCurrencyId: 1, isIntercompany: false, internalEntityId: null,
+    parentInd: false, parentCounterpartyId: null, isActive: true, kycStatus: 2, kycApprovedDate: '2026-01-10',
+    kycExpiryDate: '2027-01-10', onboardedDate: '2026-01-10', deactivatedDate: null, notes: null,
+    createdAt: '2026-01-10T09:00:00Z', createdBy: 'SYSTEM', updatedAt: '2026-01-10T09:00:00Z', updatedBy: 'SYSTEM',
+  },
+  {
+    counterpartyId: 18, cpCode: 'GLEN-UK', legalName: 'Glencore Energy UK Ltd', shortName: 'Glencore Energy UK',
+    leiCode: null, jurisdiction: 'GB', cpType: 3, creditRatingId: 4, creditLimit: 18000000, creditLimitCurrency: 'USD',
+    creditReviewDate: '2026-04-01', settlementDays: 3, defaultCurrencyId: 1, isIntercompany: false, internalEntityId: null,
+    parentInd: false, parentCounterpartyId: 2, isActive: true, kycStatus: 2, kycApprovedDate: '2026-01-10',
+    kycExpiryDate: '2027-01-10', onboardedDate: '2026-01-10', deactivatedDate: null, notes: 'Energy trading subsidiary of Glencore International AG.',
+    createdAt: '2026-01-10T09:00:00Z', createdBy: 'SYSTEM', updatedAt: '2026-01-10T09:00:00Z', updatedBy: 'SYSTEM',
+  },
+  {
+    counterpartyId: 19, cpCode: 'VITOL', legalName: 'Vitol SA', shortName: 'Vitol',
+    leiCode: null, jurisdiction: 'CH', cpType: 1, creditRatingId: 2, creditLimit: 60000000, creditLimitCurrency: 'USD',
+    creditReviewDate: '2026-04-01', settlementDays: 2, defaultCurrencyId: 1, isIntercompany: false, internalEntityId: null,
+    parentInd: false, parentCounterpartyId: null, isActive: true, kycStatus: 2, kycApprovedDate: '2026-01-10',
+    kycExpiryDate: '2027-01-10', onboardedDate: '2026-01-10', deactivatedDate: null, notes: null,
+    createdAt: '2026-01-10T09:00:00Z', createdBy: 'SYSTEM', updatedAt: '2026-01-10T09:00:00Z', updatedBy: 'SYSTEM',
+  },
+  {
+    counterpartyId: 20, cpCode: 'CARGILL', legalName: 'Cargill International SA', shortName: 'Cargill',
+    leiCode: null, jurisdiction: 'CH', cpType: 1, creditRatingId: 2, creditLimit: 22000000, creditLimitCurrency: 'USD',
+    creditReviewDate: '2026-04-01', settlementDays: 2, defaultCurrencyId: 1, isIntercompany: false, internalEntityId: null,
+    parentInd: false, parentCounterpartyId: null, isActive: true, kycStatus: 2, kycApprovedDate: '2026-01-10',
+    kycExpiryDate: '2027-01-10', onboardedDate: '2026-01-10', deactivatedDate: null, notes: null,
+    createdAt: '2026-01-10T09:00:00Z', createdBy: 'SYSTEM', updatedAt: '2026-01-10T09:00:00Z', updatedBy: 'SYSTEM',
   },
 ];
 
