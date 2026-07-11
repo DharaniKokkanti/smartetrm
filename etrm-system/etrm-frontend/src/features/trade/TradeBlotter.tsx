@@ -62,6 +62,7 @@ import { useCommodityInstrumentMap } from '@features/reference/commodity-instrum
 import { useTableRows } from '@features/tier2/hooks';
 import { useCustomConfigOptions } from '@features/tier1/counterparty/configLookups';
 import { useCountries } from '@features/reference/countries/hooks';
+import { useHolidayCalendars } from '@features/calendar/holiday-calendars/hooks';
 import { useUiStore } from '@store/uiStore';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
@@ -1351,6 +1352,7 @@ export function TradeBlotter() {
   const fullDrawerWidth = `calc(100vw - ${sidebarCollapsed ? 80 : 210}px)`;
   const { data: currencyRows = [] }       = useTableRows('currency');
   const { data: countries = [] }          = useCountries();
+  const { data: holidayCalendars = [] }   = useHolidayCalendars();
   const { data: crudeGradeRows = [] }     = useTableRows('crude_grade_type');
   const { data: metalShapeRows = [] }     = useTableRows('metal_shape');
   const { data: gasDayTypeRows = [] }     = useTableRows('gas_day_type');
@@ -1483,6 +1485,7 @@ export function TradeBlotter() {
   }, [uomRows]);
   const currencyOpts  = useMemo(() => (currencyRows as { currencyId: number; currencyCode: string; currencyName: string }[]).map((r) => ({ value: r.currencyId, label: `${r.currencyCode} — ${r.currencyName}` })), [currencyRows]);
   const countryOpts   = useMemo(() => countries.filter((c) => c.isActive).map((c) => ({ value: c.countryId, label: `${c.countryCode} — ${c.countryName}` })), [countries]);
+  const paymentCalendarOpts = useMemo(() => holidayCalendars.filter((c) => c.isActive).map((c) => ({ value: c.calendarCode, label: `${c.calendarCode} — ${c.calendarName}` })), [holidayCalendars]);
   const legalEntityOpts = useMemo(() => (legalEntities as unknown as { legalEntityId: number; entityCode: string; entityName: string }[]).map((le) => ({ value: le.legalEntityId, label: `${le.entityCode} — ${le.entityName}` })), [legalEntities]);
   // Book options scoped to a leg's commodity — dbo.commodity_type ids (1-9) line up 1:1 with COMMODITY_TYPES_TRADE's
   // order (OIL=1 ... ENVIRONMENTAL=9); a null commodityType on the book means it's a cross-commodity book (e.g. house/other).
@@ -2222,8 +2225,8 @@ export function TradeBlotter() {
                           </Form.Item>
                         </Col>
                         <Col span={7}>
-                          <Form.Item name="paymentCalendarCode" label={hint('Payment Calendar', 'Holiday calendar code used to calculate payment due dates (e.g. UK_BANK, US_FEDERAL, ECB_TARGET) — see Holiday Calendars under Static Data.')}>
-                            <Input placeholder="UK_BANK" style={{ fontFamily: 'monospace' }} />
+                          <Form.Item name="paymentCalendarCode" label={hint('Payment Calendar', 'Holiday calendar used to calculate payment due dates — determines which bank holidays push a due date to the next business day.')}>
+                            <Select options={paymentCalendarOpts} placeholder="Select calendar" allowClear showSearch optionFilterProp="label" />
                           </Form.Item>
                         </Col>
                         <Col span={3}>
