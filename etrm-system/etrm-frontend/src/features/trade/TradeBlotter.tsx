@@ -2220,8 +2220,8 @@ export function TradeBlotter() {
                           </Form.Item>
                         </Col>
                         <Col span={7}>
-                          <Form.Item name="paymentCalendarCode" label={hint('Payment Calendar', 'Holiday calendar code used to calculate payment due dates (e.g. LON-USD, NY-USD).')}>
-                            <Input placeholder="LON-USD" style={{ fontFamily: 'monospace' }} />
+                          <Form.Item name="paymentCalendarCode" label={hint('Payment Calendar', 'Holiday calendar code used to calculate payment due dates (e.g. UK_BANK, US_FEDERAL, ECB_TARGET) — see Holiday Calendars under Static Data.')}>
+                            <Input placeholder="UK_BANK" style={{ fontFamily: 'monospace' }} />
                           </Form.Item>
                         </Col>
                         <Col span={3}>

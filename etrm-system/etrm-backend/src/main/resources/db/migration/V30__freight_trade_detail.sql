@@ -18,14 +18,25 @@
 --     laycan_end           — Vessel presentation window end
 -- =============================================================================
 
-CREATE TABLE dbo.trade_freight_detail (
+-- Superseded: 09_trade_schema.sql already creates dbo.trade_freight_detail
+-- (with a richer, FK'd column set — charter_party_type_id, load_location_id,
+-- discharge_location_id, etc. — later extended by 53_freight_demurrage_
+-- master_data_enhancement.sql). This file's own CREATE TABLE below never
+-- actually took effect on any sequential run from V01 (09 already owns the
+-- table by the time V30 runs, so this CREATE would fail with "object already
+-- exists"). Guarded with IF OBJECT_ID(...) IS NULL so a fresh sequential
+-- build no-ops here instead of erroring, while staying a harmless no-op if
+-- this file is ever run standalone against a DB that skipped 09.
+IF OBJECT_ID('dbo.trade_freight_detail', 'U') IS NULL
+BEGIN
+  CREATE TABLE dbo.trade_freight_detail (
     trade_id                    INT             NOT NULL,
     vessel_type                 VARCHAR(20)     NULL,
     charter_type                VARCHAR(20)     NULL,
     route_code                  VARCHAR(20)     NULL,
     load_location_code          VARCHAR(30)     NULL,
     discharge_location_code     VARCHAR(30)     NULL,
-    cargo_size_mt               DECIMAL(14,2)   NULL,
+    cargo_size_mt                DECIMAL(14,2)   NULL,
     freight_rate_type           VARCHAR(20)     NULL,
     freight_rate                DECIMAL(14,6)   NULL,
     laycan_start                DATE            NULL,
@@ -40,15 +51,8 @@ CREATE TABLE dbo.trade_freight_detail (
     CONSTRAINT chk_freight_rate_type    CHECK (freight_rate_type IS NULL OR freight_rate_type IN (
         'WORLDSCALE','FLAT_RATE','LUMPSUM','TCE'
     ))
-);
+  );
+END;
 GO
 
-PRINT 'V30 APPLIED: Freight trade detail table created.';
-PRINT '  trade_freight_detail: vessel_type, charter_type, route_code, load/discharge location,';
-PRINT '    cargo_size_mt, freight_rate_type, freight_rate, laycan_start, laycan_end';
-PRINT '';
-PRINT 'NOTE: The trade table commodity_type = FREIGHT identifies freight trades.';
-PRINT '  For freight: quantity/uom represent the nominal cargo (e.g. 280000 MT),';
-PRINT '  price represents the flat rate equivalent ($/MT). Worldscale trades should';
-PRINT '  store the agreed WS points in freight_rate and compute $/MT via the';
-PRINT '  Worldscale flat rate for the route (route_code).';
+PRINT 'V30 APPLIED: Freight trade detail table — no-op (dbo.trade_freight_detail already created by V09, extended by V53).';
