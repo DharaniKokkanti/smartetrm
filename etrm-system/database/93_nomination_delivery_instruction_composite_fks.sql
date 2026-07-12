@@ -129,19 +129,25 @@ END
 GO
 
 -- ── trade_order.period_code -> dbo.period(period_code, commodity_type) ─────────
+-- dbo.period.commodity_type is an INT FK to dbo.commodity_type (converted by
+-- V85, which runs before this migration) — not the VARCHAR code this file
+-- originally assumed. trade_order.commodity_type is built the same way here
+-- (staging column + backfill via type_code + FK), matching period's shape,
+-- instead of a VARCHAR CHECK column the composite FK below could never match.
 IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.trade_order') AND name = 'commodity_type')
-  ALTER TABLE dbo.trade_order ADD commodity_type VARCHAR(20) NULL;
+  ALTER TABLE dbo.trade_order ADD commodity_type INT NULL;
 GO
 
 UPDATE o
-SET o.commodity_type = CASE WHEN t.commodity_type = 'FREIGHT' THEN NULL ELSE t.commodity_type END
+SET o.commodity_type = ct.commodity_type_id
 FROM dbo.trade_order o
 JOIN dbo.trade t ON t.trade_id = o.trade_id
-WHERE o.period_code IS NOT NULL AND o.commodity_type IS NULL;
+JOIN dbo.commodity_type ct ON ct.type_code = t.commodity_type
+WHERE o.period_code IS NOT NULL AND o.commodity_type IS NULL AND t.commodity_type <> 'FREIGHT';
 GO
 
-IF NOT EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = 'chk_trade_order_commodity_type')
-  ALTER TABLE dbo.trade_order ADD CONSTRAINT chk_trade_order_commodity_type CHECK (commodity_type IN ('OIL','POWER','GAS','AGRICULTURAL','METALS') OR commodity_type IS NULL);
+IF NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'fk_trade_order_commodity_type')
+  ALTER TABLE dbo.trade_order ADD CONSTRAINT fk_trade_order_commodity_type FOREIGN KEY (commodity_type) REFERENCES dbo.commodity_type(commodity_type_id);
 GO
 
 IF NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'fk_trade_order_period')

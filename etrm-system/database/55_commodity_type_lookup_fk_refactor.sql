@@ -159,6 +159,9 @@ GO
 ALTER TABLE dbo.book DROP CONSTRAINT IF EXISTS ck_book_commodity_type;
 ALTER TABLE dbo.book DROP CONSTRAINT IF EXISTS chk_book_commodity;
 ALTER TABLE dbo.book DROP CONSTRAINT IF EXISTS chk_book_type;
+-- ix_book_entity (V1) is dependent on commodity_type — must drop before the
+-- column drop; recreated below once the new commodity_type is in place.
+DROP INDEX IF EXISTS ix_book_entity ON dbo.book;
 ALTER TABLE dbo.book DROP COLUMN commodity_type, book_type;
 GO
 EXEC sp_rename 'dbo.book.commodity_type_new', 'commodity_type', 'COLUMN';

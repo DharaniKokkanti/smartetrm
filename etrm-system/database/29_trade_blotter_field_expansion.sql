@@ -65,11 +65,11 @@ ALTER TABLE dbo.trade
         broker_id                  INT             NULL,
         broker_fee_type            VARCHAR(15)     NULL,
         broker_fee                 DECIMAL(14,6)   NULL,
-        broker_fee_currency_code   VARCHAR(5)      NULL,
+        broker_fee_currency_code   CHAR(3)         NULL,
         credit_term_code           VARCHAR(20)     NULL,
         credit_approval_status     VARCHAR(15)     NULL,
         credit_limit_used          DECIMAL(18,4)   NULL,
-        gtc_reference              VARCHAR(100)    NULL
+        gtc_reference              VARCHAR(100)    NULL,
 
         CONSTRAINT chk_trade_contract_type CHECK (
             contract_type IS NULL OR
@@ -91,7 +91,7 @@ GO
 -- ── Oil detail additions ─────────────────────────────────────────────────────
 ALTER TABLE dbo.trade_oil_detail
     ADD mot_type                      VARCHAR(15)  NULL,
-        title_transfer_location_code  VARCHAR(30)  NULL
+        title_transfer_location_code  VARCHAR(30)  NULL,
 
         CONSTRAINT chk_oil_mot CHECK (
             mot_type IS NULL OR mot_type IN ('TANKER','PIPELINE','BARGE','TRUCK')
@@ -101,7 +101,7 @@ GO
 -- ── LNG detail additions ─────────────────────────────────────────────────────
 ALTER TABLE dbo.trade_lng_detail
     ADD mot_type                      VARCHAR(15)  NULL,
-        title_transfer_location_code  VARCHAR(30)  NULL
+        title_transfer_location_code  VARCHAR(30)  NULL,
 
         CONSTRAINT chk_lng_mot CHECK (
             mot_type IS NULL OR mot_type IN ('SHIP')
@@ -111,7 +111,7 @@ GO
 -- ── Metals detail additions ──────────────────────────────────────────────────
 ALTER TABLE dbo.trade_metals_detail
     ADD mot_type                      VARCHAR(15)  NULL,
-        title_transfer_location_code  VARCHAR(30)  NULL
+        title_transfer_location_code  VARCHAR(30)  NULL,
 
         CONSTRAINT chk_metals_mot CHECK (
             mot_type IS NULL OR mot_type IN ('SHIP','TRUCK','RAIL','BARGE')
@@ -120,7 +120,7 @@ GO
 
 -- ── Agri detail additions ────────────────────────────────────────────────────
 ALTER TABLE dbo.trade_agri_detail
-    ADD mot_type  VARCHAR(15)  NULL
+    ADD mot_type  VARCHAR(15)  NULL,
 
         CONSTRAINT chk_agri_mot CHECK (
             mot_type IS NULL OR mot_type IN ('SHIP','BARGE','TRUCK','RAIL')

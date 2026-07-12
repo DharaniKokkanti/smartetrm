@@ -398,12 +398,19 @@ SET    lv.category_id = lc.category_id
 FROM   dbo.lookup_value lv
 JOIN   dbo.lookup_category lc ON lc.category_code = UPPER(lv.category);
 GO
+-- uq_lookup_cat_code (V1) is UNIQUE(category, code), and ix_lookup_category
+-- (V1) also indexes category directly — both dependent, must drop before
+-- DROP COLUMN. Recreated below on (category_id, code)/(category_id, ...).
+ALTER TABLE dbo.lookup_value DROP CONSTRAINT IF EXISTS uq_lookup_cat_code;
+DROP INDEX IF EXISTS ix_lookup_category ON dbo.lookup_value;
 ALTER TABLE dbo.lookup_value DROP COLUMN category;
 GO
 ALTER TABLE dbo.lookup_value ALTER COLUMN category_id INT NOT NULL;
 GO
 ALTER TABLE dbo.lookup_value
     ADD CONSTRAINT fk_lookup_value_category FOREIGN KEY (category_id) REFERENCES dbo.lookup_category(category_id);
+ALTER TABLE dbo.lookup_value
+    ADD CONSTRAINT uq_lookup_cat_code UNIQUE (category_id, code);
 GO
 CREATE INDEX ix_lookup_value_category ON dbo.lookup_value (category_id, is_active, sort_order);
 GO

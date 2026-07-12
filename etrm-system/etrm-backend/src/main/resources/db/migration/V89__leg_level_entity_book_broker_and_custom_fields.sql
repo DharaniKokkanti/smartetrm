@@ -89,6 +89,13 @@ IF EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'fk_trade_book')
   ALTER TABLE dbo.trade DROP CONSTRAINT fk_trade_book;
 IF EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'fk_trade_broker')
   ALTER TABLE dbo.trade DROP CONSTRAINT fk_trade_broker;
+-- chk_trade_broker_fee_type (V29) and fk_trade_broker_fee_ccy (V87, added
+-- once broker_fee_currency_code became a real FK to dbo.currency) are also
+-- dependent on columns being dropped below — must go too.
+IF EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = 'chk_trade_broker_fee_type')
+  ALTER TABLE dbo.trade DROP CONSTRAINT chk_trade_broker_fee_type;
+IF EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'fk_trade_broker_fee_ccy')
+  ALTER TABLE dbo.trade DROP CONSTRAINT fk_trade_broker_fee_ccy;
 GO
 IF EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'ix_trade_book' AND object_id = OBJECT_ID('dbo.trade'))
   DROP INDEX ix_trade_book ON dbo.trade;
@@ -180,8 +187,10 @@ BEGIN
 END;
 GO
 
--- Demo values against trade 1 / order 1.
-IF NOT EXISTS (SELECT 1 FROM dbo.trade_custom_field_value WHERE trade_id = 1)
+-- Demo values against trade 1 / order 1. Guarded on trade_id/order_id 1
+-- actually existing (see V88's identical guard for why).
+IF EXISTS (SELECT 1 FROM dbo.trade WHERE trade_id = 1)
+AND NOT EXISTS (SELECT 1 FROM dbo.trade_custom_field_value WHERE trade_id = 1)
 BEGIN
   INSERT INTO dbo.trade_custom_field_value (trade_id, definition_id, value_number)
   SELECT 1, definition_id, 78 FROM dbo.custom_field_definition WHERE field_code = 'ESG_SCORE';
@@ -189,7 +198,8 @@ BEGIN
   SELECT 1, definition_id, 1 FROM dbo.custom_field_definition WHERE field_code = 'REVIEWED';
 END;
 GO
-IF NOT EXISTS (SELECT 1 FROM dbo.trade_order_custom_field_value WHERE order_id = 1)
+IF EXISTS (SELECT 1 FROM dbo.trade_order WHERE order_id = 1)
+AND NOT EXISTS (SELECT 1 FROM dbo.trade_order_custom_field_value WHERE order_id = 1)
 BEGIN
   INSERT INTO dbo.trade_order_custom_field_value (order_id, definition_id, value_text)
   SELECT 1, definition_id, 'AFRAMAX' FROM dbo.custom_field_definition WHERE field_code = 'VESSEL_CLASS';

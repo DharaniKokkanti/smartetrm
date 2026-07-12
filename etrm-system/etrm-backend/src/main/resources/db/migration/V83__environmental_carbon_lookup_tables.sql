@@ -163,6 +163,17 @@ GO
 UPDATE o SET o.status_new = t.emission_obligation_status_id
 FROM dbo.emission_obligation o JOIN dbo.emission_obligation_status t ON t.type_code = o.status;
 GO
+-- status has an unnamed inline DEFAULT ('OPEN', V36) — find and drop it
+-- dynamically before dropping the column (same pattern used repeatedly
+-- since V55/V78/V81/V82).
+DECLARE @eoStatusDefault NVARCHAR(200);
+SELECT @eoStatusDefault = dc.name
+FROM sys.default_constraints dc
+JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id
+WHERE dc.parent_object_id = OBJECT_ID('dbo.emission_obligation') AND c.name = 'status';
+IF @eoStatusDefault IS NOT NULL
+    EXEC('ALTER TABLE dbo.emission_obligation DROP CONSTRAINT ' + @eoStatusDefault);
+GO
 ALTER TABLE dbo.emission_obligation DROP COLUMN status;
 GO
 EXEC sp_rename 'dbo.emission_obligation.status_new', 'status', 'COLUMN';

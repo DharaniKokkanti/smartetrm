@@ -2,9 +2,16 @@
 -- ETRM SYSTEM — ADDRESS PHONE + ENTITY TYPE EXTENSION
 -- SQL Server 2022 | V18 | June 2026
 -- =============================================================================
--- Run AFTER: 17_parent_lookup_tables.sql
--- Mirror of V18__address_phone_contact_entity_type.sql
+-- Run AFTER: V17__parent_lookup_tables.sql
 -- =============================================================================
+-- CHANGES:
+--   1. address.phone_number  — direct phone for an address (office line, port desk, etc.)
+--   2. EntityType enum extended to BROKER (used in address / contact polymorphic
+--      association; brokers are counterparties with cp_type='BROKER' but we expose
+--      the enum value so the API layer can filter cleanly)
+-- =============================================================================
+
+-- ── 1. Add phone_number to address ──────────────────────────────────────────
 
 IF NOT EXISTS (
     SELECT 1 FROM sys.columns
@@ -16,6 +23,11 @@ BEGIN
 END
 GO
 
+-- ── 2. Refresh CHECK constraint on entity_type ───────────────────────────────
+-- SQL Server stores CHECK constraints by name; we drop and recreate so the
+-- allowed list grows without a table rebuild.
+
+-- address table
 IF EXISTS (
     SELECT 1 FROM sys.check_constraints
     WHERE parent_object_id = OBJECT_ID('dbo.address')
@@ -29,6 +41,7 @@ ALTER TABLE dbo.address
     CHECK (entity_type IN ('LEGAL_ENTITY', 'COUNTERPARTY', 'BROKER'));
 GO
 
+-- contact table
 IF EXISTS (
     SELECT 1 FROM sys.check_constraints
     WHERE parent_object_id = OBJECT_ID('dbo.contact')

@@ -193,6 +193,78 @@ SELECT
 GO
 
 -- =============================================================================
+-- 5b. SEED BENCHMARK PRODUCTS referenced by section 6 below
+-- (BRENT-CRUDE, WTI-CRUDE, TTF-GAS, LME-COPPER were never seeded anywhere
+-- in the migration chain before this file assumed they already existed —
+-- V23's own UPDATE ... WHERE product_code = 'BRENT-CRUDE' etc. is a
+-- harmless no-op against a nonexistent row, which is how this went
+-- unnoticed until section 6's INSERT ... SELECT hit a NOT NULL violation.)
+-- =============================================================================
+INSERT INTO dbo.product
+    (commodity_id, product_code, product_name, settlement_type,
+     default_pricing_type_id, default_uom_id, default_currency_id, default_incoterm_id,
+     is_exchange_traded, is_otc, is_blend, description, is_active, created_by)
+SELECT
+    (SELECT commodity_id FROM dbo.commodity WHERE commodity_code = 'OIL'),
+    'BRENT-CRUDE', 'Dated Brent Crude Oil', 'PHYSICAL',
+    (SELECT pricing_type_id FROM dbo.pricing_type WHERE type_code = 'INDEX'),
+    (SELECT uom_id FROM dbo.unit_of_measure WHERE uom_code = 'BBL'),
+    (SELECT currency_id FROM dbo.currency WHERE currency_code = 'USD'),
+    (SELECT incoterm_id FROM dbo.incoterm WHERE code = 'FOB'),
+    0, 1, 0,
+    'Dated Brent physical crude — Forties/Oseberg/Ekofisk/Brent (BFOE) basket, North Sea loadable quality.',
+    1, 'SYSTEM';
+GO
+
+INSERT INTO dbo.product
+    (commodity_id, product_code, product_name, settlement_type,
+     default_pricing_type_id, default_uom_id, default_currency_id, default_incoterm_id,
+     is_exchange_traded, is_otc, is_blend, description, is_active, created_by)
+SELECT
+    (SELECT commodity_id FROM dbo.commodity WHERE commodity_code = 'OIL'),
+    'WTI-CRUDE', 'West Texas Intermediate Crude Oil', 'PHYSICAL',
+    (SELECT pricing_type_id FROM dbo.pricing_type WHERE type_code = 'INDEX'),
+    (SELECT uom_id FROM dbo.unit_of_measure WHERE uom_code = 'BBL'),
+    (SELECT currency_id FROM dbo.currency WHERE currency_code = 'USD'),
+    (SELECT incoterm_id FROM dbo.incoterm WHERE code = 'FOB'),
+    0, 1, 0,
+    'WTI light sweet crude, Cushing OK delivery — NYMEX benchmark grade.',
+    1, 'SYSTEM';
+GO
+
+INSERT INTO dbo.product
+    (commodity_id, product_code, product_name, settlement_type,
+     default_pricing_type_id, default_uom_id, default_currency_id, default_incoterm_id,
+     is_exchange_traded, is_otc, is_blend, description, is_active, created_by)
+SELECT
+    (SELECT commodity_id FROM dbo.commodity WHERE commodity_code = 'GAS'),
+    'TTF-GAS', 'Title Transfer Facility Natural Gas', 'PHYSICAL',
+    (SELECT pricing_type_id FROM dbo.pricing_type WHERE type_code = 'INDEX'),
+    (SELECT uom_id FROM dbo.unit_of_measure WHERE uom_code = 'MMBTU'),
+    (SELECT currency_id FROM dbo.currency WHERE currency_code = 'EUR'),
+    NULL,
+    1, 0, 0,
+    'TTF — Dutch virtual gas trading hub, primary European gas benchmark (ICE Endex futures).',
+    1, 'SYSTEM';
+GO
+
+INSERT INTO dbo.product
+    (commodity_id, product_code, product_name, settlement_type,
+     default_pricing_type_id, default_uom_id, default_currency_id, default_incoterm_id,
+     is_exchange_traded, is_otc, is_blend, description, is_active, created_by)
+SELECT
+    (SELECT commodity_id FROM dbo.commodity WHERE commodity_code = 'METALS'),
+    'LME-COPPER', 'LME Grade A Copper', 'PHYSICAL',
+    (SELECT pricing_type_id FROM dbo.pricing_type WHERE type_code = 'INDEX'),
+    (SELECT uom_id FROM dbo.unit_of_measure WHERE uom_code = 'MT_MET'),
+    (SELECT currency_id FROM dbo.currency WHERE currency_code = 'USD'),
+    NULL,
+    1, 0, 0,
+    'LME Grade A copper cathode, min 99.9935% purity per BS EN 1978:1998.',
+    1, 'SYSTEM';
+GO
+
+-- =============================================================================
 -- 6. PRODUCT_SPEC_TEMPLATE — one per product, real market standards
 -- =============================================================================
 

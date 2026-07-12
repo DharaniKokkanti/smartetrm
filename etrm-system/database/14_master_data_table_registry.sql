@@ -63,6 +63,7 @@ VALUES
     ('commodity',           'Commodities',            'Reference', 1, 1, 0, 0, 2, 'SYSTEM', 'SYSTEM'),
     ('credit_rating',       'Credit Ratings',         'Reference', 1, 1, 1, 0, 3, 'SYSTEM', 'SYSTEM'),
     ('incoterm',            'Incoterms',              'Reference', 1, 1, 0, 0, 4, 'SYSTEM', 'SYSTEM'),
+    ('custom_config',       'Custom Config',          'Reference', 1, 1, 0, 0, 5, 'SYSTEM', 'SYSTEM'),
     ('charter_party_type',  'Charter Party Types',    'Freight',   1, 1, 1, 0, 1, 'SYSTEM', 'SYSTEM'),
     ('load_shape_template', 'Load Shape Templates',   'Power',     1, 1, 1, 0, 1, 'SYSTEM', 'SYSTEM'),
     ('balancing_authority', 'Balancing Authorities',  'Power',     1, 1, 0, 0, 2, 'SYSTEM', 'SYSTEM'),

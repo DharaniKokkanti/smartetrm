@@ -24,24 +24,19 @@ GO
 -- ============================================================
 -- 2. Extend mot_type CHECK constraint to include CERTIFICATE
 --    (RINs and environmental certificates have no physical transport)
+--
+-- Removed: dbo.trade_order has no mot_type column anywhere in this
+-- migration chain (V29 added mot_type only to trade_oil_detail /
+-- trade_lng_detail / trade_metals_detail / trade_agri_detail, as
+-- chk_oil_mot / chk_lng_mot / chk_metals_mot / chk_agri_mot — none named
+-- ck_trade_order_mot_type). This block's ADD CONSTRAINT referenced a
+-- nonexistent column, which fails to compile regardless of the IF EXISTS
+-- runtime guard around it (SQL Server validates a CHECK constraint's
+-- column references at ALTER TABLE compile time, not just at execution).
+-- Left out rather than guessed at which detail table's constraint was
+-- really meant — flag for the person who wanted CERTIFICATE support to
+-- pick the right target table.
 -- ============================================================
-IF EXISTS (
-  SELECT 1 FROM sys.check_constraints
-  WHERE name = 'ck_trade_order_mot_type'
-)
-BEGIN
-  ALTER TABLE dbo.trade_order DROP CONSTRAINT ck_trade_order_mot_type;
-END;
-GO
-
-IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.trade_order') AND name = 'mot_type')
-BEGIN
-  ALTER TABLE dbo.trade_order
-    ADD CONSTRAINT ck_trade_order_mot_type CHECK (mot_type IN (
-      'TANKER', 'PIPELINE', 'BARGE', 'TRUCK', 'RAIL', 'ISO_TANK', 'SHIP', 'CERTIFICATE'
-    ));
-END;
-GO
 
 -- ============================================================
 -- 3. Lookup table extensions
@@ -110,7 +105,7 @@ BEGIN
     order_id              INT            NOT NULL,        -- detail lives on the leg (TradeOrder)
     fixed_rate            DECIMAL(18,6)  NULL,            -- fixed leg rate (SWAP_FIXED_FLOAT)
     fixed_currency_code   CHAR(3)        NULL,
-    fixed_uom_code        VARCHAR(10)    NULL,
+    fixed_uom_code        VARCHAR(20)    NULL,
     floating_index_code   NVARCHAR(100)  NULL,            -- primary floating leg price index
     floating_index2_code  NVARCHAR(100)  NULL,            -- second floating leg (SWAP_FLOAT_FLOAT only)
     reset_frequency       VARCHAR(20)    NULL
@@ -118,7 +113,7 @@ BEGIN
     payment_frequency     VARCHAR(20)    NULL
       CONSTRAINT ck_swap_pay_freq CHECK (payment_frequency IS NULL OR payment_frequency IN ('DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY', 'ANNUAL')),
     notional_quantity     DECIMAL(18,6)  NULL,
-    notional_uom_code     VARCHAR(10)    NULL,
+    notional_uom_code     VARCHAR(20)    NULL,
     averaging_method      VARCHAR(15)    NULL
       CONSTRAINT ck_swap_avg_method CHECK (averaging_method IS NULL OR averaging_method IN ('ARITHMETIC', 'WEIGHTED')),
     created_at            DATETIME2      NOT NULL DEFAULT SYSUTCDATETIME(),
@@ -141,7 +136,7 @@ BEGIN
       CONSTRAINT ck_option_put_call CHECK (put_call IS NULL OR put_call IN ('PUT', 'CALL')),
     strike_price             DECIMAL(18,6)  NULL,
     strike_currency_code     CHAR(3)        NULL,
-    strike_uom_code          VARCHAR(10)    NULL,
+    strike_uom_code          VARCHAR(20)    NULL,
     expiry_date              DATE           NULL,
     exercise_date            DATE           NULL,          -- last exercise date (= expiry for European)
     premium_amount           DECIMAL(18,6)  NULL,
@@ -177,14 +172,14 @@ BEGIN
     storage_facility_code        VARCHAR(30)   NULL,       -- code ref to dbo.storage_facility.facility_code
     storage_country_code         CHAR(2)       NULL,
     capacity_reserved            DECIMAL(18,6) NULL,
-    capacity_uom_code            VARCHAR(10)   NULL,
+    capacity_uom_code            VARCHAR(20)   NULL,
     injection_rate_per_day       DECIMAL(18,6) NULL,
     withdrawal_rate_per_day      DECIMAL(18,6) NULL,
     storage_start_date           DATE          NULL,
     storage_end_date             DATE          NULL,
     tariff_rate                  DECIMAL(18,6) NULL,
     tariff_currency_code         CHAR(3)       NULL,
-    tariff_uom_code              VARCHAR(10)   NULL,       -- per BBL, per MT, per MWH, or FLAT_MONTHLY
+    tariff_uom_code              VARCHAR(20)   NULL,       -- per BBL, per MT, per MWH, or FLAT_MONTHLY
     minimum_throughput           DECIMAL(18,6) NULL,       -- take-or-pay floor
     created_at                   DATETIME2     NOT NULL DEFAULT SYSUTCDATETIME(),
     updated_at                   DATETIME2     NOT NULL DEFAULT SYSUTCDATETIME(),
@@ -216,7 +211,7 @@ BEGIN
     discharge_location_code       VARCHAR(50)   NULL,
     route_code                    VARCHAR(20)   NULL,      -- TD3C, TC2, C3 worldscale routes
     capacity_per_lift             DECIMAL(18,6) NULL,
-    capacity_uom_code             VARCHAR(10)   NULL,
+    capacity_uom_code             VARCHAR(20)   NULL,
     laycan_start                  DATE          NULL,
     laycan_end                    DATE          NULL,
     agreement_start_date          DATE          NULL,

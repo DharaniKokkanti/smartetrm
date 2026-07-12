@@ -114,6 +114,16 @@ GO
 UPDATE t SET t.status_new = lv.lookup_id
 FROM dbo.rin_obligation t JOIN dbo.lookup_value lv ON lv.category = 'rin_obligation_status' AND lv.code = t.status;
 GO
+-- status has an unnamed inline DEFAULT ('OPEN', V38) — find and drop it
+-- dynamically before dropping the column (same pattern V55/V78 already used).
+DECLARE @rinStatusDefault NVARCHAR(200);
+SELECT @rinStatusDefault = dc.name
+FROM sys.default_constraints dc
+JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id
+WHERE dc.parent_object_id = OBJECT_ID('dbo.rin_obligation') AND c.name = 'status';
+IF @rinStatusDefault IS NOT NULL
+    EXEC('ALTER TABLE dbo.rin_obligation DROP CONSTRAINT ' + @rinStatusDefault);
+GO
 ALTER TABLE dbo.rin_obligation DROP CONSTRAINT IF EXISTS chk_rin_obl_status;
 ALTER TABLE dbo.rin_obligation DROP COLUMN status;
 GO

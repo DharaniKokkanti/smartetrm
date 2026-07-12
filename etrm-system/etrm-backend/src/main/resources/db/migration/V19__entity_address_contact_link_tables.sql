@@ -27,9 +27,15 @@ IF EXISTS (
     ALTER TABLE dbo.address DROP CONSTRAINT chk_address_entity_type;
 GO
 
+-- ix_address_entity (V1) is dependent on entity_type/entity_id — must be
+-- dropped before ALTER COLUMN and recreated after, identical definition.
+DROP INDEX ix_address_entity ON dbo.address;
+GO
 ALTER TABLE dbo.address ALTER COLUMN entity_type VARCHAR(20) NULL;
 GO
 ALTER TABLE dbo.address ALTER COLUMN entity_id   BIGINT      NULL;
+GO
+CREATE INDEX ix_address_entity ON dbo.address (entity_type, entity_id, address_type, is_active);
 GO
 
 -- ── Step 2: make old FK columns nullable on contact ─────────────────────────
@@ -41,9 +47,14 @@ IF EXISTS (
     ALTER TABLE dbo.contact DROP CONSTRAINT chk_contact_entity_type;
 GO
 
+-- ix_contact_entity (V1) is likewise dependent — same drop/recreate dance.
+DROP INDEX ix_contact_entity ON dbo.contact;
+GO
 ALTER TABLE dbo.contact ALTER COLUMN entity_type VARCHAR(20) NULL;
 GO
 ALTER TABLE dbo.contact ALTER COLUMN entity_id   BIGINT      NULL;
+GO
+CREATE INDEX ix_contact_entity ON dbo.contact (entity_type, entity_id, contact_role, is_active);
 GO
 -- Also drop the old contact_role column that was on the pool record —
 -- role is now per-assignment on entity_contact.

@@ -45,7 +45,7 @@ CREATE TABLE dbo.broker_fee_agreement (
     fee_type            VARCHAR(20)     NOT NULL,
     fee_rate            DECIMAL(18,6)   NOT NULL,
     fee_currency_code   CHAR(3)         NOT NULL DEFAULT 'USD',
-    uom_code            VARCHAR(10)     NULL,   -- required when fee_type = PER_LOT
+    uom_code            VARCHAR(20)     NULL,   -- required when fee_type = PER_LOT
 
     -- Invoicing
     pay_period          VARCHAR(15)     NOT NULL DEFAULT 'MONTHLY',

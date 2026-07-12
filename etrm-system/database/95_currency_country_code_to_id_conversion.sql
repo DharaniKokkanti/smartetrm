@@ -43,6 +43,9 @@ GO
 UPDATE t SET t.limit_currency_id = c.currency_id FROM dbo.trader t JOIN dbo.currency c ON c.currency_code = t.limit_currency;
 GO
 ALTER TABLE dbo.trader DROP CONSTRAINT IF EXISTS fk_trader_limit_ccy;
+DECLARE @def_trader_limit_currency NVARCHAR(200);
+SELECT @def_trader_limit_currency = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.trader') AND c.name = 'limit_currency';
+IF @def_trader_limit_currency IS NOT NULL EXEC('ALTER TABLE dbo.trader DROP CONSTRAINT ' + @def_trader_limit_currency);
 ALTER TABLE dbo.trader DROP COLUMN IF EXISTS limit_currency;
 GO
 ALTER TABLE dbo.trader ADD CONSTRAINT df_trader_limit_currency_id DEFAULT 1 FOR limit_currency_id;
@@ -57,6 +60,9 @@ GO
 UPDATE t SET t.base_currency_id = c.currency_id FROM dbo.book t JOIN dbo.currency c ON c.currency_code = t.base_currency;
 GO
 ALTER TABLE dbo.book DROP CONSTRAINT IF EXISTS fk_book_base_ccy;
+DECLARE @def_book_base_currency NVARCHAR(200);
+SELECT @def_book_base_currency = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.book') AND c.name = 'base_currency';
+IF @def_book_base_currency IS NOT NULL EXEC('ALTER TABLE dbo.book DROP CONSTRAINT ' + @def_book_base_currency);
 ALTER TABLE dbo.book DROP COLUMN IF EXISTS base_currency;
 GO
 ALTER TABLE dbo.book ADD CONSTRAINT df_book_base_currency_id DEFAULT 1 FOR base_currency_id;
@@ -71,6 +77,9 @@ GO
 UPDATE t SET t.credit_limit_currency_id = c.currency_id FROM dbo.counterparty t JOIN dbo.currency c ON c.currency_code = t.credit_limit_currency;
 GO
 ALTER TABLE dbo.counterparty DROP CONSTRAINT IF EXISTS fk_cp_credit_limit_ccy;
+DECLARE @def_counterparty_credit_limit_currency NVARCHAR(200);
+SELECT @def_counterparty_credit_limit_currency = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.counterparty') AND c.name = 'credit_limit_currency';
+IF @def_counterparty_credit_limit_currency IS NOT NULL EXEC('ALTER TABLE dbo.counterparty DROP CONSTRAINT ' + @def_counterparty_credit_limit_currency);
 ALTER TABLE dbo.counterparty DROP COLUMN IF EXISTS credit_limit_currency;
 GO
 ALTER TABLE dbo.counterparty ADD CONSTRAINT df_counterparty_credit_limit_currency_id DEFAULT 1 FOR credit_limit_currency_id;
@@ -85,6 +94,9 @@ GO
 UPDATE t SET t.limit_currency_id = c.currency_id FROM dbo.cp_legal_entity_link t JOIN dbo.currency c ON c.currency_code = t.limit_currency;
 GO
 ALTER TABLE dbo.cp_legal_entity_link DROP CONSTRAINT IF EXISTS fk_cplink_limit_ccy;
+DECLARE @def_cp_legal_entity_link_limit_currency NVARCHAR(200);
+SELECT @def_cp_legal_entity_link_limit_currency = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.cp_legal_entity_link') AND c.name = 'limit_currency';
+IF @def_cp_legal_entity_link_limit_currency IS NOT NULL EXEC('ALTER TABLE dbo.cp_legal_entity_link DROP CONSTRAINT ' + @def_cp_legal_entity_link_limit_currency);
 ALTER TABLE dbo.cp_legal_entity_link DROP COLUMN IF EXISTS limit_currency;
 GO
 ALTER TABLE dbo.cp_legal_entity_link ADD CONSTRAINT df_cp_legal_entity_link_limit_currency_id DEFAULT 1 FOR limit_currency_id;
@@ -99,6 +111,9 @@ GO
 UPDATE t SET t.margin_call_currency_id = c.currency_id FROM dbo.credit_term t JOIN dbo.currency c ON c.currency_code = t.margin_call_currency;
 GO
 ALTER TABLE dbo.credit_term DROP CONSTRAINT IF EXISTS fk_credit_term_margin_ccy;
+DECLARE @def_credit_term_margin_call_currency NVARCHAR(200);
+SELECT @def_credit_term_margin_call_currency = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.credit_term') AND c.name = 'margin_call_currency';
+IF @def_credit_term_margin_call_currency IS NOT NULL EXEC('ALTER TABLE dbo.credit_term DROP CONSTRAINT ' + @def_credit_term_margin_call_currency);
 ALTER TABLE dbo.credit_term DROP COLUMN IF EXISTS margin_call_currency;
 GO
 ALTER TABLE dbo.credit_term ADD CONSTRAINT df_credit_term_margin_call_currency_id DEFAULT 1 FOR margin_call_currency_id;
@@ -113,6 +128,9 @@ GO
 UPDATE t SET t.base_currency_id = c.currency_id FROM dbo.legal_entity t JOIN dbo.currency c ON c.currency_code = t.base_currency;
 GO
 ALTER TABLE dbo.legal_entity DROP CONSTRAINT IF EXISTS fk_le_currency;
+DECLARE @def_legal_entity_base_currency NVARCHAR(200);
+SELECT @def_legal_entity_base_currency = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.legal_entity') AND c.name = 'base_currency';
+IF @def_legal_entity_base_currency IS NOT NULL EXEC('ALTER TABLE dbo.legal_entity DROP CONSTRAINT ' + @def_legal_entity_base_currency);
 ALTER TABLE dbo.legal_entity DROP COLUMN IF EXISTS base_currency;
 GO
 ALTER TABLE dbo.legal_entity ADD CONSTRAINT df_legal_entity_base_currency_id DEFAULT 1 FOR base_currency_id;
@@ -127,6 +145,9 @@ GO
 UPDATE t SET t.fee_currency_id = c.currency_id FROM dbo.broker_fee_agreement t JOIN dbo.currency c ON c.currency_code = t.fee_currency_code;
 GO
 ALTER TABLE dbo.broker_fee_agreement DROP CONSTRAINT IF EXISTS fk_bfa_fee_ccy;
+DECLARE @def_broker_fee_agreement_fee_currency_code NVARCHAR(200);
+SELECT @def_broker_fee_agreement_fee_currency_code = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.broker_fee_agreement') AND c.name = 'fee_currency_code';
+IF @def_broker_fee_agreement_fee_currency_code IS NOT NULL EXEC('ALTER TABLE dbo.broker_fee_agreement DROP CONSTRAINT ' + @def_broker_fee_agreement_fee_currency_code);
 ALTER TABLE dbo.broker_fee_agreement DROP COLUMN IF EXISTS fee_currency_code;
 GO
 ALTER TABLE dbo.broker_fee_agreement ADD CONSTRAINT df_broker_fee_agreement_fee_currency_id DEFAULT 1 FOR fee_currency_id;
@@ -141,6 +162,9 @@ GO
 UPDATE t SET t.threshold_currency_id = c.currency_id FROM dbo.margin_agreement t JOIN dbo.currency c ON c.currency_code = t.threshold_currency;
 GO
 ALTER TABLE dbo.margin_agreement DROP CONSTRAINT IF EXISTS fk_ma_threshold_ccy;
+DECLARE @def_margin_agreement_threshold_currency NVARCHAR(200);
+SELECT @def_margin_agreement_threshold_currency = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.margin_agreement') AND c.name = 'threshold_currency';
+IF @def_margin_agreement_threshold_currency IS NOT NULL EXEC('ALTER TABLE dbo.margin_agreement DROP CONSTRAINT ' + @def_margin_agreement_threshold_currency);
 ALTER TABLE dbo.margin_agreement DROP COLUMN IF EXISTS threshold_currency;
 GO
 ALTER TABLE dbo.margin_agreement ADD CONSTRAINT df_margin_agreement_threshold_currency_id DEFAULT 1 FOR threshold_currency_id;
@@ -155,6 +179,9 @@ GO
 UPDATE t SET t.cp_threshold_currency_id = c.currency_id FROM dbo.margin_agreement t JOIN dbo.currency c ON c.currency_code = t.cp_threshold_currency;
 GO
 ALTER TABLE dbo.margin_agreement DROP CONSTRAINT IF EXISTS fk_ma_cp_threshold_ccy;
+DECLARE @def_margin_agreement_cp_threshold_currency NVARCHAR(200);
+SELECT @def_margin_agreement_cp_threshold_currency = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.margin_agreement') AND c.name = 'cp_threshold_currency';
+IF @def_margin_agreement_cp_threshold_currency IS NOT NULL EXEC('ALTER TABLE dbo.margin_agreement DROP CONSTRAINT ' + @def_margin_agreement_cp_threshold_currency);
 ALTER TABLE dbo.margin_agreement DROP COLUMN IF EXISTS cp_threshold_currency;
 GO
 ALTER TABLE dbo.margin_agreement ADD CONSTRAINT df_margin_agreement_cp_threshold_currency_id DEFAULT 1 FOR cp_threshold_currency_id;
@@ -169,6 +196,9 @@ GO
 UPDATE t SET t.mta_currency_id = c.currency_id FROM dbo.margin_agreement t JOIN dbo.currency c ON c.currency_code = t.mta_currency;
 GO
 ALTER TABLE dbo.margin_agreement DROP CONSTRAINT IF EXISTS fk_ma_mta_ccy;
+DECLARE @def_margin_agreement_mta_currency NVARCHAR(200);
+SELECT @def_margin_agreement_mta_currency = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.margin_agreement') AND c.name = 'mta_currency';
+IF @def_margin_agreement_mta_currency IS NOT NULL EXEC('ALTER TABLE dbo.margin_agreement DROP CONSTRAINT ' + @def_margin_agreement_mta_currency);
 ALTER TABLE dbo.margin_agreement DROP COLUMN IF EXISTS mta_currency;
 GO
 ALTER TABLE dbo.margin_agreement ADD CONSTRAINT df_margin_agreement_mta_currency_id DEFAULT 1 FOR mta_currency_id;
@@ -183,6 +213,9 @@ GO
 UPDATE t SET t.independent_amount_currency_id = c.currency_id FROM dbo.margin_agreement t JOIN dbo.currency c ON c.currency_code = t.independent_amount_currency;
 GO
 ALTER TABLE dbo.margin_agreement DROP CONSTRAINT IF EXISTS fk_ma_indep_amt_ccy;
+DECLARE @def_margin_agreement_independent_amount_currency NVARCHAR(200);
+SELECT @def_margin_agreement_independent_amount_currency = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.margin_agreement') AND c.name = 'independent_amount_currency';
+IF @def_margin_agreement_independent_amount_currency IS NOT NULL EXEC('ALTER TABLE dbo.margin_agreement DROP CONSTRAINT ' + @def_margin_agreement_independent_amount_currency);
 ALTER TABLE dbo.margin_agreement DROP COLUMN IF EXISTS independent_amount_currency;
 GO
 ALTER TABLE dbo.margin_agreement ADD CONSTRAINT fk_ma_indep_amt_ccy FOREIGN KEY (independent_amount_currency_id) REFERENCES dbo.currency(currency_id);
@@ -194,12 +227,20 @@ GO
 UPDATE t SET t.limit_currency_id = c.currency_id FROM dbo.credit_limit t JOIN dbo.currency c ON c.currency_code = t.limit_currency;
 GO
 ALTER TABLE dbo.credit_limit DROP CONSTRAINT IF EXISTS fk_cl_limit_ccy;
+DECLARE @def_credit_limit_limit_currency NVARCHAR(200);
+SELECT @def_credit_limit_limit_currency = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.credit_limit') AND c.name = 'limit_currency';
+IF @def_credit_limit_limit_currency IS NOT NULL EXEC('ALTER TABLE dbo.credit_limit DROP CONSTRAINT ' + @def_credit_limit_limit_currency);
+-- IX_credit_limit_cp_type (V35/V82) includes limit_currency — drop/recreate around the change.
+DROP INDEX IX_credit_limit_cp_type ON dbo.credit_limit;
 ALTER TABLE dbo.credit_limit DROP COLUMN IF EXISTS limit_currency;
 GO
 ALTER TABLE dbo.credit_limit ADD CONSTRAINT df_credit_limit_limit_currency_id DEFAULT 1 FOR limit_currency_id;
 ALTER TABLE dbo.credit_limit ALTER COLUMN limit_currency_id INT NOT NULL;
 GO
 ALTER TABLE dbo.credit_limit ADD CONSTRAINT fk_cl_limit_ccy FOREIGN KEY (limit_currency_id) REFERENCES dbo.currency(currency_id);
+CREATE NONCLUSTERED INDEX IX_credit_limit_cp_type
+    ON dbo.credit_limit (counterparty_id, limit_type, status)
+    INCLUDE (limit_amount, used_amount, limit_currency_id);
 GO
 
 -- letter_of_credit.lc_currency -> lc_currency_id
@@ -208,6 +249,9 @@ GO
 UPDATE t SET t.lc_currency_id = c.currency_id FROM dbo.letter_of_credit t JOIN dbo.currency c ON c.currency_code = t.lc_currency;
 GO
 ALTER TABLE dbo.letter_of_credit DROP CONSTRAINT IF EXISTS fk_lc_lc_ccy;
+DECLARE @def_letter_of_credit_lc_currency NVARCHAR(200);
+SELECT @def_letter_of_credit_lc_currency = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.letter_of_credit') AND c.name = 'lc_currency';
+IF @def_letter_of_credit_lc_currency IS NOT NULL EXEC('ALTER TABLE dbo.letter_of_credit DROP CONSTRAINT ' + @def_letter_of_credit_lc_currency);
 ALTER TABLE dbo.letter_of_credit DROP COLUMN IF EXISTS lc_currency;
 GO
 ALTER TABLE dbo.letter_of_credit ADD CONSTRAINT df_letter_of_credit_lc_currency_id DEFAULT 1 FOR lc_currency_id;
@@ -222,6 +266,9 @@ GO
 UPDATE t SET t.currency_id = c.currency_id FROM dbo.trade_order t JOIN dbo.currency c ON c.currency_code = t.currency_code;
 GO
 ALTER TABLE dbo.trade_order DROP CONSTRAINT IF EXISTS fk_to_currency_code;
+DECLARE @def_trade_order_currency_code NVARCHAR(200);
+SELECT @def_trade_order_currency_code = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.trade_order') AND c.name = 'currency_code';
+IF @def_trade_order_currency_code IS NOT NULL EXEC('ALTER TABLE dbo.trade_order DROP CONSTRAINT ' + @def_trade_order_currency_code);
 ALTER TABLE dbo.trade_order DROP COLUMN IF EXISTS currency_code;
 GO
 ALTER TABLE dbo.trade_order ALTER COLUMN currency_id INT NOT NULL;
@@ -235,6 +282,9 @@ GO
 UPDATE t SET t.currency_id = c.currency_id FROM dbo.trade_item t JOIN dbo.currency c ON c.currency_code = t.currency_code;
 GO
 ALTER TABLE dbo.trade_item DROP CONSTRAINT IF EXISTS fk_ti_currency_code;
+DECLARE @def_trade_item_currency_code NVARCHAR(200);
+SELECT @def_trade_item_currency_code = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.trade_item') AND c.name = 'currency_code';
+IF @def_trade_item_currency_code IS NOT NULL EXEC('ALTER TABLE dbo.trade_item DROP CONSTRAINT ' + @def_trade_item_currency_code);
 ALTER TABLE dbo.trade_item DROP COLUMN IF EXISTS currency_code;
 GO
 ALTER TABLE dbo.trade_item ADD CONSTRAINT df_trade_item_currency_id DEFAULT 1 FOR currency_id;
@@ -249,6 +299,9 @@ GO
 UPDATE t SET t.tick_currency_id = c.currency_id FROM dbo.settlement_price t JOIN dbo.currency c ON c.currency_code = t.tick_currency;
 GO
 ALTER TABLE dbo.settlement_price DROP CONSTRAINT IF EXISTS fk_sp_tick_ccy;
+DECLARE @def_settlement_price_tick_currency NVARCHAR(200);
+SELECT @def_settlement_price_tick_currency = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.settlement_price') AND c.name = 'tick_currency';
+IF @def_settlement_price_tick_currency IS NOT NULL EXEC('ALTER TABLE dbo.settlement_price DROP CONSTRAINT ' + @def_settlement_price_tick_currency);
 ALTER TABLE dbo.settlement_price DROP COLUMN IF EXISTS tick_currency;
 GO
 ALTER TABLE dbo.settlement_price ADD CONSTRAINT df_settlement_price_tick_currency_id DEFAULT 1 FOR tick_currency_id;
@@ -263,6 +316,9 @@ GO
 UPDATE t SET t.currency_id = c.currency_id FROM dbo.bolmo_agreement t JOIN dbo.currency c ON c.currency_code = t.currency_code;
 GO
 ALTER TABLE dbo.bolmo_agreement DROP CONSTRAINT IF EXISTS fk_bolmo_currency_code;
+DECLARE @def_bolmo_agreement_currency_code NVARCHAR(200);
+SELECT @def_bolmo_agreement_currency_code = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.bolmo_agreement') AND c.name = 'currency_code';
+IF @def_bolmo_agreement_currency_code IS NOT NULL EXEC('ALTER TABLE dbo.bolmo_agreement DROP CONSTRAINT ' + @def_bolmo_agreement_currency_code);
 ALTER TABLE dbo.bolmo_agreement DROP COLUMN IF EXISTS currency_code;
 GO
 ALTER TABLE dbo.bolmo_agreement ADD CONSTRAINT df_bolmo_agreement_currency_id DEFAULT 1 FOR currency_id;
@@ -277,6 +333,9 @@ GO
 UPDATE t SET t.tick_currency_id = c.currency_id FROM dbo.balmo_product t JOIN dbo.currency c ON c.currency_code = t.tick_currency;
 GO
 ALTER TABLE dbo.balmo_product DROP CONSTRAINT IF EXISTS fk_balmo_tick_ccy;
+DECLARE @def_balmo_product_tick_currency NVARCHAR(200);
+SELECT @def_balmo_product_tick_currency = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.balmo_product') AND c.name = 'tick_currency';
+IF @def_balmo_product_tick_currency IS NOT NULL EXEC('ALTER TABLE dbo.balmo_product DROP CONSTRAINT ' + @def_balmo_product_tick_currency);
 ALTER TABLE dbo.balmo_product DROP COLUMN IF EXISTS tick_currency;
 GO
 ALTER TABLE dbo.balmo_product ADD CONSTRAINT df_balmo_product_tick_currency_id DEFAULT 1 FOR tick_currency_id;
@@ -291,6 +350,9 @@ GO
 UPDATE t SET t.limit_currency_id = c.currency_id FROM dbo.trader_commodity_limit t JOIN dbo.currency c ON c.currency_code = t.limit_currency;
 GO
 ALTER TABLE dbo.trader_commodity_limit DROP CONSTRAINT IF EXISTS fk_tcl_limit_ccy;
+DECLARE @def_trader_commodity_limit_limit_currency NVARCHAR(200);
+SELECT @def_trader_commodity_limit_limit_currency = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.trader_commodity_limit') AND c.name = 'limit_currency';
+IF @def_trader_commodity_limit_limit_currency IS NOT NULL EXEC('ALTER TABLE dbo.trader_commodity_limit DROP CONSTRAINT ' + @def_trader_commodity_limit_limit_currency);
 ALTER TABLE dbo.trader_commodity_limit DROP COLUMN IF EXISTS limit_currency;
 GO
 ALTER TABLE dbo.trader_commodity_limit ADD CONSTRAINT df_trader_commodity_limit_limit_currency_id DEFAULT 1 FOR limit_currency_id;
@@ -305,6 +367,9 @@ GO
 UPDATE t SET t.fixed_currency_id = c.currency_id FROM dbo.trade_swap_detail t JOIN dbo.currency c ON c.currency_code = t.fixed_currency_code;
 GO
 ALTER TABLE dbo.trade_swap_detail DROP CONSTRAINT IF EXISTS fk_swap_fixed_ccy;
+DECLARE @def_trade_swap_detail_fixed_currency_code NVARCHAR(200);
+SELECT @def_trade_swap_detail_fixed_currency_code = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.trade_swap_detail') AND c.name = 'fixed_currency_code';
+IF @def_trade_swap_detail_fixed_currency_code IS NOT NULL EXEC('ALTER TABLE dbo.trade_swap_detail DROP CONSTRAINT ' + @def_trade_swap_detail_fixed_currency_code);
 ALTER TABLE dbo.trade_swap_detail DROP COLUMN IF EXISTS fixed_currency_code;
 GO
 ALTER TABLE dbo.trade_swap_detail ADD CONSTRAINT fk_swap_fixed_ccy FOREIGN KEY (fixed_currency_id) REFERENCES dbo.currency(currency_id);
@@ -316,6 +381,9 @@ GO
 UPDATE t SET t.strike_currency_id = c.currency_id FROM dbo.trade_option_detail t JOIN dbo.currency c ON c.currency_code = t.strike_currency_code;
 GO
 ALTER TABLE dbo.trade_option_detail DROP CONSTRAINT IF EXISTS fk_option_strike_ccy;
+DECLARE @def_trade_option_detail_strike_currency_code NVARCHAR(200);
+SELECT @def_trade_option_detail_strike_currency_code = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.trade_option_detail') AND c.name = 'strike_currency_code';
+IF @def_trade_option_detail_strike_currency_code IS NOT NULL EXEC('ALTER TABLE dbo.trade_option_detail DROP CONSTRAINT ' + @def_trade_option_detail_strike_currency_code);
 ALTER TABLE dbo.trade_option_detail DROP COLUMN IF EXISTS strike_currency_code;
 GO
 ALTER TABLE dbo.trade_option_detail ADD CONSTRAINT fk_option_strike_ccy FOREIGN KEY (strike_currency_id) REFERENCES dbo.currency(currency_id);
@@ -327,6 +395,9 @@ GO
 UPDATE t SET t.premium_currency_id = c.currency_id FROM dbo.trade_option_detail t JOIN dbo.currency c ON c.currency_code = t.premium_currency_code;
 GO
 ALTER TABLE dbo.trade_option_detail DROP CONSTRAINT IF EXISTS fk_option_premium_ccy;
+DECLARE @def_trade_option_detail_premium_currency_code NVARCHAR(200);
+SELECT @def_trade_option_detail_premium_currency_code = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.trade_option_detail') AND c.name = 'premium_currency_code';
+IF @def_trade_option_detail_premium_currency_code IS NOT NULL EXEC('ALTER TABLE dbo.trade_option_detail DROP CONSTRAINT ' + @def_trade_option_detail_premium_currency_code);
 ALTER TABLE dbo.trade_option_detail DROP COLUMN IF EXISTS premium_currency_code;
 GO
 ALTER TABLE dbo.trade_option_detail ADD CONSTRAINT fk_option_premium_ccy FOREIGN KEY (premium_currency_id) REFERENCES dbo.currency(currency_id);
@@ -338,6 +409,9 @@ GO
 UPDATE t SET t.tariff_currency_id = c.currency_id FROM dbo.trade_storage_agreement_detail t JOIN dbo.currency c ON c.currency_code = t.tariff_currency_code;
 GO
 ALTER TABLE dbo.trade_storage_agreement_detail DROP CONSTRAINT IF EXISTS fk_storage_agr_tariff_ccy;
+DECLARE @def_trade_storage_agreement_detail_tariff_currency_code NVARCHAR(200);
+SELECT @def_trade_storage_agreement_detail_tariff_currency_code = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.trade_storage_agreement_detail') AND c.name = 'tariff_currency_code';
+IF @def_trade_storage_agreement_detail_tariff_currency_code IS NOT NULL EXEC('ALTER TABLE dbo.trade_storage_agreement_detail DROP CONSTRAINT ' + @def_trade_storage_agreement_detail_tariff_currency_code);
 ALTER TABLE dbo.trade_storage_agreement_detail DROP COLUMN IF EXISTS tariff_currency_code;
 GO
 ALTER TABLE dbo.trade_storage_agreement_detail ADD CONSTRAINT fk_storage_agr_tariff_ccy FOREIGN KEY (tariff_currency_id) REFERENCES dbo.currency(currency_id);
@@ -349,6 +423,9 @@ GO
 UPDATE t SET t.freight_currency_id = c.currency_id FROM dbo.trade_transport_agreement_detail t JOIN dbo.currency c ON c.currency_code = t.freight_currency_code;
 GO
 ALTER TABLE dbo.trade_transport_agreement_detail DROP CONSTRAINT IF EXISTS fk_transport_agr_freight_ccy;
+DECLARE @def_trade_transport_agreement_detail_freight_currency_code NVARCHAR(200);
+SELECT @def_trade_transport_agreement_detail_freight_currency_code = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.trade_transport_agreement_detail') AND c.name = 'freight_currency_code';
+IF @def_trade_transport_agreement_detail_freight_currency_code IS NOT NULL EXEC('ALTER TABLE dbo.trade_transport_agreement_detail DROP CONSTRAINT ' + @def_trade_transport_agreement_detail_freight_currency_code);
 ALTER TABLE dbo.trade_transport_agreement_detail DROP COLUMN IF EXISTS freight_currency_code;
 GO
 ALTER TABLE dbo.trade_transport_agreement_detail ADD CONSTRAINT fk_transport_agr_freight_ccy FOREIGN KEY (freight_currency_id) REFERENCES dbo.currency(currency_id);
@@ -360,6 +437,9 @@ GO
 UPDATE t SET t.demurrage_currency_id = c.currency_id FROM dbo.trade_order t JOIN dbo.currency c ON c.currency_code = t.demurrage_currency;
 GO
 ALTER TABLE dbo.trade_order DROP CONSTRAINT IF EXISTS fk_to_demurrage_ccy;
+DECLARE @def_trade_order_demurrage_currency NVARCHAR(200);
+SELECT @def_trade_order_demurrage_currency = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.trade_order') AND c.name = 'demurrage_currency';
+IF @def_trade_order_demurrage_currency IS NOT NULL EXEC('ALTER TABLE dbo.trade_order DROP CONSTRAINT ' + @def_trade_order_demurrage_currency);
 ALTER TABLE dbo.trade_order DROP COLUMN IF EXISTS demurrage_currency;
 GO
 ALTER TABLE dbo.trade_order ADD CONSTRAINT fk_to_demurrage_ccy FOREIGN KEY (demurrage_currency_id) REFERENCES dbo.currency(currency_id);
@@ -371,6 +451,9 @@ GO
 UPDATE t SET t.adjustment_currency_id = c.currency_id FROM dbo.trade_order_price_adjustment t JOIN dbo.currency c ON c.currency_code = t.adjustment_currency;
 GO
 ALTER TABLE dbo.trade_order_price_adjustment DROP CONSTRAINT IF EXISTS fk_topa_adjustment_ccy;
+DECLARE @def_trade_order_price_adjustment_adjustment_currency NVARCHAR(200);
+SELECT @def_trade_order_price_adjustment_adjustment_currency = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.trade_order_price_adjustment') AND c.name = 'adjustment_currency';
+IF @def_trade_order_price_adjustment_adjustment_currency IS NOT NULL EXEC('ALTER TABLE dbo.trade_order_price_adjustment DROP CONSTRAINT ' + @def_trade_order_price_adjustment_adjustment_currency);
 ALTER TABLE dbo.trade_order_price_adjustment DROP COLUMN IF EXISTS adjustment_currency;
 GO
 ALTER TABLE dbo.trade_order_price_adjustment ADD CONSTRAINT fk_topa_adjustment_ccy FOREIGN KEY (adjustment_currency_id) REFERENCES dbo.currency(currency_id);
@@ -382,6 +465,9 @@ GO
 UPDATE t SET t.currency_id = c.currency_id FROM dbo.gl_account t JOIN dbo.currency c ON c.currency_code = t.currency_code;
 GO
 ALTER TABLE dbo.gl_account DROP CONSTRAINT IF EXISTS fk_gl_account_ccy;
+DECLARE @def_gl_account_currency_code NVARCHAR(200);
+SELECT @def_gl_account_currency_code = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.gl_account') AND c.name = 'currency_code';
+IF @def_gl_account_currency_code IS NOT NULL EXEC('ALTER TABLE dbo.gl_account DROP CONSTRAINT ' + @def_gl_account_currency_code);
 ALTER TABLE dbo.gl_account DROP COLUMN IF EXISTS currency_code;
 GO
 ALTER TABLE dbo.gl_account ADD CONSTRAINT fk_gl_account_ccy FOREIGN KEY (currency_id) REFERENCES dbo.currency(currency_id);
@@ -393,6 +479,9 @@ GO
 UPDATE t SET t.adjustment_currency_id = c.currency_id FROM dbo.commodity_grade_standard t JOIN dbo.currency c ON c.currency_code = t.adjustment_currency_code;
 GO
 ALTER TABLE dbo.commodity_grade_standard DROP CONSTRAINT IF EXISTS fk_cgs_adjustment_ccy;
+DECLARE @def_commodity_grade_standard_adjustment_currency_code NVARCHAR(200);
+SELECT @def_commodity_grade_standard_adjustment_currency_code = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.commodity_grade_standard') AND c.name = 'adjustment_currency_code';
+IF @def_commodity_grade_standard_adjustment_currency_code IS NOT NULL EXEC('ALTER TABLE dbo.commodity_grade_standard DROP CONSTRAINT ' + @def_commodity_grade_standard_adjustment_currency_code);
 ALTER TABLE dbo.commodity_grade_standard DROP COLUMN IF EXISTS adjustment_currency_code;
 GO
 ALTER TABLE dbo.commodity_grade_standard ADD CONSTRAINT fk_cgs_adjustment_ccy FOREIGN KEY (adjustment_currency_id) REFERENCES dbo.currency(currency_id);
@@ -404,6 +493,9 @@ GO
 UPDATE t SET t.currency_id = c.currency_id FROM dbo.trade_cost t JOIN dbo.currency c ON c.currency_code = t.currency_code;
 GO
 ALTER TABLE dbo.trade_cost DROP CONSTRAINT IF EXISTS fk_tc_currency;
+DECLARE @def_trade_cost_currency_code NVARCHAR(200);
+SELECT @def_trade_cost_currency_code = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.trade_cost') AND c.name = 'currency_code';
+IF @def_trade_cost_currency_code IS NOT NULL EXEC('ALTER TABLE dbo.trade_cost DROP CONSTRAINT ' + @def_trade_cost_currency_code);
 ALTER TABLE dbo.trade_cost DROP COLUMN IF EXISTS currency_code;
 GO
 ALTER TABLE dbo.trade_cost ALTER COLUMN currency_id INT NOT NULL;
@@ -417,6 +509,9 @@ GO
 UPDATE t SET t.currency_id = c.currency_id FROM dbo.trade_order_cost t JOIN dbo.currency c ON c.currency_code = t.currency_code;
 GO
 ALTER TABLE dbo.trade_order_cost DROP CONSTRAINT IF EXISTS fk_toc_currency;
+DECLARE @def_trade_order_cost_currency_code NVARCHAR(200);
+SELECT @def_trade_order_cost_currency_code = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.trade_order_cost') AND c.name = 'currency_code';
+IF @def_trade_order_cost_currency_code IS NOT NULL EXEC('ALTER TABLE dbo.trade_order_cost DROP CONSTRAINT ' + @def_trade_order_cost_currency_code);
 ALTER TABLE dbo.trade_order_cost DROP COLUMN IF EXISTS currency_code;
 GO
 ALTER TABLE dbo.trade_order_cost ALTER COLUMN currency_id INT NOT NULL;
@@ -430,6 +525,9 @@ GO
 UPDATE t SET t.broker_fee_currency_id = c.currency_id FROM dbo.trade_order t JOIN dbo.currency c ON c.currency_code = t.broker_fee_currency_code;
 GO
 ALTER TABLE dbo.trade_order DROP CONSTRAINT IF EXISTS fk_to_broker_fee_currency;
+DECLARE @def_trade_order_broker_fee_currency_code NVARCHAR(200);
+SELECT @def_trade_order_broker_fee_currency_code = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.trade_order') AND c.name = 'broker_fee_currency_code';
+IF @def_trade_order_broker_fee_currency_code IS NOT NULL EXEC('ALTER TABLE dbo.trade_order DROP CONSTRAINT ' + @def_trade_order_broker_fee_currency_code);
 ALTER TABLE dbo.trade_order DROP COLUMN IF EXISTS broker_fee_currency_code;
 GO
 ALTER TABLE dbo.trade_order ADD CONSTRAINT fk_to_broker_fee_currency FOREIGN KEY (broker_fee_currency_id) REFERENCES dbo.currency(currency_id);
@@ -445,6 +543,9 @@ GO
 UPDATE t SET t.country_id = c.country_id FROM dbo.holiday_calendar t JOIN dbo.country c ON c.country_code = t.country_code;
 GO
 ALTER TABLE dbo.holiday_calendar DROP CONSTRAINT IF EXISTS fk_hc_country;
+DECLARE @def_holiday_calendar_country_code NVARCHAR(200);
+SELECT @def_holiday_calendar_country_code = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.holiday_calendar') AND c.name = 'country_code';
+IF @def_holiday_calendar_country_code IS NOT NULL EXEC('ALTER TABLE dbo.holiday_calendar DROP CONSTRAINT ' + @def_holiday_calendar_country_code);
 ALTER TABLE dbo.holiday_calendar DROP COLUMN IF EXISTS country_code;
 GO
 ALTER TABLE dbo.holiday_calendar ADD CONSTRAINT fk_hc_country FOREIGN KEY (country_id) REFERENCES dbo.country(country_id);
@@ -456,6 +557,9 @@ GO
 UPDATE t SET t.country_id = c.country_id FROM dbo.address t JOIN dbo.country c ON c.country_code = t.country_code;
 GO
 ALTER TABLE dbo.address DROP CONSTRAINT IF EXISTS fk_address_country;
+DECLARE @def_address_country_code NVARCHAR(200);
+SELECT @def_address_country_code = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.address') AND c.name = 'country_code';
+IF @def_address_country_code IS NOT NULL EXEC('ALTER TABLE dbo.address DROP CONSTRAINT ' + @def_address_country_code);
 ALTER TABLE dbo.address DROP COLUMN IF EXISTS country_code;
 GO
 ALTER TABLE dbo.address ALTER COLUMN country_id INT NOT NULL;
@@ -469,11 +573,17 @@ GO
 UPDATE t SET t.country_id = c.country_id FROM dbo.location t JOIN dbo.country c ON c.country_code = t.country_code;
 GO
 ALTER TABLE dbo.location DROP CONSTRAINT IF EXISTS fk_location_country;
+DECLARE @def_location_country_code NVARCHAR(200);
+SELECT @def_location_country_code = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.location') AND c.name = 'country_code';
+IF @def_location_country_code IS NOT NULL EXEC('ALTER TABLE dbo.location DROP CONSTRAINT ' + @def_location_country_code);
+-- ix_location_commodity (V1) includes country_code — drop/recreate around the change.
+DROP INDEX ix_location_commodity ON dbo.location;
 ALTER TABLE dbo.location DROP COLUMN IF EXISTS country_code;
 GO
 ALTER TABLE dbo.location ALTER COLUMN country_id INT NOT NULL;
 GO
 ALTER TABLE dbo.location ADD CONSTRAINT fk_location_country FOREIGN KEY (country_id) REFERENCES dbo.country(country_id);
+CREATE INDEX ix_location_commodity ON dbo.location (commodity_type, country_id, is_active);
 GO
 
 -- tax_registration.jurisdiction -> jurisdiction_id
@@ -482,11 +592,17 @@ GO
 UPDATE t SET t.jurisdiction_id = c.country_id FROM dbo.tax_registration t JOIN dbo.country c ON c.country_code = t.jurisdiction;
 GO
 ALTER TABLE dbo.tax_registration DROP CONSTRAINT IF EXISTS fk_taxreg_jurisdiction;
+DECLARE @def_tax_registration_jurisdiction NVARCHAR(200);
+SELECT @def_tax_registration_jurisdiction = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.tax_registration') AND c.name = 'jurisdiction';
+IF @def_tax_registration_jurisdiction IS NOT NULL EXEC('ALTER TABLE dbo.tax_registration DROP CONSTRAINT ' + @def_tax_registration_jurisdiction);
+-- uq_tax_reg (V1/V78) is UNIQUE(entity_type, entity_id, tax_type, jurisdiction) — drop/recreate around the change.
+ALTER TABLE dbo.tax_registration DROP CONSTRAINT IF EXISTS uq_tax_reg;
 ALTER TABLE dbo.tax_registration DROP COLUMN IF EXISTS jurisdiction;
 GO
 ALTER TABLE dbo.tax_registration ALTER COLUMN jurisdiction_id INT NOT NULL;
 GO
 ALTER TABLE dbo.tax_registration ADD CONSTRAINT fk_taxreg_jurisdiction FOREIGN KEY (jurisdiction_id) REFERENCES dbo.country(country_id);
+ALTER TABLE dbo.tax_registration ADD CONSTRAINT uq_tax_reg UNIQUE (entity_type, entity_id, tax_type, jurisdiction_id);
 GO
 
 -- legal_entity.jurisdiction -> jurisdiction_id
@@ -495,6 +611,9 @@ GO
 UPDATE t SET t.jurisdiction_id = c.country_id FROM dbo.legal_entity t JOIN dbo.country c ON c.country_code = t.jurisdiction;
 GO
 ALTER TABLE dbo.legal_entity DROP CONSTRAINT IF EXISTS fk_le_jurisdiction;
+DECLARE @def_legal_entity_jurisdiction NVARCHAR(200);
+SELECT @def_legal_entity_jurisdiction = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.legal_entity') AND c.name = 'jurisdiction';
+IF @def_legal_entity_jurisdiction IS NOT NULL EXEC('ALTER TABLE dbo.legal_entity DROP CONSTRAINT ' + @def_legal_entity_jurisdiction);
 ALTER TABLE dbo.legal_entity DROP COLUMN IF EXISTS jurisdiction;
 GO
 ALTER TABLE dbo.legal_entity ALTER COLUMN jurisdiction_id INT NOT NULL;
@@ -508,11 +627,17 @@ GO
 UPDATE t SET t.jurisdiction_id = c.country_id FROM dbo.counterparty t JOIN dbo.country c ON c.country_code = t.jurisdiction;
 GO
 ALTER TABLE dbo.counterparty DROP CONSTRAINT IF EXISTS fk_cp_jurisdiction;
+DECLARE @def_counterparty_jurisdiction NVARCHAR(200);
+SELECT @def_counterparty_jurisdiction = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.counterparty') AND c.name = 'jurisdiction';
+IF @def_counterparty_jurisdiction IS NOT NULL EXEC('ALTER TABLE dbo.counterparty DROP CONSTRAINT ' + @def_counterparty_jurisdiction);
+-- ix_cp_jurisdiction (V1) includes jurisdiction — drop/recreate around the change.
+DROP INDEX ix_cp_jurisdiction ON dbo.counterparty;
 ALTER TABLE dbo.counterparty DROP COLUMN IF EXISTS jurisdiction;
 GO
 ALTER TABLE dbo.counterparty ALTER COLUMN jurisdiction_id INT NOT NULL;
 GO
 ALTER TABLE dbo.counterparty ADD CONSTRAINT fk_cp_jurisdiction FOREIGN KEY (jurisdiction_id) REFERENCES dbo.country(country_id);
+CREATE INDEX ix_cp_jurisdiction ON dbo.counterparty (jurisdiction_id) INCLUDE (cp_code, legal_name);
 GO
 
 -- gtc.jurisdiction -> jurisdiction_id
@@ -521,6 +646,9 @@ GO
 UPDATE t SET t.jurisdiction_id = c.country_id FROM dbo.gtc t JOIN dbo.country c ON c.country_code = t.jurisdiction;
 GO
 ALTER TABLE dbo.gtc DROP CONSTRAINT IF EXISTS fk_gtc_jurisdiction;
+DECLARE @def_gtc_jurisdiction NVARCHAR(200);
+SELECT @def_gtc_jurisdiction = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.gtc') AND c.name = 'jurisdiction';
+IF @def_gtc_jurisdiction IS NOT NULL EXEC('ALTER TABLE dbo.gtc DROP CONSTRAINT ' + @def_gtc_jurisdiction);
 ALTER TABLE dbo.gtc DROP COLUMN IF EXISTS jurisdiction;
 GO
 ALTER TABLE dbo.gtc ADD CONSTRAINT fk_gtc_jurisdiction FOREIGN KEY (jurisdiction_id) REFERENCES dbo.country(country_id);
@@ -532,6 +660,9 @@ GO
 UPDATE t SET t.incorporation_country_id = c.country_id FROM dbo.legal_entity t JOIN dbo.country c ON c.country_code = t.incorporation_country;
 GO
 ALTER TABLE dbo.legal_entity DROP CONSTRAINT IF EXISTS fk_le_incorporation_country;
+DECLARE @def_legal_entity_incorporation_country NVARCHAR(200);
+SELECT @def_legal_entity_incorporation_country = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.legal_entity') AND c.name = 'incorporation_country';
+IF @def_legal_entity_incorporation_country IS NOT NULL EXEC('ALTER TABLE dbo.legal_entity DROP CONSTRAINT ' + @def_legal_entity_incorporation_country);
 ALTER TABLE dbo.legal_entity DROP COLUMN IF EXISTS incorporation_country;
 GO
 ALTER TABLE dbo.legal_entity ADD CONSTRAINT fk_le_incorporation_country FOREIGN KEY (incorporation_country_id) REFERENCES dbo.country(country_id);
@@ -543,11 +674,17 @@ GO
 UPDATE t SET t.country_id = c.country_id FROM dbo.exchange t JOIN dbo.country c ON c.country_code = t.country_code;
 GO
 ALTER TABLE dbo.exchange DROP CONSTRAINT IF EXISTS fk_exchange_country;
+DECLARE @def_exchange_country_code NVARCHAR(200);
+SELECT @def_exchange_country_code = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.exchange') AND c.name = 'country_code';
+IF @def_exchange_country_code IS NOT NULL EXEC('ALTER TABLE dbo.exchange DROP CONSTRAINT ' + @def_exchange_country_code);
+-- ix_exchange_country (V2) includes country_code — drop/recreate around the change.
+DROP INDEX ix_exchange_country ON dbo.exchange;
 ALTER TABLE dbo.exchange DROP COLUMN IF EXISTS country_code;
 GO
 ALTER TABLE dbo.exchange ALTER COLUMN country_id INT NOT NULL;
 GO
 ALTER TABLE dbo.exchange ADD CONSTRAINT fk_exchange_country FOREIGN KEY (country_id) REFERENCES dbo.country(country_id);
+CREATE INDEX ix_exchange_country ON dbo.exchange (country_id, is_active);
 GO
 
 -- market.country_code -> country_id
@@ -556,6 +693,9 @@ GO
 UPDATE t SET t.country_id = c.country_id FROM dbo.market t JOIN dbo.country c ON c.country_code = t.country_code;
 GO
 ALTER TABLE dbo.market DROP CONSTRAINT IF EXISTS fk_market_country;
+DECLARE @def_market_country_code NVARCHAR(200);
+SELECT @def_market_country_code = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.market') AND c.name = 'country_code';
+IF @def_market_country_code IS NOT NULL EXEC('ALTER TABLE dbo.market DROP CONSTRAINT ' + @def_market_country_code);
 ALTER TABLE dbo.market DROP COLUMN IF EXISTS country_code;
 GO
 ALTER TABLE dbo.market ADD CONSTRAINT fk_market_country FOREIGN KEY (country_id) REFERENCES dbo.country(country_id);
@@ -567,6 +707,9 @@ GO
 UPDATE t SET t.country_id = c.country_id FROM dbo.transport_operator t JOIN dbo.country c ON c.country_code = t.country_code;
 GO
 ALTER TABLE dbo.transport_operator DROP CONSTRAINT IF EXISTS fk_transport_op_country;
+DECLARE @def_transport_operator_country_code NVARCHAR(200);
+SELECT @def_transport_operator_country_code = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.transport_operator') AND c.name = 'country_code';
+IF @def_transport_operator_country_code IS NOT NULL EXEC('ALTER TABLE dbo.transport_operator DROP CONSTRAINT ' + @def_transport_operator_country_code);
 ALTER TABLE dbo.transport_operator DROP COLUMN IF EXISTS country_code;
 GO
 ALTER TABLE dbo.transport_operator ADD CONSTRAINT fk_transport_op_country FOREIGN KEY (country_id) REFERENCES dbo.country(country_id);
@@ -578,6 +721,9 @@ GO
 UPDATE t SET t.flag_country_id = c.country_id FROM dbo.vessel t JOIN dbo.country c ON c.country_code = t.flag_country;
 GO
 ALTER TABLE dbo.vessel DROP CONSTRAINT IF EXISTS fk_vessel_flag_country;
+DECLARE @def_vessel_flag_country NVARCHAR(200);
+SELECT @def_vessel_flag_country = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.vessel') AND c.name = 'flag_country';
+IF @def_vessel_flag_country IS NOT NULL EXEC('ALTER TABLE dbo.vessel DROP CONSTRAINT ' + @def_vessel_flag_country);
 ALTER TABLE dbo.vessel DROP COLUMN IF EXISTS flag_country;
 GO
 ALTER TABLE dbo.vessel ALTER COLUMN flag_country_id INT NOT NULL;
@@ -591,6 +737,9 @@ GO
 UPDATE t SET t.build_country_id = c.country_id FROM dbo.vessel t JOIN dbo.country c ON c.country_code = t.build_country;
 GO
 ALTER TABLE dbo.vessel DROP CONSTRAINT IF EXISTS fk_vessel_build_country;
+DECLARE @def_vessel_build_country NVARCHAR(200);
+SELECT @def_vessel_build_country = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.vessel') AND c.name = 'build_country';
+IF @def_vessel_build_country IS NOT NULL EXEC('ALTER TABLE dbo.vessel DROP CONSTRAINT ' + @def_vessel_build_country);
 ALTER TABLE dbo.vessel DROP COLUMN IF EXISTS build_country;
 GO
 ALTER TABLE dbo.vessel ADD CONSTRAINT fk_vessel_build_country FOREIGN KEY (build_country_id) REFERENCES dbo.country(country_id);
@@ -602,6 +751,9 @@ GO
 UPDATE t SET t.country_id = c.country_id FROM dbo.truck t JOIN dbo.country c ON c.country_code = t.country_code;
 GO
 ALTER TABLE dbo.truck DROP CONSTRAINT IF EXISTS fk_truck_country;
+DECLARE @def_truck_country_code NVARCHAR(200);
+SELECT @def_truck_country_code = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.truck') AND c.name = 'country_code';
+IF @def_truck_country_code IS NOT NULL EXEC('ALTER TABLE dbo.truck DROP CONSTRAINT ' + @def_truck_country_code);
 ALTER TABLE dbo.truck DROP COLUMN IF EXISTS country_code;
 GO
 ALTER TABLE dbo.truck ALTER COLUMN country_id INT NOT NULL;
@@ -615,6 +767,9 @@ GO
 UPDATE t SET t.country_id = c.country_id FROM dbo.railcar t JOIN dbo.country c ON c.country_code = t.country_code;
 GO
 ALTER TABLE dbo.railcar DROP CONSTRAINT IF EXISTS fk_railcar_country;
+DECLARE @def_railcar_country_code NVARCHAR(200);
+SELECT @def_railcar_country_code = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.railcar') AND c.name = 'country_code';
+IF @def_railcar_country_code IS NOT NULL EXEC('ALTER TABLE dbo.railcar DROP CONSTRAINT ' + @def_railcar_country_code);
 ALTER TABLE dbo.railcar DROP COLUMN IF EXISTS country_code;
 GO
 ALTER TABLE dbo.railcar ALTER COLUMN country_id INT NOT NULL;
@@ -628,6 +783,9 @@ GO
 UPDATE t SET t.country_id = c.country_id FROM dbo.balancing_authority t JOIN dbo.country c ON c.country_code = t.country_code;
 GO
 ALTER TABLE dbo.balancing_authority DROP CONSTRAINT IF EXISTS fk_ba_country;
+DECLARE @def_balancing_authority_country_code NVARCHAR(200);
+SELECT @def_balancing_authority_country_code = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.balancing_authority') AND c.name = 'country_code';
+IF @def_balancing_authority_country_code IS NOT NULL EXEC('ALTER TABLE dbo.balancing_authority DROP CONSTRAINT ' + @def_balancing_authority_country_code);
 ALTER TABLE dbo.balancing_authority DROP COLUMN IF EXISTS country_code;
 GO
 ALTER TABLE dbo.balancing_authority ALTER COLUMN country_id INT NOT NULL;
@@ -641,6 +799,9 @@ GO
 UPDATE t SET t.country_id = c.country_id FROM dbo.broker t JOIN dbo.country c ON c.country_code = t.country_code;
 GO
 ALTER TABLE dbo.broker DROP CONSTRAINT IF EXISTS fk_broker_country;
+DECLARE @def_broker_country_code NVARCHAR(200);
+SELECT @def_broker_country_code = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.broker') AND c.name = 'country_code';
+IF @def_broker_country_code IS NOT NULL EXEC('ALTER TABLE dbo.broker DROP CONSTRAINT ' + @def_broker_country_code);
 ALTER TABLE dbo.broker DROP COLUMN IF EXISTS country_code;
 GO
 ALTER TABLE dbo.broker ADD CONSTRAINT fk_broker_country FOREIGN KEY (country_id) REFERENCES dbo.country(country_id);
@@ -652,6 +813,9 @@ GO
 UPDATE t SET t.country_of_origin_id = c.country_id FROM dbo.metal_brand t JOIN dbo.country c ON c.country_code = t.country_of_origin;
 GO
 ALTER TABLE dbo.metal_brand DROP CONSTRAINT IF EXISTS fk_metal_brand_country;
+DECLARE @def_metal_brand_country_of_origin NVARCHAR(200);
+SELECT @def_metal_brand_country_of_origin = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.metal_brand') AND c.name = 'country_of_origin';
+IF @def_metal_brand_country_of_origin IS NOT NULL EXEC('ALTER TABLE dbo.metal_brand DROP CONSTRAINT ' + @def_metal_brand_country_of_origin);
 ALTER TABLE dbo.metal_brand DROP COLUMN IF EXISTS country_of_origin;
 GO
 ALTER TABLE dbo.metal_brand ADD CONSTRAINT fk_metal_brand_country FOREIGN KEY (country_of_origin_id) REFERENCES dbo.country(country_id);
@@ -663,6 +827,9 @@ GO
 UPDATE t SET t.cp_country_id = c.country_id FROM dbo.credit_limit t JOIN dbo.country c ON c.country_code = t.cp_country_code;
 GO
 ALTER TABLE dbo.credit_limit DROP CONSTRAINT IF EXISTS fk_cl_cp_country;
+DECLARE @def_credit_limit_cp_country_code NVARCHAR(200);
+SELECT @def_credit_limit_cp_country_code = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.credit_limit') AND c.name = 'cp_country_code';
+IF @def_credit_limit_cp_country_code IS NOT NULL EXEC('ALTER TABLE dbo.credit_limit DROP CONSTRAINT ' + @def_credit_limit_cp_country_code);
 ALTER TABLE dbo.credit_limit DROP COLUMN IF EXISTS cp_country_code;
 GO
 ALTER TABLE dbo.credit_limit ADD CONSTRAINT fk_cl_cp_country FOREIGN KEY (cp_country_id) REFERENCES dbo.country(country_id);
@@ -674,6 +841,9 @@ GO
 UPDATE t SET t.origin_country_id = c.country_id FROM dbo.trade_order t JOIN dbo.country c ON c.country_code = t.origin_country_code;
 GO
 ALTER TABLE dbo.trade_order DROP CONSTRAINT IF EXISTS fk_to_origin_country;
+DECLARE @def_trade_order_origin_country_code NVARCHAR(200);
+SELECT @def_trade_order_origin_country_code = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.trade_order') AND c.name = 'origin_country_code';
+IF @def_trade_order_origin_country_code IS NOT NULL EXEC('ALTER TABLE dbo.trade_order DROP CONSTRAINT ' + @def_trade_order_origin_country_code);
 ALTER TABLE dbo.trade_order DROP COLUMN IF EXISTS origin_country_code;
 GO
 ALTER TABLE dbo.trade_order ADD CONSTRAINT fk_to_origin_country FOREIGN KEY (origin_country_id) REFERENCES dbo.country(country_id);
@@ -685,6 +855,9 @@ GO
 UPDATE t SET t.storage_country_id = c.country_id FROM dbo.trade_storage_agreement_detail t JOIN dbo.country c ON c.country_code = t.storage_country_code;
 GO
 ALTER TABLE dbo.trade_storage_agreement_detail DROP CONSTRAINT IF EXISTS fk_storage_agr_country;
+DECLARE @def_trade_storage_agreement_detail_storage_country_code NVARCHAR(200);
+SELECT @def_trade_storage_agreement_detail_storage_country_code = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.trade_storage_agreement_detail') AND c.name = 'storage_country_code';
+IF @def_trade_storage_agreement_detail_storage_country_code IS NOT NULL EXEC('ALTER TABLE dbo.trade_storage_agreement_detail DROP CONSTRAINT ' + @def_trade_storage_agreement_detail_storage_country_code);
 ALTER TABLE dbo.trade_storage_agreement_detail DROP COLUMN IF EXISTS storage_country_code;
 GO
 ALTER TABLE dbo.trade_storage_agreement_detail ADD CONSTRAINT fk_storage_agr_country FOREIGN KEY (storage_country_id) REFERENCES dbo.country(country_id);
@@ -699,6 +872,9 @@ ALTER TABLE dbo.insurance_provider ADD country_id INT NULL;
 GO
 UPDATE t SET t.country_id = c.country_id FROM dbo.insurance_provider t JOIN dbo.country c ON c.country_code = t.country_code;
 GO
+DECLARE @def_insurance_provider_country_code NVARCHAR(200);
+SELECT @def_insurance_provider_country_code = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.insurance_provider') AND c.name = 'country_code';
+IF @def_insurance_provider_country_code IS NOT NULL EXEC('ALTER TABLE dbo.insurance_provider DROP CONSTRAINT ' + @def_insurance_provider_country_code);
 ALTER TABLE dbo.insurance_provider DROP COLUMN IF EXISTS country_code;
 GO
 ALTER TABLE dbo.insurance_provider ADD CONSTRAINT fk_insurance_provider_country_id FOREIGN KEY (country_id) REFERENCES dbo.country(country_id);
@@ -709,6 +885,9 @@ ALTER TABLE dbo.regulatory_report_type ADD jurisdiction_id INT NULL;
 GO
 UPDATE t SET t.jurisdiction_id = c.country_id FROM dbo.regulatory_report_type t JOIN dbo.country c ON c.country_code = t.jurisdiction;
 GO
+DECLARE @def_regulatory_report_type_jurisdiction NVARCHAR(200);
+SELECT @def_regulatory_report_type_jurisdiction = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.regulatory_report_type') AND c.name = 'jurisdiction';
+IF @def_regulatory_report_type_jurisdiction IS NOT NULL EXEC('ALTER TABLE dbo.regulatory_report_type DROP CONSTRAINT ' + @def_regulatory_report_type_jurisdiction);
 ALTER TABLE dbo.regulatory_report_type DROP COLUMN IF EXISTS jurisdiction;
 GO
 ALTER TABLE dbo.regulatory_report_type ADD CONSTRAINT fk_regulatory_report_type_jurisdiction_id FOREIGN KEY (jurisdiction_id) REFERENCES dbo.country(country_id);
@@ -719,6 +898,9 @@ ALTER TABLE dbo.trade_repository ADD jurisdiction_id INT NULL;
 GO
 UPDATE t SET t.jurisdiction_id = c.country_id FROM dbo.trade_repository t JOIN dbo.country c ON c.country_code = t.jurisdiction;
 GO
+DECLARE @def_trade_repository_jurisdiction NVARCHAR(200);
+SELECT @def_trade_repository_jurisdiction = dc.name FROM sys.default_constraints dc JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id WHERE dc.parent_object_id = OBJECT_ID('dbo.trade_repository') AND c.name = 'jurisdiction';
+IF @def_trade_repository_jurisdiction IS NOT NULL EXEC('ALTER TABLE dbo.trade_repository DROP CONSTRAINT ' + @def_trade_repository_jurisdiction);
 ALTER TABLE dbo.trade_repository DROP COLUMN IF EXISTS jurisdiction;
 GO
 ALTER TABLE dbo.trade_repository ADD CONSTRAINT fk_trade_repository_jurisdiction_id FOREIGN KEY (jurisdiction_id) REFERENCES dbo.country(country_id);

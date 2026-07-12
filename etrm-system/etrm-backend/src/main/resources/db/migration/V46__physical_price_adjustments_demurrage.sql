@@ -36,7 +36,7 @@ BEGIN
       )),
     adjustment_value    DECIMAL(18,6) NOT NULL,   -- positive = adds to price; negative = subtracts
     adjustment_currency CHAR(3)       NULL,
-    adjustment_uom_code VARCHAR(10)   NULL,
+    adjustment_uom_code VARCHAR(20)   NULL,
     sort_order          TINYINT       NOT NULL DEFAULT 0,
     notes               NVARCHAR(500) NULL,
     created_at          DATETIME2     NOT NULL DEFAULT SYSUTCDATETIME(),

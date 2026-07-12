@@ -131,7 +131,7 @@ CREATE TABLE dbo.laytime_term_template (
     is_reversible                 BIT             NOT NULL DEFAULT 0,
     -- TRUE: load + discharge laytime pooled into one allowance (reversible laytime)
     -- FALSE: separate laytime allowance at each port (non-reversible)
-    description                    VARCHAR(300)    NULL,
+    description                    VARCHAR(500)    NULL,
     is_active                       BIT             NOT NULL DEFAULT 1,
     created_at                      DATETIME2       NOT NULL DEFAULT SYSUTCDATETIME(),
     created_by                      VARCHAR(100)    NOT NULL,

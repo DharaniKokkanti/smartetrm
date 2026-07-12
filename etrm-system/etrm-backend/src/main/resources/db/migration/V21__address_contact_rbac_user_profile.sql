@@ -20,17 +20,27 @@
 
 -- ── 1. address — drop NOT NULL from legacy binding columns ────────────────────
 -- V19 already set these to NULL for every row; this makes the constraint match.
+-- ix_address_entity (V1/V19) includes address_type — drop/recreate around it.
+DROP INDEX ix_address_entity ON dbo.address;
+GO
 ALTER TABLE dbo.address ALTER COLUMN entity_type   VARCHAR(20) NULL;
 ALTER TABLE dbo.address ALTER COLUMN entity_id     BIGINT      NULL;
 ALTER TABLE dbo.address ALTER COLUMN address_type  VARCHAR(20) NULL;
 ALTER TABLE dbo.address ALTER COLUMN is_primary    BIT         NULL;
 GO
+CREATE INDEX ix_address_entity ON dbo.address (entity_type, entity_id, address_type, is_active);
+GO
 
 -- ── 2. contact — drop NOT NULL from legacy binding columns ────────────────────
+-- ix_contact_entity (V1/V19) includes contact_role — same drop/recreate dance.
+DROP INDEX ix_contact_entity ON dbo.contact;
+GO
 ALTER TABLE dbo.contact ALTER COLUMN entity_type   VARCHAR(20) NULL;
 ALTER TABLE dbo.contact ALTER COLUMN entity_id     BIGINT      NULL;
 ALTER TABLE dbo.contact ALTER COLUMN contact_role  VARCHAR(20) NULL;
 ALTER TABLE dbo.contact ALTER COLUMN is_primary    BIT         NULL;
+GO
+CREATE INDEX ix_contact_entity ON dbo.contact (entity_type, entity_id, contact_role, is_active);
 GO
 
 -- ── 3. master_data_table_registry — sub_group + description ──────────────────
@@ -82,9 +92,9 @@ WHERE table_name = 'transmission_zone';
 GO
 
 -- ── 4. app_user — extended user profile columns ───────────────────────────────
+-- department already exists on app_user (V1) — not repeated here.
 ALTER TABLE dbo.app_user
     ADD role             VARCHAR(30)  NULL,
-        department       VARCHAR(100) NULL,
         phone            VARCHAR(30)  NULL,
         trader_id        BIGINT       NULL,
         preferred_locale VARCHAR(10)  NULL,

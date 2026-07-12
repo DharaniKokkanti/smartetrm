@@ -59,6 +59,14 @@ CREATE INDEX ix_bolmo_leg_bolmo ON dbo.bolmo_leg (bolmo_id);
 CREATE INDEX ix_bolmo_leg_order ON dbo.bolmo_leg (order_id) WHERE order_id IS NOT NULL;
 
 -- ── Seed data ───────────────────────────────────────────────
+-- Guarded: assumes counterparty_id 1/3/7 and legal_entity_id 1 already exist
+-- (mirroring frontend MSW mock ids) — nothing in this migration chain seeds
+-- dbo.counterparty/dbo.legal_entity, so on a genuinely fresh database this
+-- is a no-op rather than an FK-violation failure (same gap as V33's trade
+-- seed data).
+IF EXISTS (SELECT 1 FROM dbo.counterparty WHERE counterparty_id IN (1, 3, 7))
+   AND EXISTS (SELECT 1 FROM dbo.legal_entity WHERE legal_entity_id = 1)
+BEGIN
 INSERT INTO dbo.bolmo_agreement
     (bolmo_reference, counterparty_id, legal_entity_id, agreement_date, settlement_date,
      commodity_type, delivery_location_code, delivery_period_code, net_quantity, uom_code,
@@ -82,3 +90,4 @@ INSERT INTO dbo.bolmo_leg (bolmo_id, order_id, direction, quantity, uom_code, pr
     (2, NULL, 'SELL',  50000, 'MWH', 34.20, 'Equinor TTF Aug SELL'),
     (3, NULL, 'BUY',  100000, 'BBL', 80.00, 'Shell ULSD Rotterdam BUY'),
     (3, NULL, 'SELL', 100000, 'BBL', 81.00, 'Shell ULSD Rotterdam SELL');
+END

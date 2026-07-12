@@ -41,6 +41,22 @@ GO
 ALTER TABLE dbo.commodity_grade_standard ADD product_id INT NULL;
 GO
 
+-- CBOT-CORN was never seeded anywhere in this migration chain (only
+-- referenced by harmless no-op UPDATEs in V25/V60) — same gap V24/V39 hit
+-- for other benchmark products. Seeded here since this is the first place
+-- that actually needs it to exist (a real FK, not just a backfill match).
+IF NOT EXISTS (SELECT 1 FROM dbo.product WHERE product_code = 'CBOT-CORN')
+INSERT INTO dbo.product
+    (commodity_id, product_code, product_name, settlement_type,
+     default_uom_id, default_currency_id, is_active, created_by)
+SELECT
+    (SELECT commodity_id FROM dbo.commodity WHERE commodity_code = 'AGRI'),
+    'CBOT-CORN', 'CBOT Corn No. 2 Yellow', 'PHYSICAL',
+    (SELECT uom_id FROM dbo.unit_of_measure WHERE uom_code = 'BUSHEL'),
+    (SELECT currency_id FROM dbo.currency WHERE currency_code = 'USD'),
+    1, 'SYSTEM';
+GO
+
 UPDATE cgs
 SET    cgs.product_id = p.product_id
 FROM   dbo.commodity_grade_standard cgs

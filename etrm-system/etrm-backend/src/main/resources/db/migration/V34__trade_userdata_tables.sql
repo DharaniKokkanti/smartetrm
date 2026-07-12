@@ -19,8 +19,11 @@ ALTER TABLE dbo.trade
         rfp_end_date           DATE           NULL,          -- RFP only
         rfp_frequency          NVARCHAR(15)   NULL           -- DAILY/WEEKLY/MONTHLY/QUARTERLY
             CONSTRAINT chk_trade_rfp_frequency CHECK (rfp_frequency IS NULL OR rfp_frequency IN ('DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY'));
+GO
 
 -- RFP constraint: when term_type = 'RFP', frequency and dates must be provided
+-- (separate batch: SQL Server resolves a table-level CHECK's column references
+-- at parse time, and can't see columns added earlier in the same batch)
 ALTER TABLE dbo.trade
     ADD CONSTRAINT chk_trade_rfp_fields CHECK (
         term_type <> 'RFP'
@@ -31,6 +34,7 @@ ALTER TABLE dbo.trade
 
 ALTER TABLE dbo.trade_order
     ADD is_template BIT NOT NULL DEFAULT 0;
+GO
 
 -- First leg per trade = template leg
 UPDATE to_
@@ -41,6 +45,20 @@ WHERE  to_.order_sequence = 1;
 -- ── Remove delivery columns from dbo.trade (now live on dbo.trade_order) ─────
 -- These columns were captured on the trade header before the redesign.
 -- All values have been migrated to trade_order rows as part of this release.
+
+-- Objects (V9) dependent on the columns being dropped below — SQL Server
+-- does not cascade-drop these with DROP COLUMN, must go first, verified
+-- against the live schema rather than assumed:
+--   product_id: fk_trade_product, chk_trade_freight_product, ix_trade_product
+--   market_id: fk_trade_market
+--   pricing_rule_id: fk_trade_pricing_rule
+--   settlement_type: chk_trade_settlement
+ALTER TABLE dbo.trade DROP CONSTRAINT chk_trade_freight_product;
+ALTER TABLE dbo.trade DROP CONSTRAINT chk_trade_settlement;
+ALTER TABLE dbo.trade DROP CONSTRAINT fk_trade_product;
+ALTER TABLE dbo.trade DROP CONSTRAINT fk_trade_market;
+ALTER TABLE dbo.trade DROP CONSTRAINT fk_trade_pricing_rule;
+DROP INDEX ix_trade_product ON dbo.trade;
 
 ALTER TABLE dbo.trade DROP COLUMN IF EXISTS product_id;
 ALTER TABLE dbo.trade DROP COLUMN IF EXISTS market_id;

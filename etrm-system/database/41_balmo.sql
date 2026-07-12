@@ -68,10 +68,13 @@ CREATE INDEX ix_tob_product ON dbo.trade_order_balmo (balmo_product_id);
 CREATE INDEX ix_tob_status  ON dbo.trade_order_balmo (balmo_status) WHERE balmo_status = 'ACTIVE';
 
 -- ── pricing_type — insert BALMO ──────────────────────────────
-INSERT INTO dbo.pricing_type (type_code, type_name, description, sort_order, is_active)
+-- sort_order isn't a real column on dbo.pricing_type (V1: type_code/
+-- type_name/description/requires_index/requires_formula/is_active) —
+-- same bug already found and fixed in V39.
+INSERT INTO dbo.pricing_type (type_code, type_name, description, requires_index, requires_formula, is_active)
 VALUES ('BALMO', 'Balance of Month (BALMO)',
     'Exchange-cleared partial-month average price swap. Pricing window = booking date → last business day of contract month. Floating price = arithmetic average of daily front-month futures settlements over that window.',
-    9, 1);
+    1, 0, 1);
 
 -- ── Seed data — BALMO products (Jul/Aug 2026) ───────────────
 INSERT INTO dbo.balmo_product
@@ -98,6 +101,12 @@ VALUES
 
 -- ── Seed data — trade_order_balmo entries ───────────────────
 -- Link to orderId 14 (WTI BALMO Buy BP) and orderId 15 (Brent BALMO Sell Glencore)
+-- Guarded: assumes order_id 14/15 already exist (mirroring frontend MSW mock
+-- ids) — nothing in this chain seeds dbo.trade_order on a fresh database
+-- (V33's own trade_order seed is guarded the same way), so this is a no-op
+-- rather than an FK-violation failure.
+IF EXISTS (SELECT 1 FROM dbo.trade_order WHERE order_id IN (14, 15))
+BEGIN
 INSERT INTO dbo.trade_order_balmo
     (order_id, balmo_product_id, pricing_start_date, pricing_end_date,
      contract_month, balmo_status, running_avg_price, elapsed_pricing_days,
@@ -105,3 +114,4 @@ INSERT INTO dbo.trade_order_balmo
 VALUES
     (14, 1, '2026-07-01', '2026-07-31', '2026-07', 'ACTIVE', 72.31, 1, 23, NULL),
     (15, 3, '2026-07-01', '2026-07-31', '2026-07', 'ACTIVE', 76.23, 1, 23, NULL);
+END

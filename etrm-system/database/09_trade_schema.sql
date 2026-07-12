@@ -218,6 +218,78 @@ GO
 CREATE INDEX ix_tod_vessel ON dbo.trade_oil_detail (vessel_id) WHERE vessel_id IS NOT NULL;
 GO
 
+-- =============================================================================
+-- 02b. TRADE_LNG_DETAIL / TRADE_METALS_DETAIL / TRADE_AGRI_DETAIL
+-- 1:1 commodity extensions, same pattern as trade_oil_detail. These three were
+-- named in this file's own header comment above ("future trade_power_detail /
+-- trade_gas_detail / trade_agri_detail / trade_metals_detail") but never
+-- actually created — later migrations (V29 field expansion, V91/V94 FK
+-- conversions) ALTER these tables unconditionally, which only works if they
+-- already exist. Created here, at the same point in the schema trade_oil_detail
+-- and trade_freight_detail were, rather than patched in wherever the gap was
+-- first hit.
+-- =============================================================================
+CREATE TABLE dbo.trade_lng_detail (
+    trade_id                 INT             NOT NULL,
+    load_terminal_code       VARCHAR(30)     NULL,
+    discharge_terminal_code  VARCHAR(30)     NULL,
+    cargo_volume_mmbtu       DECIMAL(18,4)   NULL,
+    price_basis              VARCHAR(10)     NULL
+        CONSTRAINT chk_tld_price_basis CHECK (price_basis IS NULL OR price_basis IN (
+            'JCC','HH','TTF','NBP','CUSTOM'
+        )),
+    notes                     VARCHAR(1000)   NULL,
+    created_at                DATETIME2       NOT NULL DEFAULT SYSUTCDATETIME(),
+    created_by                VARCHAR(100)    NOT NULL,
+    updated_at                DATETIME2       NOT NULL DEFAULT SYSUTCDATETIME(),
+    updated_by                VARCHAR(100)    NOT NULL,
+
+    CONSTRAINT pk_trade_lng_detail  PRIMARY KEY (trade_id),
+    CONSTRAINT uq_tld_trade         UNIQUE      (trade_id),
+    CONSTRAINT fk_tld_trade         FOREIGN KEY (trade_id) REFERENCES dbo.trade(trade_id)
+);
+GO
+
+CREATE TABLE dbo.trade_metals_detail (
+    trade_id                 INT             NOT NULL,
+    metal_grade               VARCHAR(100)    NULL,
+    shape                       VARCHAR(10)     NULL
+        CONSTRAINT chk_tmd_shape CHECK (shape IS NULL OR shape IN (
+            'CATHODE','INGOT','BILLET','COIL','ROD','SLAB','WIRE'
+        )),
+    lme_date                     DATE            NULL,
+    warehouse_location_code      VARCHAR(30)     NULL,
+    brand                         VARCHAR(100)    NULL,
+    notes                         VARCHAR(1000)   NULL,
+    created_at                    DATETIME2       NOT NULL DEFAULT SYSUTCDATETIME(),
+    created_by                    VARCHAR(100)    NOT NULL,
+    updated_at                    DATETIME2       NOT NULL DEFAULT SYSUTCDATETIME(),
+    updated_by                    VARCHAR(100)    NOT NULL,
+
+    CONSTRAINT pk_trade_metals_detail  PRIMARY KEY (trade_id),
+    CONSTRAINT uq_tmd_trade             UNIQUE      (trade_id),
+    CONSTRAINT fk_tmd_trade             FOREIGN KEY (trade_id) REFERENCES dbo.trade(trade_id)
+);
+GO
+
+CREATE TABLE dbo.trade_agri_detail (
+    trade_id                 INT             NOT NULL,
+    crop_year                 SMALLINT        NULL,
+    grade_quality               VARCHAR(100)    NULL,
+    origin_country_id             INT             NULL,   -- no FK yet: dbo.country doesn't exist until V86
+    delivery_basis                 VARCHAR(50)     NULL,
+    notes                           VARCHAR(1000)   NULL,
+    created_at                      DATETIME2       NOT NULL DEFAULT SYSUTCDATETIME(),
+    created_by                      VARCHAR(100)    NOT NULL,
+    updated_at                      DATETIME2       NOT NULL DEFAULT SYSUTCDATETIME(),
+    updated_by                      VARCHAR(100)    NOT NULL,
+
+    CONSTRAINT pk_trade_agri_detail  PRIMARY KEY (trade_id),
+    CONSTRAINT uq_tad_trade           UNIQUE      (trade_id),
+    CONSTRAINT fk_tad_trade           FOREIGN KEY (trade_id) REFERENCES dbo.trade(trade_id)
+);
+GO
+
 
 -- =============================================================================
 -- 03. TRADE_FREIGHT_DETAIL

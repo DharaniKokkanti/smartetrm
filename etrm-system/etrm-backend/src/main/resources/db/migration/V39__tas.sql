@@ -14,17 +14,68 @@ ALTER TABLE dbo.pricing_rule
       tas_tick_size         DECIMAL(12,6)  NULL;   -- USD per tick per unit (CL=0.01, NG=0.001)
 GO
 
--- 2. Seed TAS pricing rules
-INSERT INTO dbo.pricing_rule
-  (rule_code, rule_name, pricing_type, price_index_code,
-   differential_amount, differential_currency_code, differential_uom_code,
-   formula_expression, averaging_method, pricing_calendar_code, publication_source, rounding,
-   tas_exchange, tas_contract_series, tas_tick_size, is_active)
+-- 2a. Add TAS, OPTION_STRIKE, PLATTS_WINDOW to pricing_type lookup — moved
+-- ahead of step 2 below since it resolves pricing_type_id = 'TAS' via
+-- subquery; also fixed sort_order, which isn't a real column on this table
+-- (V1: type_code/type_name/description/requires_index/requires_formula/is_active).
+INSERT INTO dbo.pricing_type (type_code, type_name, description, requires_index, requires_formula, is_active)
 VALUES
-  ('TAS-NYMEX-CL', 'WTI Crude CL Trade at Settlement',   'TAS', 'WTI-NYMEX',    NULL, NULL, NULL, NULL, NULL, 'NYC', 'CME', 'ROUND_2DP', 'CME_NYMEX', 'CL', 0.010000, 1),
-  ('TAS-NYMEX-NG', 'Henry Hub NG Trade at Settlement',   'TAS', 'HH-HENRY-HUB', NULL, NULL, NULL, NULL, NULL, 'NYC', 'CME', 'ROUND_3DP', 'CME_NYMEX', 'NG', 0.001000, 1),
-  ('TAS-NYMEX-HO', 'Heating Oil HO Trade at Settlement', 'TAS', 'HO-NYMEX',     NULL, NULL, NULL, NULL, NULL, 'NYC', 'CME', 'ROUND_4DP', 'CME_NYMEX', 'HO', 0.000100, 1),
-  ('TAS-ICE-BZ',   'ICE Brent BZ Trade at Settlement',   'TAS', 'DTBRT',         NULL, NULL, NULL, NULL, NULL, 'LON', 'ICE', 'ROUND_2DP', 'ICE_EUROPE','BZ', 0.010000, 1);
+  ('TAS',           'Trade at Settlement (TAS)', 'Price = exchange daily settlement ± differential in ticks. Unknown at execution; locked when exchange publishes settlement.', 0, 0, 1),
+  ('OPTION_STRIKE', 'Option Strike',              'Price determined by the strike price of an option contract at exercise.',                                                     0, 0, 1),
+  ('PLATTS_WINDOW', 'Platts MOC Window',          'Price assessed during the Platts Market on Close (MOC) submission window.',                                                   1, 0, 1);
+GO
+
+-- 2b. Seed the two benchmark products TAS rules below need that were never
+-- seeded anywhere in this chain (same gap V24 hit for BRENT-CRUDE/WTI-CRUDE/
+-- TTF-GAS/LME-COPPER — WTI-CRUDE and BRENT-CRUDE already exist from that fix).
+INSERT INTO dbo.product
+    (commodity_id, product_code, product_name, settlement_type,
+     default_uom_id, default_currency_id, is_active, created_by)
+SELECT
+    (SELECT commodity_id FROM dbo.commodity WHERE commodity_code = 'GAS'),
+    'HENRY-HUB-GAS', 'Henry Hub Natural Gas', 'FINANCIAL',
+    (SELECT uom_id FROM dbo.unit_of_measure WHERE uom_code = 'MMBTU'),
+    (SELECT currency_id FROM dbo.currency WHERE currency_code = 'USD'),
+    1, 'SYSTEM';
+GO
+INSERT INTO dbo.product
+    (commodity_id, product_code, product_name, settlement_type,
+     default_uom_id, default_currency_id, is_active, created_by)
+SELECT
+    (SELECT commodity_id FROM dbo.commodity WHERE commodity_code = 'OIL'),
+    'HEATING-OIL', 'NYMEX Heating Oil / Ultra-Low Sulphur Diesel', 'FINANCIAL',
+    (SELECT uom_id FROM dbo.unit_of_measure WHERE uom_code = 'GAL'),
+    (SELECT currency_id FROM dbo.currency WHERE currency_code = 'USD'),
+    1, 'SYSTEM';
+GO
+
+-- 2. Seed TAS pricing rules
+-- Rewritten against dbo.pricing_rule's real schema (V6): every FK is a
+-- surrogate *_id column resolved via subquery, not the flat code columns
+-- (rule_code/pricing_type/price_index_code/...) this originally assumed —
+-- none of those columns exist on this table. price_index_id is left NULL
+-- (genuinely nullable — no CHECK enforces it non-null for TAS) since no
+-- price_index seed data exists anywhere in this migration chain to resolve
+-- WTI-NYMEX/HH-HENRY-HUB/HO-NYMEX/DTBRT against.
+INSERT INTO dbo.pricing_rule
+  (product_id, pricing_type_id, rule_code, rule_name,
+   tas_exchange, tas_contract_series, tas_tick_size, is_active, created_by, updated_by)
+SELECT
+  (SELECT product_id FROM dbo.product WHERE product_code = 'WTI-CRUDE'),
+  (SELECT pricing_type_id FROM dbo.pricing_type WHERE type_code = 'TAS'),
+  'TAS-NYMEX-CL', 'WTI Crude CL Trade at Settlement', 'CME_NYMEX', 'CL', 0.010000, 1, 'SYSTEM', 'SYSTEM'
+UNION ALL SELECT
+  (SELECT product_id FROM dbo.product WHERE product_code = 'HENRY-HUB-GAS'),
+  (SELECT pricing_type_id FROM dbo.pricing_type WHERE type_code = 'TAS'),
+  'TAS-NYMEX-NG', 'Henry Hub NG Trade at Settlement', 'CME_NYMEX', 'NG', 0.001000, 1, 'SYSTEM', 'SYSTEM'
+UNION ALL SELECT
+  (SELECT product_id FROM dbo.product WHERE product_code = 'HEATING-OIL'),
+  (SELECT pricing_type_id FROM dbo.pricing_type WHERE type_code = 'TAS'),
+  'TAS-NYMEX-HO', 'Heating Oil HO Trade at Settlement', 'CME_NYMEX', 'HO', 0.000100, 1, 'SYSTEM', 'SYSTEM'
+UNION ALL SELECT
+  (SELECT product_id FROM dbo.product WHERE product_code = 'BRENT-CRUDE'),
+  (SELECT pricing_type_id FROM dbo.pricing_type WHERE type_code = 'TAS'),
+  'TAS-ICE-BZ', 'ICE Brent BZ Trade at Settlement', 'ICE_EUROPE', 'BZ', 0.010000, 1, 'SYSTEM', 'SYSTEM';
 GO
 
 -- 3. Settlement price table
@@ -37,8 +88,8 @@ CREATE TABLE dbo.settlement_price (
   settle_date          DATE          NOT NULL,
   settle_price         DECIMAL(18,6) NOT NULL,
   tick_size            DECIMAL(12,6) NOT NULL,
-  tick_currency        NVARCHAR(3)   NOT NULL CONSTRAINT df_sp_tick_ccy DEFAULT 'USD',
-  uom_code             NVARCHAR(20)  NOT NULL,           -- BBL, MMBTU, GAL, MT
+  tick_currency        CHAR(3)       NOT NULL CONSTRAINT df_sp_tick_ccy DEFAULT 'USD',
+  uom_code             VARCHAR(20)   NOT NULL,           -- BBL, MMBTU, GAL, MT
   is_confirmed         BIT           NOT NULL CONSTRAINT df_sp_confirmed DEFAULT 0,
   source               NVARCHAR(20)  NOT NULL CONSTRAINT df_sp_source DEFAULT 'MANUAL', -- CME | ICE | MANUAL
   notes                NVARCHAR(500) NULL,
@@ -81,13 +132,4 @@ CREATE TABLE dbo.trade_order_tas (
 );
 
 CREATE INDEX ix_order_tas_status ON dbo.trade_order_tas (tas_status, tas_contract_ticker);
-GO
-
--- 5. Add TAS, OPTION_STRIKE, PLATTS_WINDOW to pricing_type lookup
--- (pricing_type is a lookup table seeded by earlier migrations)
-INSERT INTO dbo.pricing_type (type_code, type_name, description, sort_order, is_active)
-VALUES
-  ('TAS',           'Trade at Settlement (TAS)', 'Price = exchange daily settlement ± differential in ticks. Unknown at execution; locked when exchange publishes settlement.', 6, 1),
-  ('OPTION_STRIKE', 'Option Strike',              'Price determined by the strike price of an option contract at exercise.',                                                     7, 1),
-  ('PLATTS_WINDOW', 'Platts MOC Window',          'Price assessed during the Platts Market on Close (MOC) submission window.',                                                   8, 1);
 GO

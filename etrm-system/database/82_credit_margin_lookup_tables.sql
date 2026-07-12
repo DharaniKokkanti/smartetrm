@@ -221,6 +221,17 @@ GO
 UPDATE m SET m.valuation_frequency_new = t.valuation_frequency_type_id
 FROM dbo.margin_agreement m JOIN dbo.valuation_frequency_type t ON t.type_code = m.valuation_frequency;
 GO
+-- valuation_frequency has an unnamed inline DEFAULT ('DAILY', V35) — find and
+-- drop it dynamically before dropping the column (same pattern used
+-- repeatedly since V55/V78/V81).
+DECLARE @valFreqDefault NVARCHAR(200);
+SELECT @valFreqDefault = dc.name
+FROM sys.default_constraints dc
+JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id
+WHERE dc.parent_object_id = OBJECT_ID('dbo.margin_agreement') AND c.name = 'valuation_frequency';
+IF @valFreqDefault IS NOT NULL
+    EXEC('ALTER TABLE dbo.margin_agreement DROP CONSTRAINT ' + @valFreqDefault);
+GO
 ALTER TABLE dbo.margin_agreement DROP CONSTRAINT IF EXISTS chk_margin_val_freq;
 ALTER TABLE dbo.margin_agreement DROP COLUMN valuation_frequency;
 GO
@@ -236,6 +247,16 @@ GO
 UPDATE m SET m.gov_law_new = t.governing_law_type_id
 FROM dbo.margin_agreement m JOIN dbo.governing_law_type t ON t.type_code = m.gov_law;
 GO
+-- gov_law has an unnamed inline DEFAULT ('ENGLISH', V35) — same
+-- dynamic-lookup pattern used above.
+DECLARE @govLawDefault NVARCHAR(200);
+SELECT @govLawDefault = dc.name
+FROM sys.default_constraints dc
+JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id
+WHERE dc.parent_object_id = OBJECT_ID('dbo.margin_agreement') AND c.name = 'gov_law';
+IF @govLawDefault IS NOT NULL
+    EXEC('ALTER TABLE dbo.margin_agreement DROP CONSTRAINT ' + @govLawDefault);
+GO
 ALTER TABLE dbo.margin_agreement DROP CONSTRAINT IF EXISTS chk_margin_gov_law;
 ALTER TABLE dbo.margin_agreement DROP COLUMN gov_law;
 GO
@@ -243,6 +264,11 @@ EXEC sp_rename 'dbo.margin_agreement.gov_law_new', 'gov_law', 'COLUMN';
 GO
 ALTER TABLE dbo.margin_agreement ALTER COLUMN gov_law INT NOT NULL;
 ALTER TABLE dbo.margin_agreement ADD CONSTRAINT fk_margin_gov_law FOREIGN KEY (gov_law) REFERENCES dbo.governing_law_type(governing_law_type_id);
+GO
+
+-- IX_credit_limit_cp_type (V35) indexes both limit_type and status — drop
+-- once before either conversion, recreate once after both are done.
+DROP INDEX IX_credit_limit_cp_type ON dbo.credit_limit;
 GO
 
 -- ── dbo.credit_limit.limit_type ───────────────────────────────────────────────
@@ -266,6 +292,16 @@ GO
 UPDATE c SET c.status_new = t.credit_limit_status_type_id
 FROM dbo.credit_limit c JOIN dbo.credit_limit_status_type t ON t.type_code = c.status;
 GO
+-- status has an unnamed inline DEFAULT ('ACTIVE', V35) — same
+-- dynamic-lookup pattern used above.
+DECLARE @clStatusDefault NVARCHAR(200);
+SELECT @clStatusDefault = dc.name
+FROM sys.default_constraints dc
+JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id
+WHERE dc.parent_object_id = OBJECT_ID('dbo.credit_limit') AND c.name = 'status';
+IF @clStatusDefault IS NOT NULL
+    EXEC('ALTER TABLE dbo.credit_limit DROP CONSTRAINT ' + @clStatusDefault);
+GO
 ALTER TABLE dbo.credit_limit DROP CONSTRAINT IF EXISTS chk_credit_limit_status;
 ALTER TABLE dbo.credit_limit DROP COLUMN status;
 GO
@@ -273,6 +309,10 @@ EXEC sp_rename 'dbo.credit_limit.status_new', 'status', 'COLUMN';
 GO
 ALTER TABLE dbo.credit_limit ALTER COLUMN status INT NOT NULL;
 ALTER TABLE dbo.credit_limit ADD CONSTRAINT fk_credit_limit_status FOREIGN KEY (status) REFERENCES dbo.credit_limit_status_type(credit_limit_status_type_id);
+GO
+CREATE NONCLUSTERED INDEX IX_credit_limit_cp_type
+    ON dbo.credit_limit (counterparty_id, limit_type, status)
+    INCLUDE (limit_amount, used_amount, limit_currency);
 GO
 
 -- ── dbo.letter_of_credit.lc_type ──────────────────────────────────────────────
@@ -290,11 +330,32 @@ ALTER TABLE dbo.letter_of_credit ALTER COLUMN lc_type INT NOT NULL;
 ALTER TABLE dbo.letter_of_credit ADD CONSTRAINT fk_lc_type FOREIGN KEY (lc_type) REFERENCES dbo.lc_type(lc_type_id);
 GO
 
+-- IX_lc_cp_status and IX_lc_expiry (V35) both index status — drop before
+-- the conversion. IX_lc_expiry was a FILTERED index on the old string
+-- values ('ACTIVE','PARTIALLY_DRAWN'); a filtered index predicate can't
+-- reference a subquery, so it can't be rebuilt to filter on the new
+-- lookup_id values without hardcoding them — recreated as a plain
+-- (non-filtered) index instead, trading a slightly larger index for
+-- correctness rather than guessing literal ids.
+DROP INDEX IX_lc_cp_status ON dbo.letter_of_credit;
+DROP INDEX IX_lc_expiry ON dbo.letter_of_credit;
+GO
+
 -- ── dbo.letter_of_credit.status ───────────────────────────────────────────────
 ALTER TABLE dbo.letter_of_credit ADD status_new INT NULL;
 GO
 UPDATE l SET l.status_new = t.lc_status_type_id
 FROM dbo.letter_of_credit l JOIN dbo.lc_status_type t ON t.type_code = l.status;
+GO
+-- status has an unnamed inline DEFAULT ('ACTIVE', V35) — same
+-- dynamic-lookup pattern used above.
+DECLARE @lcStatusDefault NVARCHAR(200);
+SELECT @lcStatusDefault = dc.name
+FROM sys.default_constraints dc
+JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id
+WHERE dc.parent_object_id = OBJECT_ID('dbo.letter_of_credit') AND c.name = 'status';
+IF @lcStatusDefault IS NOT NULL
+    EXEC('ALTER TABLE dbo.letter_of_credit DROP CONSTRAINT ' + @lcStatusDefault);
 GO
 ALTER TABLE dbo.letter_of_credit DROP CONSTRAINT IF EXISTS chk_lc_status;
 ALTER TABLE dbo.letter_of_credit DROP COLUMN status;
@@ -303,6 +364,12 @@ EXEC sp_rename 'dbo.letter_of_credit.status_new', 'status', 'COLUMN';
 GO
 ALTER TABLE dbo.letter_of_credit ALTER COLUMN status INT NOT NULL;
 ALTER TABLE dbo.letter_of_credit ADD CONSTRAINT fk_lc_status FOREIGN KEY (status) REFERENCES dbo.lc_status_type(lc_status_type_id);
+GO
+CREATE NONCLUSTERED INDEX IX_lc_cp_status
+    ON dbo.letter_of_credit (counterparty_id, status)
+    INCLUDE (lc_amount, drawdown_amount, expiry_date);
+CREATE NONCLUSTERED INDEX IX_lc_expiry
+    ON dbo.letter_of_credit (expiry_date, status);
 GO
 
 -- ── Register in the Static Data GUI ───────────────────────────────────────────

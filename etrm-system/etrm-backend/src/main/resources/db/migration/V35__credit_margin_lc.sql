@@ -17,16 +17,16 @@ CREATE TABLE dbo.margin_agreement (
         CONSTRAINT fk_margin_agr_cp REFERENCES dbo.counterparty (counterparty_id),
     -- Our threshold: if MTM > threshold, CP must post collateral
     threshold_amount            DECIMAL(18,2)   NOT NULL DEFAULT 0,
-    threshold_currency          NCHAR(3)        NOT NULL DEFAULT 'USD',
+    threshold_currency          CHAR(3)        NOT NULL DEFAULT 'USD',
     -- CP threshold: if MTM < -threshold, we must post collateral
     cp_threshold_amount         DECIMAL(18,2)   NOT NULL DEFAULT 0,
-    cp_threshold_currency       NCHAR(3)        NOT NULL DEFAULT 'USD',
+    cp_threshold_currency       CHAR(3)        NOT NULL DEFAULT 'USD',
     -- Minimum Transfer Amount
     mta_amount                  DECIMAL(18,2)   NOT NULL DEFAULT 0,
-    mta_currency                NCHAR(3)        NOT NULL DEFAULT 'USD',
+    mta_currency                CHAR(3)        NOT NULL DEFAULT 'USD',
     -- Independent Amount / Initial Margin
     independent_amount          DECIMAL(18,2)   NULL,
-    independent_amount_currency NCHAR(3)        NULL,
+    independent_amount_currency CHAR(3)        NULL,
     rounding_amount             DECIMAL(18,2)   NULL,
     valuation_frequency         NVARCHAR(10)    NOT NULL DEFAULT 'DAILY'
         CONSTRAINT chk_margin_val_freq CHECK (valuation_frequency IN ('DAILY', 'WEEKLY', 'MONTHLY')),
@@ -42,9 +42,11 @@ CREATE TABLE dbo.margin_agreement (
     updated_at                  DATETIME2       NOT NULL DEFAULT SYSUTCDATETIME(),
     CONSTRAINT uq_margin_agreement_code UNIQUE (agreement_code)
 );
+GO
 
 CREATE NONCLUSTERED INDEX IX_margin_agreement_cp
     ON dbo.margin_agreement (counterparty_id, is_active);
+GO
 
 -- ── dbo.credit_limit ─────────────────────────────────────────────────────────
 CREATE TABLE dbo.credit_limit (
@@ -56,7 +58,7 @@ CREATE TABLE dbo.credit_limit (
             'SETTLEMENT', 'PRE_SETTLEMENT', 'DELIVERY', 'MARK_TO_MARKET'
         )),
     limit_amount                DECIMAL(18,2)   NOT NULL,
-    limit_currency              NCHAR(3)        NOT NULL DEFAULT 'USD',
+    limit_currency              CHAR(3)        NOT NULL DEFAULT 'USD',
     used_amount                 DECIMAL(18,2)   NOT NULL DEFAULT 0,
     -- available_amount is computed: limit_amount - used_amount (not stored)
     -- utilisation_pct is computed: used_amount / limit_amount * 100 (not stored)
@@ -72,10 +74,12 @@ CREATE TABLE dbo.credit_limit (
     created_at                  DATETIME2       NOT NULL DEFAULT SYSUTCDATETIME(),
     updated_at                  DATETIME2       NOT NULL DEFAULT SYSUTCDATETIME()
 );
+GO
 
 CREATE NONCLUSTERED INDEX IX_credit_limit_cp_type
     ON dbo.credit_limit (counterparty_id, limit_type, status)
     INCLUDE (limit_amount, used_amount, limit_currency);
+GO
 
 -- ── dbo.letter_of_credit ─────────────────────────────────────────────────────
 -- V5 created an older letter_of_credit schema; drop dependent FKs then replace it.
@@ -86,6 +90,7 @@ IF OBJECT_ID('dbo.collateral', 'U') IS NOT NULL
     IF EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'fk_coll_lc' AND parent_object_id = OBJECT_ID('dbo.collateral'))
         ALTER TABLE dbo.collateral DROP CONSTRAINT fk_coll_lc;
 IF OBJECT_ID('dbo.letter_of_credit', 'U') IS NOT NULL DROP TABLE dbo.letter_of_credit;
+GO
 
 CREATE TABLE dbo.letter_of_credit (
     lc_id                       INT             NOT NULL IDENTITY(1,1) PRIMARY KEY,
@@ -104,7 +109,7 @@ CREATE TABLE dbo.letter_of_credit (
     issuing_bank_bic            NCHAR(11)       NULL,
     confirming_bank_name        NVARCHAR(150)   NULL,
     lc_amount                   DECIMAL(18,2)   NOT NULL,
-    lc_currency                 NCHAR(3)        NOT NULL DEFAULT 'USD',
+    lc_currency                 CHAR(3)        NOT NULL DEFAULT 'USD',
     issued_amount               DECIMAL(18,2)   NOT NULL,
     drawdown_amount             DECIMAL(18,2)   NOT NULL DEFAULT 0,
     -- available_amount = lc_amount - drawdown_amount (computed, not stored)
@@ -120,6 +125,7 @@ CREATE TABLE dbo.letter_of_credit (
     updated_at                  DATETIME2       NOT NULL DEFAULT SYSUTCDATETIME(),
     CONSTRAINT uq_lc_reference UNIQUE (lc_reference)
 );
+GO
 
 CREATE NONCLUSTERED INDEX IX_lc_cp_status
     ON dbo.letter_of_credit (counterparty_id, status)
@@ -128,3 +134,4 @@ CREATE NONCLUSTERED INDEX IX_lc_cp_status
 CREATE NONCLUSTERED INDEX IX_lc_expiry
     ON dbo.letter_of_credit (expiry_date, status)
     WHERE status IN ('ACTIVE', 'PARTIALLY_DRAWN');  -- for expiry alert queries
+GO

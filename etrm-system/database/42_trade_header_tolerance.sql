@@ -20,7 +20,11 @@ ALTER TABLE dbo.trade ADD
 
 ALTER TABLE dbo.trade ADD
     special_contract_flag   BIT           NOT NULL DEFAULT 0;
+GO
 
+-- Separate batch: SQL Server resolves a table-level CHECK's column
+-- references at parse time, and can't see columns added earlier in the
+-- same batch (same gotcha already fixed in V34).
 ALTER TABLE dbo.trade ADD
     CONSTRAINT ck_trade_contract_periodicity
         CHECK (contract_periodicity IS NULL OR
@@ -28,6 +32,7 @@ ALTER TABLE dbo.trade ADD
     CONSTRAINT ck_trade_contract_status
         CHECK (contract_status IS NULL OR
                contract_status IN ('DRAFT','ACTIVE','SUSPENDED','TERMINATED'));
+GO
 
 CREATE INDEX ix_trade_cin              ON dbo.trade (cin) WHERE cin IS NOT NULL;
 CREATE INDEX ix_trade_contract_status  ON dbo.trade (contract_status) WHERE contract_status IS NOT NULL;
@@ -46,6 +51,7 @@ ALTER TABLE dbo.trade_order ADD
     tolerance_plus             DECIMAL(12,4) NULL,
     tolerance_minus            DECIMAL(12,4) NULL,
     tolerance_for_scheduling   BIT           NOT NULL DEFAULT 0;
+GO
 
 ALTER TABLE dbo.trade_order ADD
     CONSTRAINT ck_to_tolerance_type
@@ -56,6 +62,7 @@ ALTER TABLE dbo.broker ADD
     legal_doc_id         VARCHAR(100)   NULL,     -- OBA / master agreement reference
     commission_uom_code  VARCHAR(20)    NULL,     -- UoM for per-unit commission (BBL, MT, MWH…)
     commission_notes     NVARCHAR(1000) NULL;     -- free-text fee schedule / tiered rates
+GO
 
 -- ── Migrate existing rows — set safe defaults ─────────────────
 -- No data to migrate for new trade/order columns (defaults handle it).

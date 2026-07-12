@@ -16,7 +16,7 @@ CREATE TABLE dbo.trade_order (
   order_reference      VARCHAR(60)  NOT NULL,
   status               VARCHAR(20)  NOT NULL DEFAULT 'WORKING',
   -- Risk / delivery period
-  period_code          VARCHAR(20)  NULL,
+  period_code          VARCHAR(30)  NULL,
   risk_start_date      DATE         NOT NULL,
   risk_end_date        DATE         NOT NULL,
   -- Product & market (per-leg, can vary under one deal)
@@ -27,7 +27,7 @@ CREATE TABLE dbo.trade_order (
   quantity             DECIMAL(18,4) NOT NULL,
   uom_code             VARCHAR(20)  NOT NULL,
   price                DECIMAL(18,6) NULL,
-  currency_code        VARCHAR(3)   NOT NULL,
+  currency_code        CHAR(3)      NOT NULL,
   -- Delivery
   incoterm_code        VARCHAR(10)  NULL,
   delivery_location_code VARCHAR(20) NULL,
@@ -63,7 +63,7 @@ CREATE TABLE dbo.trade_item (
   quantity        DECIMAL(18,4) NOT NULL,
   uom_code        VARCHAR(20)  NOT NULL,
   unit_price      DECIMAL(18,6) NULL,
-  currency_code   VARCHAR(3)   NOT NULL DEFAULT 'USD',
+  currency_code   CHAR(3)      NOT NULL DEFAULT 'USD',
   notes           NVARCHAR(1000) NULL,
   created_at      DATETIME2    NOT NULL DEFAULT GETDATE(),
 
@@ -75,7 +75,14 @@ CREATE INDEX ix_trade_item_order_id ON dbo.trade_item(order_id);
 -- ─── Seed orders (one per existing seed trade) ───────────────────────────────
 -- Each existing trade is migrated to have exactly one order leg.
 -- The delivery-level fields from dbo.trade are reproduced here.
-
+--
+-- Guarded: this seed assumes dbo.trade already has rows with trade_id 1-9
+-- (mirroring the frontend's MSW mock trades) — real production/demo data
+-- from wherever this was authored, not something any migration in this
+-- chain ever inserts. On a genuinely fresh database dbo.trade is empty, so
+-- this whole block is a no-op rather than a hard FK-violation failure.
+IF EXISTS (SELECT 1 FROM dbo.trade WHERE trade_id IN (1,2,3,4,5,6,7,8,9))
+BEGIN
 INSERT INTO dbo.trade_order
   (trade_id, order_sequence, order_reference, status,
    period_code, risk_start_date, risk_end_date,
@@ -151,3 +158,4 @@ FROM dbo.trade_order o WHERE o.order_reference = 'TRD-2026-00001-01';
 INSERT INTO dbo.trade_item (order_id, item_sequence, product_id, description, quantity, uom_code, unit_price, currency_code)
 SELECT o.order_id, 2, NULL, 'Operational Tolerance (±2%)', 10000, 'BBL', 82.45, 'USD'
 FROM dbo.trade_order o WHERE o.order_reference = 'TRD-2026-00001-01';
+END

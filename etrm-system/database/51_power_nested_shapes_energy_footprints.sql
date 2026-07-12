@@ -95,7 +95,10 @@ CREATE TABLE dbo.load_shape_component (
     CONSTRAINT chk_lsc_weight           CHECK (weight_factor > 0),
     CONSTRAINT chk_lsc_month_from       CHECK (month_from IS NULL OR month_from BETWEEN 1 AND 12),
     CONSTRAINT chk_lsc_month_to         CHECK (month_to   IS NULL OR month_to   BETWEEN 1 AND 12),
-    CONSTRAINT chk_lsc_month_pair       CHECK ((month_from IS NULL) = (month_to IS NULL))
+    CONSTRAINT chk_lsc_month_pair       CHECK (
+        (month_from IS NULL AND month_to IS NULL) OR
+        (month_from IS NOT NULL AND month_to IS NOT NULL)
+    )
 );
 GO
 CREATE INDEX ix_lsc_parent ON dbo.load_shape_component (parent_load_shape_id, sequence_no);

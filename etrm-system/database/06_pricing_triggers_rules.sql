@@ -475,7 +475,8 @@ ALTER TABLE dbo.pricing_rule
     ADD valid_from_sys DATETIME2 GENERATED ALWAYS AS ROW START HIDDEN
             CONSTRAINT df_pr_vf DEFAULT SYSUTCDATETIME(),
         valid_to_sys   DATETIME2 GENERATED ALWAYS AS ROW END   HIDDEN
-            CONSTRAINT df_pr_vt DEFAULT CONVERT(DATETIME2,'9999-12-31 23:59:59.9999999');
+            CONSTRAINT df_pr_vt DEFAULT CONVERT(DATETIME2,'9999-12-31 23:59:59.9999999'),
+        PERIOD FOR SYSTEM_TIME (valid_from_sys, valid_to_sys);
 GO
 ALTER TABLE dbo.pricing_rule
     SET (SYSTEM_VERSIONING = ON (HISTORY_TABLE = dbo.pricing_rule_history));

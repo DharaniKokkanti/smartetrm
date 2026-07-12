@@ -35,6 +35,7 @@ ALTER TABLE dbo.legal_entity SET (SYSTEM_VERSIONING = OFF);
 GO
 
 ALTER TABLE dbo.legal_entity ADD parent_ind BIT NOT NULL DEFAULT 0;
+ALTER TABLE dbo.legal_entity_history ADD parent_ind BIT NOT NULL DEFAULT 0;
 GO
 
 -- Backfill from existing parent_entity_id before the consistency CHECK goes on.
@@ -59,8 +60,10 @@ ALTER TABLE dbo.counterparty SET (SYSTEM_VERSIONING = OFF);
 GO
 
 ALTER TABLE dbo.counterparty ADD parent_ind BIT NOT NULL DEFAULT 0;
+ALTER TABLE dbo.counterparty_history ADD parent_ind BIT NOT NULL DEFAULT 0;
 GO
 ALTER TABLE dbo.counterparty ADD parent_counterparty_id INT NULL;
+ALTER TABLE dbo.counterparty_history ADD parent_counterparty_id INT NULL;
 GO
 
 ALTER TABLE dbo.counterparty

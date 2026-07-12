@@ -1081,9 +1081,9 @@ GO
 
 -- Interest rate indices
 INSERT INTO dbo.interest_rate_index (index_code, index_name, currency_id, tenor,
-    day_count_convention, compounding, publication_source, is_rfrr, created_by)
+    day_count_convention, compounding, publication_source, is_rfrr)
 SELECT i.index_code, i.index_name, c.currency_id, i.tenor,
-       i.dcc, i.comp, i.source, i.rfrr, 'SYSTEM'
+       i.dcc, i.comp, i.source, i.rfrr
 FROM (VALUES
     ('SOFR',        'Secured Overnight Financing Rate',           'USD','OVERNIGHT','ACT_360','OVERNIGHT_COMPOUNDED','NY Fed',         1),
     ('SOFR_1M',     'SOFR Term 1 Month',                          'USD','1M',       'ACT_360','SIMPLE',             'CME Group',      1),

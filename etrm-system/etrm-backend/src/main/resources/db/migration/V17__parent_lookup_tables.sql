@@ -716,11 +716,17 @@ GO
 -- ── Temporal tables — toggle system versioning off/on for each ALTER ──────────
 
 -- dbo.book → book_type
+-- NOTE: the history table's schema must match the current table's column-
+-- for-column before SYSTEM_VERSIONING can be turned back ON — SQL Server
+-- does not auto-sync it. Every ADD below on the live table has a matching
+-- (constraint-free) ADD on its _history counterpart.
 ALTER TABLE dbo.book SET (SYSTEM_VERSIONING = OFF);
 GO
 ALTER TABLE dbo.book
     ADD book_type_id INT NULL
         CONSTRAINT fk_book_type_id REFERENCES dbo.book_type(book_type_id);
+ALTER TABLE dbo.book_history
+    ADD book_type_id INT NULL;
 GO
 UPDATE b
 SET    b.book_type_id = bt.book_type_id
@@ -737,6 +743,8 @@ GO
 ALTER TABLE dbo.legal_entity
     ADD legal_entity_type_id INT NULL
         CONSTRAINT fk_legal_entity_type_id REFERENCES dbo.legal_entity_type(legal_entity_type_id);
+ALTER TABLE dbo.legal_entity_history
+    ADD legal_entity_type_id INT NULL;
 GO
 UPDATE le
 SET    le.legal_entity_type_id = let2.legal_entity_type_id
@@ -753,10 +761,14 @@ GO
 ALTER TABLE dbo.counterparty
     ADD counterparty_type_id INT NULL
         CONSTRAINT fk_counterparty_type_id REFERENCES dbo.counterparty_type(counterparty_type_id);
+ALTER TABLE dbo.counterparty_history
+    ADD counterparty_type_id INT NULL;
 GO
 ALTER TABLE dbo.counterparty
     ADD kyc_status_id INT NULL
         CONSTRAINT fk_counterparty_kyc_status_id REFERENCES dbo.kyc_status(kyc_status_id);
+ALTER TABLE dbo.counterparty_history
+    ADD kyc_status_id INT NULL;
 GO
 UPDATE cp
 SET    cp.counterparty_type_id = ct.counterparty_type_id
@@ -779,10 +791,14 @@ GO
 ALTER TABLE dbo.trade
     ADD deal_type_id INT NULL
         CONSTRAINT fk_trade_deal_type_id REFERENCES dbo.deal_type(deal_type_id);
+ALTER TABLE dbo.trade_history
+    ADD deal_type_id INT NULL;
 GO
 ALTER TABLE dbo.trade
     ADD trade_settlement_type_id INT NULL
         CONSTRAINT fk_trade_settlement_type_id REFERENCES dbo.settlement_type(settlement_type_id);
+ALTER TABLE dbo.trade_history
+    ADD trade_settlement_type_id INT NULL;
 GO
 UPDATE t
 SET    t.deal_type_id = dt.deal_type_id

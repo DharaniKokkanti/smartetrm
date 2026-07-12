@@ -1,0 +1,51 @@
+name: etrm
+
+# Free local SQL Server for dev only (SQL Server Developer edition — free,
+# full feature set, licensed for dev/test, NOT production). See
+# docs/RUNNING_LOCALLY.md for the full setup walkthrough and free-vs-paid
+# notes on every other piece of the stack.
+#
+# On Apple Silicon this runs under Rosetta emulation (no arm64-native
+# mssql-server image yet) — slower to start, fine once warm. If that's too
+# slow, docs/RUNNING_LOCALLY.md documents an arm64-native alternative.
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    platform: linux/amd64
+    container_name: etrm-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?set MSSQL_SA_PASSWORD in etrm-system/.env — see .env.example}
+    ports:
+      - "1433:1433"
+    volumes:
+      - etrm_sqlserver_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+    restart: unless-stopped
+
+  # One-shot job: creates ETRM_DB and the least-privilege etrm_app login the
+  # backend connects as (matches etrm-backend/.env.example). Re-runs safely
+  # on every `docker compose up` — every statement is idempotent.
+  db-init:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    platform: linux/amd64
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    environment:
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?set MSSQL_SA_PASSWORD in etrm-system/.env}
+      ETRM_APP_DB_PASSWORD: ${ETRM_APP_DB_PASSWORD:?set ETRM_APP_DB_PASSWORD in etrm-system/.env}
+    volumes:
+      - ./docker/db-init:/scripts:ro
+    entrypoint: ["/bin/bash", "/scripts/init-db.sh"]
+    restart: "no"
+
+volumes:
+  etrm_sqlserver_data:

@@ -68,6 +68,17 @@ WHERE a.address_type_id IS NULL AND a.address_type IS NOT NULL;
 GO
 DROP INDEX ix_address_entity ON dbo.address;
 GO
+-- address_type has an unnamed inline DEFAULT ('REGISTERED', V1) — find and
+-- drop it dynamically before dropping the column (same pattern V55 used for
+-- book.book_type's unnamed default).
+DECLARE @addrTypeDefault NVARCHAR(200);
+SELECT @addrTypeDefault = dc.name
+FROM sys.default_constraints dc
+JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id
+WHERE dc.parent_object_id = OBJECT_ID('dbo.address') AND c.name = 'address_type';
+IF @addrTypeDefault IS NOT NULL
+    EXEC('ALTER TABLE dbo.address DROP CONSTRAINT ' + @addrTypeDefault);
+GO
 ALTER TABLE dbo.address DROP CONSTRAINT IF EXISTS chk_addr_type;
 ALTER TABLE dbo.address DROP COLUMN address_type;
 GO
@@ -86,6 +97,16 @@ WHERE b.bank_account_type_id IS NULL AND b.account_type IS NOT NULL;
 GO
 DROP INDEX ix_bank_acct_entity ON dbo.bank_account;
 GO
+-- account_type has an unnamed inline DEFAULT ('SETTLEMENT', V1) — same
+-- dynamic-lookup pattern as address.address_type above.
+DECLARE @acctTypeDefault NVARCHAR(200);
+SELECT @acctTypeDefault = dc.name
+FROM sys.default_constraints dc
+JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id
+WHERE dc.parent_object_id = OBJECT_ID('dbo.bank_account') AND c.name = 'account_type';
+IF @acctTypeDefault IS NOT NULL
+    EXEC('ALTER TABLE dbo.bank_account DROP CONSTRAINT ' + @acctTypeDefault);
+GO
 ALTER TABLE dbo.bank_account DROP CONSTRAINT IF EXISTS chk_bank_acct_type;
 ALTER TABLE dbo.bank_account DROP COLUMN account_type;
 GO
@@ -100,6 +121,16 @@ GO
 UPDATE p SET p.payment_method_id = pm.payment_method_id
 FROM dbo.payment_term p JOIN dbo.payment_method pm ON pm.type_code = p.payment_method
 WHERE p.payment_method_id IS NULL AND p.payment_method IS NOT NULL;
+GO
+-- payment_method has an unnamed inline DEFAULT ('WIRE', V1) — same
+-- dynamic-lookup pattern used above.
+DECLARE @payMethodDefault NVARCHAR(200);
+SELECT @payMethodDefault = dc.name
+FROM sys.default_constraints dc
+JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id
+WHERE dc.parent_object_id = OBJECT_ID('dbo.payment_term') AND c.name = 'payment_method';
+IF @payMethodDefault IS NOT NULL
+    EXEC('ALTER TABLE dbo.payment_term DROP CONSTRAINT ' + @payMethodDefault);
 GO
 ALTER TABLE dbo.payment_term DROP CONSTRAINT IF EXISTS chk_pt_method;
 ALTER TABLE dbo.payment_term DROP COLUMN payment_method;
@@ -186,10 +217,18 @@ ALTER TABLE dbo.legal_entity DROP CONSTRAINT IF EXISTS chk_le_type;
 ALTER TABLE dbo.legal_entity DROP COLUMN entity_type;
 ALTER TABLE dbo.legal_entity_history DROP COLUMN entity_type;
 GO
+-- legal_entity_history already has its own legal_entity_type_id column
+-- (added by V17's ADD-to-both-tables pattern) — rename it too, rather than
+-- ADD a second, brand-new entity_type column and leave legal_entity_type_id
+-- orphaned on history (that mismatch is what breaks re-enabling versioning
+-- below: main and history column counts stop matching).
 EXEC sp_rename 'dbo.legal_entity.legal_entity_type_id', 'entity_type', 'COLUMN';
+EXEC sp_rename 'dbo.legal_entity_history.legal_entity_type_id', 'entity_type', 'COLUMN';
 GO
+-- SYSTEM_VERSIONING = ON requires matching nullability between current and
+-- history table, not just matching column count/type.
 ALTER TABLE dbo.legal_entity ALTER COLUMN entity_type INT NOT NULL;
-ALTER TABLE dbo.legal_entity_history ADD entity_type INT NULL;
+ALTER TABLE dbo.legal_entity_history ALTER COLUMN entity_type INT NOT NULL;
 GO
 ALTER TABLE dbo.legal_entity SET (SYSTEM_VERSIONING = ON (HISTORY_TABLE = dbo.legal_entity_history));
 GO
@@ -209,17 +248,34 @@ DROP INDEX ix_cp_kyc ON dbo.counterparty;
 GO
 ALTER TABLE dbo.counterparty SET (SYSTEM_VERSIONING = OFF);
 GO
+-- kyc_status has an unnamed inline DEFAULT ('PENDING', V1) — same
+-- dynamic-lookup pattern used above (cp_type has no default, only kyc_status does).
+DECLARE @kycStatusDefault NVARCHAR(200);
+SELECT @kycStatusDefault = dc.name
+FROM sys.default_constraints dc
+JOIN sys.columns c ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id
+WHERE dc.parent_object_id = OBJECT_ID('dbo.counterparty') AND c.name = 'kyc_status';
+IF @kycStatusDefault IS NOT NULL
+    EXEC('ALTER TABLE dbo.counterparty DROP CONSTRAINT ' + @kycStatusDefault);
+GO
 ALTER TABLE dbo.counterparty DROP CONSTRAINT IF EXISTS chk_cp_type;
 ALTER TABLE dbo.counterparty DROP CONSTRAINT IF EXISTS chk_kyc_status;
 ALTER TABLE dbo.counterparty DROP COLUMN cp_type, kyc_status;
 ALTER TABLE dbo.counterparty_history DROP COLUMN cp_type, kyc_status;
 GO
+-- counterparty_history already has its own counterparty_type_id/kyc_status_id
+-- columns (V17's ADD-to-both-tables pattern) — rename those too, same fix as
+-- legal_entity_history above, instead of ADD-ing brand-new columns and
+-- leaving the _id-suffixed ones orphaned on history.
 EXEC sp_rename 'dbo.counterparty.counterparty_type_id', 'cp_type', 'COLUMN';
 EXEC sp_rename 'dbo.counterparty.kyc_status_id', 'kyc_status', 'COLUMN';
+EXEC sp_rename 'dbo.counterparty_history.counterparty_type_id', 'cp_type', 'COLUMN';
+EXEC sp_rename 'dbo.counterparty_history.kyc_status_id', 'kyc_status', 'COLUMN';
 GO
 ALTER TABLE dbo.counterparty ALTER COLUMN cp_type INT NOT NULL;
 ALTER TABLE dbo.counterparty ALTER COLUMN kyc_status INT NOT NULL;
-ALTER TABLE dbo.counterparty_history ADD cp_type INT NULL, kyc_status INT NULL;
+ALTER TABLE dbo.counterparty_history ALTER COLUMN cp_type INT NOT NULL;
+ALTER TABLE dbo.counterparty_history ALTER COLUMN kyc_status INT NOT NULL;
 GO
 ALTER TABLE dbo.counterparty SET (SYSTEM_VERSIONING = ON (HISTORY_TABLE = dbo.counterparty_history));
 GO
@@ -227,28 +283,30 @@ CREATE INDEX ix_cp_type ON dbo.counterparty (cp_type, is_active) INCLUDE (cp_cod
 CREATE INDEX ix_cp_kyc  ON dbo.counterparty (kyc_status, is_active) INCLUDE (cp_code, kyc_expiry_date);
 GO
 
--- ── 12/13. dbo.trade.trade_type + settlement_type → deal_type / settlement_type ──
+-- ── 12. dbo.trade.trade_type → deal_type ────────────────────────────────────
+-- settlement_type dropped from dbo.trade entirely by V34 (moved to
+-- dbo.trade_order as part of the trade/order redesign) — there's nothing
+-- left to convert for it here. trade.trade_settlement_type_id (V17's staging
+-- FK column) is left as-is: an unused nullable column with no source to
+-- backfill from, harmless but not cleaned up here (out of scope for this fix).
 UPDATE t SET t.deal_type_id = dt.deal_type_id
 FROM dbo.trade t JOIN dbo.deal_type dt ON dt.type_code = t.trade_type
 WHERE t.deal_type_id IS NULL AND t.trade_type IS NOT NULL;
 GO
-UPDATE t SET t.trade_settlement_type_id = st.settlement_type_id
-FROM dbo.trade t JOIN dbo.settlement_type st ON st.type_code = t.settlement_type
-WHERE t.trade_settlement_type_id IS NULL AND t.settlement_type IS NOT NULL;
-GO
 ALTER TABLE dbo.trade SET (SYSTEM_VERSIONING = OFF);
 GO
 ALTER TABLE dbo.trade DROP CONSTRAINT IF EXISTS chk_trade_type;
-ALTER TABLE dbo.trade DROP CONSTRAINT IF EXISTS chk_trade_settlement;
-ALTER TABLE dbo.trade DROP COLUMN trade_type, settlement_type;
-ALTER TABLE dbo.trade_history DROP COLUMN trade_type, settlement_type;
+ALTER TABLE dbo.trade DROP COLUMN trade_type;
+ALTER TABLE dbo.trade_history DROP COLUMN trade_type;
 GO
+-- trade_history already has its own deal_type_id column (V17's
+-- ADD-to-both-tables pattern) — rename it too, same fix as
+-- legal_entity_history/counterparty_history above.
 EXEC sp_rename 'dbo.trade.deal_type_id', 'trade_type', 'COLUMN';
-EXEC sp_rename 'dbo.trade.trade_settlement_type_id', 'settlement_type', 'COLUMN';
+EXEC sp_rename 'dbo.trade_history.deal_type_id', 'trade_type', 'COLUMN';
 GO
 ALTER TABLE dbo.trade ALTER COLUMN trade_type INT NOT NULL;
-ALTER TABLE dbo.trade ALTER COLUMN settlement_type INT NOT NULL;
-ALTER TABLE dbo.trade_history ADD trade_type INT NULL, settlement_type INT NULL;
+ALTER TABLE dbo.trade_history ALTER COLUMN trade_type INT NOT NULL;
 GO
 ALTER TABLE dbo.trade SET (SYSTEM_VERSIONING = ON (HISTORY_TABLE = dbo.trade_history));
 GO
@@ -259,8 +317,8 @@ PRINT '  12 of the 13 V17 pairs completed (book.book_type was already';
 PRINT '  finished separately by V55). Each old CHECK+VARCHAR column is';
 PRINT '  dropped; its orphaned FK column is renamed into the original';
 PRINT '  bare column name (contact_role, address_type, account_type,';
-PRINT '  payment_method, settlement_type x2, facility_type, agreement_type,';
-PRINT '  tax_type, entity_type, cp_type, kyc_status, trade_type) and';
+PRINT '  payment_method, product.settlement_type, facility_type, agreement_type,';
+PRINT '  tax_type, entity_type, cp_type, kyc_status, trade.trade_type) and';
 PRINT '  NOT NULL re-applied. Temporal tables (legal_entity, counterparty,';
 PRINT '  trade) had SYSTEM_VERSIONING toggled off/around the change and';
 PRINT '  their _history tables kept in step.';

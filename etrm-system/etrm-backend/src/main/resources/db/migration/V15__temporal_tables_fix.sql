@@ -119,14 +119,18 @@ GO
 -- ---------------------------------------------------------------------------
 -- PRICING_RULE
 -- ---------------------------------------------------------------------------
-IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.pricing_rule') AND name = 'valid_from')
+-- pricing_rule's period columns are named valid_from_sys/valid_to_sys (not
+-- valid_from/valid_to like the other tables here) — matching the actual
+-- column names V6 defines, not the valid_from/valid_to guard this file uses
+-- for every other table.
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.pricing_rule') AND name = 'valid_from_sys')
 BEGIN
     ALTER TABLE dbo.pricing_rule
-        ADD valid_from DATETIME2 GENERATED ALWAYS AS ROW START HIDDEN
+        ADD valid_from_sys DATETIME2 GENERATED ALWAYS AS ROW START HIDDEN
                 CONSTRAINT df_pr_vf DEFAULT SYSUTCDATETIME(),
-            valid_to   DATETIME2 GENERATED ALWAYS AS ROW END   HIDDEN
+            valid_to_sys   DATETIME2 GENERATED ALWAYS AS ROW END   HIDDEN
                 CONSTRAINT df_pr_vt DEFAULT CONVERT(DATETIME2,'9999-12-31 23:59:59.9999999'),
-            PERIOD FOR SYSTEM_TIME (valid_from, valid_to);
+            PERIOD FOR SYSTEM_TIME (valid_from_sys, valid_to_sys);
 END
 GO
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE temporal_type = 2 AND object_id = OBJECT_ID('dbo.pricing_rule'))

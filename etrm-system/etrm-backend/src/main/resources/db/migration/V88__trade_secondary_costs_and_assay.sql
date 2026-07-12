@@ -109,7 +109,13 @@ GO
 -- template (templateId=1, Dated Brent/BFOE Standard, V24 seed) whose
 -- API_GRAVITY/SULPHUR_PCT values (spec_value_id 1/2) match the order's own
 -- oilDetail.apiGravity=40.7 / sulphurPct=0.26 — reuse those, don't invent new.
-IF NOT EXISTS (SELECT 1 FROM dbo.trade_cost WHERE trade_id = 1)
+-- Guarded on trade_id/order_id 1 actually existing: V33's own trade/trade_order
+-- seed (which this demo data assumes) is itself guarded on trade_id 1-9
+-- already existing (mirroring frontend MSW mocks) — a no-op on a genuinely
+-- fresh database. Same guard here keeps this a no-op too, instead of an
+-- FK-violation failure.
+IF EXISTS (SELECT 1 FROM dbo.trade WHERE trade_id = 1)
+AND NOT EXISTS (SELECT 1 FROM dbo.trade_cost WHERE trade_id = 1)
 BEGIN
   INSERT INTO dbo.trade_cost (trade_id, cost_type, description, amount, currency_code, is_estimated, sort_order, notes)
   VALUES
@@ -118,7 +124,8 @@ BEGIN
 END;
 GO
 
-IF NOT EXISTS (SELECT 1 FROM dbo.trade_order_cost WHERE order_id = 1)
+IF EXISTS (SELECT 1 FROM dbo.trade_order WHERE order_id = 1)
+AND NOT EXISTS (SELECT 1 FROM dbo.trade_order_cost WHERE order_id = 1)
 BEGIN
   INSERT INTO dbo.trade_order_cost (order_id, cost_type, description, amount, currency_code, is_estimated, sort_order, notes)
   VALUES
@@ -127,7 +134,8 @@ BEGIN
 END;
 GO
 
-IF NOT EXISTS (SELECT 1 FROM dbo.trade_order_assay_result WHERE order_id = 1)
+IF EXISTS (SELECT 1 FROM dbo.trade_order WHERE order_id = 1)
+AND NOT EXISTS (SELECT 1 FROM dbo.trade_order_assay_result WHERE order_id = 1)
 BEGIN
   INSERT INTO dbo.trade_order_assay_result (order_id, spec_value_id, actual_value, sample_point, recorded_date, notes)
   VALUES

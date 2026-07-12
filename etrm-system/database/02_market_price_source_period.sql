@@ -70,9 +70,14 @@ CREATE TABLE dbo.exchange (
 
     CONSTRAINT pk_exchange          PRIMARY KEY (exchange_id),
     CONSTRAINT uq_exchange_code     UNIQUE      (exchange_code),
-    CONSTRAINT uq_exchange_mic      UNIQUE      (mic_code),
     CONSTRAINT fk_exch_currency     FOREIGN KEY (currency_id) REFERENCES dbo.currency(currency_id)
 );
+GO
+-- Filtered unique index, not a table-level UNIQUE constraint: mic_code is
+-- nullable and SQL Server treats multiple NULLs as duplicates under a plain
+-- UNIQUE constraint (unlike Postgres) — OTC platforms (ICAP, TRAD) have no
+-- MIC code, so a plain UNIQUE constraint here rejects the second NULL row.
+CREATE UNIQUE INDEX uq_exchange_mic ON dbo.exchange (mic_code) WHERE mic_code IS NOT NULL;
 GO
 CREATE INDEX ix_exchange_country ON dbo.exchange (country_code, is_active);
 GO
@@ -450,10 +455,13 @@ CREATE TABLE dbo.period (
         is_rolling = 0
         OR (is_rolling = 1 AND roll_offset IS NOT NULL AND roll_unit IS NOT NULL)
     ),
-    -- Concrete periods must have dates
+    -- Dates come as a pair or not at all — NOT a blanket "non-rolling implies
+    -- dated" rule, since some non-rolling period types (SPOT, intraday/day
+    -- windows like GAS-DAY, GAS-WKD) are template rows with no fixed
+    -- calendar dates by design, resolved at runtime same as rolling periods.
     CONSTRAINT chk_period_dates     CHECK (
-        is_rolling = 1
-        OR (is_rolling = 0 AND period_start IS NOT NULL AND period_end IS NOT NULL)
+        (period_start IS NULL AND period_end IS NULL)
+        OR (period_start IS NOT NULL AND period_end IS NOT NULL)
     ),
     CONSTRAINT chk_period_date_order CHECK (
         period_start IS NULL OR period_end IS NULL OR period_end >= period_start
@@ -558,32 +566,32 @@ GO
 -- Fix: proper seed with currency lookup
 DELETE FROM dbo.exchange;
 GO
-INSERT INTO dbo.exchange (exchange_code, exchange_name, exchange_type, country_code, city, timezone, currency_id, regulator, mic_code, created_by)
+INSERT INTO dbo.exchange (exchange_code, exchange_name, exchange_type, country_code, city, timezone, currency_id, regulator, mic_code, created_by, updated_by)
 VALUES
-    ('ICE',   'Intercontinental Exchange',      'EXCHANGE',    'GB','London',    'Europe/London',    (SELECT currency_id FROM dbo.currency WHERE currency_code='GBP'),'FCA',  'IFLL','SYSTEM'),
-    ('NYMEX', 'New York Mercantile Exchange',    'EXCHANGE',    'US','New York',  'America/New_York', (SELECT currency_id FROM dbo.currency WHERE currency_code='USD'),'CFTC', 'XNYM','SYSTEM'),
-    ('CME',   'Chicago Mercantile Exchange',     'EXCHANGE',    'US','Chicago',   'America/Chicago',  (SELECT currency_id FROM dbo.currency WHERE currency_code='USD'),'CFTC', 'XCME','SYSTEM'),
-    ('LME',   'London Metal Exchange',           'EXCHANGE',    'GB','London',    'Europe/London',    (SELECT currency_id FROM dbo.currency WHERE currency_code='USD'),'FCA',  'XLME','SYSTEM'),
-    ('EEX',   'European Energy Exchange',        'EXCHANGE',    'DE','Leipzig',   'Europe/Berlin',    (SELECT currency_id FROM dbo.currency WHERE currency_code='EUR'),'BaFin','XEEE','SYSTEM'),
-    ('CBOT',  'Chicago Board of Trade',          'EXCHANGE',    'US','Chicago',   'America/Chicago',  (SELECT currency_id FROM dbo.currency WHERE currency_code='USD'),'CFTC', 'XCBT','SYSTEM'),
-    ('SGX',   'Singapore Exchange',              'EXCHANGE',    'SG','Singapore', 'Asia/Singapore',   (SELECT currency_id FROM dbo.currency WHERE currency_code='USD'),'MAS',  'XSES','SYSTEM'),
-    ('ICAP',  'ICAP OTC Platform',               'OTC_PLATFORM','GB','London',    'Europe/London',    (SELECT currency_id FROM dbo.currency WHERE currency_code='USD'),'FCA',  NULL,  'SYSTEM'),
-    ('TRAD',  'Tradition OTC Platform',          'OTC_PLATFORM','GB','London',    'Europe/London',    (SELECT currency_id FROM dbo.currency WHERE currency_code='USD'),'FCA',  NULL,  'SYSTEM');
+    ('ICE',   'Intercontinental Exchange',      'EXCHANGE',    'GB','London',    'Europe/London',    (SELECT currency_id FROM dbo.currency WHERE currency_code='GBP'),'FCA',  'IFLL','SYSTEM','SYSTEM'),
+    ('NYMEX', 'New York Mercantile Exchange',    'EXCHANGE',    'US','New York',  'America/New_York', (SELECT currency_id FROM dbo.currency WHERE currency_code='USD'),'CFTC', 'XNYM','SYSTEM','SYSTEM'),
+    ('CME',   'Chicago Mercantile Exchange',     'EXCHANGE',    'US','Chicago',   'America/Chicago',  (SELECT currency_id FROM dbo.currency WHERE currency_code='USD'),'CFTC', 'XCME','SYSTEM','SYSTEM'),
+    ('LME',   'London Metal Exchange',           'EXCHANGE',    'GB','London',    'Europe/London',    (SELECT currency_id FROM dbo.currency WHERE currency_code='USD'),'FCA',  'XLME','SYSTEM','SYSTEM'),
+    ('EEX',   'European Energy Exchange',        'EXCHANGE',    'DE','Leipzig',   'Europe/Berlin',    (SELECT currency_id FROM dbo.currency WHERE currency_code='EUR'),'BaFin','XEEE','SYSTEM','SYSTEM'),
+    ('CBOT',  'Chicago Board of Trade',          'EXCHANGE',    'US','Chicago',   'America/Chicago',  (SELECT currency_id FROM dbo.currency WHERE currency_code='USD'),'CFTC', 'XCBT','SYSTEM','SYSTEM'),
+    ('SGX',   'Singapore Exchange',              'EXCHANGE',    'SG','Singapore', 'Asia/Singapore',   (SELECT currency_id FROM dbo.currency WHERE currency_code='USD'),'MAS',  'XSES','SYSTEM','SYSTEM'),
+    ('ICAP',  'ICAP OTC Platform',               'OTC_PLATFORM','GB','London',    'Europe/London',    (SELECT currency_id FROM dbo.currency WHERE currency_code='USD'),'FCA',  NULL,  'SYSTEM','SYSTEM'),
+    ('TRAD',  'Tradition OTC Platform',          'OTC_PLATFORM','GB','London',    'Europe/London',    (SELECT currency_id FROM dbo.currency WHERE currency_code='USD'),'FCA',  NULL,  'SYSTEM','SYSTEM');
 GO
 
 -- Price sources
-INSERT INTO dbo.price_source (source_code, source_name, source_type, delivery_method, frequency, timezone, created_by)
+INSERT INTO dbo.price_source (source_code, source_name, source_type, delivery_method, frequency, timezone, created_by, updated_by)
 VALUES
-    ('PLATTS',      'S&P Global Platts',            'VENDOR',    'API',            'EOD',       'Europe/London',    'SYSTEM'),
-    ('ARGUS',       'Argus Media',                  'VENDOR',    'API',            'EOD',       'Europe/London',    'SYSTEM'),
-    ('BLOOMBERG',   'Bloomberg',                    'BLOOMBERG', 'REAL_TIME_FEED', 'REAL_TIME', 'America/New_York', 'SYSTEM'),
-    ('REUTERS',     'Refinitiv/Reuters',             'REUTERS',   'REAL_TIME_FEED', 'REAL_TIME', 'America/New_York', 'SYSTEM'),
-    ('ICE_DATA',    'ICE Data Services',            'EXCHANGE',  'API',            'EOD',       'Europe/London',    'SYSTEM'),
-    ('NYMEX_DATA',  'CME Group Market Data',        'EXCHANGE',  'API',            'EOD',       'America/New_York', 'SYSTEM'),
-    ('LME_DATA',    'LME Official Prices',          'EXCHANGE',  'API',            'EOD',       'Europe/London',    'SYSTEM'),
-    ('EEX_DATA',    'EEX Market Data',              'EXCHANGE',  'API',            'EOD',       'Europe/Berlin',    'SYSTEM'),
-    ('ICIS',        'ICIS Price Assessments',       'VENDOR',    'FTP',            'EOD',       'Europe/London',    'SYSTEM'),
-    ('INTERNAL',    'Internal / Manual Entry',      'INTERNAL',  'MANUAL',         'MANUAL',    'UTC',              'SYSTEM');
+    ('PLATTS',      'S&P Global Platts',            'VENDOR',    'API',            'EOD',       'Europe/London',    'SYSTEM','SYSTEM'),
+    ('ARGUS',       'Argus Media',                  'VENDOR',    'API',            'EOD',       'Europe/London',    'SYSTEM','SYSTEM'),
+    ('BLOOMBERG',   'Bloomberg',                    'BLOOMBERG', 'REAL_TIME_FEED', 'REAL_TIME', 'America/New_York', 'SYSTEM','SYSTEM'),
+    ('REUTERS',     'Refinitiv/Reuters',             'REUTERS',   'REAL_TIME_FEED', 'REAL_TIME', 'America/New_York', 'SYSTEM','SYSTEM'),
+    ('ICE_DATA',    'ICE Data Services',            'EXCHANGE',  'API',            'EOD',       'Europe/London',    'SYSTEM','SYSTEM'),
+    ('NYMEX_DATA',  'CME Group Market Data',        'EXCHANGE',  'API',            'EOD',       'America/New_York', 'SYSTEM','SYSTEM'),
+    ('LME_DATA',    'LME Official Prices',          'EXCHANGE',  'API',            'EOD',       'Europe/London',    'SYSTEM','SYSTEM'),
+    ('EEX_DATA',    'EEX Market Data',              'EXCHANGE',  'API',            'EOD',       'Europe/Berlin',    'SYSTEM','SYSTEM'),
+    ('ICIS',        'ICIS Price Assessments',       'VENDOR',    'FTP',            'EOD',       'Europe/London',    'SYSTEM','SYSTEM'),
+    ('INTERNAL',    'Internal / Manual Entry',      'INTERNAL',  'MANUAL',         'MANUAL',    'UTC',              'SYSTEM','SYSTEM');
 GO
 
 -- Periods — rolling forward curve points (all commodities)

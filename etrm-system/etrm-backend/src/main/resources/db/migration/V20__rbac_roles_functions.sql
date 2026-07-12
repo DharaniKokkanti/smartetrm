@@ -244,5 +244,5 @@ JOIN dbo.app_function f ON 1=1
 JOIN dbo.app_module m ON f.module_id = m.module_id
 WHERE r.role_code = 'VIEWER'
   AND m.module_code != 'ADMIN'
-  AND f.function_code LIKE '%_VIEW' OR f.function_code LIKE '%VIEW%';
+  AND (f.function_code LIKE '%_VIEW' OR f.function_code LIKE '%VIEW%');
 GO
