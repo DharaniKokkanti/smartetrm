@@ -1,0 +1,37 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "sqlproj: Build localhost,1433",
+			"type": "process",
+			"command": "dotnet",
+			"args": [
+				"build",
+				"/Users/dharanik/ETRM/smartetrm/localhost,1433/localhost,1433.sqlproj"
+			],
+			"problemMatcher": "$sqlproj-problem-matcher",
+			"isBackground": true,
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"detail": "Builds the localhost,1433 SQL project"
+		},
+		{
+			"label": "sqlproj: Build ETRM",
+			"type": "process",
+			"command": "dotnet",
+			"args": [
+				"build",
+				"/Users/dharanik/ETRM/smartetrm/ETRM/ETRM.sqlproj"
+			],
+			"problemMatcher": "$sqlproj-problem-matcher",
+			"isBackground": true,
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"detail": "Builds the ETRM SQL project"
+		}
+	]
+}

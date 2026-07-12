@@ -1,3 +1,7 @@
 {
-    "java.compile.nullAnalysis.mode": "automatic"
+    "java.compile.nullAnalysis.mode": "automatic",
+    "dataworkspace.excludedProjects": [
+        "localhost,1433/localhost,1433.sqlproj",
+        "ETRM/ETRM.sqlproj"
+    ]
 }
