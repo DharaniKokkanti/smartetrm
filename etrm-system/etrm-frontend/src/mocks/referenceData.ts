@@ -997,6 +997,75 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
     ],
   },
 
+  // Lightweight `vessel` mirror — same FK-resolution-only rationale as
+  // product/storage_facility/counterparty above. Vessels has its own
+  // dedicated page/store in etrmHandlers.ts (vesselId 1 = NORDIC LUNA);
+  // this exists purely so V96's lng_boil_off_rule.vessel_id resolves to a
+  // real label instead of a raw id.
+  vessel: {
+    tableName: 'vessel', displayName: 'Vessels', primaryKeyColumn: 'vesselId', isTemporal: false,
+    columns: [
+      col('vesselId',   'ID',   'number', false, true,  null),
+      col('imoNumber',  'IMO',  'string', false, false, 10),
+      col('vesselName', 'Name', 'string', false, false, 200),
+    ],
+  },
+
+  // Lightweight `unit_of_measure` mirror — closes the pre-existing gap noted
+  // next to freight_rate_index's uomId placeholder further down (no `uom`
+  // mock table existed at all before this). V96's metal_assay_component_rule
+  // .penalty_uom_id and agri_moisture_discount_scale.discount_uom_id both
+  // carry a real FK to dbo.unit_of_measure, so this is a real resolution
+  // target, not another placeholder. Ids/order match the real V1 seed
+  // (01_master_data_foundation.sql): 1=BBL...10=BUSHEL...12=MT_MET.
+  unit_of_measure: {
+    tableName: 'unit_of_measure', displayName: 'Units of Measure', primaryKeyColumn: 'uomId', isTemporal: false,
+    columns: [
+      col('uomId',   'ID',   'number', false, true,  null),
+      col('uomCode', 'Code', 'string', false, false, 20),
+      col('uomName', 'Name', 'string', false, false, 100),
+    ],
+  },
+
+  // Lightweight `legal_entity` mirror — same rationale as `vessel` above.
+  // Legal Entities has its own dedicated page/store (`legalEntitiesRef` in
+  // etrmHandlers.ts); exists purely so V96's intercompany_transfer_rule
+  // source/destination FKs resolve to a real label.
+  legal_entity: {
+    tableName: 'legal_entity', displayName: 'Legal Entities', primaryKeyColumn: 'legalEntityId', isTemporal: false,
+    columns: [
+      col('legalEntityId', 'ID',   'number', false, true,  null),
+      col('entityCode',    'Code', 'string', false, false, 20),
+      col('name',          'Name', 'string', false, false, 200),
+    ],
+  },
+
+  // Lightweight `payment_term` mirror — same rationale as `vessel` above.
+  // Payment Terms has its own dedicated page/store in etrmHandlers.ts
+  // (paymentTermId 1 = NET_30); exists purely so V96's
+  // payment_calendar_assignment.payment_term_id resolves to a real label.
+  payment_term: {
+    tableName: 'payment_term', displayName: 'Payment Terms', primaryKeyColumn: 'paymentTermId', isTemporal: false,
+    columns: [
+      col('paymentTermId', 'ID',   'number', false, true,  null),
+      col('termCode',      'Code', 'string', false, false, 30),
+      col('termName',      'Name', 'string', false, false, 200),
+    ],
+  },
+
+  // Lightweight `location` mirror — same rationale as `vessel` above.
+  // Locations has its own dedicated page/store in etrmHandlers.ts
+  // (locationId 1 = SULLOM-VOE); exists purely so V96's
+  // payment_calendar_assignment.location_id resolves to a real label.
+  location: {
+    tableName: 'location', displayName: 'Locations', primaryKeyColumn: 'locationId', isTemporal: false,
+    columns: [
+      col('locationId',   'ID',   'number', false, true,  null),
+      col('locationCode', 'Code', 'string', false, false, 30),
+      col('locationName', 'Name', 'string', false, false, 200),
+    ],
+  },
+
   // V70 — genuine Static Data registry orphans found during a whole-project
   // master-data review: real backend tables (with real seed data) that had
   // no dedicated page and no frontend mock at all. All four already appear
@@ -1196,6 +1265,143 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('notes',           'Notes',           'string',      true,  false, 300),
     ],
   },
+  // ═══════════════════════════════════════════════════════════════════════
+  // V96 — Commodity-specific master data: Metals warrants/assay, LNG
+  // boil-off, Power pnode/ancillary services, Agri moisture/crop-year, and
+  // multi-country intercompany/payment-calendar guardrails. See
+  // 96_commodity_specific_master_data.sql for the full review/rationale —
+  // every FK below matches a real constraint added in that migration.
+  // ═══════════════════════════════════════════════════════════════════════
+  metal_warrant: {
+    tableName: 'metal_warrant', displayName: 'Metal Warrants', primaryKeyColumn: 'warrantId', isTemporal: false,
+    columns: [
+      col('warrantId',            'ID',                  'number',      false, true,  null),
+      col('warrantNumber',        'Warrant Number',      'string',      false, false, 50),
+      col('facilityId',           'Vault Facility',      'foreign_key', false, false, null, null, 'storage_facility'),
+      col('productId',            'Product',             'foreign_key', false, false, null, null, 'product'),
+      col('metalBrandId',         'Brand',               'foreign_key', false, false, null, null, 'metal_brand'),
+      col('metalShapeId',         'Shape',               'foreign_key', false, false, null, null, 'metal_shape'),
+      col('slotVaultLocation',    'Slot/Vault Location', 'string',      true,  false, 50),
+      col('netWeightMt',          'Net Weight (MT)',     'number',      false, false, null, null, null, null, true),
+      col('warrantDate',          'Warrant Date',        'date',        false, false, null),
+      col('rentPaidThroughDate',  'Rent Paid Through',   'date',        true,  false, null),
+      col('isPledgedCollateral',  'Pledged as Collateral', 'boolean',   false, false, null),
+      col('holderCounterpartyId', 'Holder',              'foreign_key', true,  false, null, null, 'counterparty'),
+      col('isActive',             'Active',              'boolean',     false, false, null),
+      col('notes',                'Notes',               'string',      true,  false, 500),
+    ],
+  },
+  metal_assay_component_rule: {
+    tableName: 'metal_assay_component_rule', displayName: 'Metal Assay Component Rules', primaryKeyColumn: 'ruleId', isTemporal: false,
+    columns: [
+      col('ruleId',                  'ID',                'number',      false, true,  null),
+      col('productId',                'Product',           'foreign_key', false, false, null, null, 'product'),
+      col('elementCode',               'Element',           'string',      false, false, 10),
+      col('elementType',                'Element Type',      'enum',        false, false, null, ['PAYABLE', 'PENALTY', 'IMPURITY']),
+      col('baseContentPct',              'Base Content (%)',  'number',      false, false, null, null, null, null, true),
+      col('rejectionThresholdPct',        'Rejection Threshold (%)', 'number', true, false, null, null, null, null, true),
+      col('penaltyPerPpmOverBase',         'Penalty per PPM Over Base', 'number', true, false, null, null, null, null, true),
+      col('penaltyCurrencyId',              'Penalty Currency',  'foreign_key', true,  false, null, null, 'currency'),
+      col('penaltyUomId',                    'Penalty UoM',       'foreign_key', true,  false, null, null, 'unit_of_measure'),
+      col('isActive',                          'Active',            'boolean',     false, false, null),
+      col('notes',                               'Notes',             'string',      true,  false, 500),
+    ],
+  },
+  lng_boil_off_rule: {
+    tableName: 'lng_boil_off_rule', displayName: 'LNG Boil-Off Rules', primaryKeyColumn: 'ruleId', isTemporal: false,
+    columns: [
+      col('ruleId',                     'ID',                        'number',      false, true,  null),
+      col('ruleCode',                    'Code',                      'string',      false, false, 30),
+      col('ruleName',                     'Name',                      'string',      false, false, 150),
+      col('vesselId',                      'Vessel',                    'foreign_key', true,  false, null, null, 'vessel'),
+      col('facilityId',                     'Storage Facility',          'foreign_key', true,  false, null, null, 'storage_facility'),
+      col('dailyBoilOffRatePct',              'Daily Boil-Off Rate (%)',   'number',      false, false, null, null, null, null, true),
+      col('isForcingBoilOffAllowed',           'Forcing Boil-Off Allowed',  'boolean',     false, false, null),
+      col('effectiveFrom',                       'Effective From',           'date',        true,  false, null),
+      col('effectiveTo',                           'Effective To',              'date',        true,  false, null),
+      col('isActive',                                'Active',                    'boolean',     false, false, null),
+      col('notes',                                     'Notes',                     'string',      true,  false, 500),
+    ],
+  },
+  power_pnode: {
+    tableName: 'power_pnode', displayName: 'Power Pricing Nodes', primaryKeyColumn: 'pnodeId', isTemporal: false,
+    columns: [
+      col('pnodeId',              'ID',                  'number',      false, true,  null),
+      col('pnodeMarketName',       'Market Node Name',    'string',      false, false, 50),
+      col('balancingAuthorityId',   'Balancing Authority', 'foreign_key', false, false, null, null, 'balancing_authority'),
+      col('transmissionZoneId',      'Transmission Zone',   'foreign_key', true,  false, null, null, 'transmission_zone'),
+      col('nodeType',                  'Node Type',           'enum',        false, false, null, ['HUB', 'INTERFACE', 'BUS', 'ZONE']),
+      col('isActive',                    'Active',              'boolean',     false, false, null),
+      col('notes',                         'Notes',               'string',      true,  false, 500),
+    ],
+  },
+  power_ancillary_service_type: {
+    tableName: 'power_ancillary_service_type', displayName: 'Power Ancillary Service Types', primaryKeyColumn: 'serviceTypeId', isTemporal: false,
+    columns: [
+      col('serviceTypeId',         'ID',                  'number',      false, true,  null),
+      col('serviceCode',            'Code',                'string',      false, false, 30),
+      col('serviceName',             'Name',                'string',      false, false, 150),
+      col('balancingAuthorityId',      'Balancing Authority', 'foreign_key', false, false, null, null, 'balancing_authority'),
+      col('description',                 'Description',         'string',      true,  false, 500),
+      col('isActive',                      'Active',              'boolean',     false, false, null),
+    ],
+  },
+  agri_moisture_discount_scale: {
+    tableName: 'agri_moisture_discount_scale', displayName: 'Agri Moisture Discount Scales', primaryKeyColumn: 'scaleId', isTemporal: false,
+    columns: [
+      col('scaleId',                 'ID',                       'number',      false, true,  null),
+      col('gradeStandardId',          'Grade Standard',           'foreign_key', false, false, null, null, 'commodity_grade_standard'),
+      col('moisturePctMin',            'Moisture % Min',           'number',      false, false, null, null, null, null, true),
+      col('moisturePctMax',             'Moisture % Max',           'number',      false, false, null, null, null, null, true),
+      col('priceDiscountPerUom',          'Price Discount',           'number',      false, false, null, null, null, null, true),
+      col('discountCurrencyId',             'Discount Currency',        'foreign_key', false, false, null, null, 'currency'),
+      col('discountUomId',                   'Discount UoM',             'foreign_key', false, false, null, null, 'unit_of_measure'),
+      col('weightShrinkageFactorPct',           'Weight Shrinkage Factor (%)', 'number', true, false, null, null, null, null, true),
+      col('isActive',                              'Active',                   'boolean',     false, false, null),
+      col('notes',                                   'Notes',                    'string',      true,  false, 500),
+    ],
+  },
+  agri_crop_year_lifecycle: {
+    tableName: 'agri_crop_year_lifecycle', displayName: 'Agri Crop Year Lifecycle', primaryKeyColumn: 'lifecycleId', isTemporal: false,
+    columns: [
+      col('lifecycleId',            'ID',                  'number',      false, true,  null),
+      col('commodityId',             'Commodity',           'foreign_key', false, false, null, null, 'commodity'),
+      col('countryId',                 'Country',             'foreign_key', false, false, null, null, 'country'),
+      col('cropYearLabel',              'Crop Year',           'string',      false, false, 20),
+      col('harvestStartDate',             'Harvest Start',       'date',        false, false, null),
+      col('harvestEndDate',                 'Harvest End',         'date',        false, false, null),
+      col('regulatoryCutoffDate',             'Regulatory Cutoff',   'date',        true,  false, null),
+      col('isActive',                           'Active',              'boolean',     false, false, null),
+      col('notes',                                'Notes',               'string',      true,  false, 500),
+    ],
+  },
+  intercompany_transfer_rule: {
+    tableName: 'intercompany_transfer_rule', displayName: 'Intercompany Transfer Rules', primaryKeyColumn: 'ruleId', isTemporal: false,
+    columns: [
+      col('ruleId',                       'ID',                       'number',      false, true,  null),
+      col('sourceLegalEntityId',           'Source Legal Entity',      'foreign_key', false, false, null, null, 'legal_entity'),
+      col('destinationLegalEntityId',        'Destination Legal Entity', 'foreign_key', false, false, null, null, 'legal_entity'),
+      col('transferPricingMarkupType',         'Markup Type',             'enum',        false, false, null, ['FLAT', 'PERCENT', 'INDEX_OFFSET']),
+      col('markupValue',                          'Markup Value',            'number',      false, false, null, null, null, null, true),
+      col('markupCurrencyId',                       'Markup Currency',         'foreign_key', true,  false, null, null, 'currency'),
+      col('automaticBookingEnabled',                   'Automatic Booking',       'boolean',     false, false, null),
+      col('isActive',                                    'Active',                  'boolean',     false, false, null),
+      col('notes',                                         'Notes',                   'string',      true,  false, 500),
+    ],
+  },
+  payment_calendar_assignment: {
+    tableName: 'payment_calendar_assignment', displayName: 'Payment Calendar Assignments', primaryKeyColumn: 'assignmentId', isTemporal: false,
+    columns: [
+      col('assignmentId',                   'ID',                     'number',      false, true,  null),
+      col('paymentTermId',                    'Payment Term',           'foreign_key', false, false, null, null, 'payment_term'),
+      col('currencyId',                         'Currency',               'foreign_key', false, false, null, null, 'currency'),
+      col('locationId',                           'Location',               'foreign_key', true,  false, null, null, 'location'),
+      col('primaryHolidayCalendarId',                'Primary Calendar',       'foreign_key', false, false, null, null, 'holiday_calendar'),
+      col('secondaryHolidayCalendarId',                 'Secondary Calendar',     'foreign_key', true,  false, null, null, 'holiday_calendar'),
+      col('isActive',                                      'Active',                 'boolean',     false, false, null),
+      col('notes',                                           'Notes',                  'string',      true,  false, 500),
+    ],
+  },
 };
 
 // ─── Exports ──────────────────────────────────────────────────────────────────
@@ -1262,6 +1468,18 @@ export const registrySeed: RegistryEntry[] = [
   { registryId: 231, tableName: 'trade_repository',    displayName: 'Trade Repositories',   moduleGroup: 'Sanctions & Regulatory Reporting', subGroup: 'Reporting', description: 'Approved trade repositories for regulatory reporting submission — DTCC, REGIS-TR, ICE TVEL — by regime with submission format and endpoint.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
   // V85 — lookup_category: the category master lookup_value.categoryId now points at
   { registryId: 232, tableName: 'lookup_category',     displayName: 'Lookup Categories',    moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Category master for Lookup Values — add a category here first, then add its code/display-name rows under Lookup Values to introduce a new managed picklist.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 8 },
+  // V96 — commodity-specific master data (Metals warrants/assay, LNG
+  // boil-off, Power pnode/ancillary services, Agri moisture/crop-year,
+  // multi-country intercompany/payment-calendar guardrails)
+  { registryId: 233, tableName: 'metal_warrant', displayName: 'Metal Warrants', moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Securitized title document for a specific, discrete physical lot in an exchange-approved vault (LME/CME) — distinct from generic volumetric storage capacity.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 20 },
+  { registryId: 234, tableName: 'metal_assay_component_rule', displayName: 'Metal Assay Component Rules', moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Financial scaling rules applied to concentrate actualizations to calculate premiums/penalties from lab assays (payable/penalty/impurity elements vs. a base content %).', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 21 },
+  { registryId: 235, tableName: 'lng_boil_off_rule', displayName: 'LNG Boil-Off Rules', moduleGroup: 'Freight & Shipping', subGroup: 'Charter', description: 'Cryogenic transit/storage vaporization loss curves, scoped to a vessel and/or storage facility, used by the risk and actualization engines to model standard LNG inventory degradation.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 20 },
+  { registryId: 236, tableName: 'power_pnode', displayName: 'Power Pricing Nodes', moduleGroup: 'Power & Energy', subGroup: 'Grid', description: 'Low-level LMP settlement granularity — physical grid injection/withdrawal nodes (ISO/RTO standard) under a balancing authority, optionally mapped to a transmission zone.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 10 },
+  { registryId: 237, tableName: 'power_ancillary_service_type', displayName: 'Power Ancillary Service Types', moduleGroup: 'Power & Energy', subGroup: 'Markets', description: 'Grid-reliability products traded alongside standard MWh power blocks — spinning reserve, regulation up/down, voltage support — per balancing authority.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 11 },
+  { registryId: 238, tableName: 'agri_moisture_discount_scale', displayName: 'Agri Moisture Discount Scales', moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Weighbridge actualization scale — automatic financial weight shrinkage and pricing discount based on grain moisture content, banded off a commodity grade standard.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 22 },
+  { registryId: 239, tableName: 'agri_crop_year_lifecycle', displayName: 'Agri Crop Year Lifecycle', moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Hard time boundaries for old-crop vs. new-crop futures and physical cash market spreads, per commodity and country.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 23 },
+  { registryId: 240, tableName: 'intercompany_transfer_rule', displayName: 'Intercompany Transfer Rules', moduleGroup: 'Counterparties & Agreements', subGroup: 'Terms', description: 'Automates the matching back-to-back internal transfer deal and its transfer-pricing markup whenever the central desk passes position/risk to a country business unit.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
+  { registryId: 241, tableName: 'payment_calendar_assignment', displayName: 'Payment Calendar Assignments', moduleGroup: 'Calendar & Periods', subGroup: 'Calendars', description: 'Junction matrix mapping multi-currency cash obligations to the right holiday-calendar pair, preventing settlement date miscalculations across payment term, currency, and location.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 5 },
   // V17 parent lookup tables — generated from the simple list above
   ...PARENT_LOOKUP_TABLES.map((t, i) => ({
     registryId:       10 + i,
@@ -1705,6 +1923,86 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { repositoryId: 1, repositoryCode: 'DTCC-GTR', repositoryName: 'DTCC Global Trade Repository', regulation: 'EMIR', jurisdiction: 'EU', operatorCpId: null, submissionUrl: null, submissionFormat: 'XML', isActive: true, notes: null },
     { repositoryId: 2, repositoryCode: 'REGIS-TR', repositoryName: 'REGIS-TR', regulation: 'EMIR', jurisdiction: 'EU', operatorCpId: null, submissionUrl: null, submissionFormat: 'XML', isActive: true, notes: null },
     { repositoryId: 3, repositoryCode: 'ICE-TVEL', repositoryName: 'ICE Trade Vault Europe', regulation: 'UK_EMIR', jurisdiction: 'GB', operatorCpId: null, submissionUrl: null, submissionFormat: 'REST', isActive: true, notes: null },
+  ],
+  // Lightweight vessel mirror — real vesselId 1 = NORDIC LUNA (etrmHandlers.ts).
+  vessel: [
+    { vesselId: 1, imoNumber: 'IMO 9741060', vesselName: 'NORDIC LUNA' },
+  ],
+  // Lightweight unit_of_measure mirror — ids match the real V1 seed order.
+  unit_of_measure: [
+    { uomId: 1,  uomCode: 'BBL',     uomName: 'Barrel' },
+    { uomId: 2,  uomCode: 'KBD',     uomName: 'Thousand Barrels/Day' },
+    { uomId: 3,  uomCode: 'MT',      uomName: 'Metric Tonne' },
+    { uomId: 4,  uomCode: 'MWH',     uomName: 'Megawatt Hour' },
+    { uomId: 5,  uomCode: 'GWH',     uomName: 'Gigawatt Hour' },
+    { uomId: 6,  uomCode: 'MW',      uomName: 'Megawatt' },
+    { uomId: 7,  uomCode: 'MMBTU',   uomName: 'Million BTU' },
+    { uomId: 8,  uomCode: 'THERM',   uomName: 'Therm' },
+    { uomId: 9,  uomCode: 'MCM',     uomName: 'Thousand Cubic Metres' },
+    { uomId: 10, uomCode: 'BUSHEL',  uomName: 'Bushel' },
+    { uomId: 11, uomCode: 'MT_AGR',  uomName: 'Metric Tonne (Agri)' },
+    { uomId: 12, uomCode: 'MT_MET',  uomName: 'Metric Tonne (Metal)' },
+    { uomId: 13, uomCode: 'KG',      uomName: 'Kilogram' },
+    { uomId: 14, uomCode: 'TROY_OZ', uomName: 'Troy Ounce' },
+  ],
+  // Lightweight legal_entity mirror — real ids from legalEntitiesRef (etrmHandlers.ts).
+  legal_entity: [
+    { legalEntityId: 1, entityCode: 'SETRM-LTD', name: 'NonameETRM Trading Ltd' },
+    { legalEntityId: 2, entityCode: 'SETRM-NL',  name: 'NonameETRM BV Netherlands' },
+    { legalEntityId: 3, entityCode: 'SETRM-SG',  name: 'NonameETRM Pte Ltd Singapore' },
+  ],
+  // Lightweight payment_term mirror — real ids from etrmHandlers.ts (paymentTermId 1 = NET_30).
+  payment_term: [
+    { paymentTermId: 1,  termCode: 'NET_30',        termName: 'Net 30 Calendar Days' },
+    { paymentTermId: 10, termCode: 'NOR_PLUS_7_BIZ', termName: 'NOR Tendered +7 Business Days' },
+  ],
+  // Lightweight location mirror — real ids from etrmHandlers.ts (locationId 1 = SULLOM-VOE).
+  location: [
+    { locationId: 1, locationCode: 'SULLOM-VOE', locationName: 'Sullom Voe Terminal' },
+  ],
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // V96 — commodity-specific master data. FK ids below reuse the real rows
+  // already seeded elsewhere in this file (facilityId 5 = LME-METRO-DT the
+  // LME warehouse, productId 6 = LME-COPPER, metalBrandId 1 = CODELCO-CU,
+  // currencyId 1 = USD, countryId 2 = US, commodityId 4 = AGRI, etc.).
+  // ═══════════════════════════════════════════════════════════════════════
+  metal_warrant: [
+    { warrantId: 1, warrantNumber: 'LME-WR-2026-00417', facilityId: 5, productId: 6, metalBrandId: 1, metalShapeId: 2, slotVaultLocation: 'Bay 12, Row C, Lot 04', netWeightMt: 25.0, warrantDate: '2026-06-01', rentPaidThroughDate: '2026-07-31', isPledgedCollateral: false, holderCounterpartyId: 2, isActive: true, notes: 'Codelco full-plate cathode, 25MT lot.' },
+    { warrantId: 2, warrantNumber: 'LME-WR-2026-00418', facilityId: 5, productId: 6, metalBrandId: 1, metalShapeId: 2, slotVaultLocation: 'Bay 12, Row C, Lot 05', netWeightMt: 25.0, warrantDate: '2026-06-01', rentPaidThroughDate: '2026-06-30', isPledgedCollateral: true,  holderCounterpartyId: 2, isActive: true, notes: 'Pledged as collateral under GLENCORE margin facility.' },
+  ],
+  metal_assay_component_rule: [
+    { ruleId: 1, productId: 6, elementCode: 'CU', elementType: 'PAYABLE', baseContentPct: 24.00,  rejectionThresholdPct: 22.00, penaltyPerPpmOverBase: null,  penaltyCurrencyId: 1, penaltyUomId: 12, isActive: true, notes: 'Copper concentrate — payable metal, standard treatment/refining charge terms apply below this.' },
+    { ruleId: 2, productId: 6, elementCode: 'AS', elementType: 'PENALTY', baseContentPct: 0.20,  rejectionThresholdPct: 0.50, penaltyPerPpmOverBase: 2.50, penaltyCurrencyId: 1, penaltyUomId: 12, isActive: true, notes: 'Arsenic penalty — USD 2.50/dmt for every 100ppm (0.01%) above the 0.20% base, standard smelter contract term.' },
+  ],
+  lng_boil_off_rule: [
+    { ruleId: 1, ruleCode: 'GATE-LNG-STORAGE', ruleName: 'Gate Terminal Storage Boil-Off', vesselId: null, facilityId: 4, dailyBoilOffRatePct: 0.05, isForcingBoilOffAllowed: false, effectiveFrom: '2026-01-01', effectiveTo: null, isActive: true, notes: 'In-tank storage boil-off at Gate LNG Terminal Rotterdam.' },
+    { ruleId: 2, ruleCode: 'DEFAULT-TRANSIT',    ruleName: 'Default Laden Transit Boil-Off', vesselId: null, facilityId: null, dailyBoilOffRatePct: 0.15, isForcingBoilOffAllowed: true,  effectiveFrom: '2026-01-01', effectiveTo: null, isActive: true, notes: 'Generic laden-voyage default used when no vessel-specific guaranteed rate applies.' },
+  ],
+  power_pnode: [
+    { pnodeId: 1, pnodeMarketName: 'PJM_WEST_HUB_NODE', balancingAuthorityId: 1, transmissionZoneId: 1, nodeType: 'HUB', isActive: true, notes: null },
+    { pnodeId: 2, pnodeMarketName: 'PJM_AECO_BUS_5021', balancingAuthorityId: 1, transmissionZoneId: 2, nodeType: 'BUS', isActive: true, notes: null },
+  ],
+  power_ancillary_service_type: [
+    { serviceTypeId: 1, serviceCode: 'SPINNING_RESERVE', serviceName: 'Synchronized Reserve', balancingAuthorityId: 1, description: 'Online generation capable of responding within 10 minutes to a system contingency.', isActive: true },
+    { serviceTypeId: 2, serviceCode: 'REG_UP',           serviceName: 'Regulation Up',          balancingAuthorityId: 1, description: 'AGC-dispatched capacity that increases output to follow system frequency.', isActive: true },
+    { serviceTypeId: 3, serviceCode: 'RRS',                serviceName: 'Responsive Reserve Service', balancingAuthorityId: 2, description: 'Fast-responding reserve (10 minutes) for large frequency deviations.', isActive: true },
+  ],
+  agri_moisture_discount_scale: [
+    { scaleId: 1, gradeStandardId: 1, moisturePctMin: 15.5, moisturePctMax: 17.0, priceDiscountPerUom: -0.02, discountCurrencyId: 1, discountUomId: 10, weightShrinkageFactorPct: 1.5, isActive: true, notes: 'Standard shrink schedule above the 15.5% par moisture basis.' },
+    { scaleId: 2, gradeStandardId: 1, moisturePctMin: 17.0, moisturePctMax: 20.0, priceDiscountPerUom: -0.05, discountCurrencyId: 1, discountUomId: 10, weightShrinkageFactorPct: 3.0, isActive: true, notes: 'Steeper discount band for wetter grain.' },
+  ],
+  agri_crop_year_lifecycle: [
+    { lifecycleId: 1, commodityId: 4, countryId: 2, cropYearLabel: '2025/2026', harvestStartDate: '2025-09-01', harvestEndDate: '2025-11-15', regulatoryCutoffDate: '2025-12-01', isActive: true, notes: 'Old-crop marketing year — US corn.' },
+    { lifecycleId: 2, commodityId: 4, countryId: 2, cropYearLabel: '2026/2027', harvestStartDate: '2026-09-01', harvestEndDate: '2026-11-15', regulatoryCutoffDate: '2026-12-01', isActive: true, notes: 'New-crop marketing year — US corn.' },
+  ],
+  intercompany_transfer_rule: [
+    { ruleId: 1, sourceLegalEntityId: 1, destinationLegalEntityId: 2, transferPricingMarkupType: 'PERCENT', markupValue: 1.5, markupCurrencyId: null, automaticBookingEnabled: true, isActive: true, notes: 'UK desk to Netherlands BU — 1.5% transfer pricing markup, auto-booked back-to-back.' },
+    { ruleId: 2, sourceLegalEntityId: 1, destinationLegalEntityId: 3, transferPricingMarkupType: 'FLAT',    markupValue: 0.25, markupCurrencyId: 1, automaticBookingEnabled: false, isActive: true, notes: 'UK desk to Singapore BU — flat USD 0.25/unit markup, manual booking review required.' },
+  ],
+  payment_calendar_assignment: [
+    { assignmentId: 1, paymentTermId: 1,  currencyId: 1, locationId: null, primaryHolidayCalendarId: 2, secondaryHolidayCalendarId: null, isActive: true, notes: 'USD default — US Federal calendar only.' },
+    { assignmentId: 2, paymentTermId: 1,  currencyId: 1, locationId: 1,    primaryHolidayCalendarId: 2, secondaryHolidayCalendarId: 1,    isActive: true, notes: 'USD payment against a UK delivery location — cross-reference US Federal with UK Bank holidays.' },
   ],
   // V17 parent lookup tables — rows come from the simple list above
   ...Object.fromEntries(PARENT_LOOKUP_TABLES.map((t) => [t.name, t.rows])),
