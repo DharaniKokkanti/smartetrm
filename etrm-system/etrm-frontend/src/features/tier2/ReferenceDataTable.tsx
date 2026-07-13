@@ -322,12 +322,16 @@ export function ReferenceDataTable({ table }: Props) {
     setDragPos({ x: 0, y: 0 });
   }
 
+  // Server-managed audit columns — ColumnMetadata.name is always camelCase
+  // (see ReferenceDataMetadataService.NameUtils.toCamelCase on the backend),
+  // never the raw snake_case SQL column name, so this must match camelCase
+  // or it silently never excludes anything.
   const editableColumns = useMemo(
     () =>
       (metadata?.columns ?? []).filter(
         (c) =>
           !c.isPrimaryKey &&
-          !['created_at', 'created_by', 'updated_at', 'updated_by'].includes(c.name),
+          !['createdAt', 'createdBy', 'updatedAt', 'updatedBy'].includes(c.name),
       ),
     [metadata],
   );
