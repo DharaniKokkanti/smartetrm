@@ -3,8 +3,13 @@ package com.etrm.system.referencedata;
 import com.etrm.system.common.FieldValidation;
 import com.etrm.system.common.NotFoundException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.PreparedStatement;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -80,6 +85,13 @@ public class ReferenceDataCrudService {
         return rows.stream().map(NameUtils::rowToCamelCase).toList();
     }
 
+    // @Transactional matters here beyond the usual atomicity reasons: the
+    // INSERT and the SCOPE_IDENTITY() read that follows it MUST run on the
+    // same physical connection (SCOPE_IDENTITY() is connection-scoped) —
+    // without a surrounding transaction, JdbcTemplate can pull a different
+    // connection from the pool for each call, so SCOPE_IDENTITY() silently
+    // returns NULL and the read-back-after-create 0-matches.
+    @Transactional
     public Map<String, Object> createRow(String tableName, String displayName, Map<String, Object> camelCaseRow) {
         assertSafeIdentifier(tableName, "table name");
         TableMetadata metadata = metadataService.getMetadata(tableName, displayName);
@@ -95,24 +107,49 @@ public class ReferenceDataCrudService {
             sqlColumns.add(snakeCaseColumn);
             values.add(normalizeValue(snakeCaseColumn, entry.getValue()));
         }
-        // created_by / updated_by are NOT NULL on every master data table —
+        // created_by / updated_by are NOT NULL on MOST master data tables —
         // populate them here since this path bypasses JPA auditing entirely.
-        sqlColumns.add("created_by");
-        values.add("SYSTEM");
-        sqlColumns.add("updated_by");
-        values.add("SYSTEM");
+        // Not every registered table has them though (~48 of 154 don't, e.g.
+        // incoterm, currency, credit_rating) — blindly adding these columns
+        // made every create() 500 on those tables (SQL Server "Invalid
+        // column name"), so only add what the table's real, introspected
+        // metadata says exists.
+        if (columnsByCamelName.containsKey("createdBy")) {
+            sqlColumns.add("created_by");
+            values.add("SYSTEM");
+        }
+        if (columnsByCamelName.containsKey("updatedBy")) {
+            sqlColumns.add("updated_by");
+            values.add("SYSTEM");
+        }
 
         String columnList = String.join(", ", sqlColumns);
         String placeholders = String.join(", ", sqlColumns.stream().map(c -> "?").toList());
         String sql = "INSERT INTO dbo." + tableName + " (" + columnList + ") VALUES (" + placeholders + ")";
 
-        jdbc.update(sql, values.toArray());
-
-        // SQL Server identity retrieval — SCOPE_IDENTITY() is connection/scope-safe
-        Long newId = jdbc.queryForObject("SELECT CAST(SCOPE_IDENTITY() AS BIGINT)", Long.class);
+        // Generated-key retrieval via Statement.RETURN_GENERATED_KEYS — reads
+        // the new identity directly off the INSERT's own execution/result
+        // set, in the same round trip. A separate `SELECT SCOPE_IDENTITY()`
+        // call (the previous approach) came back NULL here even inside a
+        // @Transactional method — root cause not fully pinned down (not a
+        // simple connection-pooling issue, since the transaction was
+        // confirmed active), but this approach sidesteps it entirely rather
+        // than depending on any particular connection/scope semantics.
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        String finalSql = sql;
+        List<Object> finalValues = values;
+        jdbc.update(connection -> {
+            PreparedStatement ps = connection.prepareStatement(finalSql, Statement.RETURN_GENERATED_KEYS);
+            for (int i = 0; i < finalValues.size(); i++) {
+                ps.setObject(i + 1, finalValues.get(i));
+            }
+            return ps;
+        }, keyHolder);
+        Long newId = keyHolder.getKey().longValue();
         return getRow(tableName, displayName, newId);
     }
 
+    @Transactional
     public Map<String, Object> updateRow(String tableName, String displayName, Long id, Map<String, Object> camelCaseRow) {
         assertSafeIdentifier(tableName, "table name");
         TableMetadata metadata = metadataService.getMetadata(tableName, displayName);
@@ -128,9 +165,13 @@ public class ReferenceDataCrudService {
             setClauses.add(snakeCaseColumn + " = ?");
             values.add(normalizeValue(snakeCaseColumn, entry.getValue()));
         }
-        setClauses.add("updated_by = ?");
-        values.add("SYSTEM");
-        setClauses.add("updated_at = SYSUTCDATETIME()");
+        if (columnsByCamelName.containsKey("updatedBy")) {
+            setClauses.add("updated_by = ?");
+            values.add("SYSTEM");
+        }
+        if (columnsByCamelName.containsKey("updatedAt")) {
+            setClauses.add("updated_at = SYSUTCDATETIME()");
+        }
 
         values.add(id);
         String sql = "UPDATE dbo." + tableName + " SET " + String.join(", ", setClauses)

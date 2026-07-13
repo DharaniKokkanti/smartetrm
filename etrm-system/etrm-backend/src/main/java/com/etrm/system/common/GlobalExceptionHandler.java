@@ -1,6 +1,8 @@
 package com.etrm.system.common;
 
 import jakarta.validation.ConstraintViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -21,6 +23,8 @@ import java.util.Map;
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ProblemDetail> handleNotFound(NotFoundException ex) {
@@ -43,6 +47,7 @@ public class GlobalExceptionHandler {
         // backstop, per the schema's design philosophy, so this should
         // rarely fire in practice but must never surface a raw SQL stack
         // trace to the client when it does.
+        log.warn("Data integrity violation: {}", ex.getMessage());
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(
                 HttpStatus.CONFLICT,
                 "The request violates a database constraint (duplicate value, invalid reference, or invalid value)."
@@ -83,8 +88,26 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(pd);
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ProblemDetail> handleIllegalState(IllegalStateException ex) {
+        // ReferenceDataController throws this for a registry-level
+        // allow_create/allow_edit/allow_delete denial — a legitimate "you're
+        // not allowed to do that" business rule, not a server bug. Without
+        // this handler it fell through to the generic 500 handler, which
+        // both mislabels a 403-shaped response and (now that 500s are
+        // logged) would spam the server log with a stack trace for
+        // completely expected, working-as-designed denials.
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
+        pd.setTitle("Forbidden");
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(pd);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ProblemDetail> handleUnexpected(Exception ex) {
+        // Was previously swallowed silently — a genuinely unexpected
+        // exception must never disappear with zero trace in the server log,
+        // or every 500 becomes undebuggable from the outside.
+        log.error("Unhandled exception", ex);
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "An unexpected error occurred."

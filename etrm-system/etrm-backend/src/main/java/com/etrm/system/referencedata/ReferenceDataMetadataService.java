@@ -108,6 +108,17 @@ public class ReferenceDataMetadataService {
         if (pkColumns.isEmpty()) {
             throw new IllegalStateException("Table \"" + tableName + "\" has no primary key — cannot expose via Tier 2.");
         }
+        if (pkColumns.size() > 1) {
+            // update()/delete() build their WHERE clause off a single PK
+            // column — silently taking pkColumns.get(0) here would use only
+            // part of a composite key, matching the wrong row (or several)
+            // on update/delete. No currently-registered table has a
+            // composite PK, but fail loudly instead of leaving a landmine
+            // for whenever one is registered.
+            throw new IllegalStateException(
+                    "Table \"" + tableName + "\" has a composite primary key (" + pkColumns
+                            + ") — not supported by the generic Tier 2 CRUD API.");
+        }
         return pkColumns.get(0);
     }
 
