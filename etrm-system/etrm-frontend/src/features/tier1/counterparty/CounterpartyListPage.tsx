@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Space, Tag, Popconfirm, Select } from 'antd';
-import { PlusOutlined, EditOutlined, StopOutlined } from '@ant-design/icons';
+import { Button, Input, Space, Tag, Popconfirm, Select } from 'antd';
+import { PlusOutlined, EditOutlined, SearchOutlined, StopOutlined } from '@ant-design/icons';
 import { AgGridReact } from 'ag-grid-react';
 import type { ColDef } from 'ag-grid-community';
 import { PageHeader } from '@components/layout/PageHeader';
@@ -33,6 +33,7 @@ export function CounterpartyListPage() {
   const countryCodeById = (id: number) => countries.find((c) => c.countryId === id)?.countryCode ?? '—';
   const currencyCodeById = (id: number) => currencies.find((c) => c.currencyId === id)?.currencyCode ?? '—';
   const [kycFilter, setKycFilter] = useState<number | 'ALL'>('ALL');
+  const [quickFilterText, setQuickFilterText] = useState('');
   const mode = useThemeStore((s) => s.mode);
   const gridTheme = useMemo(() => buildAgGridTheme(mode), [mode]);
 
@@ -40,6 +41,12 @@ export function CounterpartyListPage() {
     () => (counterparties ?? []).filter((c) => kycFilter === 'ALL' || c.kycStatus === kycFilter),
     [counterparties, kycFilter],
   );
+  // Search box + per-column filters (already always on via defaultColDef
+  // below) only earn their space once there's enough rows that eyeballing
+  // the list stops being practical — driven by the real row count, not a
+  // guess about counterparty volume, so it kicks in automatically as data
+  // grows rather than needing a code change later.
+  const isLargeTable = filtered.length > 50;
 
   const columnDefs = useMemo<ColDef<Counterparty>[]>(
     () => [
@@ -123,6 +130,16 @@ export function CounterpartyListPage() {
         moduleGroup="trade"
         extra={
           <Space>
+            {isLargeTable && (
+              <Input
+                allowClear
+                prefix={<SearchOutlined />}
+                placeholder="Search counterparties…"
+                value={quickFilterText}
+                onChange={(e) => setQuickFilterText(e.target.value)}
+                style={{ width: 240 }}
+              />
+            )}
             <Select
               value={kycFilter}
               onChange={setKycFilter}
@@ -145,6 +162,7 @@ export function CounterpartyListPage() {
           pagination
           paginationPageSize={50}
           defaultColDef={{ sortable: true, filter: true, resizable: true }}
+          quickFilterText={quickFilterText}
         />
       </div>
     </>

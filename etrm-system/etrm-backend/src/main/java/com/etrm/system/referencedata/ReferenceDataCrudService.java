@@ -79,6 +79,20 @@ public class ReferenceDataCrudService {
         return isCodeOrShortName ? s.toUpperCase() : value;
     }
 
+    /** created_at/created_by/updated_at/updated_by are server-managed —
+     *  never trust a client-supplied value for them, the same way the PK is
+     *  never trusted. Without this, a client payload that happens to include
+     *  one of these fields (metadata exposes them as regular columns, so
+     *  nothing stops a caller from sending them — an Excel upload with an
+     *  extra column, a direct API call, or anything scripted against this
+     *  generic endpoint) collided with the audit-column SQL this service
+     *  adds itself below, producing SQL Server error 264 ("column specified
+     *  more than once") on every single create/update. */
+    private boolean isAuditColumn(String camelCaseName) {
+        return camelCaseName.equals("createdAt") || camelCaseName.equals("createdBy")
+                || camelCaseName.equals("updatedAt") || camelCaseName.equals("updatedBy");
+    }
+
     public List<Map<String, Object>> listRows(String tableName) {
         assertSafeIdentifier(tableName, "table name");
         List<Map<String, Object>> rows = jdbc.queryForList("SELECT * FROM dbo." + tableName);
@@ -101,7 +115,7 @@ public class ReferenceDataCrudService {
         List<Object> values = new ArrayList<>();
         for (Map.Entry<String, Object> entry : camelCaseRow.entrySet()) {
             ColumnMetadata col = columnsByCamelName.get(entry.getKey());
-            if (col == null || col.isPrimaryKey()) continue; // PK is identity-generated, never client-supplied
+            if (col == null || col.isPrimaryKey() || isAuditColumn(entry.getKey())) continue;
             validateValue(col, entry.getValue());
             String snakeCaseColumn = NameUtils.toSnakeCase(entry.getKey());
             sqlColumns.add(snakeCaseColumn);
@@ -159,7 +173,7 @@ public class ReferenceDataCrudService {
         List<Object> values = new ArrayList<>();
         for (Map.Entry<String, Object> entry : camelCaseRow.entrySet()) {
             ColumnMetadata col = columnsByCamelName.get(entry.getKey());
-            if (col == null || col.isPrimaryKey()) continue;
+            if (col == null || col.isPrimaryKey() || isAuditColumn(entry.getKey())) continue;
             validateValue(col, entry.getValue());
             String snakeCaseColumn = NameUtils.toSnakeCase(entry.getKey());
             setClauses.add(snakeCaseColumn + " = ?");

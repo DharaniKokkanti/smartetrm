@@ -21,6 +21,7 @@ public class FieldPermissionService {
     private final ObjectLockRuleRepository lockRuleRepo;
     private final RoleFieldProfileRepository roleProfileRepo;
     private final FieldPermissionRuleRepository permRuleRepo;
+    private final FieldPermissionProfileRepository profileRepo;
     private final AppUserRepository userRepo;
     private final UserRoleAssignmentRepository assignmentRepo;
 
@@ -29,12 +30,14 @@ public class FieldPermissionService {
             ObjectLockRuleRepository lockRuleRepo,
             RoleFieldProfileRepository roleProfileRepo,
             FieldPermissionRuleRepository permRuleRepo,
+            FieldPermissionProfileRepository profileRepo,
             AppUserRepository userRepo,
             UserRoleAssignmentRepository assignmentRepo) {
         this.fieldRegistryRepo = fieldRegistryRepo;
         this.lockRuleRepo      = lockRuleRepo;
         this.roleProfileRepo   = roleProfileRepo;
         this.permRuleRepo      = permRuleRepo;
+        this.profileRepo       = profileRepo;
         this.userRepo          = userRepo;
         this.assignmentRepo    = assignmentRepo;
     }
@@ -191,15 +194,18 @@ public class FieldPermissionService {
         List<ScreenFieldRegistry> allFields =
                 fieldRegistryRepo.findByScreenCodeAndIsActiveTrueOrderBySortOrder(screenCode);
 
+        // Fetched directly rather than inferred from rules.get(0).getProfile()
+        // — a profile legitimately has zero rules right after creation
+        // (before anyone's assigned any), and inferring existence from the
+        // rule list wrongly 404'd a perfectly real profile in that case.
+        FieldPermissionProfile profile = profileRepo.findById(profileId)
+                .orElseThrow(() -> new NotFoundException("Profile not found: " + profileId));
+
         List<FieldPermissionRule> rules = permRuleRepo.findByProfileProfileId(profileId);
         Map<Integer, String> ruleMap = rules.stream()
                 .collect(Collectors.toMap(
                         r -> r.getField().getFieldId(),
                         FieldPermissionRule::getFieldPermission));
-
-        FieldPermissionProfile profile = rules.isEmpty()
-                ? null
-                : rules.get(0).getProfile();
 
         List<ProfileDetailResponse.FieldRuleDto> ruleDtos = allFields.stream()
                 .map(f -> new ProfileDetailResponse.FieldRuleDto(
@@ -211,8 +217,6 @@ public class FieldPermissionService {
                         f.getSortOrder(),
                         ruleMap.getOrDefault(f.getFieldId(), "EDIT")))
                 .toList();
-
-        if (profile == null) throw new NotFoundException("Profile not found: " + profileId);
 
         return new ProfileDetailResponse(
                 profile.getProfileId(),

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { MouseEvent as ReactMouseEvent } from 'react';
+import type { Key, MouseEvent as ReactMouseEvent } from 'react';
 import { useQueries } from '@tanstack/react-query';
 import {
   Button,
@@ -72,6 +72,14 @@ function fkKeyFor(col: Pick<ColumnMetadata, 'foreignKeyTable' | 'foreignKeyCateg
 interface Props {
   table: RegistryEntry;
 }
+
+/** Search box + per-column filter dropdowns only earn their screen space
+ *  once a table actually has enough rows that scanning/paginating through
+ *  them by eye stops being practical. Driven by the real, live row count
+ *  rather than a hand-maintained list of "which of the 154 tables will
+ *  probably grow large" — a table that's small today but grows past this
+ *  later gets the controls automatically, no code change needed. */
+const SEARCH_AND_FILTER_ROW_THRESHOLD = 50;
 
 /** Columns that must follow ISO 4217 (3-letter uppercase) */
 const ISO_4217_COLS = new Set(['currencyCode']);
@@ -273,6 +281,8 @@ export function ReferenceDataTable({ table }: Props) {
   const [form] = Form.useForm();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [searchText, setSearchText] = useState('');
+  const isLargeTable = (rows?.length ?? 0) > SEARCH_AND_FILTER_ROW_THRESHOLD;
   useFormDraft(`tier2-${table.tableName}`, {
     form, open: modalOpen, setOpen: setModalOpen, editing: editingId, setEditing: setEditingId,
     meta: () => ({ route: `/static-data/${table.tableName}`, label: table.displayName.replace(/s$/, '') }),
@@ -413,6 +423,63 @@ export function ReferenceDataTable({ table }: Props) {
   );
   const countryLabelMap = useMemo(() => new Map(countryOptions.map((o) => [o.value, o.label])), [countryOptions]);
 
+  // Search/filter match what the user actually SEES in the grid (a resolved
+  // FK label, a Yes/No flag, a resolved country name) rather than the raw
+  // stored value — mirrors each column's own cell render() below, factored
+  // out so both share one definition instead of drifting apart.
+  const cellText = (col: ColumnMetadata, value: unknown): string => {
+    if (value === null || value === undefined || value === '') return '';
+    if (col.kind === 'boolean') return value ? 'Yes' : 'No';
+    if (col.kind === 'foreign_key' && col.foreignKeyTable) {
+      const opt = fkOptions[fkKeyFor(col)]?.find((o) => o.value === value);
+      return opt ? opt.label : String(value);
+    }
+    if (ISO_3166_COLS.has(col.name)) {
+      return countryLabelMap.get(String(value)) ?? String(value);
+    }
+    return String(value);
+  };
+
+  const visibleColumns = editableColumns.slice(0, 6);
+
+  const displayedRows = useMemo(() => {
+    const base = rows ?? [];
+    if (!isLargeTable || !searchText.trim()) return base;
+    const q = searchText.trim().toLowerCase();
+    return base.filter((row) =>
+      visibleColumns.some((col) => cellText(col, row[col.name]).toLowerCase().includes(q)),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- visibleColumns/cellText are recomputed from editableColumns/fkOptions/countryLabelMap, already listed
+  }, [rows, isLargeTable, searchText, editableColumns, fkOptions, countryLabelMap]);
+
+  // Per-column filter dropdowns — only for columns with a naturally bounded
+  // value set (boolean/enum/foreign_key). Free-text columns rely on the
+  // search box above instead of a filter dropdown, which wouldn't be
+  // meaningful for arbitrary text.
+  function columnFilterProps(col: ColumnMetadata) {
+    if (!isLargeTable) return {};
+    if (col.kind === 'boolean') {
+      return {
+        filters: [{ text: 'Yes', value: 'true' }, { text: 'No', value: 'false' }],
+        onFilter: (value: boolean | Key, record: ReferenceDataRow) =>
+          String(Boolean(record[col.name])) === value,
+      };
+    }
+    if (col.kind === 'enum') {
+      return {
+        filters: (col.enumValues ?? []).map((v) => ({ text: v, value: v })),
+        onFilter: (value: boolean | Key, record: ReferenceDataRow) => record[col.name] === value,
+      };
+    }
+    if (col.kind === 'foreign_key' && col.foreignKeyTable) {
+      return {
+        filters: (fkOptions[fkKeyFor(col)] ?? []).map((o) => ({ text: o.label, value: String(o.value) })),
+        onFilter: (value: boolean | Key, record: ReferenceDataRow) => String(record[col.name]) === value,
+      };
+    }
+    return {};
+  }
+
   if (loadingMeta) return <Spin />;
   if (!metadata) {
     return <Alert type="error" message="Could not load table metadata." showIcon />;
@@ -460,22 +527,16 @@ export function ReferenceDataTable({ table }: Props) {
   }
 
   const columns: ColumnsType<ReferenceDataRow> = [
-    ...editableColumns.slice(0, 6).map((col) => ({
+    ...visibleColumns.map((col) => ({
       title: col.label,
       dataIndex: col.name,
       key: col.name,
+      ...columnFilterProps(col),
       render: (value: string | number | boolean | null) => {
         if (col.kind === 'boolean')
           return <Tag color={value ? 'success' : 'default'}>{value ? 'Yes' : 'No'}</Tag>;
         if (value === null || value === undefined || value === '') return '—';
-        if (col.kind === 'foreign_key' && col.foreignKeyTable) {
-          const opt = fkOptions[fkKeyFor(col)]?.find((o) => o.value === value);
-          return opt ? opt.label : String(value);
-        }
-        if (ISO_3166_COLS.has(col.name)) {
-          return countryLabelMap.get(String(value)) ?? String(value);
-        }
-        return String(value);
+        return cellText(col, value);
       },
     })),
     {
@@ -507,17 +568,28 @@ export function ReferenceDataTable({ table }: Props) {
 
   return (
     <div>
-      {table.allowCreate && (
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
-          <Button type="primary" icon={<PlusOutlined />} onClick={openAdd}>
-            Add {table.displayName.replace(/s$/, '')}
-          </Button>
+      {(isLargeTable || table.allowCreate) && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, gap: 12 }}>
+          {isLargeTable ? (
+            <Input.Search
+              allowClear
+              placeholder={`Search ${visibleColumns.map((c) => c.label).join(', ').toLowerCase()}…`}
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              style={{ maxWidth: 360 }}
+            />
+          ) : <span />}
+          {table.allowCreate && (
+            <Button type="primary" icon={<PlusOutlined />} onClick={openAdd}>
+              Add {table.displayName.replace(/s$/, '')}
+            </Button>
+          )}
         </div>
       )}
       <AntTable<ReferenceDataRow>
         size="small"
         rowKey={pk}
-        dataSource={rows ?? []}
+        dataSource={displayedRows}
         columns={columns}
         loading={loadingRows}
         pagination={{ pageSize: 20 }}

@@ -1,10 +1,11 @@
 import { useMemo, useRef, useState, type ChangeEvent } from 'react';
-import { Button, Space, Tag, Popconfirm, Typography, App as AntApp } from 'antd';
+import { Button, Input, Space, Tag, Popconfirm, Typography, App as AntApp } from 'antd';
 import {
   PlusOutlined,
   UploadOutlined,
   DownloadOutlined,
   EditOutlined,
+  SearchOutlined,
   StopOutlined,
 } from '@ant-design/icons';
 import { AgGridReact } from 'ag-grid-react';
@@ -31,6 +32,11 @@ export function LegalEntityListPage() {
   const { message } = AntApp.useApp();
   const mode = useThemeStore((s) => s.mode);
   const gridTheme = useMemo(() => buildAgGridTheme(mode), [mode]);
+  const [quickFilterText, setQuickFilterText] = useState('');
+  // Only earns its screen space once there's enough rows that eyeballing
+  // the list stops being practical — driven by the real row count, not a
+  // guess about how many legal entities a deployment will have.
+  const isLargeTable = (entities?.length ?? 0) > 50;
 
   // V78: legal_entity.entity_type is a numeric FK id (legal_entity_type
   // parent table) — fetch the raw rows once, used both to resolve the grid's
@@ -175,6 +181,16 @@ export function LegalEntityListPage() {
         moduleGroup="trade"
         extra={
           <Space>
+            {isLargeTable && (
+              <Input
+                allowClear
+                prefix={<SearchOutlined />}
+                placeholder="Search legal entities…"
+                value={quickFilterText}
+                onChange={(e) => setQuickFilterText(e.target.value)}
+                style={{ width: 240 }}
+              />
+            )}
             <Button icon={<DownloadOutlined />} onClick={handleDownloadTemplate}>
               Download Template
             </Button>
@@ -204,6 +220,7 @@ export function LegalEntityListPage() {
           pagination
           paginationPageSize={50}
           defaultColDef={{ sortable: true, filter: true, resizable: true }}
+          quickFilterText={quickFilterText}
         />
       </div>
 

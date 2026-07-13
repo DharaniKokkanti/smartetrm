@@ -9,6 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
 
@@ -22,6 +23,7 @@ public class LegalEntity extends AuditableEntity {
     private Integer legalEntityId;
 
     @NotBlank
+    @Size(max = 20)
     @Column(name = "entity_code", nullable = false, length = 20)
     private String entityCode;
 
@@ -30,6 +32,7 @@ public class LegalEntity extends AuditableEntity {
     private String entityName;
 
     @NotBlank
+    @Size(max = 100)
     @Column(name = "short_name", nullable = false, length = 100)
     private String shortName;
 
