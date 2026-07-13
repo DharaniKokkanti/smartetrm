@@ -55,7 +55,7 @@ public class SystemUserController {
     }
 
     @GetMapping("/{id}")
-    public SystemUserResponse getUser(@PathVariable Long id) {
+    public SystemUserResponse getUser(@PathVariable Integer id) {
         return toResponse(findUser(id));
     }
 
@@ -92,7 +92,7 @@ public class SystemUserController {
     }
 
     @PutMapping("/{id}")
-    public SystemUserResponse updateUser(@PathVariable Long id, @RequestBody UserRequest body) {
+    public SystemUserResponse updateUser(@PathVariable Integer id, @RequestBody UserRequest body) {
         AppUser user = findUser(id);
         applyFields(user, body);
         if (body.password() != null && !body.password().isBlank()) {
@@ -102,14 +102,14 @@ public class SystemUserController {
     }
 
     @PatchMapping("/{id}/deactivate")
-    public SystemUserResponse deactivateUser(@PathVariable Long id) {
+    public SystemUserResponse deactivateUser(@PathVariable Integer id) {
         AppUser user = findUser(id);
         user.setIsActive(false);
         return toResponse(userRepo.save(user));
     }
 
     @PatchMapping("/{id}/activate")
-    public SystemUserResponse activateUser(@PathVariable Long id) {
+    public SystemUserResponse activateUser(@PathVariable Integer id) {
         AppUser user = findUser(id);
         user.setIsActive(true);
         return toResponse(userRepo.save(user));
@@ -117,7 +117,7 @@ public class SystemUserController {
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private AppUser findUser(Long id) {
+    private AppUser findUser(Integer id) {
         return userRepo.findById(Objects.requireNonNull(id))
                 .orElseThrow(() -> new NotFoundException("User " + id + " not found"));
     }
@@ -147,8 +147,8 @@ public class SystemUserController {
             String email,
             String fullName,
             String password,
-            Long   legalEntityId,
-            Long   roleId,
+            Integer legalEntityId,
+            Integer roleId,
             String department,
             String phone,
             Long   traderId,

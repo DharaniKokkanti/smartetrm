@@ -4,7 +4,7 @@ import java.util.List;
 
 /** DTO for the admin UI — shows a profile and its per-field rules. */
 public record ProfileDetailResponse(
-        Long profileId,
+        Integer profileId,
         String profileCode,
         String profileName,
         String description,
@@ -12,7 +12,7 @@ public record ProfileDetailResponse(
         List<FieldRuleDto> rules
 ) {
     public record FieldRuleDto(
-            Long fieldId,
+            Integer fieldId,
             String fieldKey,
             String fieldLabel,
             String fieldGroup,

@@ -24,7 +24,7 @@ public class ParentCompanyGuaranteeService {
     }
 
     @Transactional(readOnly = true)
-    public List<ParentCompanyGuarantee> listForEntity(EntityType entityType, Long entityId) {
+    public List<ParentCompanyGuarantee> listForEntity(EntityType entityType, Integer entityId) {
         return repository.findForEntity(entityType, entityId);
     }
 
@@ -41,7 +41,7 @@ public class ParentCompanyGuaranteeService {
         return repository.save(input);
     }
 
-    public ParentCompanyGuarantee update(Long id, ParentCompanyGuarantee input) {
+    public ParentCompanyGuarantee update(Integer id, ParentCompanyGuarantee input) {
         ParentCompanyGuarantee existing = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("No guarantee with id " + id + "."));
         input.setPcgId(id);
@@ -49,7 +49,7 @@ public class ParentCompanyGuaranteeService {
         return repository.save(input);
     }
 
-    public void deactivate(Long id) {
+    public void deactivate(Integer id) {
         ParentCompanyGuarantee existing = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("No guarantee with id " + id + "."));
         existing.setIsActive(false);

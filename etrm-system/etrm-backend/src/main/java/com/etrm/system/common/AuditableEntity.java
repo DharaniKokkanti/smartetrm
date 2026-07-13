@@ -9,7 +9,7 @@ import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 /**
  * created_at/created_by/updated_at/updated_by — present on every master
@@ -23,7 +23,7 @@ public abstract class AuditableEntity {
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
+    private LocalDateTime createdAt;
 
     @CreatedBy
     @Column(name = "created_by", nullable = false, updatable = false, length = 100)
@@ -31,17 +31,17 @@ public abstract class AuditableEntity {
 
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt;
+    private LocalDateTime updatedAt;
 
     @LastModifiedBy
     @Column(name = "updated_by", nullable = false, length = 100)
     private String updatedBy;
 
-    public Instant getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Instant createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
@@ -53,11 +53,11 @@ public abstract class AuditableEntity {
         this.createdBy = createdBy;
     }
 
-    public Instant getUpdatedAt() {
+    public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(Instant updatedAt) {
+    public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
 

@@ -28,7 +28,7 @@ public class LegalEntityController {
     }
 
     @GetMapping("/{id}")
-    public LegalEntity get(@PathVariable Long id) {
+    public LegalEntity get(@PathVariable Integer id) {
         return service.get(id);
     }
 
@@ -38,12 +38,12 @@ public class LegalEntityController {
     }
 
     @PutMapping("/{id}")
-    public LegalEntity update(@PathVariable Long id, @Valid @RequestBody LegalEntity input) {
+    public LegalEntity update(@PathVariable Integer id, @Valid @RequestBody LegalEntity input) {
         return service.update(id, input);
     }
 
     @PatchMapping("/{id}/deactivate")
-    public ResponseEntity<Void> deactivate(@PathVariable Long id) {
+    public ResponseEntity<Void> deactivate(@PathVariable Integer id) {
         service.deactivate(id);
         return ResponseEntity.noContent().build();
     }

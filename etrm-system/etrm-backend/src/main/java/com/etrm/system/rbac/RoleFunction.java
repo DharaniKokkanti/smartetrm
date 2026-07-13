@@ -8,7 +8,7 @@ public class RoleFunction {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "role_function_id")
-    private Long roleFunctionId;
+    private Integer roleFunctionId;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id", nullable = false)
@@ -21,8 +21,8 @@ public class RoleFunction {
     @Column(name = "access_level", nullable = false, length = 10)
     private String accessLevel = "READ";   // READ | READ_WRITE
 
-    public Long getRoleFunctionId() { return roleFunctionId; }
-    public void setRoleFunctionId(Long roleFunctionId) { this.roleFunctionId = roleFunctionId; }
+    public Integer getRoleFunctionId() { return roleFunctionId; }
+    public void setRoleFunctionId(Integer roleFunctionId) { this.roleFunctionId = roleFunctionId; }
     public UserRole getRole() { return role; }
     public void setRole(UserRole role) { this.role = role; }
     public AppFunction getFunction() { return function; }

@@ -51,7 +51,7 @@ public class AddressContactController {
     }
 
     @PutMapping("/addresses/{id}")
-    public Address updateAddress(@PathVariable Long id, @Valid @RequestBody Address body) {
+    public Address updateAddress(@PathVariable Integer id, @Valid @RequestBody Address body) {
         Address existing = addressRepo.findById(Objects.requireNonNull(id))
                 .orElseThrow(() -> new NotFoundException("Address " + id + " not found"));
         body.setAddressId(existing.getAddressId());
@@ -76,7 +76,7 @@ public class AddressContactController {
     public EntityAddress createEntityAddress(@Valid @RequestBody EntityAddress link) {
         link.setEntityAddressId(null);
         if (link.getAddress() != null && link.getAddress().getAddressId() != null) {
-            Long addrId = Objects.requireNonNull(link.getAddress().getAddressId());
+            Integer addrId = Objects.requireNonNull(link.getAddress().getAddressId());
             Address addr = addressRepo.findById(addrId)
                     .orElseThrow(() -> new NotFoundException("Address " + addrId + " not found"));
             link.setAddress(addr);
@@ -85,7 +85,7 @@ public class AddressContactController {
     }
 
     @PutMapping("/entity-addresses/{id}")
-    public EntityAddress updateEntityAddress(@PathVariable Long id, @RequestBody EntityAddress body) {
+    public EntityAddress updateEntityAddress(@PathVariable Integer id, @RequestBody EntityAddress body) {
         EntityAddress existing = entityAddressRepo.findById(Objects.requireNonNull(id))
                 .orElseThrow(() -> new NotFoundException("EntityAddress " + id + " not found"));
         body.setEntityAddressId(existing.getEntityAddressId());
@@ -94,7 +94,7 @@ public class AddressContactController {
 
     @PatchMapping("/entity-addresses/{id}/deactivate")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deactivateEntityAddress(@PathVariable Long id) {
+    public void deactivateEntityAddress(@PathVariable Integer id) {
         EntityAddress link = entityAddressRepo.findById(Objects.requireNonNull(id))
                 .orElseThrow(() -> new NotFoundException("EntityAddress " + id + " not found"));
         link.setIsActive(false);
@@ -116,7 +116,7 @@ public class AddressContactController {
     }
 
     @PutMapping("/contacts/{id}")
-    public Contact updateContact(@PathVariable Long id, @Valid @RequestBody Contact body) {
+    public Contact updateContact(@PathVariable Integer id, @Valid @RequestBody Contact body) {
         Contact existing = contactRepo.findById(Objects.requireNonNull(id))
                 .orElseThrow(() -> new NotFoundException("Contact " + id + " not found"));
         body.setContactId(existing.getContactId());
@@ -141,7 +141,7 @@ public class AddressContactController {
     public EntityContact createEntityContact(@Valid @RequestBody EntityContact link) {
         link.setEntityContactId(null);
         if (link.getContact() != null && link.getContact().getContactId() != null) {
-            Long contactId = Objects.requireNonNull(link.getContact().getContactId());
+            Integer contactId = Objects.requireNonNull(link.getContact().getContactId());
             Contact contact = contactRepo.findById(contactId)
                     .orElseThrow(() -> new NotFoundException("Contact " + contactId + " not found"));
             link.setContact(contact);
@@ -150,7 +150,7 @@ public class AddressContactController {
     }
 
     @PutMapping("/entity-contacts/{id}")
-    public EntityContact updateEntityContact(@PathVariable Long id, @RequestBody EntityContact body) {
+    public EntityContact updateEntityContact(@PathVariable Integer id, @RequestBody EntityContact body) {
         EntityContact existing = entityContactRepo.findById(Objects.requireNonNull(id))
                 .orElseThrow(() -> new NotFoundException("EntityContact " + id + " not found"));
         body.setEntityContactId(existing.getEntityContactId());
@@ -159,7 +159,7 @@ public class AddressContactController {
 
     @PatchMapping("/entity-contacts/{id}/deactivate")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deactivateEntityContact(@PathVariable Long id) {
+    public void deactivateEntityContact(@PathVariable Integer id) {
         EntityContact link = entityContactRepo.findById(Objects.requireNonNull(id))
                 .orElseThrow(() -> new NotFoundException("EntityContact " + id + " not found"));
         link.setIsActive(false);

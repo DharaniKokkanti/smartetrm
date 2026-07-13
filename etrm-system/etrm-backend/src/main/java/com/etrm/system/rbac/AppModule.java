@@ -8,7 +8,7 @@ public class AppModule {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "module_id")
-    private Long moduleId;
+    private Integer moduleId;
 
     @Column(name = "module_code", nullable = false, length = 50)
     private String moduleCode;
@@ -25,8 +25,8 @@ public class AppModule {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
-    public Long getModuleId() { return moduleId; }
-    public void setModuleId(Long moduleId) { this.moduleId = moduleId; }
+    public Integer getModuleId() { return moduleId; }
+    public void setModuleId(Integer moduleId) { this.moduleId = moduleId; }
     public String getModuleCode() { return moduleCode; }
     public void setModuleCode(String moduleCode) { this.moduleCode = moduleCode; }
     public String getModuleName() { return moduleName; }

@@ -1,7 +1,7 @@
 package com.etrm.system.rbac;
 
 import jakarta.persistence.*;
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.LocalDate;
 
 @Entity
@@ -10,10 +10,10 @@ public class UserRoleAssignment {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "assignment_id")
-    private Long assignmentId;
+    private Integer assignmentId;
 
     @Column(name = "user_id", nullable = false)
-    private Long userId;
+    private Integer userId;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id", nullable = false)
@@ -26,13 +26,13 @@ public class UserRoleAssignment {
     private String assignedBy;
 
     @Column(name = "assigned_at", nullable = false)
-    private Instant assignedAt;
+    private LocalDateTime assignedAt;
 
     @Column(name = "approved_by", length = 100)
     private String approvedBy;
 
     @Column(name = "approved_at")
-    private Instant approvedAt;
+    private LocalDateTime approvedAt;
 
     @Column(name = "rejection_reason", length = 500)
     private String rejectionReason;
@@ -48,26 +48,26 @@ public class UserRoleAssignment {
 
     @PrePersist
     void onCreate() {
-        if (assignedAt == null) assignedAt = Instant.now();
+        if (assignedAt == null) assignedAt = LocalDateTime.now();
         if (validFrom == null) validFrom = LocalDate.now();
     }
 
-    public Long getAssignmentId() { return assignmentId; }
-    public void setAssignmentId(Long assignmentId) { this.assignmentId = assignmentId; }
-    public Long getUserId() { return userId; }
-    public void setUserId(Long userId) { this.userId = userId; }
+    public Integer getAssignmentId() { return assignmentId; }
+    public void setAssignmentId(Integer assignmentId) { this.assignmentId = assignmentId; }
+    public Integer getUserId() { return userId; }
+    public void setUserId(Integer userId) { this.userId = userId; }
     public UserRole getRole() { return role; }
     public void setRole(UserRole role) { this.role = role; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
     public String getAssignedBy() { return assignedBy; }
     public void setAssignedBy(String assignedBy) { this.assignedBy = assignedBy; }
-    public Instant getAssignedAt() { return assignedAt; }
-    public void setAssignedAt(Instant assignedAt) { this.assignedAt = assignedAt; }
+    public LocalDateTime getAssignedAt() { return assignedAt; }
+    public void setAssignedAt(LocalDateTime assignedAt) { this.assignedAt = assignedAt; }
     public String getApprovedBy() { return approvedBy; }
     public void setApprovedBy(String approvedBy) { this.approvedBy = approvedBy; }
-    public Instant getApprovedAt() { return approvedAt; }
-    public void setApprovedAt(Instant approvedAt) { this.approvedAt = approvedAt; }
+    public LocalDateTime getApprovedAt() { return approvedAt; }
+    public void setApprovedAt(LocalDateTime approvedAt) { this.approvedAt = approvedAt; }
     public String getRejectionReason() { return rejectionReason; }
     public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
     public LocalDate getValidFrom() { return validFrom; }

@@ -55,6 +55,12 @@ already being present from step 2.
 Applied to a throwaway `MDTEST` database, built from scratch in sequence
 (schema → seed → this file): **0 errors**, and every one of the 24 tables
 above confirmed to have rows afterward (row counts range 2–6 per table).
+Re-applied a second time to the same database to confirm the idempotent
+guards (see below) work — 0 errors, row counts unchanged (no duplicates).
+
+Applied for real to the local dev `ETRM_DB` on 2026-07-12: 0 errors, same
+row counts confirmed (`legal_entity`=3, `vessel`=3, `counterparty`=6, etc.
+across all 24 tables).
 
 Two bugs were caught and fixed during verification:
 - `vessel.mmsi` is a plain (non-filtered) `UNIQUE` constraint, which
@@ -63,6 +69,16 @@ Two bugs were caught and fixed during verification:
   (e.g. `ix_vessel_vetting`, `ix_vc_expiry`, `ix_market_exchange`), which
   require `SET QUOTED_IDENTIFIER ON` at insert time — the file's header
   now sets this (and `SET ANSI_NULLS ON`) before the first `INSERT`.
+
+## Idempotency
+
+Every `INSERT` in `01_core_tier1_test_data.sql` is guarded by
+`IF NOT EXISTS (SELECT 1 FROM dbo.<table> WHERE <pk> = <id>)`. Safe to
+re-run against a database that already has some or all of these rows —
+only what's missing gets inserted, nothing errors or duplicates. This is
+what let it be applied directly to the shared local dev `ETRM_DB` (not
+just a throwaway verification database) as a one-time data load, and what
+makes it safe to re-run later without first checking what's already there.
 
 ## Regeneration
 

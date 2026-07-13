@@ -75,7 +75,7 @@ public class FieldPermissionController {
     /** Returns a profile with its full per-field rule detail — used by the admin UI. */
     @GetMapping("/profiles/{profileId}")
     public ProfileDetailResponse getProfileDetail(
-            @PathVariable Long profileId,
+            @PathVariable Integer profileId,
             @RequestParam String screen) {
         return service.getProfileDetail(profileId, screen);
     }
@@ -96,7 +96,7 @@ public class FieldPermissionController {
     @PutMapping("/profiles/{profileId}/rules")
     @Transactional
     public ProfileDetailResponse updateProfileRules(
-            @PathVariable Long profileId,
+            @PathVariable Integer profileId,
             @RequestBody List<RuleUpdateRequest> rules,
             Authentication auth) {
 
@@ -121,5 +121,5 @@ public class FieldPermissionController {
         return service.getProfileDetail(profileId, profile.getScreenCode());
     }
 
-    public record RuleUpdateRequest(Long fieldId, String fieldPermission) {}
+    public record RuleUpdateRequest(Integer fieldId, String fieldPermission) {}
 }

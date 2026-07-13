@@ -96,7 +96,7 @@ public class FieldPermissionService {
         List<UserRoleAssignment> assignments =
                 assignmentRepo.findByUserIdAndIsActiveTrue(user.getUserId());
 
-        List<Long> roleIds = assignments.stream()
+        List<Integer> roleIds = assignments.stream()
                 .filter(a -> "ACTIVE".equals(a.getStatus()))
                 .map(a -> a.getRole().getRoleId())
                 .toList();
@@ -107,7 +107,7 @@ public class FieldPermissionService {
             List<RoleFieldProfile> roleProfiles =
                     roleProfileRepo.findByRoleIdsAndScreenCode(roleIds, screenCode);
 
-            List<Long> profileIds = roleProfiles.stream()
+            List<Integer> profileIds = roleProfiles.stream()
                     .map(rfp -> rfp.getProfile().getProfileId())
                     .toList();
 
@@ -187,12 +187,12 @@ public class FieldPermissionService {
 
     // ── Admin helpers ─────────────────────────────────────────────────────────
 
-    public ProfileDetailResponse getProfileDetail(Long profileId, String screenCode) {
+    public ProfileDetailResponse getProfileDetail(Integer profileId, String screenCode) {
         List<ScreenFieldRegistry> allFields =
                 fieldRegistryRepo.findByScreenCodeAndIsActiveTrueOrderBySortOrder(screenCode);
 
         List<FieldPermissionRule> rules = permRuleRepo.findByProfileProfileId(profileId);
-        Map<Long, String> ruleMap = rules.stream()
+        Map<Integer, String> ruleMap = rules.stream()
                 .collect(Collectors.toMap(
                         r -> r.getField().getFieldId(),
                         FieldPermissionRule::getFieldPermission));

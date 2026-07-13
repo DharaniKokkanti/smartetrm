@@ -15,6 +15,14 @@ IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = 'etrm_app')
 BEGIN
   CREATE LOGIN etrm_app WITH PASSWORD = '$ETRM_APP_DB_PASSWORD';
 END
+ELSE
+BEGIN
+  -- keep the login in sync with ETRM_APP_DB_PASSWORD even if the login
+  -- pre-existed (e.g. from before .env's password was last changed) —
+  -- otherwise this silently no-ops and the backend fails to connect with
+  -- a stale password.
+  ALTER LOGIN etrm_app WITH PASSWORD = '$ETRM_APP_DB_PASSWORD';
+END
 
 IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'etrm_app')
 BEGIN

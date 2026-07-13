@@ -8,7 +8,7 @@ public class AppFunction {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "function_id")
-    private Long functionId;
+    private Integer functionId;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "module_id", nullable = false)
@@ -29,8 +29,8 @@ public class AppFunction {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
-    public Long getFunctionId() { return functionId; }
-    public void setFunctionId(Long functionId) { this.functionId = functionId; }
+    public Integer getFunctionId() { return functionId; }
+    public void setFunctionId(Integer functionId) { this.functionId = functionId; }
     public AppModule getModule() { return module; }
     public void setModule(AppModule module) { this.module = module; }
     public String getFunctionCode() { return functionCode; }

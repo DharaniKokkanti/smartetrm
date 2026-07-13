@@ -5,9 +5,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.util.List;
 
-public interface FieldPermissionRuleRepository extends JpaRepository<FieldPermissionRule, Long> {
+public interface FieldPermissionRuleRepository extends JpaRepository<FieldPermissionRule, Integer> {
 
-    List<FieldPermissionRule> findByProfileProfileId(Long profileId);
+    List<FieldPermissionRule> findByProfileProfileId(Integer profileId);
 
     @Query("""
         SELECT r FROM FieldPermissionRule r
@@ -17,7 +17,7 @@ public interface FieldPermissionRuleRepository extends JpaRepository<FieldPermis
         """)
     List<FieldPermissionRule> findByScreenCodeAndProfileIds(
             @Param("screenCode") String screenCode,
-            @Param("profileIds") List<Long> profileIds);
+            @Param("profileIds") List<Integer> profileIds);
 
-    void deleteByProfileProfileId(Long profileId);
+    void deleteByProfileProfileId(Integer profileId);
 }

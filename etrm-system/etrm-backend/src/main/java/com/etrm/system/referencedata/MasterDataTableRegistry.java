@@ -15,7 +15,7 @@ public class MasterDataTableRegistry extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "registry_id")
-    private Long registryId;
+    private Integer registryId;
 
     @Column(name = "table_name", nullable = false, length = 50)
     private String tableName;
@@ -41,8 +41,9 @@ public class MasterDataTableRegistry extends AuditableEntity {
     @Column(name = "is_enabled", nullable = false)
     private Boolean isEnabled = true;
 
+    // SMALLINT in the DB.
     @Column(name = "display_order", nullable = false)
-    private Integer displayOrder = 0;
+    private Short displayOrder = 0;
 
     @Column(name = "sub_group", length = 100)
     private String subGroup;
@@ -53,8 +54,8 @@ public class MasterDataTableRegistry extends AuditableEntity {
     @Column(name = "notes", length = 500)
     private String notes;
 
-    public Long getRegistryId() { return registryId; }
-    public void setRegistryId(Long registryId) { this.registryId = registryId; }
+    public Integer getRegistryId() { return registryId; }
+    public void setRegistryId(Integer registryId) { this.registryId = registryId; }
     public String getTableName() { return tableName; }
     public void setTableName(String tableName) { this.tableName = tableName; }
     public String getDisplayName() { return displayName; }
@@ -71,8 +72,8 @@ public class MasterDataTableRegistry extends AuditableEntity {
     public void setAllowExcelUpload(Boolean allowExcelUpload) { this.allowExcelUpload = allowExcelUpload; }
     public Boolean getIsEnabled() { return isEnabled; }
     public void setIsEnabled(Boolean isEnabled) { this.isEnabled = isEnabled; }
-    public Integer getDisplayOrder() { return displayOrder; }
-    public void setDisplayOrder(Integer displayOrder) { this.displayOrder = displayOrder; }
+    public Short getDisplayOrder() { return displayOrder; }
+    public void setDisplayOrder(Short displayOrder) { this.displayOrder = displayOrder; }
     public String getSubGroup() { return subGroup; }
     public void setSubGroup(String subGroup) { this.subGroup = subGroup; }
     public String getDescription() { return description; }

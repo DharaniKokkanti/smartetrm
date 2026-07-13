@@ -23,7 +23,7 @@ public class ParentCompanyGuarantee extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "pcg_id")
-    private Long pcgId;
+    private Integer pcgId;
 
     @NotBlank
     @Column(name = "pcg_reference", nullable = false, length = 50)
@@ -40,7 +40,7 @@ public class ParentCompanyGuarantee extends AuditableEntity {
 
     @NotNull
     @Column(name = "guarantor_entity_id", nullable = false)
-    private Long guarantorEntityId;
+    private Integer guarantorEntityId;
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -49,7 +49,7 @@ public class ParentCompanyGuarantee extends AuditableEntity {
 
     @NotNull
     @Column(name = "principal_entity_id", nullable = false)
-    private Long principalEntityId;
+    private Integer principalEntityId;
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -58,7 +58,7 @@ public class ParentCompanyGuarantee extends AuditableEntity {
 
     @NotNull
     @Column(name = "beneficiary_entity_id", nullable = false)
-    private Long beneficiaryEntityId;
+    private Integer beneficiaryEntityId;
 
     @NotNull
     @Column(name = "guarantee_amount", nullable = false, precision = 18, scale = 2)
@@ -66,7 +66,7 @@ public class ParentCompanyGuarantee extends AuditableEntity {
 
     @NotNull
     @Column(name = "currency_id", nullable = false)
-    private Long currencyId;
+    private Integer currencyId;
 
     @NotNull
     @Column(name = "issue_date", nullable = false)
@@ -86,7 +86,7 @@ public class ParentCompanyGuarantee extends AuditableEntity {
     private BigDecimal amountCalled;
 
     @Column(name = "document_store_id")
-    private Long documentStoreId;
+    private Integer documentStoreId;
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
@@ -94,11 +94,11 @@ public class ParentCompanyGuarantee extends AuditableEntity {
     @Column(name = "notes", length = 500)
     private String notes;
 
-    public Long getPcgId() {
+    public Integer getPcgId() {
         return pcgId;
     }
 
-    public void setPcgId(Long pcgId) {
+    public void setPcgId(Integer pcgId) {
         this.pcgId = pcgId;
     }
 
@@ -126,11 +126,11 @@ public class ParentCompanyGuarantee extends AuditableEntity {
         this.guarantorEntityType = guarantorEntityType;
     }
 
-    public Long getGuarantorEntityId() {
+    public Integer getGuarantorEntityId() {
         return guarantorEntityId;
     }
 
-    public void setGuarantorEntityId(Long guarantorEntityId) {
+    public void setGuarantorEntityId(Integer guarantorEntityId) {
         this.guarantorEntityId = guarantorEntityId;
     }
 
@@ -142,11 +142,11 @@ public class ParentCompanyGuarantee extends AuditableEntity {
         this.principalEntityType = principalEntityType;
     }
 
-    public Long getPrincipalEntityId() {
+    public Integer getPrincipalEntityId() {
         return principalEntityId;
     }
 
-    public void setPrincipalEntityId(Long principalEntityId) {
+    public void setPrincipalEntityId(Integer principalEntityId) {
         this.principalEntityId = principalEntityId;
     }
 
@@ -158,11 +158,11 @@ public class ParentCompanyGuarantee extends AuditableEntity {
         this.beneficiaryEntityType = beneficiaryEntityType;
     }
 
-    public Long getBeneficiaryEntityId() {
+    public Integer getBeneficiaryEntityId() {
         return beneficiaryEntityId;
     }
 
-    public void setBeneficiaryEntityId(Long beneficiaryEntityId) {
+    public void setBeneficiaryEntityId(Integer beneficiaryEntityId) {
         this.beneficiaryEntityId = beneficiaryEntityId;
     }
 
@@ -174,11 +174,11 @@ public class ParentCompanyGuarantee extends AuditableEntity {
         this.guaranteeAmount = guaranteeAmount;
     }
 
-    public Long getCurrencyId() {
+    public Integer getCurrencyId() {
         return currencyId;
     }
 
-    public void setCurrencyId(Long currencyId) {
+    public void setCurrencyId(Integer currencyId) {
         this.currencyId = currencyId;
     }
 
@@ -222,11 +222,11 @@ public class ParentCompanyGuarantee extends AuditableEntity {
         this.amountCalled = amountCalled;
     }
 
-    public Long getDocumentStoreId() {
+    public Integer getDocumentStoreId() {
         return documentStoreId;
     }
 
-    public void setDocumentStoreId(Long documentStoreId) {
+    public void setDocumentStoreId(Integer documentStoreId) {
         this.documentStoreId = documentStoreId;
     }
 

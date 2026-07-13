@@ -2,7 +2,7 @@ package com.etrm.system.rbac;
 
 import com.etrm.system.auth.AppUser;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.LocalDate;
 
 /**
@@ -12,18 +12,18 @@ import java.time.LocalDate;
  * no name at all) until it was fixed to match this shape.
  */
 public record AssignmentResponse(
-        Long assignmentId,
-        Long userId,
+        Integer assignmentId,
+        Integer userId,
         String username,
         String fullName,
-        Long roleId,
+        Integer roleId,
         String roleCode,
         String roleName,
         String status,
         String assignedBy,
-        Instant assignedAt,
+        LocalDateTime assignedAt,
         String approvedBy,
-        Instant approvedAt,
+        LocalDateTime approvedAt,
         String rejectionReason,
         LocalDate validFrom,
         LocalDate validTo,

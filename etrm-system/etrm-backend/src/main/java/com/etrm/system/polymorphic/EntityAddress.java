@@ -16,7 +16,7 @@ public class EntityAddress extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "entity_address_id")
-    private Long entityAddressId;
+    private Integer entityAddressId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "entity_type", nullable = false, length = 20)
@@ -42,8 +42,8 @@ public class EntityAddress extends AuditableEntity {
     @Column(name = "notes", length = 500)
     private String notes;
 
-    public Long getEntityAddressId() { return entityAddressId; }
-    public void setEntityAddressId(Long entityAddressId) { this.entityAddressId = entityAddressId; }
+    public Integer getEntityAddressId() { return entityAddressId; }
+    public void setEntityAddressId(Integer entityAddressId) { this.entityAddressId = entityAddressId; }
 
     public EntityType getEntityType() { return entityType; }
     public void setEntityType(EntityType entityType) { this.entityType = entityType; }

@@ -7,7 +7,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface ParentCompanyGuaranteeRepository extends JpaRepository<ParentCompanyGuarantee, Long> {
+public interface ParentCompanyGuaranteeRepository extends JpaRepository<ParentCompanyGuarantee, Integer> {
 
     boolean existsByPcgReferenceIgnoreCase(String pcgReference);
 
@@ -22,6 +22,6 @@ public interface ParentCompanyGuaranteeRepository extends JpaRepository<ParentCo
             """)
     List<ParentCompanyGuarantee> findForEntity(
             @Param("entityType") EntityType entityType,
-            @Param("entityId") Long entityId
+            @Param("entityId") Integer entityId
     );
 }

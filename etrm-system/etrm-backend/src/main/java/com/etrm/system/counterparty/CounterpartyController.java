@@ -25,6 +25,11 @@ import java.util.List;
 /**
  * Path/verb shape — including the nested children endpoints — must stay in
  * sync with etrm-frontend/src/features/tier1/counterparty/api.ts.
+ *
+ * Note: {@code id} here is the counterparty's own PK (INT). Contact/Address's
+ * entity_id column is BIGINT while BankAccount's is INT — real, table-level
+ * differences, not a typo — so {@code id} is widened to {@code Long} only
+ * where the child table actually requires it.
  */
 @RestController
 @RequestMapping("/api/v1/counterparties")
@@ -55,7 +60,7 @@ public class CounterpartyController {
     }
 
     @GetMapping("/{id}")
-    public Counterparty get(@PathVariable Long id) {
+    public Counterparty get(@PathVariable Integer id) {
         return service.get(id);
     }
 
@@ -65,53 +70,53 @@ public class CounterpartyController {
     }
 
     @PutMapping("/{id}")
-    public Counterparty update(@PathVariable Long id, @Valid @RequestBody Counterparty input) {
+    public Counterparty update(@PathVariable Integer id, @Valid @RequestBody Counterparty input) {
         return service.update(id, input);
     }
 
     @PatchMapping("/{id}/deactivate")
-    public ResponseEntity<Void> deactivate(@PathVariable Long id) {
+    public ResponseEntity<Void> deactivate(@PathVariable Integer id) {
         service.deactivate(id);
         return ResponseEntity.noContent().build();
     }
 
-    // ── Contacts ─────────────────────────────────────────────────────────
+    // ── Contacts (contact.entity_id is BIGINT) ──────────────────────────────
 
     @GetMapping("/{id}/contacts")
-    public List<Contact> listContacts(@PathVariable Long id) {
-        return contactRepository.findByEntityTypeAndEntityId(EntityType.COUNTERPARTY, id);
+    public List<Contact> listContacts(@PathVariable Integer id) {
+        return contactRepository.findByEntityTypeAndEntityId(EntityType.COUNTERPARTY, id.longValue());
     }
 
     @PostMapping("/{id}/contacts")
-    public ResponseEntity<Contact> addContact(@PathVariable Long id, @Valid @RequestBody Contact input) {
+    public ResponseEntity<Contact> addContact(@PathVariable Integer id, @Valid @RequestBody Contact input) {
         service.get(id); // 404s if the parent doesn't exist
         input.setContactId(null);
         input.setEntityType(EntityType.COUNTERPARTY);
-        input.setEntityId(id);
+        input.setEntityId(id.longValue());
         return ResponseEntity.status(HttpStatus.CREATED).body(contactRepository.save(input));
     }
 
     @PutMapping("/{id}/contacts/{contactId}")
     public Contact updateContact(
-            @PathVariable Long id, @PathVariable Long contactId, @Valid @RequestBody Contact input
+            @PathVariable Integer id, @PathVariable Integer contactId, @Valid @RequestBody Contact input
     ) {
         contactRepository.findById(contactId)
                 .orElseThrow(() -> new NotFoundException("No contact with id " + contactId + "."));
         input.setContactId(contactId);
         input.setEntityType(EntityType.COUNTERPARTY);
-        input.setEntityId(id);
+        input.setEntityId(id.longValue());
         return contactRepository.save(input);
     }
 
-    // ── Bank accounts ────────────────────────────────────────────────────
+    // ── Bank accounts (bank_account.entity_id is INT) ───────────────────────
 
     @GetMapping("/{id}/bank-accounts")
-    public List<BankAccount> listBankAccounts(@PathVariable Long id) {
+    public List<BankAccount> listBankAccounts(@PathVariable Integer id) {
         return bankAccountRepository.findByEntityTypeAndEntityId(EntityType.COUNTERPARTY, id);
     }
 
     @PostMapping("/{id}/bank-accounts")
-    public ResponseEntity<BankAccount> addBankAccount(@PathVariable Long id, @Valid @RequestBody BankAccount input) {
+    public ResponseEntity<BankAccount> addBankAccount(@PathVariable Integer id, @Valid @RequestBody BankAccount input) {
         service.get(id);
         input.setBankAccountId(null);
         input.setEntityType(EntityType.COUNTERPARTY);
@@ -121,7 +126,7 @@ public class CounterpartyController {
 
     @PutMapping("/{id}/bank-accounts/{bankAccountId}")
     public BankAccount updateBankAccount(
-            @PathVariable Long id, @PathVariable Long bankAccountId, @Valid @RequestBody BankAccount input
+            @PathVariable Integer id, @PathVariable Integer bankAccountId, @Valid @RequestBody BankAccount input
     ) {
         bankAccountRepository.findById(bankAccountId)
                 .orElseThrow(() -> new NotFoundException("No bank account with id " + bankAccountId + "."));
@@ -131,31 +136,31 @@ public class CounterpartyController {
         return bankAccountRepository.save(input);
     }
 
-    // ── Addresses ────────────────────────────────────────────────────────
+    // ── Addresses (address.entity_id is BIGINT) ─────────────────────────────
 
     @GetMapping("/{id}/addresses")
-    public List<Address> listAddresses(@PathVariable Long id) {
-        return addressRepository.findByEntityTypeAndEntityId(EntityType.COUNTERPARTY, id);
+    public List<Address> listAddresses(@PathVariable Integer id) {
+        return addressRepository.findByEntityTypeAndEntityId(EntityType.COUNTERPARTY, id.longValue());
     }
 
     @PostMapping("/{id}/addresses")
-    public ResponseEntity<Address> addAddress(@PathVariable Long id, @Valid @RequestBody Address input) {
+    public ResponseEntity<Address> addAddress(@PathVariable Integer id, @Valid @RequestBody Address input) {
         service.get(id);
         input.setAddressId(null);
         input.setEntityType(EntityType.COUNTERPARTY);
-        input.setEntityId(id);
+        input.setEntityId(id.longValue());
         return ResponseEntity.status(HttpStatus.CREATED).body(addressRepository.save(input));
     }
 
     @PutMapping("/{id}/addresses/{addressId}")
     public Address updateAddress(
-            @PathVariable Long id, @PathVariable Long addressId, @Valid @RequestBody Address input
+            @PathVariable Integer id, @PathVariable Integer addressId, @Valid @RequestBody Address input
     ) {
         addressRepository.findById(addressId)
                 .orElseThrow(() -> new NotFoundException("No address with id " + addressId + "."));
         input.setAddressId(addressId);
         input.setEntityType(EntityType.COUNTERPARTY);
-        input.setEntityId(id);
+        input.setEntityId(id.longValue());
         return addressRepository.save(input);
     }
 }

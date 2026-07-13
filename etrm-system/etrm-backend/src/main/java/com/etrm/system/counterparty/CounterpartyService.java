@@ -24,7 +24,7 @@ public class CounterpartyService {
     }
 
     @Transactional(readOnly = true)
-    public Counterparty get(Long id) {
+    public Counterparty get(Integer id) {
         return repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("No counterparty with id " + id + "."));
     }
@@ -39,7 +39,7 @@ public class CounterpartyService {
         return repository.save(input);
     }
 
-    public Counterparty update(Long id, Counterparty input) {
+    public Counterparty update(Integer id, Counterparty input) {
         Counterparty existing = get(id);
         input.setCounterpartyId(id);
         input.setCpCode(existing.getCpCode()); // immutable after creation, matches the frontend form
@@ -48,7 +48,7 @@ public class CounterpartyService {
         return repository.save(input);
     }
 
-    public void deactivate(Long id) {
+    public void deactivate(Integer id) {
         Counterparty existing = get(id);
         existing.setIsActive(false);
         existing.setDeactivatedDate(LocalDate.now());

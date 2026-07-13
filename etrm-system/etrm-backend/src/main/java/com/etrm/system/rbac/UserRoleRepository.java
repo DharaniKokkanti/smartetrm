@@ -3,7 +3,7 @@ package com.etrm.system.rbac;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
-public interface UserRoleRepository extends JpaRepository<UserRole, Long> {
+public interface UserRoleRepository extends JpaRepository<UserRole, Integer> {
     Optional<UserRole> findByRoleCode(String roleCode);
     boolean existsByRoleCode(String roleCode);
 }

@@ -19,7 +19,7 @@ public class Contact extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "contact_id")
-    private Long contactId;
+    private Integer contactId;
 
     // Legacy binding columns — nulled out by V19; assignments now live in entity_contact.
     @Enumerated(EnumType.STRING)
@@ -29,8 +29,10 @@ public class Contact extends AuditableEntity {
     @Column(name = "entity_id")
     private Long entityId;
 
-    @Column(name = "contact_role", length = 20)
-    private String contactRole;
+    // contact_role became an INT FK to dbo.contact_role (code-to-id
+    // conversion sweep) — was VARCHAR(20) at this entity's original authoring.
+    @Column(name = "contact_role", nullable = false)
+    private Integer contactRole;
 
     @Column(name = "salutation", length = 10)
     private String salutation;
@@ -68,11 +70,11 @@ public class Contact extends AuditableEntity {
     @Column(name = "notes", length = 500)
     private String notes;
 
-    public Long getContactId() {
+    public Integer getContactId() {
         return contactId;
     }
 
-    public void setContactId(Long contactId) {
+    public void setContactId(Integer contactId) {
         this.contactId = contactId;
     }
 
@@ -92,11 +94,11 @@ public class Contact extends AuditableEntity {
         this.entityId = entityId;
     }
 
-    public String getContactRole() {
+    public Integer getContactRole() {
         return contactRole;
     }
 
-    public void setContactRole(String contactRole) {
+    public void setContactRole(Integer contactRole) {
         this.contactRole = contactRole;
     }
 

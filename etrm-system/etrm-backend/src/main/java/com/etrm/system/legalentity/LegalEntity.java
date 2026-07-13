@@ -8,7 +8,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
 
@@ -19,10 +19,9 @@ public class LegalEntity extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "legal_entity_id")
-    private Long legalEntityId;
+    private Integer legalEntityId;
 
     @NotBlank
-    @Size(max = 20)
     @Column(name = "entity_code", nullable = false, length = 20)
     private String entityCode;
 
@@ -37,29 +36,36 @@ public class LegalEntity extends AuditableEntity {
     @Column(name = "lei_code", length = 20)
     private String leiCode;
 
-    @NotBlank
-    @Column(name = "entity_type", nullable = false, length = 30)
-    private String entityType;
+    // entity_type became an INT FK to dbo.legal_entity_type (code-to-id
+    // conversion sweep) — was VARCHAR(30) at this entity's original authoring.
+    @NotNull
+    @Column(name = "entity_type", nullable = false)
+    private Integer entityType;
 
     @Column(name = "parent_entity_id")
-    private Long parentEntityId;
+    private Integer parentEntityId;
 
-    @NotBlank
-    @Size(min = 2, max = 2)
-    @Column(name = "jurisdiction", nullable = false, length = 2)
-    private String jurisdiction;
+    // Added by V62 alongside a CHECK enforcing it agrees with parentEntityId.
+    @NotNull
+    @Column(name = "parent_ind", nullable = false)
+    private Boolean parentInd = false;
 
-    @Size(min = 2, max = 2)
-    @Column(name = "incorporation_country", length = 2)
-    private String incorporationCountry;
+    // jurisdiction (CHAR(2)) -> jurisdiction_id (FK dbo.country) (V95)
+    @NotNull
+    @Column(name = "jurisdiction_id", nullable = false)
+    private Integer jurisdictionId;
 
-    @Column(name = "incorporation_number", length = 100)
+    // incorporation_country (CHAR(2)) -> incorporation_country_id (FK dbo.country) (V95)
+    @Column(name = "incorporation_country_id")
+    private Integer incorporationCountryId;
+
+    @Column(name = "incorporation_number", length = 50)
     private String incorporationNumber;
 
-    @NotBlank
-    @Size(min = 3, max = 3)
-    @Column(name = "base_currency", nullable = false, length = 3)
-    private String baseCurrency;
+    // base_currency (CHAR(3)) -> base_currency_id (FK dbo.currency) (V95)
+    @NotNull
+    @Column(name = "base_currency_id", nullable = false)
+    private Integer baseCurrencyId;
 
     @Column(name = "default_timezone", length = 50)
     private String defaultTimezone;
@@ -85,11 +91,11 @@ public class LegalEntity extends AuditableEntity {
     @Column(name = "notes", length = 1000)
     private String notes;
 
-    public Long getLegalEntityId() {
+    public Integer getLegalEntityId() {
         return legalEntityId;
     }
 
-    public void setLegalEntityId(Long legalEntityId) {
+    public void setLegalEntityId(Integer legalEntityId) {
         this.legalEntityId = legalEntityId;
     }
 
@@ -125,36 +131,44 @@ public class LegalEntity extends AuditableEntity {
         this.leiCode = leiCode;
     }
 
-    public String getEntityType() {
+    public Integer getEntityType() {
         return entityType;
     }
 
-    public void setEntityType(String entityType) {
+    public void setEntityType(Integer entityType) {
         this.entityType = entityType;
     }
 
-    public Long getParentEntityId() {
+    public Integer getParentEntityId() {
         return parentEntityId;
     }
 
-    public void setParentEntityId(Long parentEntityId) {
+    public void setParentEntityId(Integer parentEntityId) {
         this.parentEntityId = parentEntityId;
     }
 
-    public String getJurisdiction() {
-        return jurisdiction;
+    public Boolean getParentInd() {
+        return parentInd;
     }
 
-    public void setJurisdiction(String jurisdiction) {
-        this.jurisdiction = jurisdiction;
+    public void setParentInd(Boolean parentInd) {
+        this.parentInd = parentInd;
     }
 
-    public String getIncorporationCountry() {
-        return incorporationCountry;
+    public Integer getJurisdictionId() {
+        return jurisdictionId;
     }
 
-    public void setIncorporationCountry(String incorporationCountry) {
-        this.incorporationCountry = incorporationCountry;
+    public void setJurisdictionId(Integer jurisdictionId) {
+        this.jurisdictionId = jurisdictionId;
+    }
+
+    public Integer getIncorporationCountryId() {
+        return incorporationCountryId;
+    }
+
+    public void setIncorporationCountryId(Integer incorporationCountryId) {
+        this.incorporationCountryId = incorporationCountryId;
     }
 
     public String getIncorporationNumber() {
@@ -165,12 +179,12 @@ public class LegalEntity extends AuditableEntity {
         this.incorporationNumber = incorporationNumber;
     }
 
-    public String getBaseCurrency() {
-        return baseCurrency;
+    public Integer getBaseCurrencyId() {
+        return baseCurrencyId;
     }
 
-    public void setBaseCurrency(String baseCurrency) {
-        this.baseCurrency = baseCurrency;
+    public void setBaseCurrencyId(Integer baseCurrencyId) {
+        this.baseCurrencyId = baseCurrencyId;
     }
 
     public String getDefaultTimezone() {

@@ -1,7 +1,7 @@
 package com.etrm.system.rbac;
 
 import jakarta.persistence.*;
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "user_role")
@@ -9,7 +9,7 @@ public class UserRole {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "role_id")
-    private Long roleId;
+    private Integer roleId;
 
     @Column(name = "role_code", nullable = false, length = 50)
     private String roleCode;
@@ -36,26 +36,26 @@ public class UserRole {
     private String createdBy;
 
     @Column(name = "created_at", nullable = false)
-    private Instant createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "submitted_at")
-    private Instant submittedAt;
+    private LocalDateTime submittedAt;
 
     @Column(name = "approved_by", length = 100)
     private String approvedBy;
 
     @Column(name = "approved_at")
-    private Instant approvedAt;
+    private LocalDateTime approvedAt;
 
     @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt;
+    private LocalDateTime updatedAt;
 
     @Column(name = "updated_by", nullable = false, length = 100)
     private String updatedBy;
 
     @PrePersist
     void onCreate() {
-        Instant now = Instant.now();
+        LocalDateTime now = LocalDateTime.now();
         if (createdAt == null) createdAt = now;
         updatedAt = now;
         if (createdBy == null) createdBy = "SYSTEM";
@@ -63,10 +63,10 @@ public class UserRole {
     }
 
     @PreUpdate
-    void onUpdate() { updatedAt = Instant.now(); }
+    void onUpdate() { updatedAt = LocalDateTime.now(); }
 
-    public Long getRoleId() { return roleId; }
-    public void setRoleId(Long roleId) { this.roleId = roleId; }
+    public Integer getRoleId() { return roleId; }
+    public void setRoleId(Integer roleId) { this.roleId = roleId; }
     public String getRoleCode() { return roleCode; }
     public void setRoleCode(String roleCode) { this.roleCode = roleCode; }
     public String getRoleName() { return roleName; }
@@ -83,16 +83,16 @@ public class UserRole {
     public void setIsActive(Boolean isActive) { this.isActive = isActive; }
     public String getCreatedBy() { return createdBy; }
     public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
-    public Instant getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
-    public Instant getSubmittedAt() { return submittedAt; }
-    public void setSubmittedAt(Instant submittedAt) { this.submittedAt = submittedAt; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public LocalDateTime getSubmittedAt() { return submittedAt; }
+    public void setSubmittedAt(LocalDateTime submittedAt) { this.submittedAt = submittedAt; }
     public String getApprovedBy() { return approvedBy; }
     public void setApprovedBy(String approvedBy) { this.approvedBy = approvedBy; }
-    public Instant getApprovedAt() { return approvedAt; }
-    public void setApprovedAt(Instant approvedAt) { this.approvedAt = approvedAt; }
-    public Instant getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
+    public LocalDateTime getApprovedAt() { return approvedAt; }
+    public void setApprovedAt(LocalDateTime approvedAt) { this.approvedAt = approvedAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
     public String getUpdatedBy() { return updatedBy; }
     public void setUpdatedBy(String updatedBy) { this.updatedBy = updatedBy; }
 }

@@ -5,12 +5,16 @@
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
+./stop-all.sh
+echo "==> Waiting 10s for old processes/ports to fully release..."
+sleep 10
+
 echo "==> Starting SQL Server + db-init (Docker)..."
 docker compose up -d sqlserver
 docker compose up db-init
 
 echo "==> Starting backend (Spring Boot)..."
-(cd etrm-backend && mvn spring-boot:run) &
+(cd etrm-backend && set -a && source .env && set +a && mvn spring-boot:run) &
 BACKEND_PID=$!
 
 echo "==> Starting frontend (Vite)..."

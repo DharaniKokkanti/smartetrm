@@ -18,7 +18,7 @@ public class Address extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "address_id")
-    private Long addressId;
+    private Integer addressId;
 
     // Legacy binding columns — nulled out by V19 when pool pattern was introduced.
     // Kept for backward read compatibility; assignments now live in entity_address.
@@ -29,8 +29,10 @@ public class Address extends AuditableEntity {
     @Column(name = "entity_id")
     private Long entityId;
 
-    @Column(name = "address_type", length = 20)
-    private String addressType;
+    // address_type became an INT FK to dbo.address_type (V-era code-to-id
+    // conversion sweep) — was VARCHAR(20) at this entity's original authoring.
+    @Column(name = "address_type", nullable = false)
+    private Integer addressType;
 
     @Column(name = "is_primary")
     private Boolean isPrimary;
@@ -55,8 +57,11 @@ public class Address extends AuditableEntity {
     @Column(name = "postal_code", length = 20)
     private String postalCode;
 
-    @Column(name = "country_code", nullable = false, length = 2)
-    private String countryCode;
+    // country_code (CHAR(2)) became country_id (FK to dbo.country) in the
+    // currency/country code-to-id conversion sweep — was CHAR(2) at this
+    // entity's original authoring.
+    @Column(name = "country_id", nullable = false)
+    private Integer countryId;
 
     @Column(name = "po_box", length = 50)
     private String poBox;
@@ -70,11 +75,11 @@ public class Address extends AuditableEntity {
     @Column(name = "notes", length = 500)
     private String notes;
 
-    public Long getAddressId() {
+    public Integer getAddressId() {
         return addressId;
     }
 
-    public void setAddressId(Long addressId) {
+    public void setAddressId(Integer addressId) {
         this.addressId = addressId;
     }
 
@@ -94,11 +99,11 @@ public class Address extends AuditableEntity {
         this.entityId = entityId;
     }
 
-    public String getAddressType() {
+    public Integer getAddressType() {
         return addressType;
     }
 
-    public void setAddressType(String addressType) {
+    public void setAddressType(Integer addressType) {
         this.addressType = addressType;
     }
 
@@ -158,12 +163,12 @@ public class Address extends AuditableEntity {
         this.postalCode = postalCode;
     }
 
-    public String getCountryCode() {
-        return countryCode;
+    public Integer getCountryId() {
+        return countryId;
     }
 
-    public void setCountryCode(String countryCode) {
-        this.countryCode = countryCode;
+    public void setCountryId(Integer countryId) {
+        this.countryId = countryId;
     }
 
     public String getPoBox() {

@@ -3,6 +3,6 @@ package com.etrm.system.rbac;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
-public interface AppFunctionRepository extends JpaRepository<AppFunction, Long> {
+public interface AppFunctionRepository extends JpaRepository<AppFunction, Integer> {
     List<AppFunction> findAllByOrderByModuleModuleIdAscSortOrderAsc();
 }

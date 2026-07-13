@@ -8,6 +8,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
@@ -20,7 +21,7 @@ public class Counterparty extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "counterparty_id")
-    private Long counterpartyId;
+    private Integer counterpartyId;
 
     @NotBlank
     @Size(max = 20)
@@ -38,47 +39,53 @@ public class Counterparty extends AuditableEntity {
     @Column(name = "lei_code", length = 20)
     private String leiCode;
 
-    @NotBlank
-    @Size(min = 2, max = 2)
-    @Column(name = "jurisdiction", nullable = false, length = 2)
-    private String jurisdiction;
+    // jurisdiction (CHAR(2)) -> jurisdiction_id (FK dbo.country) (V95)
+    @NotNull
+    @Column(name = "jurisdiction_id", nullable = false)
+    private Integer jurisdictionId;
 
-    @NotBlank
-    @Column(name = "cp_type", nullable = false, length = 20)
-    private String cpType;
+    // cp_type became an INT FK to dbo.counterparty_type (code-to-id
+    // conversion sweep) — was VARCHAR(20) at this entity's original authoring.
+    @NotNull
+    @Column(name = "cp_type", nullable = false)
+    private Integer cpType;
 
     @Column(name = "credit_rating_id")
-    private Long creditRatingId;
+    private Integer creditRatingId;
 
     @Column(name = "credit_limit", precision = 18, scale = 2)
     private BigDecimal creditLimit;
 
-    @NotBlank
-    @Size(min = 3, max = 3)
-    @Column(name = "credit_limit_currency", nullable = false, length = 3)
-    private String creditLimitCurrency;
+    // credit_limit_currency (CHAR(3)) -> credit_limit_currency_id (FK dbo.currency) (V95)
+    @NotNull
+    @Column(name = "credit_limit_currency_id", nullable = false)
+    private Integer creditLimitCurrencyId;
 
     @Column(name = "credit_review_date")
     private LocalDate creditReviewDate;
 
+    // TINYINT in the DB — Hibernate maps java.lang.Short (not Integer) to
+    // TINYINT under the SQL Server dialect.
     @Column(name = "settlement_days", nullable = false)
-    private Integer settlementDays = 2;
+    private Short settlementDays = 2;
 
     @Column(name = "default_currency_id")
-    private Long defaultCurrencyId;
+    private Integer defaultCurrencyId;
 
     @Column(name = "is_intercompany", nullable = false)
     private Boolean isIntercompany = false;
 
     @Column(name = "internal_entity_id")
-    private Long internalEntityId;
+    private Integer internalEntityId;
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
-    @NotBlank
-    @Column(name = "kyc_status", nullable = false, length = 20)
-    private String kycStatus;
+    // kyc_status became an INT FK to dbo.kyc_status (code-to-id conversion
+    // sweep) — was VARCHAR(20) at this entity's original authoring.
+    @NotNull
+    @Column(name = "kyc_status", nullable = false)
+    private Integer kycStatus;
 
     @Column(name = "kyc_approved_date")
     private LocalDate kycApprovedDate;
@@ -92,14 +99,21 @@ public class Counterparty extends AuditableEntity {
     @Column(name = "deactivated_date")
     private LocalDate deactivatedDate;
 
+    @NotNull
+    @Column(name = "parent_ind", nullable = false)
+    private Boolean parentInd = false;
+
+    @Column(name = "parent_counterparty_id")
+    private Integer parentCounterpartyId;
+
     @Column(name = "notes", length = 1000)
     private String notes;
 
-    public Long getCounterpartyId() {
+    public Integer getCounterpartyId() {
         return counterpartyId;
     }
 
-    public void setCounterpartyId(Long counterpartyId) {
+    public void setCounterpartyId(Integer counterpartyId) {
         this.counterpartyId = counterpartyId;
     }
 
@@ -135,27 +149,27 @@ public class Counterparty extends AuditableEntity {
         this.leiCode = leiCode;
     }
 
-    public String getJurisdiction() {
-        return jurisdiction;
+    public Integer getJurisdictionId() {
+        return jurisdictionId;
     }
 
-    public void setJurisdiction(String jurisdiction) {
-        this.jurisdiction = jurisdiction;
+    public void setJurisdictionId(Integer jurisdictionId) {
+        this.jurisdictionId = jurisdictionId;
     }
 
-    public String getCpType() {
+    public Integer getCpType() {
         return cpType;
     }
 
-    public void setCpType(String cpType) {
+    public void setCpType(Integer cpType) {
         this.cpType = cpType;
     }
 
-    public Long getCreditRatingId() {
+    public Integer getCreditRatingId() {
         return creditRatingId;
     }
 
-    public void setCreditRatingId(Long creditRatingId) {
+    public void setCreditRatingId(Integer creditRatingId) {
         this.creditRatingId = creditRatingId;
     }
 
@@ -167,12 +181,12 @@ public class Counterparty extends AuditableEntity {
         this.creditLimit = creditLimit;
     }
 
-    public String getCreditLimitCurrency() {
-        return creditLimitCurrency;
+    public Integer getCreditLimitCurrencyId() {
+        return creditLimitCurrencyId;
     }
 
-    public void setCreditLimitCurrency(String creditLimitCurrency) {
-        this.creditLimitCurrency = creditLimitCurrency;
+    public void setCreditLimitCurrencyId(Integer creditLimitCurrencyId) {
+        this.creditLimitCurrencyId = creditLimitCurrencyId;
     }
 
     public LocalDate getCreditReviewDate() {
@@ -183,19 +197,19 @@ public class Counterparty extends AuditableEntity {
         this.creditReviewDate = creditReviewDate;
     }
 
-    public Integer getSettlementDays() {
+    public Short getSettlementDays() {
         return settlementDays;
     }
 
-    public void setSettlementDays(Integer settlementDays) {
+    public void setSettlementDays(Short settlementDays) {
         this.settlementDays = settlementDays;
     }
 
-    public Long getDefaultCurrencyId() {
+    public Integer getDefaultCurrencyId() {
         return defaultCurrencyId;
     }
 
-    public void setDefaultCurrencyId(Long defaultCurrencyId) {
+    public void setDefaultCurrencyId(Integer defaultCurrencyId) {
         this.defaultCurrencyId = defaultCurrencyId;
     }
 
@@ -207,11 +221,11 @@ public class Counterparty extends AuditableEntity {
         this.isIntercompany = isIntercompany;
     }
 
-    public Long getInternalEntityId() {
+    public Integer getInternalEntityId() {
         return internalEntityId;
     }
 
-    public void setInternalEntityId(Long internalEntityId) {
+    public void setInternalEntityId(Integer internalEntityId) {
         this.internalEntityId = internalEntityId;
     }
 
@@ -223,11 +237,11 @@ public class Counterparty extends AuditableEntity {
         this.isActive = isActive;
     }
 
-    public String getKycStatus() {
+    public Integer getKycStatus() {
         return kycStatus;
     }
 
-    public void setKycStatus(String kycStatus) {
+    public void setKycStatus(Integer kycStatus) {
         this.kycStatus = kycStatus;
     }
 
@@ -261,6 +275,22 @@ public class Counterparty extends AuditableEntity {
 
     public void setDeactivatedDate(LocalDate deactivatedDate) {
         this.deactivatedDate = deactivatedDate;
+    }
+
+    public Boolean getParentInd() {
+        return parentInd;
+    }
+
+    public void setParentInd(Boolean parentInd) {
+        this.parentInd = parentInd;
+    }
+
+    public Integer getParentCounterpartyId() {
+        return parentCounterpartyId;
+    }
+
+    public void setParentCounterpartyId(Integer parentCounterpartyId) {
+        this.parentCounterpartyId = parentCounterpartyId;
     }
 
     public String getNotes() {

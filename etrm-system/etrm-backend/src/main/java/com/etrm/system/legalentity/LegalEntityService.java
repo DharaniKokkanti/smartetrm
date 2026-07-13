@@ -27,7 +27,7 @@ public class LegalEntityService {
     }
 
     @Transactional(readOnly = true)
-    public LegalEntity get(Long id) {
+    public LegalEntity get(Integer id) {
         return repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("No legal entity with id " + id + "."));
     }
@@ -42,7 +42,7 @@ public class LegalEntityService {
         return repository.save(input);
     }
 
-    public LegalEntity update(Long id, LegalEntity input) {
+    public LegalEntity update(Integer id, LegalEntity input) {
         LegalEntity existing = get(id);
         // entity_code is immutable after creation — matches the frontend
         // form, which disables that field once editing
@@ -53,7 +53,7 @@ public class LegalEntityService {
         return repository.save(input);
     }
 
-    public void deactivate(Long id) {
+    public void deactivate(Integer id) {
         LegalEntity existing = get(id);
         existing.setIsActive(false);
         existing.setDeactivatedDate(LocalDate.now());

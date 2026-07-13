@@ -2,7 +2,7 @@ package com.etrm.system.auth;
 
 import com.etrm.system.rbac.UserRoleAssignment;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -13,11 +13,11 @@ import java.util.List;
  * (user_id, role_id), not user_id alone).
  */
 public record SystemUserResponse(
-        Long userId,
+        Integer userId,
         String username,
         String email,
         String fullName,
-        Long legalEntityId,
+        Integer legalEntityId,
         List<RoleSummary> roles,
         String department,
         String phone,
@@ -25,10 +25,10 @@ public record SystemUserResponse(
         String preferredLocale,
         String officeLocation,
         Boolean isActive,
-        Instant lastLogin,
-        Instant createdAt
+        LocalDateTime lastLogin,
+        LocalDateTime createdAt
 ) {
-    public record RoleSummary(Long assignmentId, Long roleId, String roleCode, String roleName, String status) {}
+    public record RoleSummary(Integer assignmentId, Integer roleId, String roleCode, String roleName, String status) {}
 
     public static SystemUserResponse of(AppUser u, List<UserRoleAssignment> assignments) {
         List<RoleSummary> roles = assignments.stream()

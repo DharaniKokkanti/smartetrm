@@ -8,7 +8,7 @@ public class ScreenFieldRegistry {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "field_id")
-    private Long fieldId;
+    private Integer fieldId;
 
     @Column(name = "screen_code", nullable = false, length = 100)
     private String screenCode;
@@ -31,8 +31,8 @@ public class ScreenFieldRegistry {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
-    public Long getFieldId() { return fieldId; }
-    public void setFieldId(Long fieldId) { this.fieldId = fieldId; }
+    public Integer getFieldId() { return fieldId; }
+    public void setFieldId(Integer fieldId) { this.fieldId = fieldId; }
     public String getScreenCode() { return screenCode; }
     public void setScreenCode(String screenCode) { this.screenCode = screenCode; }
     public String getFieldKey() { return fieldKey; }

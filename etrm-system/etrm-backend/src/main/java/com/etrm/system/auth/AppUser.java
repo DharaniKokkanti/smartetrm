@@ -8,7 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "app_user")
@@ -17,10 +17,10 @@ public class AppUser extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
-    private Long userId;
+    private Integer userId;
 
     @Column(name = "legal_entity_id", nullable = false)
-    private Long legalEntityId;
+    private Integer legalEntityId;
 
     @Column(name = "username", nullable = false, length = 100)
     private String username;
@@ -34,14 +34,16 @@ public class AppUser extends AuditableEntity {
     @Column(name = "full_name", nullable = false, length = 200)
     private String fullName;
 
+    // TINYINT in the DB — Hibernate maps java.lang.Short (not Integer) to
+    // TINYINT under the SQL Server dialect.
     @Column(name = "failed_login_count", nullable = false)
-    private Integer failedLoginCount = 0;
+    private Short failedLoginCount = 0;
 
     @Column(name = "locked_until")
-    private Instant lockedUntil;
+    private LocalDateTime lockedUntil;
 
     @Column(name = "last_login")
-    private Instant lastLogin;
+    private LocalDateTime lastLogin;
 
     @Column(name = "department", length = 100)
     private String department;
@@ -61,19 +63,19 @@ public class AppUser extends AuditableEntity {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
-    public Long getUserId() {
+    public Integer getUserId() {
         return userId;
     }
 
-    public void setUserId(Long userId) {
+    public void setUserId(Integer userId) {
         this.userId = userId;
     }
 
-    public Long getLegalEntityId() {
+    public Integer getLegalEntityId() {
         return legalEntityId;
     }
 
-    public void setLegalEntityId(Long legalEntityId) {
+    public void setLegalEntityId(Integer legalEntityId) {
         this.legalEntityId = legalEntityId;
     }
 
@@ -109,27 +111,27 @@ public class AppUser extends AuditableEntity {
         this.fullName = fullName;
     }
 
-    public Integer getFailedLoginCount() {
+    public Short getFailedLoginCount() {
         return failedLoginCount;
     }
 
-    public void setFailedLoginCount(Integer failedLoginCount) {
+    public void setFailedLoginCount(Short failedLoginCount) {
         this.failedLoginCount = failedLoginCount;
     }
 
-    public Instant getLockedUntil() {
+    public LocalDateTime getLockedUntil() {
         return lockedUntil;
     }
 
-    public void setLockedUntil(Instant lockedUntil) {
+    public void setLockedUntil(LocalDateTime lockedUntil) {
         this.lockedUntil = lockedUntil;
     }
 
-    public Instant getLastLogin() {
+    public LocalDateTime getLastLogin() {
         return lastLogin;
     }
 
-    public void setLastLogin(Instant lastLogin) {
+    public void setLastLogin(LocalDateTime lastLogin) {
         this.lastLogin = lastLogin;
     }
 

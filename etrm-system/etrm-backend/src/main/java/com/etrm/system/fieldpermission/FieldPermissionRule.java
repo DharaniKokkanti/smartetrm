@@ -8,7 +8,7 @@ public class FieldPermissionRule {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "rule_id")
-    private Long ruleId;
+    private Integer ruleId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "profile_id", nullable = false)
@@ -21,8 +21,8 @@ public class FieldPermissionRule {
     @Column(name = "field_permission", nullable = false, length = 10)
     private String fieldPermission = "EDIT";    // EDIT | VIEW | HIDDEN
 
-    public Long getRuleId() { return ruleId; }
-    public void setRuleId(Long ruleId) { this.ruleId = ruleId; }
+    public Integer getRuleId() { return ruleId; }
+    public void setRuleId(Integer ruleId) { this.ruleId = ruleId; }
     public FieldPermissionProfile getProfile() { return profile; }
     public void setProfile(FieldPermissionProfile profile) { this.profile = profile; }
     public ScreenFieldRegistry getField() { return field; }

@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 /**
  * Minimal but real login flow against dbo.app_user — bcrypt verification,
@@ -51,26 +51,26 @@ public class AuthController {
         if (!user.getIsActive()) {
             return unauthorized("This account is deactivated.");
         }
-        if (user.getLockedUntil() != null && user.getLockedUntil().isAfter(Instant.now())) {
+        if (user.getLockedUntil() != null && user.getLockedUntil().isAfter(LocalDateTime.now())) {
             return unauthorized("This account is temporarily locked due to repeated failed login attempts.");
         }
         if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
-            int attempts = user.getFailedLoginCount() + 1;
+            short attempts = (short) (user.getFailedLoginCount() + 1);
             user.setFailedLoginCount(attempts);
             if (attempts >= MAX_FAILED_ATTEMPTS) {
-                user.setLockedUntil(Instant.now().plusSeconds(LOCKOUT_MINUTES * 60));
+                user.setLockedUntil(LocalDateTime.now().plusSeconds(LOCKOUT_MINUTES * 60));
             }
             userRepository.save(user);
             return unauthorized("Invalid username or password.");
         }
 
-        user.setFailedLoginCount(0);
+        user.setFailedLoginCount((short) 0);
         user.setLockedUntil(null);
-        user.setLastLogin(Instant.now());
+        user.setLastLogin(LocalDateTime.now());
         userRepository.save(user);
 
-        String token = jwtService.generateToken(user.getUsername(), user.getUserId());
-        return ResponseEntity.ok(new LoginResponse(token, user.getUserId(), user.getUsername(), user.getFullName()));
+        String token = jwtService.generateToken(user.getUsername(), user.getUserId().longValue());
+        return ResponseEntity.ok(new LoginResponse(token, user.getUserId().longValue(), user.getUsername(), user.getFullName()));
     }
 
     private ResponseEntity<ProblemDetail> unauthorized(String detail) {

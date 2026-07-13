@@ -8,7 +8,7 @@ public class ObjectLockRule {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "lock_rule_id")
-    private Long lockRuleId;
+    private Integer lockRuleId;
 
     @Column(name = "screen_code", nullable = false, length = 100)
     private String screenCode;
@@ -38,8 +38,8 @@ public class ObjectLockRule {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
-    public Long getLockRuleId() { return lockRuleId; }
-    public void setLockRuleId(Long lockRuleId) { this.lockRuleId = lockRuleId; }
+    public Integer getLockRuleId() { return lockRuleId; }
+    public void setLockRuleId(Integer lockRuleId) { this.lockRuleId = lockRuleId; }
     public String getScreenCode() { return screenCode; }
     public void setScreenCode(String screenCode) { this.screenCode = screenCode; }
     public String getFieldKey() { return fieldKey; }

@@ -8,7 +8,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -82,7 +82,7 @@ public class RbacController {
     }
 
     @GetMapping("/roles/{id}")
-    public Map<String, Object> getRole(@PathVariable Long id) {
+    public Map<String, Object> getRole(@PathVariable Integer id) {
         UserRole role = roleRepo.findById(Objects.requireNonNull(id))
                 .orElseThrow(() -> new NotFoundException("Role " + id + " not found"));
         List<RoleFunction> functions = roleFunctionRepo.findByRoleRoleId(id);
@@ -111,7 +111,7 @@ public class RbacController {
 
     @PutMapping("/roles/{id}")
     @Transactional
-    public UserRole updateRole(@PathVariable Long id, @RequestBody RoleRequest body) {
+    public UserRole updateRole(@PathVariable Integer id, @RequestBody RoleRequest body) {
         UserRole role = roleRepo.findById(Objects.requireNonNull(id))
                 .orElseThrow(() -> new NotFoundException("Role " + id + " not found"));
         if ("SYSTEM".equals(role.getRoleType())) {
@@ -127,28 +127,28 @@ public class RbacController {
     }
 
     @PatchMapping("/roles/{id}/submit")
-    public UserRole submitRole(@PathVariable Long id) {
+    public UserRole submitRole(@PathVariable Integer id) {
         UserRole role = roleRepo.findById(Objects.requireNonNull(id))
                 .orElseThrow(() -> new NotFoundException("Role " + id + " not found"));
         role.setStatus("PENDING_APPROVAL");
-        role.setSubmittedAt(Instant.now());
+        role.setSubmittedAt(LocalDateTime.now());
         role.setUpdatedBy("system");
         return roleRepo.save(role);
     }
 
     @PatchMapping("/roles/{id}/approve")
-    public UserRole approveRole(@PathVariable Long id) {
+    public UserRole approveRole(@PathVariable Integer id) {
         UserRole role = roleRepo.findById(Objects.requireNonNull(id))
                 .orElseThrow(() -> new NotFoundException("Role " + id + " not found"));
         role.setStatus("APPROVED");
         role.setApprovedBy("system");
-        role.setApprovedAt(Instant.now());
+        role.setApprovedAt(LocalDateTime.now());
         role.setUpdatedBy("system");
         return roleRepo.save(role);
     }
 
     @PatchMapping("/roles/{id}/reject")
-    public UserRole rejectRole(@PathVariable Long id, @RequestBody Map<String, String> body) {
+    public UserRole rejectRole(@PathVariable Integer id, @RequestBody Map<String, String> body) {
         UserRole role = roleRepo.findById(Objects.requireNonNull(id))
                 .orElseThrow(() -> new NotFoundException("Role " + id + " not found"));
         role.setStatus("REJECTED");
@@ -165,14 +165,14 @@ public class RbacController {
     }
 
     @GetMapping("/users/{userId}/role-assignments")
-    public List<AssignmentResponse> listUserAssignments(@PathVariable Long userId) {
+    public List<AssignmentResponse> listUserAssignments(@PathVariable Integer userId) {
         return assignmentRepo.findByUserIdAndIsActiveTrue(userId).stream().map(this::toResponse).toList();
     }
 
     @PostMapping("/users/{userId}/role-assignments")
     @ResponseStatus(HttpStatus.CREATED)
-    public AssignmentResponse assignRole(@PathVariable Long userId, @RequestBody Map<String, Long> body) {
-        Long roleId = body.get("roleId");
+    public AssignmentResponse assignRole(@PathVariable Integer userId, @RequestBody Map<String, Integer> body) {
+        Integer roleId = body.get("roleId");
         UserRole role = roleRepo.findById(Objects.requireNonNull(roleId))
                 .orElseThrow(() -> new NotFoundException("Role " + roleId + " not found"));
         if (!"APPROVED".equals(role.getStatus())) {
@@ -192,17 +192,17 @@ public class RbacController {
     }
 
     @PatchMapping("/role-assignments/{id}/approve")
-    public AssignmentResponse approveAssignment(@PathVariable Long id) {
+    public AssignmentResponse approveAssignment(@PathVariable Integer id) {
         UserRoleAssignment a = assignmentRepo.findById(Objects.requireNonNull(id))
                 .orElseThrow(() -> new NotFoundException("Assignment " + id + " not found"));
         a.setStatus("ACTIVE");
         a.setApprovedBy("system");
-        a.setApprovedAt(Instant.now());
+        a.setApprovedAt(LocalDateTime.now());
         return toResponse(assignmentRepo.save(a));
     }
 
     @PatchMapping("/role-assignments/{id}/reject")
-    public AssignmentResponse rejectAssignment(@PathVariable Long id, @RequestBody Map<String, String> body) {
+    public AssignmentResponse rejectAssignment(@PathVariable Integer id, @RequestBody Map<String, String> body) {
         UserRoleAssignment a = assignmentRepo.findById(Objects.requireNonNull(id))
                 .orElseThrow(() -> new NotFoundException("Assignment " + id + " not found"));
         a.setStatus("REJECTED");
@@ -217,7 +217,7 @@ public class RbacController {
 
     @DeleteMapping("/users/{userId}/role-assignments/{assignmentId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void revokeAssignment(@PathVariable Long userId, @PathVariable Long assignmentId) {
+    public void revokeAssignment(@PathVariable Integer userId, @PathVariable Integer assignmentId) {
         UserRoleAssignment a = assignmentRepo.findById(Objects.requireNonNull(assignmentId))
                 .orElseThrow(() -> new NotFoundException("Assignment " + assignmentId + " not found"));
         a.setIsActive(false);
@@ -243,5 +243,5 @@ public class RbacController {
     // ── Request records ───────────────────────────────────────────────────────
 
     record RoleRequest(String roleCode, String roleName, String description, List<FunctionGrant> functions) {}
-    record FunctionGrant(Long functionId, String accessLevel) {}
+    record FunctionGrant(Integer functionId, String accessLevel) {}
 }

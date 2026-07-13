@@ -34,7 +34,7 @@ public class ParentCompanyGuaranteeController {
     @GetMapping
     public List<ParentCompanyGuarantee> list(
             @RequestParam(required = false) EntityType entityType,
-            @RequestParam(required = false) Long entityId
+            @RequestParam(required = false) Integer entityId
     ) {
         if (entityType != null && entityId != null) {
             return service.listForEntity(entityType, entityId);
@@ -48,12 +48,12 @@ public class ParentCompanyGuaranteeController {
     }
 
     @PutMapping("/{id}")
-    public ParentCompanyGuarantee update(@PathVariable Long id, @Valid @RequestBody ParentCompanyGuarantee input) {
+    public ParentCompanyGuarantee update(@PathVariable Integer id, @Valid @RequestBody ParentCompanyGuarantee input) {
         return service.update(id, input);
     }
 
     @PatchMapping("/{id}/deactivate")
-    public ResponseEntity<Void> deactivate(@PathVariable Long id) {
+    public ResponseEntity<Void> deactivate(@PathVariable Integer id) {
         service.deactivate(id);
         return ResponseEntity.noContent().build();
     }

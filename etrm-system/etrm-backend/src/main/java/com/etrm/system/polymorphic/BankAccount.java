@@ -18,20 +18,24 @@ public class BankAccount extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "bank_account_id")
-    private Long bankAccountId;
+    private Integer bankAccountId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "entity_type", nullable = false, length = 20)
     private EntityType entityType;
 
+    // entity_id is INT on bank_account (unlike address/contact, where it's
+    // BIGINT) — matches the real column exactly, not a copy-paste of theirs.
     @Column(name = "entity_id", nullable = false)
-    private Long entityId;
+    private Integer entityId;
 
-    @Column(name = "account_type", nullable = false, length = 20)
-    private String accountType;
+    // account_type became an INT FK to dbo.bank_account_type (code-to-id
+    // conversion sweep) — was VARCHAR(20) at this entity's original authoring.
+    @Column(name = "account_type", nullable = false)
+    private Integer accountType;
 
     @Column(name = "currency_id", nullable = false)
-    private Long currencyId;
+    private Integer currencyId;
 
     @Column(name = "is_primary", nullable = false)
     private Boolean isPrimary = false;
@@ -68,11 +72,11 @@ public class BankAccount extends AuditableEntity {
     @Column(name = "notes", length = 500)
     private String notes;
 
-    public Long getBankAccountId() {
+    public Integer getBankAccountId() {
         return bankAccountId;
     }
 
-    public void setBankAccountId(Long bankAccountId) {
+    public void setBankAccountId(Integer bankAccountId) {
         this.bankAccountId = bankAccountId;
     }
 
@@ -84,27 +88,27 @@ public class BankAccount extends AuditableEntity {
         this.entityType = entityType;
     }
 
-    public Long getEntityId() {
+    public Integer getEntityId() {
         return entityId;
     }
 
-    public void setEntityId(Long entityId) {
+    public void setEntityId(Integer entityId) {
         this.entityId = entityId;
     }
 
-    public String getAccountType() {
+    public Integer getAccountType() {
         return accountType;
     }
 
-    public void setAccountType(String accountType) {
+    public void setAccountType(Integer accountType) {
         this.accountType = accountType;
     }
 
-    public Long getCurrencyId() {
+    public Integer getCurrencyId() {
         return currencyId;
     }
 
-    public void setCurrencyId(Long currencyId) {
+    public void setCurrencyId(Integer currencyId) {
         this.currencyId = currencyId;
     }
 
