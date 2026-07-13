@@ -17,6 +17,15 @@ async function bootstrap() {
       onUnhandledRequest: 'bypass',
       quiet: true,
     });
+  } else if (import.meta.env.DEV && 'serviceWorker' in navigator) {
+    // MSW's service worker is registered at the browser/origin level, not
+    // tied to this Vite session — once started, it silently keeps
+    // intercepting every /api/v1/* request (answering with fake mock data)
+    // across reloads and even dev-server restarts, until explicitly
+    // unregistered. Self-heal here so flipping VITE_USE_MOCKS to false is
+    // enough on its own, without a manual DevTools step every time.
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(registrations.map((r) => r.unregister()));
   }
 
   createRoot(document.getElementById('root')!).render(

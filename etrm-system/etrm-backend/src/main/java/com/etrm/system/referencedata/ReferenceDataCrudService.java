@@ -58,6 +58,22 @@ public class ReferenceDataCrudService {
         }
     }
 
+    /** Code and short-name columns are conventionally uppercase everywhere
+     *  in this schema (ISO codes, LEI codes, entity/counterparty codes,
+     *  etc.) — normalize server-side so a lowercase value typed into any
+     *  client (the generic Tier 2 form, an Excel upload, a direct API call)
+     *  always lands uppercase, rather than relying on every UI to enforce
+     *  it. Matched by column name convention (snake_case), not per-table
+     *  config, so it covers all ~150 registered tables uniformly. */
+    private Object normalizeValue(String snakeCaseColumnName, Object value) {
+        if (!(value instanceof String s) || s.isEmpty()) return value;
+        boolean isCodeOrShortName =
+                snakeCaseColumnName.equals("code")
+                        || snakeCaseColumnName.equals("short_name")
+                        || snakeCaseColumnName.endsWith("_code");
+        return isCodeOrShortName ? s.toUpperCase() : value;
+    }
+
     public List<Map<String, Object>> listRows(String tableName) {
         assertSafeIdentifier(tableName, "table name");
         List<Map<String, Object>> rows = jdbc.queryForList("SELECT * FROM dbo." + tableName);
@@ -75,8 +91,9 @@ public class ReferenceDataCrudService {
             ColumnMetadata col = columnsByCamelName.get(entry.getKey());
             if (col == null || col.isPrimaryKey()) continue; // PK is identity-generated, never client-supplied
             validateValue(col, entry.getValue());
-            sqlColumns.add(NameUtils.toSnakeCase(entry.getKey()));
-            values.add(entry.getValue());
+            String snakeCaseColumn = NameUtils.toSnakeCase(entry.getKey());
+            sqlColumns.add(snakeCaseColumn);
+            values.add(normalizeValue(snakeCaseColumn, entry.getValue()));
         }
         // created_by / updated_by are NOT NULL on every master data table —
         // populate them here since this path bypasses JPA auditing entirely.
@@ -107,8 +124,9 @@ public class ReferenceDataCrudService {
             ColumnMetadata col = columnsByCamelName.get(entry.getKey());
             if (col == null || col.isPrimaryKey()) continue;
             validateValue(col, entry.getValue());
-            setClauses.add(NameUtils.toSnakeCase(entry.getKey()) + " = ?");
-            values.add(entry.getValue());
+            String snakeCaseColumn = NameUtils.toSnakeCase(entry.getKey());
+            setClauses.add(snakeCaseColumn + " = ?");
+            values.add(normalizeValue(snakeCaseColumn, entry.getValue()));
         }
         setClauses.add("updated_by = ?");
         values.add("SYSTEM");

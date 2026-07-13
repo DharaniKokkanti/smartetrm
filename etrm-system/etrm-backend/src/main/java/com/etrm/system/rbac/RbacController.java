@@ -93,11 +93,14 @@ public class RbacController {
     @ResponseStatus(HttpStatus.CREATED)
     @Transactional
     public UserRole createRole(@RequestBody RoleRequest body) {
-        if (roleRepo.existsByRoleCode(body.roleCode())) {
-            throw new ConflictException("Role code '" + body.roleCode() + "' already exists.");
+        // role_code is a code-style field — conventionally uppercase
+        // everywhere in this schema — so normalize regardless of entry case.
+        String roleCode = body.roleCode() == null ? null : body.roleCode().toUpperCase();
+        if (roleRepo.existsByRoleCode(roleCode)) {
+            throw new ConflictException("Role code '" + roleCode + "' already exists.");
         }
         UserRole role = new UserRole();
-        role.setRoleCode(body.roleCode());
+        role.setRoleCode(roleCode);
         role.setRoleName(body.roleName());
         role.setDescription(body.description());
         role.setRoleType("CUSTOM");

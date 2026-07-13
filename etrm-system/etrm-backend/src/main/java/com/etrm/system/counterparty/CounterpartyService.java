@@ -29,7 +29,16 @@ public class CounterpartyService {
                 .orElseThrow(() -> new NotFoundException("No counterparty with id " + id + "."));
     }
 
+    /** cp_code and short_name are code-style fields — conventionally
+     *  uppercase everywhere in this schema — so normalize server-side
+     *  regardless of how the value was cased on entry. */
+    private void normalizeCodeFields(Counterparty input) {
+        if (input.getCpCode() != null) input.setCpCode(input.getCpCode().toUpperCase());
+        if (input.getShortName() != null) input.setShortName(input.getShortName().toUpperCase());
+    }
+
     public Counterparty create(Counterparty input) {
+        normalizeCodeFields(input);
         if (repository.existsByCpCodeIgnoreCase(input.getCpCode())) {
             throw new ConflictException("Counterparty Code \"" + input.getCpCode() + "\" already exists.");
         }
@@ -41,6 +50,7 @@ public class CounterpartyService {
 
     public Counterparty update(Integer id, Counterparty input) {
         Counterparty existing = get(id);
+        normalizeCodeFields(input);
         input.setCounterpartyId(id);
         input.setCpCode(existing.getCpCode()); // immutable after creation, matches the frontend form
         input.setIsActive(existing.getIsActive());

@@ -32,7 +32,16 @@ public class LegalEntityService {
                 .orElseThrow(() -> new NotFoundException("No legal entity with id " + id + "."));
     }
 
+    /** entity_code and short_name are code-style fields — conventionally
+     *  uppercase everywhere in this schema — so normalize server-side
+     *  regardless of how the value was cased on entry. */
+    private void normalizeCodeFields(LegalEntity input) {
+        if (input.getEntityCode() != null) input.setEntityCode(input.getEntityCode().toUpperCase());
+        if (input.getShortName() != null) input.setShortName(input.getShortName().toUpperCase());
+    }
+
     public LegalEntity create(LegalEntity input) {
+        normalizeCodeFields(input);
         if (repository.existsByEntityCodeIgnoreCase(input.getEntityCode())) {
             throw new ConflictException("Entity Code \"" + input.getEntityCode() + "\" already exists.");
         }
@@ -44,6 +53,7 @@ public class LegalEntityService {
 
     public LegalEntity update(Integer id, LegalEntity input) {
         LegalEntity existing = get(id);
+        normalizeCodeFields(input);
         // entity_code is immutable after creation — matches the frontend
         // form, which disables that field once editing
         input.setLegalEntityId(id);
@@ -72,6 +82,7 @@ public class LegalEntityService {
         List<RejectedRow> rejected = new java.util.ArrayList<>();
 
         for (LegalEntity input : inputs) {
+            normalizeCodeFields(input);
             if (repository.existsByEntityCodeIgnoreCase(input.getEntityCode())) {
                 rejected.add(new RejectedRow(input, "Entity Code \"" + input.getEntityCode() + "\" already exists."));
                 continue;
