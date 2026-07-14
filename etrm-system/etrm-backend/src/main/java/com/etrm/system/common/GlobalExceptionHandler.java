@@ -7,6 +7,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -27,6 +28,12 @@ import java.util.regex.Pattern;
 public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    private final JdbcTemplate jdbc;
+
+    public GlobalExceptionHandler(JdbcTemplate jdbc) {
+        this.jdbc = jdbc;
+    }
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ProblemDetail> handleNotFound(NotFoundException ex) {
@@ -67,8 +74,9 @@ public class GlobalExceptionHandler {
         Matcher m = UNIQUE_VIOLATION.matcher(driverMessage);
         if (m.find()) {
             String value = m.group(3);
+            String fieldLabel = describeConstraintFields(m.group(1));
             return "A record with this value already exists"
-                    + (value != null ? " (" + value + ")" : "") + " — " + m.group(1) + " must be unique.";
+                    + (value != null ? " (" + value + ")" : "") + " — " + fieldLabel + " must be unique.";
         }
         m = PK_VIOLATION.matcher(driverMessage);
         if (m.find()) {
@@ -87,6 +95,50 @@ public class GlobalExceptionHandler {
             return "The value provided isn't valid for this field (violates rule \"" + m.group(1) + "\").";
         }
         return null;
+    }
+
+    /**
+     * Unique/PK constraint names in this schema follow no single naming
+     * convention (some are `uq_<table>_<column>`, others are abbreviated
+     * like `uq_mb_code` or `uq_ltd_facility`) — so the constraint name alone
+     * can't be turned into a field label by parsing it. Instead this looks
+     * up the real column(s) backing the constraint via SQL Server's own
+     * catalog views (every UNIQUE/PRIMARY KEY constraint is backed by an
+     * index of the same name) and humanizes those column names the same way
+     * ReferenceDataMetadataService.humanizeLabel does for Tier 2 forms, so
+     * the message matches what the user actually sees on screen. Falls back
+     * to the raw constraint name if the lookup fails (e.g. against the H2
+     * dev profile, which doesn't have SQL Server's sys.* catalog views) —
+     * still better than a raw driver message, never worse.
+     */
+    private String describeConstraintFields(String constraintName) {
+        try {
+            List<String> columns = jdbc.queryForList("""
+                    SELECT c.name AS column_name
+                    FROM sys.indexes i
+                    JOIN sys.index_columns ic ON ic.object_id = i.object_id AND ic.index_id = i.index_id
+                    JOIN sys.columns c ON c.object_id = ic.object_id AND c.column_id = ic.column_id
+                    WHERE i.name = ?
+                    ORDER BY ic.key_ordinal
+                    """, String.class, constraintName);
+            if (columns.isEmpty()) return constraintName;
+            return columns.stream().map(this::humanizeColumn)
+                    .reduce((a, b) -> a + " + " + b).orElse(constraintName);
+        } catch (Exception e) {
+            log.debug("Could not resolve columns for constraint \"{}\": {}", constraintName, e.getMessage());
+            return constraintName;
+        }
+    }
+
+    private String humanizeColumn(String snakeCaseColumn) {
+        String[] parts = snakeCaseColumn.split("_");
+        StringBuilder sb = new StringBuilder();
+        for (String part : parts) {
+            if (part.isEmpty()) continue;
+            if (!sb.isEmpty()) sb.append(' ');
+            sb.append(Character.toUpperCase(part.charAt(0))).append(part.substring(1));
+        }
+        return sb.toString();
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)

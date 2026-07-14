@@ -211,12 +211,45 @@ public class ReferenceDataCrudService {
         return getRow(tableName, displayName, id);
     }
 
+    /**
+     * Master/reference data is never hard-deleted, only deactivated — a
+     * physical DELETE here can orphan foreign keys held by historical trades,
+     * orders, and other records that reference a "static data" row long after
+     * it's no longer current (e.g. a lookup_value, credit_term, or commodity
+     * row used on a trade booked years ago). Every registered Tier 2 table is
+     * expected to carry an is_active flag for exactly this reason; tables
+     * that don't have one can't be deactivated so deletion is refused
+     * outright rather than silently falling back to a hard delete.
+     */
     public void deleteRow(String tableName, String displayName, Long id) {
         assertSafeIdentifier(tableName, "table name");
         TableMetadata metadata = metadataService.getMetadata(tableName, displayName);
+        Map<String, ColumnMetadata> columnsByCamelName = indexByCamelName(metadata);
+        if (!columnsByCamelName.containsKey("isActive")) {
+            throw new IllegalStateException(
+                    "\"" + tableName + "\" has no active/inactive flag, so rows cannot be deactivated or deleted.");
+        }
         String pkColumn = NameUtils.toSnakeCase(metadata.primaryKeyColumn());
-        int deleted = jdbc.update("DELETE FROM dbo." + tableName + " WHERE " + pkColumn + " = ?", id);
-        if (deleted == 0) {
+
+        List<String> setClauses = new ArrayList<>();
+        setClauses.add("is_active = 0");
+        if (columnsByCamelName.containsKey("updatedBy")) {
+            setClauses.add("updated_by = ?");
+        }
+        if (columnsByCamelName.containsKey("updatedAt")) {
+            setClauses.add("updated_at = SYSUTCDATETIME()");
+        }
+        String sql = "UPDATE dbo." + tableName + " SET " + String.join(", ", setClauses)
+                + " WHERE " + pkColumn + " = ?";
+
+        List<Object> params = new ArrayList<>();
+        if (columnsByCamelName.containsKey("updatedBy")) {
+            params.add(currentUser());
+        }
+        params.add(id);
+
+        int deactivated = jdbc.update(sql, params.toArray());
+        if (deactivated == 0) {
             throw new NotFoundException("No row with id " + id + " in \"" + tableName + "\".");
         }
     }

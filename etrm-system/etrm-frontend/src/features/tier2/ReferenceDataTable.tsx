@@ -18,7 +18,7 @@ import {
   Spin,
   Alert,
 } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, MinusOutlined, ExpandOutlined, CompressOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, StopOutlined, MinusOutlined, ExpandOutlined, CompressOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 import type { RegistryEntry, ColumnMetadata, ReferenceDataRow } from '@models/referenceData';
@@ -421,6 +421,11 @@ export function ReferenceDataTable({ table }: Props) {
   // doc comment. Keyed by countryCode (string), distinct from the numeric
   // countryFkOptions above used by `foreign_key` columns.
   const hasCountryColumn = useMemo(() => editableColumns.some((c) => ISO_3166_COLS.has(c.name)), [editableColumns]);
+
+  // Master/reference data is never hard-deleted server-side (ReferenceDataCrudService.deleteRow
+  // sets is_active = 0 instead) — a table without an isActive column can't be
+  // deactivated at all, so its delete action would just 403 if shown.
+  const hasIsActive = useMemo(() => editableColumns.some((c) => c.name === 'isActive'), [editableColumns]);
   const countryOptions = useMemo(
     () => (hasCountryColumn ? countryRows.map((c) => ({ value: c.countryCode, label: `${c.countryCode} — ${c.countryName}` })) : []),
     [hasCountryColumn, countryRows],
@@ -557,12 +562,14 @@ export function ReferenceDataTable({ table }: Props) {
               onClick={() => openEdit(row)}
             />
           )}
-          {table.allowDelete && (
+          {table.allowDelete && hasIsActive && row.isActive !== false && (
             <Popconfirm
-              title="Delete this row?"
+              title="Deactivate this row?"
+              okText="Deactivate"
+              okButtonProps={{ danger: true }}
               onConfirm={() => deleteRow.mutate(row[pk] as number)}
             >
-              <Button type="text" size="small" danger icon={<DeleteOutlined />} />
+              <Button type="text" size="small" danger icon={<StopOutlined />} />
             </Popconfirm>
           )}
         </Space>

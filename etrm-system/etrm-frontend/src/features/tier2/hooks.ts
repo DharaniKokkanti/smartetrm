@@ -53,8 +53,8 @@ export function useDeleteRow(tableName: string) {
     mutationFn: (id: number) => referenceDataApi.deleteRow(tableName, id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reference-data', tableName, 'rows'] });
-      message.success('Deleted.');
+      message.success('Deactivated.');
     },
-    onError: (err: ProblemDetail) => message.error(err.detail ?? err.title ?? 'Delete failed.'),
+    onError: (err: ProblemDetail) => message.error(err.detail ?? err.title ?? 'Deactivate failed.'),
   });
 }
