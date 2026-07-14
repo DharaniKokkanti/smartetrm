@@ -1178,19 +1178,33 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('description',           'Description',         'string',      true,  false, 500),
     ],
   },
+  // V104 — external_system_type: promotes external_system.system_type from a
+  // hardcoded CHECK-constrained string into a real Static Data table + FK, so
+  // new integration categories can be added by an admin without a migration.
+  external_system_type: {
+    tableName: 'external_system_type', displayName: 'External System Types', primaryKeyColumn: 'externalSystemTypeId', isTemporal: false,
+    columns: [
+      col('externalSystemTypeId', 'ID',          'number',  false, true,  null),
+      col('typeCode',             'Code',        'string',  false, false, 50),
+      col('typeName',             'Name',        'string',  false, false, 100),
+      col('description',          'Description', 'string',  true,  false, 500),
+      col('sortOrder',            'Sort Order',  'number',  false, false, null),
+      col('isActive',             'Active',      'boolean', false, false, null),
+    ],
+  },
   external_system: {
     tableName: 'external_system', displayName: 'External Systems', primaryKeyColumn: 'externalSystemId', isTemporal: false,
     columns: [
-      col('externalSystemId', 'ID',             'number',  false, true,  null),
-      col('systemCode',       'Code',           'string',  false, false, 30),
-      col('systemName',       'Name',           'string',  false, false, 150),
-      col('systemType',       'System Type',    'enum',    false, false, null, ['MARKET_DATA', 'ERP', 'CTRM', 'SHIPPING', 'BANK', 'REGULATORY', 'RISK', 'AIS_TRACKING', 'OTHER']),
-      col('vendorName',       'Vendor',         'string',  true,  false, 150),
-      col('connectionType',   'Connection Type', 'enum',   true,  false, null, ['API', 'SFTP', 'FILE', 'MANUAL', 'MESSAGE_QUEUE']),
-      col('baseUrl',          'Base URL',       'string',  true,  false, 500),
-      col('ownerTeam',        'Owner Team',     'string',  true,  false, 100),
-      col('isActive',         'Active',         'boolean', false, false, null),
-      col('notes',            'Notes',          'string',  true,  false, 500),
+      col('externalSystemId',     'ID',             'number',  false, true,  null),
+      col('systemCode',           'Code',           'string',  false, false, 30),
+      col('systemName',           'Name',           'string',  false, false, 150),
+      col('externalSystemTypeId', 'System Type',    'foreign_key', false, false, null, null, 'external_system_type'),
+      col('vendorName',           'Vendor',         'string',  true,  false, 150),
+      col('connectionType',       'Connection Type', 'enum',   true,  false, null, ['API', 'SFTP', 'FILE', 'MANUAL', 'MESSAGE_QUEUE']),
+      col('baseUrl',              'Base URL',       'string',  true,  false, 500),
+      col('ownerTeam',            'Owner Team',     'string',  true,  false, 100),
+      col('isActive',             'Active',         'boolean', false, false, null),
+      col('notes',                'Notes',          'string',  true,  false, 500),
     ],
   },
 
@@ -1460,6 +1474,8 @@ export const registrySeed: RegistryEntry[] = [
   { registryId: 225, tableName: 'event_category',  displayName: 'Event Categories', moduleGroup: 'Organization & Users', subGroup: 'System',     description: 'Top-level classification for system workflow/lifecycle events — Trade, Delivery, Settlement, Risk, Credit, Market Data, Regulatory.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 10 },
   { registryId: 226, tableName: 'event_type',      displayName: 'Event Types',     moduleGroup: 'Organization & Users', subGroup: 'System',     description: 'Full catalogue of system event codes with severity, SLA, and workflow flags (requires action/approval, triggers notification) — drives the notification engine and audit trail.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 11 },
   { registryId: 227, tableName: 'external_system', displayName: 'External Systems', moduleGroup: 'Organization & Users', subGroup: 'System',    description: 'Integration endpoints — market data vendors, ERP, CTRM, shipping, bank, regulatory systems — for the polymorphic external_system_mapping crosswalk.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 12 },
+  // V104 — external_system_type: parent lookup for external_system.externalSystemTypeId
+  { registryId: 242, tableName: 'external_system_type', displayName: 'External System Types', moduleGroup: 'Organization & Users', subGroup: 'System', description: 'Integration categories — Market Data, ERP, CTRM, Shipping, Bank, Regulatory, Risk, AIS Tracking, Other. Parent table for external_system.externalSystemTypeId FK.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 11 },
   // V72 — credit_term: reusable credit-facility term template, referenced by cp_commercial_terms
   { registryId: 228, tableName: 'credit_term', displayName: 'Credit Terms', moduleGroup: 'Counterparties & Agreements', subGroup: 'Terms', description: 'Reusable credit facility terms — credit period, required collateral type, margin call threshold, netting eligibility. Assigned to a counterparty via CP Commercial Terms.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
   // V73 — fx_rate, settlement_calendar, trade_repository
@@ -1885,10 +1901,21 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { eventTypeId: 5, categoryId: 5, eventCode: 'MARGIN_CALL_ISSUED', eventName: 'Margin Call Issued',           entityType: 'MARGIN', severity: 'ALERT',   requiresAction: true,  requiresApproval: false, triggersNotification: true,  slaMinutes: 1440, isReportable: false, isActive: true, description: 'Raised when exposure crosses the CSA threshold.' },
     { eventTypeId: 6, categoryId: 4, eventCode: 'CREDIT_LIMIT_BREACH', eventName: 'Credit Limit Breach',         entityType: 'CREDIT', severity: 'BREACH',  requiresAction: true,  requiresApproval: false, triggersNotification: true,  slaMinutes: 60,   isReportable: false, isActive: true, description: 'Utilisation exceeds the credit limit\'s critical threshold.' },
   ],
+  external_system_type: [
+    { externalSystemTypeId: 1, typeCode: 'MARKET_DATA',  typeName: 'Market Data',  description: null, sortOrder: 1, isActive: true },
+    { externalSystemTypeId: 2, typeCode: 'ERP',           typeName: 'ERP',          description: null, sortOrder: 2, isActive: true },
+    { externalSystemTypeId: 3, typeCode: 'CTRM',          typeName: 'CTRM',         description: null, sortOrder: 3, isActive: true },
+    { externalSystemTypeId: 4, typeCode: 'SHIPPING',      typeName: 'Shipping',     description: null, sortOrder: 4, isActive: true },
+    { externalSystemTypeId: 5, typeCode: 'BANK',          typeName: 'Bank',         description: null, sortOrder: 5, isActive: true },
+    { externalSystemTypeId: 6, typeCode: 'REGULATORY',    typeName: 'Regulatory',   description: null, sortOrder: 6, isActive: true },
+    { externalSystemTypeId: 7, typeCode: 'RISK',          typeName: 'Risk',         description: null, sortOrder: 7, isActive: true },
+    { externalSystemTypeId: 8, typeCode: 'AIS_TRACKING',  typeName: 'AIS Tracking', description: null, sortOrder: 8, isActive: true },
+    { externalSystemTypeId: 9, typeCode: 'OTHER',         typeName: 'Other',       description: null, sortOrder: 9, isActive: true },
+  ],
   external_system: [
-    { externalSystemId: 1, systemCode: 'BLOOMBERG', systemName: 'Bloomberg Terminal',    systemType: 'MARKET_DATA', vendorName: 'Bloomberg L.P.',    connectionType: 'API',      baseUrl: null, ownerTeam: 'Market Data', isActive: true, notes: 'Real-time and historical price feed.' },
-    { externalSystemId: 2, systemCode: 'SAP_ERP',   systemName: 'SAP ERP',               systemType: 'ERP',        vendorName: 'SAP SE',            connectionType: 'API',      baseUrl: null, ownerTeam: 'Finance',     isActive: true, notes: 'GL posting and invoicing integration.' },
-    { externalSystemId: 3, systemCode: 'DTCC_GTR',  systemName: 'DTCC Global Trade Repository', systemType: 'REGULATORY', vendorName: 'DTCC',       connectionType: 'SFTP',     baseUrl: null, ownerTeam: 'Compliance',  isActive: true, notes: 'EMIR/Dodd-Frank trade repository submission.' },
+    { externalSystemId: 1, systemCode: 'BLOOMBERG', systemName: 'Bloomberg Terminal',    externalSystemTypeId: 1, vendorName: 'Bloomberg L.P.',    connectionType: 'API',      baseUrl: null, ownerTeam: 'Market Data', isActive: true, notes: 'Real-time and historical price feed.' },
+    { externalSystemId: 2, systemCode: 'SAP_ERP',   systemName: 'SAP ERP',               externalSystemTypeId: 2, vendorName: 'SAP SE',            connectionType: 'API',      baseUrl: null, ownerTeam: 'Finance',     isActive: true, notes: 'GL posting and invoicing integration.' },
+    { externalSystemId: 3, systemCode: 'DTCC_GTR',  systemName: 'DTCC Global Trade Repository', externalSystemTypeId: 6, vendorName: 'DTCC',       connectionType: 'SFTP',     baseUrl: null, ownerTeam: 'Compliance',  isActive: true, notes: 'EMIR/Dodd-Frank trade repository submission.' },
   ],
   credit_term: [
     { creditTermId: 1,  termCode: 'NET_30',           termName: 'Net 30 Days',                creditPeriodDays: 30, collateralType: 'NONE',             marginCallThreshold: null,    marginCallCurrencyId: 1, nettingEligible: false, requiresIsda: false, description: 'Open unsecured credit, due 30 days from invoice.', isActive: true },

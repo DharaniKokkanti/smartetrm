@@ -92,9 +92,27 @@ public class GlobalExceptionHandler {
         }
         m = CHECK_VIOLATION.matcher(driverMessage);
         if (m.find()) {
-            return "The value provided isn't valid for this field (violates rule \"" + m.group(1) + "\").";
+            return "\"" + describeCheckConstraintField(m.group(1)) + "\" has a value that isn't valid for this field.";
         }
         return null;
+    }
+
+    private String describeCheckConstraintField(String constraintName) {
+        try {
+            List<String> columns = jdbc.queryForList("""
+                    SELECT col.name AS column_name
+                    FROM sys.check_constraints cc
+                    LEFT JOIN sys.columns col
+                      ON cc.parent_object_id = col.object_id AND cc.parent_column_id = col.column_id
+                    WHERE cc.name = ? AND cc.parent_column_id != 0
+                    """, String.class, constraintName);
+            if (columns.isEmpty() || columns.get(0) == null) return constraintName;
+            return columns.stream().filter(java.util.Objects::nonNull).map(this::humanizeColumn)
+                    .reduce((a, b) -> a + " + " + b).orElse(constraintName);
+        } catch (Exception e) {
+            log.debug("Could not resolve column for CHECK constraint \"{}\": {}", constraintName, e.getMessage());
+            return constraintName;
+        }
     }
 
     /**
