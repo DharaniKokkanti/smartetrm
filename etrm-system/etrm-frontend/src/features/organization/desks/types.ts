@@ -9,11 +9,10 @@ export type CommodityType = (typeof COMMODITY_TYPES)[number];
 
 // V55 converted commodity_type on desk/book/gl_account/trader_commodity_limit
 // specifically (not the tables above) from VARCHAR+CHECK to an INT FK on
-// dbo.lookup_value(lookup_id). This mirrors that seed order exactly so the
-// mock/UI numeric ids agree with what a real lookup_value row would carry.
-// There's still no `lookup_value` mock table in the frontend, so this is the
-// nearest equivalent: a small id->code->label table colocated with the
-// canonical CommodityType vocabulary above.
+// lookup_value; V85 then pulled it into its own dedicated dbo.commodity_type
+// table (lookup_value's 'commodity_type'/'book_type' categories were never
+// backfilled — see V85__lookup_category.sql). This mirrors dbo.commodity_type's
+// real seed order so the mock/UI numeric ids agree with the live table.
 export interface CommodityTypeLookupRow { lookupId: number; code: CommodityType; label: string }
 export const COMMODITY_TYPE_LOOKUP: CommodityTypeLookupRow[] = [
   { lookupId: 1, code: 'OIL', label: 'Oil' },
@@ -44,7 +43,7 @@ export interface Desk {
   deskName: string;
   legalEntityId: number;
   legalEntityCode: string;
-  // FK to lookup_value(lookup_id), category='commodity_type' — see COMMODITY_TYPE_LOOKUP above.
+  // FK to dbo.commodity_type(commodity_type_id) — see COMMODITY_TYPE_LOOKUP above.
   commodityType: number | null;
   headTraderId: number | null;
   headTraderName: string | null;

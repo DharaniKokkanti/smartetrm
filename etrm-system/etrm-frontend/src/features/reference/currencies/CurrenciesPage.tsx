@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Space, Popconfirm, Tag, Drawer, Form, Input, InputNumber, Switch } from 'antd';
+import { Button, Space, Popconfirm, Tag, Drawer, Form, Input, InputNumber, Select, Switch } from 'antd';
 import { EditOutlined, StopOutlined, StarFilled } from '@ant-design/icons';
 import type { ColDef } from 'ag-grid-community';
 import { PageHeader } from '@components/layout/PageHeader';
@@ -9,15 +9,26 @@ import { hint } from '@components/smart/FieldHint';
 import { useCurrencies, useSaveCurrency, useDeactivateCurrency } from './hooks';
 import type { Currency, CurrencyInput } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { useCountries } from '@features/reference/countries/hooks';
 
 export function CurrenciesPage() {
   const { data, isLoading, refetch } = useCurrencies();
+  const { data: countries } = useCountries();
   const save = useSaveCurrency();
   const deactivate = useDeactivateCurrency();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Currency | null>(null);
   const [form] = Form.useForm<CurrencyInput>();
   useFormDraft('ref-currencies', { form, open, setOpen, editing, setEditing });
+
+  const countryOptions = useMemo(
+    () => (countries ?? []).map((c) => ({ value: c.countryId, label: `${c.countryCode} — ${c.countryName}` })),
+    [countries],
+  );
+  const countryCodeById = useMemo(
+    () => new Map((countries ?? []).map((c) => [c.countryId, c.countryCode])),
+    [countries],
+  );
 
   function openNew() { setEditing(null); form.resetFields(); form.setFieldsValue({ decimalPlaces: 2, isBaseCurrency: false, isActive: true }); setOpen(true); }
   function openEdit(r: Currency) { setEditing(r); form.setFieldsValue({ ...r }); setOpen(true); }
@@ -32,7 +43,8 @@ export function CurrenciesPage() {
       cellRenderer: (p: { value: string }) => <Tag color="blue" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{p.value}</Tag> },
     { field: 'currencyName', headerName: 'Currency Name', flex: 1.5, minWidth: 180 },
     { field: 'symbol', headerName: 'Symbol', width: 70, cellRenderer: (p: { value: string }) => <span style={{ fontSize: 16 }}>{p.value}</span> },
-    { field: 'countryCode', headerName: 'Country', width: 80, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },
+    { field: 'countryId', headerName: 'Country', width: 80, cellClass: 'cell-mono',
+      valueFormatter: (p) => (p.value != null ? countryCodeById.get(p.value) ?? '—' : '—') },
     { field: 'decimalPlaces', headerName: 'Decimals', width: 90, type: 'numericColumn' },
     { field: 'isBaseCurrency', headerName: 'Base', width: 70,
       cellRenderer: (p: { value: boolean }) => p.value ? <StarFilled style={{ color: '#faad14' }} /> : null },
@@ -48,7 +60,7 @@ export function CurrenciesPage() {
           )}
         </Space>
       )},
-  ], [deactivate]);
+  ], [deactivate, countryCodeById]);
 
   return (
     <>
@@ -66,8 +78,8 @@ export function CurrenciesPage() {
           <Form.Item name="symbol" label="Symbol" rules={[{ required: true }]}>
             <Input placeholder="$" maxLength={4} />
           </Form.Item>
-          <Form.Item name="countryCode" label={hint('Country Code', 'ISO 3166-1 alpha-2 country code. Leave blank for supranational currencies (EUR).', 'US')}>
-            <Input placeholder="US" maxLength={2} style={{ textTransform: 'uppercase', fontFamily: 'monospace' }} />
+          <Form.Item name="countryId" label={hint('Country', 'Leave blank for supranational currencies (EUR).')}>
+            <Select showSearch optionFilterProp="label" options={countryOptions} allowClear placeholder="Select country…" />
           </Form.Item>
           <Form.Item name="decimalPlaces" label={hint('Decimal Places', 'JPY = 0, most currencies = 2. Affects rounding on all trade valuations in this currency.')}>
             <InputNumber min={0} max={8} style={{ width: '100%' }} />

@@ -18,6 +18,7 @@ import { downloadBlob, generateHolidayTemplate } from './excelTemplateHolidays';
 import { parseHolidayUpload } from './excelUploadHolidays';
 import { HolidayUploadReviewModal } from './HolidayUploadReviewModal';
 import { useCountries } from '@features/reference/countries/hooks';
+import { useCurrencies } from '@features/reference/currencies/hooks';
 
 const TYPE_COLOR: Record<CalendarType, string> = {
   BANKING: 'blue', COMMODITY: 'gold', EXCHANGE: 'purple', CUSTOM: 'default',
@@ -142,6 +143,9 @@ export function HolidayCalendarsPage() {
   const { data: countries = [] } = useCountries();
   const countryOptions = countries.map((c) => ({ value: c.countryId, label: `${c.countryCode} — ${c.countryName}` }));
   const countryLabelById = new Map(countries.map((c) => [c.countryId, `${c.countryCode} — ${c.countryName}`]));
+  const { data: currencies = [] } = useCurrencies();
+  const currencyOptions = currencies.map((c) => ({ value: c.currencyId, label: c.currencyCode }));
+  const currencyCodeById = new Map(currencies.map((c) => [c.currencyId, c.currencyCode]));
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<HolidayCalendar | null>(null);
   const [viewingCal, setViewingCal] = useState<HolidayCalendar | null>(null);
@@ -151,7 +155,7 @@ export function HolidayCalendarsPage() {
   function openNew() { setEditing(null); form.resetFields(); form.setFieldValue('isActive', true); setOpen(true); }
   function openEdit(c: HolidayCalendar) {
     setEditing(c);
-    form.setFieldsValue({ calendarCode: c.calendarCode, calendarName: c.calendarName, calendarType: c.calendarType, countryId: c.countryId ?? undefined, currencyCode: c.currencyCode ?? undefined, description: c.description ?? undefined, isActive: c.isActive });
+    form.setFieldsValue({ calendarCode: c.calendarCode, calendarName: c.calendarName, calendarType: c.calendarType, countryId: c.countryId ?? undefined, currencyId: c.currencyId ?? undefined, description: c.description ?? undefined, isActive: c.isActive });
     setOpen(true);
   }
   async function submit(closeAfter = true) {
@@ -166,7 +170,8 @@ export function HolidayCalendarsPage() {
     { field: 'calendarName', headerName: 'Calendar', flex: 1.4, minWidth: 200 },
     { field: 'calendarType', headerName: 'Type', width: 110, cellRenderer: (p: { value: CalendarType }) => <Tag color={TYPE_COLOR[p.value] ?? 'default'}>{p.value}</Tag> },
     { field: 'countryId', headerName: 'Country', width: 130, valueFormatter: (p) => (p.value != null ? countryLabelById.get(p.value) ?? String(p.value) : '—') },
-    { field: 'currencyCode', headerName: 'CCY', width: 75, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—',
+    { field: 'currencyId', headerName: 'CCY', width: 75, cellClass: 'cell-mono',
+      valueFormatter: (p) => (p.value != null ? currencyCodeById.get(p.value) ?? '—' : '—'),
       tooltipValueGetter: () => 'Settlement currency this calendar covers — e.g. USD (Fed), GBP (BoE), EUR (ECB)' },
     { field: 'holidayCount', headerName: 'Holidays', width: 100, cellClass: 'cell-mono',
       tooltipValueGetter: () => 'Total holiday dates across all years in this calendar' },
@@ -186,7 +191,7 @@ export function HolidayCalendarsPage() {
         </Space>
       ),
     },
-  ], [deactivate, countryLabelById]);
+  ], [deactivate, countryLabelById, currencyCodeById]);
 
   return (
     <>
@@ -211,8 +216,8 @@ export function HolidayCalendarsPage() {
             <Form.Item name="countryId" label={hint('Country', 'Country whose public holidays are included.', 'GB, US, JP')} style={{ flex: 1 }}>
               <Select options={countryOptions} showSearch optionFilterProp="label" allowClear placeholder="Select country" />
             </Form.Item>
-            <Form.Item name="currencyCode" label={hint('Currency', '3-letter ISO currency code — links this calendar to its settlement currency. LON → GBP, NYC → USD, ECB → EUR. Used to determine applicable calendar for FX payments.', 'GBP')} style={{ flex: 1 }}>
-              <Input placeholder="GBP" maxLength={3} style={{ fontFamily: 'monospace', textTransform: 'uppercase' }} />
+            <Form.Item name="currencyId" label={hint('Currency', 'Links this calendar to its settlement currency. LON → GBP, NYC → USD, ECB → EUR. Used to determine applicable calendar for FX payments.')} style={{ flex: 1 }}>
+              <Select options={currencyOptions} showSearch optionFilterProp="label" allowClear placeholder="Select currency" />
             </Form.Item>
           </Space>
           <Form.Item name="description" label="Description">

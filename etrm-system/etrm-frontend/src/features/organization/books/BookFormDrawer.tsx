@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Drawer, Form, Input, Select, Button, Space, Switch, InputNumber } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useSaveBook } from './hooks';
-import { BOOK_TYPES, type Book, type BookInput } from './types';
+import { BOOK_TYPE_LOOKUP, type Book, type BookInput } from './types';
 import { COMMODITY_TYPE_LOOKUP } from '../desks/types';
 import { useCurrencies } from '@features/reference/currencies/hooks';
 import { useDraftValues } from '@components/smart/formDraft';
@@ -47,7 +47,7 @@ export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
           isActive:            editing.isActive,
         } as unknown as BookInput);
       } else {
-        form.setFieldsValue({ isActive: true, bookType: 'TRADING', baseCurrencyId: 1 });
+        form.setFieldsValue({ isActive: true, bookType: 1, baseCurrencyId: 1 });
       }
     }
   }, [open, editing, form]);
@@ -93,7 +93,7 @@ export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
           label={hint('Book Type', 'TRADING = active risk-taking book. HEDGE = offsets exposure from other books. FLAT/HOUSE/PROP — see book type reference for the full distinction.')}
           rules={[{ required: true }]}
         >
-          <Select options={BOOK_TYPES.map((t) => ({ label: t, value: t }))} />
+          <Select options={BOOK_TYPE_LOOKUP.map((t) => ({ label: t.label, value: t.bookTypeId }))} />
         </Form.Item>
         <Form.Item
           name="deskId"

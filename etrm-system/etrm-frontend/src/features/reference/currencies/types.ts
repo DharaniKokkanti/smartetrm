@@ -3,7 +3,7 @@ export interface Currency {
   currencyCode: string;
   currencyName: string;
   symbol: string;
-  countryCode: string | null;
+  countryId: number | null;
   decimalPlaces: number;
   isBaseCurrency: boolean;
   isActive: boolean;

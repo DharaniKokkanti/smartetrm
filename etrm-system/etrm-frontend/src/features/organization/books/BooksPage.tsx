@@ -7,17 +7,18 @@ import { SmartGrid } from '@components/smart/SmartGrid';
 import { ActiveTag } from '@components/smart/StatusTag';
 import { useBooks, useDeactivateBook } from './hooks';
 import { commodityLabel } from '../desks/types';
-import type { Book, BookType } from './types';
+import { bookTypeLabel } from './types';
+import type { Book } from './types';
 import { BookFormDrawer } from './BookFormDrawer';
 import { useDraftState } from '@components/smart/formDraft';
 
-const BOOK_TYPE_COLOR: Record<BookType, string> = {
-  TRADING: 'blue',
-  HEDGING: 'cyan',
-  ARBITRAGE: 'purple',
-  PROP: 'magenta',
-  CLIENT: 'orange',
-  RISK_MGMT: 'gold',
+const BOOK_TYPE_COLOR: Record<number, string> = {
+  1: 'blue',   // TRADING
+  2: 'cyan',   // HEDGING
+  3: 'purple', // ARBITRAGE
+  4: 'magenta', // PROP
+  5: 'orange', // CLIENT
+  6: 'gold',   // RISK_MGMT
 };
 
 export function BooksPage() {
@@ -34,7 +35,7 @@ export function BooksPage() {
       field: 'bookType',
       headerName: 'Type',
       width: 130,
-      cellRenderer: (p: { value: BookType }) => <Tag color={BOOK_TYPE_COLOR[p.value]}>{p.value}</Tag>,
+      cellRenderer: (p: { value: number }) => <Tag color={BOOK_TYPE_COLOR[p.value]}>{bookTypeLabel(p.value)}</Tag>,
     },
     { field: 'deskCode', headerName: 'Desk', width: 130, cellClass: 'cell-mono' },
     { field: 'legalEntityCode', headerName: 'Entity', width: 110, cellClass: 'cell-mono' },

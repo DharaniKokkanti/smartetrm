@@ -5,10 +5,16 @@ description: How to actually run and drive SmartETRM to verify a change, instead
 
 # Verifying a change in SmartETRM
 
-The app is **100% MSW-mock-driven today** — the real Spring Boot backend
-(`etrm-system/etrm-backend`) and SQL Server DB are not runnable in this
-environment (no docker-compose, no reachable `localhost:1433`). The actual
-user-facing runtime surface is the frontend against its MSW mocks.
+The frontend defaults to MSW mocks, but **a real Spring Boot backend + SQL
+Server DB can be runnable here** — don't assume otherwise without
+checking. `docker ps` first: if `etrm-sqlserver` is `Up`/`healthy`, there's
+a real `ETRM_DB` reachable at `localhost:1433`, and backend/DB changes can
+be verified end-to-end, not just compiled. (This was wrongly documented as
+never-possible in an earlier revision of this file — confirmed working
+2026-07-14: a live container with a real, migrated `ETRM_DB` was already
+running, just needed `.env` sourced correctly — see "Backend / DB changes"
+below.) If `docker ps` shows nothing, then yes, fall back to mocks-only as
+described for the frontend below.
 
 ## Launch
 
@@ -76,16 +82,73 @@ async function openAdmin(itemText) {
 
 ## Backend / DB changes
 
-Cannot be runtime-verified here (no live DB). Instead:
-- `cd etrm-system/etrm-backend && mvn -q -o compile` — but the module has
-  **pre-existing, unrelated compile errors** in `CounterpartyController.java`
-  and `ReferenceDataController.java` (confirmed via `git stash` that these
-  fail identically on a clean checkout). A clean `mvn compile` is not
-  achievable at all right now — check that *your* touched files produce no
-  *new* errors in the output, not that the whole build is green.
-- SQL migrations: verify structurally (full `CREATE TABLE` re-read, byte-diff
-  the `database/NN_*.sql` and `etrm-backend/.../VNN__*.sql` copies) — there's
-  no SQL Server to actually run Flyway against.
+**Check `docker ps` for `etrm-sqlserver` first.** If it's up, verify DB
+changes for real — this is far stronger than compile-only checking and has
+caught real bugs compile-checking alone missed (Hibernate `ddl-auto:
+validate` catches column-type mismatches like `CHAR` vs `VARCHAR` or
+`TINYINT`/`SMALLINT` vs `Integer` that `mvn compile` can't see at all,
+since Java doesn't know the DB's real column types).
+
+The real, closed-loop process for any migration + entity change:
+
+1. `cd etrm-system/etrm-backend && mvn -q -o compile && mvn -q -o test-compile`
+   — as of 2026-07-14 this module compiles clean with no pre-existing
+   errors (an earlier revision of this file wrongly claimed
+   `CounterpartyController`/`ReferenceDataController` had unrelated
+   compile errors — not reproduced, don't assume it without checking).
+2. Mirror the migration byte-identical into both
+   `etrm-backend/src/main/resources/db/migration/VNN__*.sql` and
+   `database/NN_*.sql` (project convention, both must match).
+3. **Start the real backend against the live DB** — this is what actually
+   runs Flyway and Hibernate's schema validation:
+   ```bash
+   cd etrm-system/etrm-backend
+   (lsof -ti:8080 | xargs -r kill -9) 2>/dev/null
+   set -a; source .env; set +a   # .env is NOT auto-loaded by plain `mvn spring-boot:run`
+   nohup mvn -q -o spring-boot:run > /tmp/backend-boot.log 2>&1 &
+   ```
+   Wait for `Started EtrmBackendApplication` (success) or
+   `APPLICATION FAILED TO START`/a Flyway or Hibernate exception (failure)
+   in the log — `grep -qE` in a loop, don't sleep-guess.
+4. **Read the actual failure, don't guess.** Flyway errors name the exact
+   SQL error (e.g. `Error Code 2714: object already exists` — usually
+   orphaned state from a prior failed migration attempt; verify with a
+   direct `sqlcmd` query before touching anything, and never drop/alter
+   live data without explicit user confirmation first). Hibernate
+   `SchemaManagementException` names the exact column and both the found
+   vs. expected type — fix the entity, recompile, restart, repeat until
+   `Started EtrmBackendApplication` appears with zero errors.
+5. **Smoke-test the actual endpoint(s) you built**, not just that boot
+   succeeded:
+   ```bash
+   TOKEN=$(curl -s -X POST http://localhost:8080/api/v1/auth/login \
+     -H "Content-Type: application/json" \
+     -d '{"username":"admin","password":"<see below>"}' \
+     | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
+   curl -s http://localhost:8080/api/v1/<your-new-endpoint> \
+     -H "Authorization: Bearer $TOKEN"
+   ```
+6. Kill the backend when done (`lsof -ti:8080 | xargs -r kill -9`) unless
+   the user is actively using it against the real frontend — ask if
+   unsure, don't silently kill a session they may be relying on.
+
+**Querying/mutating the live DB directly** (`docker exec etrm-sqlserver
+/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$(grep
+MSSQL_SA_PASSWORD .env | cut -d= -f2)" -C -d ETRM_DB -Q "..."`, password
+piped directly into the command, never echoed on its own) is fine for
+read-only diagnostics. Any destructive action (DROP, DELETE, UPDATE
+touching real rows) needs the same care as any other risky action — narrow
+scope, confirm nothing depends on it first, and get explicit user
+confirmation before running it, exactly as for any other irreversible
+change in this codebase.
+
+**Login credentials**: real accounts exist in `ETRM_DB` already (separate
+from — and more complete than — `database/test-data/`'s fictional
+"Meridian Trading" seed data, which targets a from-scratch DB). Check
+`dbo.app_user` for what's actually there
+(`SELECT user_id, username FROM dbo.app_user` — never select
+`password_hash` itself into output) before assuming any particular
+username/password combination works.
 
 ## Cleanup
 

@@ -2,6 +2,7 @@ package com.etrm.system.referencedata;
 
 import com.etrm.system.common.FieldValidation;
 import com.etrm.system.common.NotFoundException;
+import org.springframework.data.domain.AuditorAware;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -34,10 +35,22 @@ public class ReferenceDataCrudService {
 
     private final JdbcTemplate jdbc;
     private final ReferenceDataMetadataService metadataService;
+    private final AuditorAware<String> auditorAware;
 
-    public ReferenceDataCrudService(JdbcTemplate jdbc, ReferenceDataMetadataService metadataService) {
+    public ReferenceDataCrudService(JdbcTemplate jdbc, ReferenceDataMetadataService metadataService, AuditorAware<String> auditorAware) {
         this.jdbc = jdbc;
         this.metadataService = metadataService;
+        this.auditorAware = auditorAware;
+    }
+
+    // This service bypasses JPA entirely (raw JdbcTemplate SQL), so it never
+    // gets the @CreatedBy/@LastModifiedBy auditing JpaAuditingConfig wires up
+    // for entity-backed tables — reuse the same auditorProvider bean here
+    // instead of a hardcoded "SYSTEM" literal, so the generic Tier 2
+    // endpoint attributes rows to the real logged-in user just like every
+    // other write path in the app.
+    private String currentUser() {
+        return auditorAware.getCurrentAuditor().orElse("SYSTEM");
     }
 
     private void assertSafeIdentifier(String identifier, String what) {
@@ -130,11 +143,11 @@ public class ReferenceDataCrudService {
         // metadata says exists.
         if (columnsByCamelName.containsKey("createdBy")) {
             sqlColumns.add("created_by");
-            values.add("SYSTEM");
+            values.add(currentUser());
         }
         if (columnsByCamelName.containsKey("updatedBy")) {
             sqlColumns.add("updated_by");
-            values.add("SYSTEM");
+            values.add(currentUser());
         }
 
         String columnList = String.join(", ", sqlColumns);
@@ -181,7 +194,7 @@ public class ReferenceDataCrudService {
         }
         if (columnsByCamelName.containsKey("updatedBy")) {
             setClauses.add("updated_by = ?");
-            values.add("SYSTEM");
+            values.add(currentUser());
         }
         if (columnsByCamelName.containsKey("updatedAt")) {
             setClauses.add("updated_at = SYSUTCDATETIME()");

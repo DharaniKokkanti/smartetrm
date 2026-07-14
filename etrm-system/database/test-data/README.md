@@ -29,15 +29,22 @@ database/test-data/
 
 ## Current snapshot
 
-**[`snapshots/2026-07-12/`](snapshots/2026-07-12/)** — 24 core Tier 1
-tables, one consistent fictional dataset ("Meridian Trading": 3 legal
-entities across UK/US/Singapore, plus counterparties, traders, books,
-vessels, locations, etc. that all reference each other correctly). See its
-own `README.md` for the full table list and verification notes.
+**[`snapshots/2026-07-14/`](snapshots/2026-07-14/)** — same 24 core Tier 1
+tables and dataset as `2026-07-12/`, correcting a real bug: `app_user`'s
+`password_hash` values were a literal placeholder string, not a real
+bcrypt hash, so login never actually worked against a real backend seeded
+with `2026-07-12/`. Also adds a 5th `app_user` (`admin`) as the designated
+super-user account plus one `user_role_assignment` row granting it the
+ADMIN role. See its own `README.md` for the full story and how to apply it
+on top of an already-`2026-07-12`-seeded database.
 
 **Prerequisite:** apply `database/consolidated/snapshots/2026-07-12/`
 first (schema, then seed) — this data only adds rows on top of the
 already-seeded reference data (currencies, countries, type codes, etc.).
+
+Superseded: [`snapshots/2026-07-12/`](snapshots/2026-07-12/) — left in
+place per the immutability rule below, but has the password bug above;
+prefer `2026-07-14/` for any new database.
 
 ## The release rule: snapshots are immutable, dated, and additive
 

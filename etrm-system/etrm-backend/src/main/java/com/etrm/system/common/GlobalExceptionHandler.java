@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Every error response across the API uses Spring's built-in ProblemDetail
@@ -40,6 +42,53 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(pd);
     }
 
+    private static final Pattern UNIQUE_VIOLATION = Pattern.compile(
+            "Violation of UNIQUE KEY constraint '(.+?)'\\. Cannot insert duplicate key in object '(.+?)'\\.(?: The duplicate key value is \\((.+?)\\)\\.)?");
+    private static final Pattern PK_VIOLATION = Pattern.compile(
+            "Violation of PRIMARY KEY constraint '(.+?)'\\. Cannot insert duplicate key in object '(.+?)'\\.(?: The duplicate key value is \\((.+?)\\)\\.)?");
+    private static final Pattern FK_VIOLATION = Pattern.compile(
+            "The \\w+ statement conflicted with the (?:FOREIGN KEY|REFERENCE) constraint \"(.+?)\"\\. The conflict occurred in database \"(.+?)\", table \"(.+?)\", column '(.+?)'\\.");
+    private static final Pattern NULL_VIOLATION = Pattern.compile(
+            "Cannot insert the value NULL into column '(.+?)', table '(.+?)'; column does not allow nulls\\.");
+    private static final Pattern CHECK_VIOLATION = Pattern.compile(
+            "The \\w+ statement conflicted with the CHECK constraint \"(.+?)\"\\.");
+
+    /**
+     * Turns the SQL Server driver's own (already single-line, non-stack-trace)
+     * message into something a user can act on — which column/constraint,
+     * not just "a constraint was violated". Falls back to the old generic
+     * message if the driver message doesn't match one of the constraint
+     * violation shapes above (new SQL Server version, different phrasing,
+     * etc.) — never surfaces the raw driver message unparsed, since that
+     * can leak table/schema internals not meant for the client.
+     */
+    private String describeConstraintViolation(String driverMessage) {
+        if (driverMessage == null) return null;
+        Matcher m = UNIQUE_VIOLATION.matcher(driverMessage);
+        if (m.find()) {
+            String value = m.group(3);
+            return "A record with this value already exists"
+                    + (value != null ? " (" + value + ")" : "") + " — " + m.group(1) + " must be unique.";
+        }
+        m = PK_VIOLATION.matcher(driverMessage);
+        if (m.find()) {
+            return "A record with this identifier already exists.";
+        }
+        m = FK_VIOLATION.matcher(driverMessage);
+        if (m.find()) {
+            return "\"" + m.group(4) + "\" references a row that doesn't exist in the related table.";
+        }
+        m = NULL_VIOLATION.matcher(driverMessage);
+        if (m.find()) {
+            return "\"" + m.group(1) + "\" is required and cannot be left blank.";
+        }
+        m = CHECK_VIOLATION.matcher(driverMessage);
+        if (m.find()) {
+            return "The value provided isn't valid for this field (violates rule \"" + m.group(1) + "\").";
+        }
+        return null;
+    }
+
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ProblemDetail> handleDataIntegrity(DataIntegrityViolationException ex) {
         // Catches DB-level CHECK/FK/UNIQUE constraint violations that slip
@@ -48,10 +97,12 @@ public class GlobalExceptionHandler {
         // rarely fire in practice but must never surface a raw SQL stack
         // trace to the client when it does.
         log.warn("Data integrity violation: {}", ex.getMessage());
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(
-                HttpStatus.CONFLICT,
-                "The request violates a database constraint (duplicate value, invalid reference, or invalid value)."
-        );
+        Throwable root = ex.getMostSpecificCause();
+        String detail = describeConstraintViolation(root != null ? root.getMessage() : null);
+        if (detail == null) {
+            detail = "The request violates a database constraint (duplicate value, invalid reference, or invalid value).";
+        }
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, detail);
         pd.setTitle("Constraint Violation");
         return ResponseEntity.status(HttpStatus.CONFLICT).body(pd);
     }
