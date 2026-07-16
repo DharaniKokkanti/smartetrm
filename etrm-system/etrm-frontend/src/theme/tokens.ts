@@ -152,7 +152,7 @@ export const motion = {
 /** Maps a module_group string (from master_data_table_registry) to its rail color. */
 export function moduleColor(group: string, palette: typeof color = color): string {
   const key = group.toLowerCase();
-  if (key.includes('freight') || key.includes('logistics')) return palette.moduleLogistics;
+  if (key.includes('freight') || key.includes('logistics') || key.includes('voyage') || key.includes('charter')) return palette.moduleLogistics;
   if (key.includes('power')) return palette.modulePower;
   if (key.includes('trade')) return palette.moduleTrade;
   if (key.includes('position')) return palette.modulePosition;

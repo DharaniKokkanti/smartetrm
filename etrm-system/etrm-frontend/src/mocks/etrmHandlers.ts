@@ -1873,7 +1873,358 @@ function tradeOrderOptions(): Record<string, unknown>[] {
   }));
 }
 
+// ─── VOYAGE & CHARTER OPS (V108) ──────────────────────────────────────────────
+function hydrateVoyage(input: Record<string, unknown>): Record<string, unknown> {
+  const vessel = (vesselsStore as Array<Record<string, unknown>>).find((v) => v['vesselId'] === input['vesselId']);
+  const cp = (charterPartiesStore as Array<Record<string, unknown>>).find((c) => c['charterPartyId'] === input['charterPartyId']);
+  const loadLoc = (locationsStore as Array<Record<string, unknown>>).find((l) => l['locationId'] === input['loadLocationId']);
+  const dischargeLoc = (locationsStore as Array<Record<string, unknown>>).find((l) => l['locationId'] === input['dischargeLocationId']);
+  return {
+    ...input,
+    vesselName: vessel?.['vesselName'] ?? null,
+    cpReference: cp?.['cpReference'] ?? null,
+    loadLocationName: loadLoc?.['locationName'] ?? null,
+    dischargeLocationName: dischargeLoc?.['locationName'] ?? null,
+  };
+}
+const voyagesStore: unknown[] = [
+  { voyageId: 1, voyageNumber: 'VOY-2026-0001', vesselId: 1, vesselName: 'NORDIC LUNA', charterPartyId: 1, cpReference: 'CP-2026-VLCC-001', status: 'IN_PROGRESS', ladenBallastStatus: 'LADEN', laycanStart: '2026-06-20', laycanEnd: '2026-06-25', loadLocationId: 2, loadLocationName: 'Ras Tanura Terminal', dischargeLocationId: 6, dischargeLocationName: 'Port of Rotterdam', eta: null, etd: null, notes: null, isActive: true, createdAt: '2026-06-15T00:00:00Z', createdBy: 'mock-user', updatedAt: '2026-06-15T00:00:00Z', updatedBy: 'mock-user' },
+];
+
+function hydrateCharterParty(input: Record<string, unknown>): Record<string, unknown> {
+  const cpType = (referenceRowSeed.charter_party_type as unknown as Array<Record<string, unknown>>).find((t) => t['charterPartyTypeId'] === input['charterPartyTypeId']);
+  const vessel = (vesselsStore as Array<Record<string, unknown>>).find((v) => v['vesselId'] === input['vesselId']);
+  const cp = (cpStore as unknown as Array<Record<string, unknown>>).find((c) => c['counterpartyId'] === input['counterpartyId']);
+  const ccy = (referenceRowSeed.currency as unknown as Array<Record<string, unknown>>).find((c) => c['currencyId'] === input['hireCurrencyId']);
+  const laytimeTerm = (referenceRowSeed.laytime_term_template as unknown as Array<Record<string, unknown>>).find((t) => t['laytimeTermId'] === input['laytimeTermId']);
+  const deliveryLoc = (locationsStore as Array<Record<string, unknown>>).find((l) => l['locationId'] === input['deliveryLocationId']);
+  const redeliveryLoc = (locationsStore as Array<Record<string, unknown>>).find((l) => l['locationId'] === input['redeliveryLocationId']);
+  return {
+    ...input,
+    charterPartyTypeCode: cpType?.['typeCode'] ?? null,
+    vesselName: vessel?.['vesselName'] ?? null,
+    counterpartyName: cp?.['legalName'] ?? null,
+    hireCurrencyCode: ccy?.['currencyCode'] ?? null,
+    laytimeTermCode: laytimeTerm?.['termCode'] ?? null,
+    deliveryLocationName: deliveryLoc?.['locationName'] ?? null,
+    redeliveryLocationName: redeliveryLoc?.['locationName'] ?? null,
+  };
+}
+const charterPartiesStore: unknown[] = [
+  { charterPartyId: 1, cpReference: 'CP-2026-VLCC-001', charterPartyTypeId: 1, charterPartyTypeCode: 'VOYAGE', vesselId: 1, vesselName: 'NORDIC LUNA', counterpartyId: 1, counterpartyName: 'Shell Trading International', direction: 'CHARTER_IN', hireRate: null, hireCurrencyId: null, hireCurrencyCode: null, hirePaymentFrequency: null, freightRate: 18.75, freightRateBasis: 'PER_TONNE', laytimeTermId: 2, laytimeTermCode: 'SHEX', demurrageRatePerDay: 45000, dispatchRatePerDay: 22500, deliveryLocationId: null, deliveryLocationName: null, redeliveryLocationId: null, redeliveryLocationName: null, deliveryDate: null, redeliveryDateEstimate: null, bunkerClauseBasis: null, bunkerClauseTolerancePct: null, optionPeriodMonths: null, status: 'FIXED', notes: 'AG-Europe VLCC voyage fixture.', isActive: true, createdAt: '2026-06-10T00:00:00Z', createdBy: 'mock-user', updatedAt: '2026-06-10T00:00:00Z', updatedBy: 'mock-user' },
+];
+
+function hydrateOffHireEvent(input: Record<string, unknown>): Record<string, unknown> {
+  const reason = (referenceRowSeed.off_hire_reason_type as unknown as Array<Record<string, unknown>>).find((r) => r['offHireReasonTypeId'] === input['offHireReasonTypeId']);
+  return { ...input, reasonCode: reason?.['reasonCode'] ?? null };
+}
+const charterOffHireEventsStore: unknown[] = [];
+
+function hydrateCargoParcel(input: Record<string, unknown>): Record<string, unknown> {
+  const product = (referenceRowSeed.product as unknown as Array<Record<string, unknown>>).find((p) => p['productId'] === input['productId']);
+  const uom = (uomStore as Array<Record<string, unknown>>).find((u) => u['uomId'] === input['uomId']);
+  const loadLoc = (locationsStore as Array<Record<string, unknown>>).find((l) => l['locationId'] === input['loadTerminalLocationId']);
+  const dischargeLoc = (locationsStore as Array<Record<string, unknown>>).find((l) => l['locationId'] === input['dischargeTerminalLocationId']);
+  return {
+    ...input,
+    productName: product?.['productName'] ?? null,
+    commodityType: product ? 'OIL' : null,
+    uomCode: uom?.['uomCode'] ?? null,
+    loadTerminalName: loadLoc?.['locationName'] ?? null,
+    dischargeTerminalName: dischargeLoc?.['locationName'] ?? null,
+  };
+}
+const voyageCargoParcelsStore: unknown[] = [
+  { cargoParcelId: 1, voyageId: 1, productId: 1, productName: 'Brent Crude Oil', commodityType: 'OIL', quantity: 2000000, uomId: 1, uomCode: 'BBL', loadTerminalLocationId: 2, loadTerminalName: 'Ras Tanura Terminal', dischargeTerminalLocationId: 6, dischargeTerminalName: 'Port of Rotterdam', tradeOrderId: null, tradeItemId: null, notes: null, isActive: true, createdAt: '2026-06-15T00:00:00Z', createdBy: 'mock-user', updatedAt: '2026-06-15T00:00:00Z', updatedBy: 'mock-user' },
+];
+
+function hydrateBunkerStem(input: Record<string, unknown>): Record<string, unknown> {
+  const vessel = (vesselsStore as Array<Record<string, unknown>>).find((v) => v['vesselId'] === input['vesselId']);
+  const fuelGrade = (referenceRowSeed.bunker_fuel_grade as unknown as Array<Record<string, unknown>>).find((f) => f['fuelGradeId'] === input['fuelGradeId']);
+  const ccy = (referenceRowSeed.currency as unknown as Array<Record<string, unknown>>).find((c) => c['currencyId'] === input['currencyId']);
+  const supplier = (cpStore as unknown as Array<Record<string, unknown>>).find((c) => c['counterpartyId'] === input['supplierCounterpartyId']);
+  const port = (locationsStore as Array<Record<string, unknown>>).find((l) => l['locationId'] === input['portLocationId']);
+  return {
+    ...input,
+    vesselName: vessel?.['vesselName'] ?? null,
+    fuelGradeCode: fuelGrade?.['gradeCode'] ?? null,
+    currencyCode: ccy?.['currencyCode'] ?? null,
+    supplierName: supplier?.['legalName'] ?? null,
+    portLocationName: port?.['locationName'] ?? null,
+  };
+}
+const bunkerStemsStore: unknown[] = [
+  { bunkerStemId: 1, voyageId: 1, vesselId: 1, vesselName: 'NORDIC LUNA', fuelGradeId: 1, fuelGradeCode: 'VLSFO', quantityMt: 1200, pricePerMt: 620.5, currencyId: 1, currencyCode: 'USD', supplierCounterpartyId: null, supplierName: null, portLocationId: 2, portLocationName: 'Ras Tanura Terminal', robBeforeMt: 300, robAfterMt: 1500, status: 'DELIVERED', stemDate: '2026-06-19', notes: null, isActive: true, createdAt: '2026-06-19T00:00:00Z', createdBy: 'mock-user', updatedAt: '2026-06-19T00:00:00Z', updatedBy: 'mock-user' },
+];
+
+const bunkerRobLedgerStore: unknown[] = [
+  { robLedgerId: 1, vesselId: 1, vesselName: 'NORDIC LUNA', fuelGradeId: 1, fuelGradeCode: 'VLSFO', eventType: 'STEM', eventTime: '2026-06-19T00:00:00Z', quantityChangeMt: 1200, robAfterMt: 1500, voyageId: 1, voyageLeg: null, engineType: null, sourceBunkerStemId: 1, notes: 'Bunker stem #1 (DELIVERED)', createdAt: '2026-06-19T00:00:00Z', createdBy: 'mock-user' },
+];
+
+function hydrateSofEvent(input: Record<string, unknown>): Record<string, unknown> {
+  const port = (locationsStore as Array<Record<string, unknown>>).find((l) => l['locationId'] === input['portLocationId']);
+  const eventType = (referenceRowSeed.sof_event_type as unknown as Array<Record<string, unknown>>).find((t) => t['sofEventTypeId'] === input['sofEventTypeId']);
+  return { ...input, portLocationName: port?.['locationName'] ?? null, eventCode: eventType?.['eventCode'] ?? null };
+}
+const voyageSofEventsStore: unknown[] = [
+  { sofEventId: 1, voyageId: 1, portLocationId: 2, portLocationName: 'Ras Tanura Terminal', portCallSequence: 1, sofEventTypeId: 1, eventCode: 'NOR_TENDERED', eventTimestamp: '2026-06-19T06:00:00Z', remarks: null, isManualEntry: true, createdAt: '2026-06-19T06:00:00Z', createdBy: 'mock-user', updatedAt: '2026-06-19T06:00:00Z', updatedBy: 'mock-user' },
+];
+
+function hydrateLaytimeCalculation(input: Record<string, unknown>): Record<string, unknown> {
+  const port = (locationsStore as Array<Record<string, unknown>>).find((l) => l['locationId'] === input['portLocationId']);
+  const laytimeTerm = (referenceRowSeed.laytime_term_template as unknown as Array<Record<string, unknown>>).find((t) => t['laytimeTermId'] === input['laytimeTermId']);
+  const ccy = (referenceRowSeed.currency as unknown as Array<Record<string, unknown>>).find((c) => c['currencyId'] === input['currencyId']);
+  return {
+    ...input,
+    portLocationName: port?.['locationName'] ?? null,
+    laytimeTermCode: laytimeTerm?.['termCode'] ?? null,
+    currencyCode: ccy?.['currencyCode'] ?? null,
+  };
+}
+const laytimeCalculationsStore: unknown[] = [];
+
 export const etrmHandlers = [
+  // Voyage & Charter Ops (V108)
+  http.get(`${API}/voyage-ops/voyages`, ({ request }) => {
+    const url = new URL(request.url);
+    const vesselId = url.searchParams.get('vesselId');
+    const charterPartyId = url.searchParams.get('charterPartyId');
+    let rows = voyagesStore as Array<Record<string, unknown>>;
+    if (vesselId) rows = rows.filter((r) => r['vesselId'] === Number(vesselId));
+    if (charterPartyId) rows = rows.filter((r) => r['charterPartyId'] === Number(charterPartyId));
+    return HttpResponse.json(rows);
+  }),
+  http.get(`${API}/voyage-ops/voyages/:id`, ({ params }) => {
+    const row = (voyagesStore as Array<Record<string, unknown>>).find((r) => r['voyageId'] === Number(params.id));
+    if (!row) return problem(404, 'Not Found', `Voyage ${String(params.id)} not found.`);
+    return HttpResponse.json(row);
+  }),
+  http.post(`${API}/voyage-ops/voyages`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const now_ = now();
+    const row = { ...hydrateVoyage(input), voyageId: nextId(), createdAt: now_, createdBy: 'mock-user', updatedAt: now_, updatedBy: 'mock-user' };
+    voyagesStore.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/voyage-ops/voyages/:id`, async ({ params, request }) => {
+    const s = voyagesStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['voyageId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Voyage ${String(params.id)} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    s[idx] = { ...s[idx], ...hydrateVoyage({ ...s[idx], ...input }), updatedAt: now() };
+    return HttpResponse.json(s[idx]);
+  }),
+  http.patch(`${API}/voyage-ops/voyages/:id/deactivate`, ({ params }) => {
+    const s = voyagesStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['voyageId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Voyage ${String(params.id)} not found.`);
+    s[idx] = { ...s[idx], isActive: false };
+    return new HttpResponse(null, { status: 204 });
+  }),
+
+  http.get(`${API}/voyage-ops/charter-parties`, ({ request }) => {
+    const url = new URL(request.url);
+    const vesselId = url.searchParams.get('vesselId');
+    const counterpartyId = url.searchParams.get('counterpartyId');
+    let rows = charterPartiesStore as Array<Record<string, unknown>>;
+    if (vesselId) rows = rows.filter((r) => r['vesselId'] === Number(vesselId));
+    if (counterpartyId) rows = rows.filter((r) => r['counterpartyId'] === Number(counterpartyId));
+    return HttpResponse.json(rows);
+  }),
+  http.get(`${API}/voyage-ops/charter-parties/:id`, ({ params }) => {
+    const row = (charterPartiesStore as Array<Record<string, unknown>>).find((r) => r['charterPartyId'] === Number(params.id));
+    if (!row) return problem(404, 'Not Found', `Charter party ${String(params.id)} not found.`);
+    return HttpResponse.json(row);
+  }),
+  http.post(`${API}/voyage-ops/charter-parties`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const now_ = now();
+    const row = { ...hydrateCharterParty(input), charterPartyId: nextId(), createdAt: now_, createdBy: 'mock-user', updatedAt: now_, updatedBy: 'mock-user' };
+    charterPartiesStore.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/voyage-ops/charter-parties/:id`, async ({ params, request }) => {
+    const s = charterPartiesStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['charterPartyId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Charter party ${String(params.id)} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    s[idx] = { ...s[idx], ...hydrateCharterParty({ ...s[idx], ...input }), updatedAt: now() };
+    return HttpResponse.json(s[idx]);
+  }),
+  http.patch(`${API}/voyage-ops/charter-parties/:id/deactivate`, ({ params }) => {
+    const s = charterPartiesStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['charterPartyId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Charter party ${String(params.id)} not found.`);
+    s[idx] = { ...s[idx], isActive: false };
+    return new HttpResponse(null, { status: 204 });
+  }),
+
+  http.get(`${API}/voyage-ops/off-hire-events`, ({ request }) => {
+    const url = new URL(request.url);
+    const charterPartyId = url.searchParams.get('charterPartyId');
+    let rows = charterOffHireEventsStore as Array<Record<string, unknown>>;
+    if (charterPartyId) rows = rows.filter((r) => r['charterPartyId'] === Number(charterPartyId));
+    return HttpResponse.json(rows);
+  }),
+  http.post(`${API}/voyage-ops/off-hire-events`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    let hours: number | null = null;
+    if (input['toTs']) hours = (new Date(input['toTs'] as string).getTime() - new Date(input['fromTs'] as string).getTime()) / 3_600_000;
+    const now_ = now();
+    const row = { ...hydrateOffHireEvent(input), offHireEventId: nextId(), hours, createdAt: now_, createdBy: 'mock-user', updatedAt: now_, updatedBy: 'mock-user' };
+    charterOffHireEventsStore.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/voyage-ops/off-hire-events/:id`, async ({ params, request }) => {
+    const s = charterOffHireEventsStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['offHireEventId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Off-hire event ${String(params.id)} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    let hours: number | null = null;
+    if (input['toTs']) hours = (new Date(input['toTs'] as string).getTime() - new Date(input['fromTs'] as string).getTime()) / 3_600_000;
+    s[idx] = { ...s[idx], ...hydrateOffHireEvent({ ...s[idx], ...input }), hours, updatedAt: now() };
+    return HttpResponse.json(s[idx]);
+  }),
+
+  http.get(`${API}/voyage-ops/cargo-parcels`, ({ request }) => {
+    const url = new URL(request.url);
+    const voyageId = url.searchParams.get('voyageId');
+    let rows = voyageCargoParcelsStore as Array<Record<string, unknown>>;
+    if (voyageId) rows = rows.filter((r) => r['voyageId'] === Number(voyageId));
+    return HttpResponse.json(rows);
+  }),
+  http.post(`${API}/voyage-ops/cargo-parcels`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const now_ = now();
+    const row = { ...hydrateCargoParcel(input), cargoParcelId: nextId(), createdAt: now_, createdBy: 'mock-user', updatedAt: now_, updatedBy: 'mock-user' };
+    voyageCargoParcelsStore.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/voyage-ops/cargo-parcels/:id`, async ({ params, request }) => {
+    const s = voyageCargoParcelsStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['cargoParcelId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Cargo parcel ${String(params.id)} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    s[idx] = { ...s[idx], ...hydrateCargoParcel({ ...s[idx], ...input }), updatedAt: now() };
+    return HttpResponse.json(s[idx]);
+  }),
+  http.patch(`${API}/voyage-ops/cargo-parcels/:id/deactivate`, ({ params }) => {
+    const s = voyageCargoParcelsStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['cargoParcelId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Cargo parcel ${String(params.id)} not found.`);
+    s[idx] = { ...s[idx], isActive: false };
+    return new HttpResponse(null, { status: 204 });
+  }),
+
+  http.get(`${API}/voyage-ops/bunker-stems`, ({ request }) => {
+    const url = new URL(request.url);
+    const voyageId = url.searchParams.get('voyageId');
+    const vesselId = url.searchParams.get('vesselId');
+    let rows = bunkerStemsStore as Array<Record<string, unknown>>;
+    if (voyageId) rows = rows.filter((r) => r['voyageId'] === Number(voyageId));
+    if (vesselId) rows = rows.filter((r) => r['vesselId'] === Number(vesselId));
+    return HttpResponse.json(rows);
+  }),
+  http.post(`${API}/voyage-ops/bunker-stems`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const now_ = now();
+    const row: Record<string, unknown> = { ...hydrateBunkerStem(input), bunkerStemId: nextId(), createdAt: now_, createdBy: 'mock-user', updatedAt: now_, updatedBy: 'mock-user' };
+    bunkerStemsStore.push(row);
+    if (row['status'] === 'DELIVERED') {
+      bunkerRobLedgerStore.unshift({
+        robLedgerId: nextId(), vesselId: row['vesselId'], vesselName: row['vesselName'], fuelGradeId: row['fuelGradeId'], fuelGradeCode: row['fuelGradeCode'],
+        eventType: 'STEM', eventTime: row['stemDate'] ? `${row['stemDate']}T00:00:00Z` : now_, quantityChangeMt: row['quantityMt'], robAfterMt: row['robAfterMt'],
+        voyageId: row['voyageId'], voyageLeg: null, engineType: null, sourceBunkerStemId: row['bunkerStemId'],
+        notes: `Bunker stem #${String(row['bunkerStemId'])} (${String(row['status'])})`, createdAt: now_, createdBy: 'mock-user',
+      });
+    }
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/voyage-ops/bunker-stems/:id`, async ({ params, request }) => {
+    const s = bunkerStemsStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['bunkerStemId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Bunker stem ${String(params.id)} not found.`);
+    const wasDelivered = s[idx]['status'] === 'DELIVERED';
+    const input = (await request.json()) as Record<string, unknown>;
+    s[idx] = { ...s[idx], ...hydrateBunkerStem({ ...s[idx], ...input }), updatedAt: now() };
+    if (!wasDelivered && s[idx]['status'] === 'DELIVERED') {
+      const now_ = now();
+      bunkerRobLedgerStore.unshift({
+        robLedgerId: nextId(), vesselId: s[idx]['vesselId'], vesselName: s[idx]['vesselName'], fuelGradeId: s[idx]['fuelGradeId'], fuelGradeCode: s[idx]['fuelGradeCode'],
+        eventType: 'STEM', eventTime: s[idx]['stemDate'] ? `${s[idx]['stemDate']}T00:00:00Z` : now_, quantityChangeMt: s[idx]['quantityMt'], robAfterMt: s[idx]['robAfterMt'],
+        voyageId: s[idx]['voyageId'], voyageLeg: null, engineType: null, sourceBunkerStemId: s[idx]['bunkerStemId'],
+        notes: `Bunker stem #${String(s[idx]['bunkerStemId'])} (${String(s[idx]['status'])})`, createdAt: now_, createdBy: 'mock-user',
+      });
+    }
+    return HttpResponse.json(s[idx]);
+  }),
+  http.patch(`${API}/voyage-ops/bunker-stems/:id/deactivate`, ({ params }) => {
+    const s = bunkerStemsStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['bunkerStemId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Bunker stem ${String(params.id)} not found.`);
+    s[idx] = { ...s[idx], isActive: false };
+    return new HttpResponse(null, { status: 204 });
+  }),
+
+  http.get(`${API}/voyage-ops/bunker-rob-ledger`, ({ request }) => {
+    const url = new URL(request.url);
+    const vesselId = url.searchParams.get('vesselId');
+    const fuelGradeId = url.searchParams.get('fuelGradeId');
+    let rows = bunkerRobLedgerStore as Array<Record<string, unknown>>;
+    if (vesselId) rows = rows.filter((r) => r['vesselId'] === Number(vesselId));
+    if (fuelGradeId) rows = rows.filter((r) => r['fuelGradeId'] === Number(fuelGradeId));
+    return HttpResponse.json(rows);
+  }),
+
+  http.get(`${API}/voyage-ops/sof-events`, ({ request }) => {
+    const url = new URL(request.url);
+    const voyageId = url.searchParams.get('voyageId');
+    let rows = voyageSofEventsStore as Array<Record<string, unknown>>;
+    if (voyageId) rows = rows.filter((r) => r['voyageId'] === Number(voyageId));
+    return HttpResponse.json(rows);
+  }),
+  http.post(`${API}/voyage-ops/sof-events`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const now_ = now();
+    const row = { ...hydrateSofEvent(input), sofEventId: nextId(), createdAt: now_, createdBy: 'mock-user', updatedAt: now_, updatedBy: 'mock-user' };
+    voyageSofEventsStore.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/voyage-ops/sof-events/:id`, async ({ params, request }) => {
+    const s = voyageSofEventsStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['sofEventId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `SOF event ${String(params.id)} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    s[idx] = { ...s[idx], ...hydrateSofEvent({ ...s[idx], ...input }), updatedAt: now() };
+    return HttpResponse.json(s[idx]);
+  }),
+
+  http.get(`${API}/voyage-ops/laytime-calculations`, ({ request }) => {
+    const url = new URL(request.url);
+    const voyageId = url.searchParams.get('voyageId');
+    let rows = laytimeCalculationsStore as Array<Record<string, unknown>>;
+    if (voyageId) rows = rows.filter((r) => r['voyageId'] === Number(voyageId));
+    return HttpResponse.json(rows);
+  }),
+  http.post(`${API}/voyage-ops/laytime-calculations`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const s = laytimeCalculationsStore as Array<Record<string, unknown>>;
+    const priorCurrent = s.find((r) => r['voyageId'] === input['voyageId'] && r['portLocationId'] === input['portLocationId'] && r['isCurrentVersion'] === true);
+    const versionNumber = priorCurrent ? Number(priorCurrent['versionNumber']) + 1 : 1;
+    const now_ = now();
+    const row = {
+      ...hydrateLaytimeCalculation(input), laytimeCalculationId: nextId(), versionNumber, isCurrentVersion: true,
+      supersededByVersion: null, calculatedAt: now_, createdAt: now_, createdBy: 'mock-user',
+    };
+    s.push(row);
+    if (priorCurrent) {
+      priorCurrent['isCurrentVersion'] = false;
+      priorCurrent['supersededByVersion'] = versionNumber;
+    }
+    return HttpResponse.json(row, { status: 201 });
+  }),
+
+
   // Markets (trading markets)
   ...crudHandlers('markets', marketsStore as Array<Record<string, unknown>>, 'marketId'),
   // Market-Product sub-resource

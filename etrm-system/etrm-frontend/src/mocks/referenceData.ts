@@ -732,6 +732,40 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',                     'Active',                'boolean', false, false, null),
     ],
   },
+  // V108 — Voyage & Charter Ops backbone lookups.
+  bunker_fuel_grade: {
+    tableName: 'bunker_fuel_grade', displayName: 'Bunker Fuel Grades', primaryKeyColumn: 'fuelGradeId', isTemporal: false,
+    columns: [
+      col('fuelGradeId',        'ID',                  'number',  false, true,  null),
+      col('gradeCode',          'Code',                'string',  false, false, 30),
+      col('gradeName',          'Name',                'string',  false, false, 150),
+      col('isAlternativeFuel',  'Alternative Fuel',    'boolean', false, false, null),
+      col('description',        'Description',         'string',  true,  false, 300),
+      col('sortOrder',          'Sort Order',          'number',  false, false, null),
+      col('isActive',           'Active',              'boolean', false, false, null),
+    ],
+  },
+  sof_event_type: {
+    tableName: 'sof_event_type', displayName: 'SOF Event Types', primaryKeyColumn: 'sofEventTypeId', isTemporal: false,
+    columns: [
+      col('sofEventTypeId',     'ID',                  'number',  false, true,  null),
+      col('eventCode',          'Code',                'string',  false, false, 30),
+      col('eventName',          'Name',                'string',  false, false, 150),
+      col('eventSequenceOrder', 'Sequence Order',      'number',  false, false, null),
+      col('description',        'Description',         'string',  true,  false, 300),
+      col('isActive',           'Active',              'boolean', false, false, null),
+    ],
+  },
+  off_hire_reason_type: {
+    tableName: 'off_hire_reason_type', displayName: 'Off-Hire Reason Types', primaryKeyColumn: 'offHireReasonTypeId', isTemporal: false,
+    columns: [
+      col('offHireReasonTypeId', 'ID',          'number',  false, true,  null),
+      col('reasonCode',          'Code',        'string',  false, false, 30),
+      col('reasonName',          'Name',        'string',  false, false, 150),
+      col('description',         'Description', 'string',  true,  false, 300),
+      col('isActive',            'Active',      'boolean', false, false, null),
+    ],
+  },
   load_shape_template: {
     tableName: 'load_shape_template', displayName: 'Load Shape Templates', primaryKeyColumn: 'loadShapeId', isTemporal: false,
     columns: [
@@ -1447,6 +1481,10 @@ export const registrySeed: RegistryEntry[] = [
   { registryId: 206, tableName: 'laytime_term_template',  displayName: 'Laytime Term Templates',    moduleGroup: 'Freight & Shipping', subGroup: 'Charter', description: 'Standard laytime clauses — which days count (SHINC/SHEX/WWD), whether laytime is reversible, and the NOR-tendering basis (WIPON/WIBON/WIFPON/WCCON) that determines when laytime starts counting.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
   { registryId: 207, tableName: 'demurrage_dispatch_rate',displayName: 'Demurrage & Dispatch Rates',moduleGroup: 'Freight & Shipping', subGroup: 'Charter', description: 'Standard demurrage/dispatch rates by vessel class and commodity — includes the claim time-bar (days to submit with supporting docs) and despatch basis (all time saved vs. working time only).', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 4 },
   { registryId: 208, tableName: 'laytime_exception_type', displayName: 'Laytime Exception Types',   moduleGroup: 'Freight & Shipping', subGroup: 'Charter', description: 'Standard reasons time is excepted from (or counted against) laytime — weather, strikes, breakdowns, port congestion — used in laytime calculations and demurrage disputes across any vessel-carried commodity.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 5 },
+  // V108 — Voyage & Charter Ops backbone lookups
+  { registryId: 250, tableName: 'bunker_fuel_grade',    displayName: 'Bunker Fuel Grades',    moduleGroup: 'Voyage & Charter Ops', description: 'VLSFO/HSFO/LSMGO/MGO plus alternative fuels (methanol, LNG boil-off, biofuel blend) — parent table for bunker_stem and the ROB ledger.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
+  { registryId: 251, tableName: 'sof_event_type',       displayName: 'SOF Event Types',       moduleGroup: 'Voyage & Charter Ops', description: 'Standard Statement of Facts event codes (NOR tendered, all fast, hoses connected, commenced/completed loading-discharging) — parent table for voyage_sof_event.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
+  { registryId: 252, tableName: 'off_hire_reason_type', displayName: 'Off-Hire Reason Types', moduleGroup: 'Voyage & Charter Ops', description: 'Standard time charter off-hire reasons — breakdown, dry-docking, deviation, awaiting orders — parent table for charter_off_hire_event.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
   // V56 — dedicated FX tenor/period master, linked from fx_rate (not a lookup_value category — needs to scale to 1000+ daily-forward rows)
   { registryId: 209, tableName: 'fx_period',              displayName: 'FX Periods / Tenors',       moduleGroup: 'Pricing & Rates',    subGroup: 'FX',      description: 'Standard FX tenors (SPOT, 1M-2Y) plus individual daily-forward periods used to build a full FX forward curve. Linked from fx_rate.fx_period_id — scales to 1000+ daily delivery days without bloating the generic lookup table.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: true, isEnabled: true, displayOrder: 6 },
   // V59 — commodity_family: the missing middle tier between commodity (sector) and product (instrument), replacing product.product_family's raw unconstrained string
@@ -1739,6 +1777,38 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { exceptionTypeId: 9,  exceptionCode: 'BOG_MANAGEMENT',               exceptionName: 'Boil-Off Gas Management',              defaultCountsAgainstLaytime: false, isWeatherRelated: false, description: 'LNG-specific: time spent managing boil-off gas beyond the guaranteed rate, cooldown, or heel adjustment at the load/discharge port.',                 isActive: true },
     { exceptionTypeId: 10, exceptionCode: 'FORCE_MAJEURE',                exceptionName: 'Force Majeure',                        defaultCountsAgainstLaytime: false, isWeatherRelated: false, description: 'War, blockade, pandemic-related port closure, or other force majeure event outside either party\'s control.',                                        isActive: true },
     { exceptionTypeId: 11, exceptionCode: 'OTHER',                        exceptionName: 'Other',                                defaultCountsAgainstLaytime: true,  isWeatherRelated: false, description: 'Other exception reason — see notes on the specific laytime/demurrage record.',                                                                       isActive: true },
+  ],
+  bunker_fuel_grade: [
+    { fuelGradeId: 1, gradeCode: 'VLSFO',          gradeName: 'Very Low Sulphur Fuel Oil (0.5%)', isAlternativeFuel: false, description: null, sortOrder: 1, isActive: true },
+    { fuelGradeId: 2, gradeCode: 'HSFO',           gradeName: 'High Sulphur Fuel Oil',              isAlternativeFuel: false, description: null, sortOrder: 2, isActive: true },
+    { fuelGradeId: 3, gradeCode: 'ULSFO',          gradeName: 'Ultra Low Sulphur Fuel Oil',          isAlternativeFuel: false, description: null, sortOrder: 3, isActive: true },
+    { fuelGradeId: 4, gradeCode: 'LSMGO',          gradeName: 'Low Sulphur Marine Gas Oil',           isAlternativeFuel: false, description: null, sortOrder: 4, isActive: true },
+    { fuelGradeId: 5, gradeCode: 'MGO',            gradeName: 'Marine Gas Oil',                        isAlternativeFuel: false, description: null, sortOrder: 5, isActive: true },
+    { fuelGradeId: 6, gradeCode: 'METHANOL',       gradeName: 'Methanol (marine fuel)',                 isAlternativeFuel: true,  description: null, sortOrder: 6, isActive: true },
+    { fuelGradeId: 7, gradeCode: 'LNG_BOG',        gradeName: 'LNG Boil-Off Gas (as fuel)',              isAlternativeFuel: true,  description: null, sortOrder: 7, isActive: true },
+    { fuelGradeId: 8, gradeCode: 'BIOFUEL_BLEND',  gradeName: 'Biofuel Blend (e.g. B24/B30)',             isAlternativeFuel: true,  description: null, sortOrder: 8, isActive: true },
+  ],
+  sof_event_type: [
+    { sofEventTypeId: 1,  eventCode: 'NOR_TENDERED',        eventName: 'Notice of Readiness Tendered', eventSequenceOrder: 1,  description: null, isActive: true },
+    { sofEventTypeId: 2,  eventCode: 'ANCHORED',             eventName: 'Vessel Anchored',               eventSequenceOrder: 2,  description: null, isActive: true },
+    { sofEventTypeId: 3,  eventCode: 'PILOT_ON_BOARD',        eventName: 'Pilot On Board',                 eventSequenceOrder: 3,  description: null, isActive: true },
+    { sofEventTypeId: 4,  eventCode: 'BERTHED',                 eventName: 'Vessel Berthed',                  eventSequenceOrder: 4,  description: null, isActive: true },
+    { sofEventTypeId: 5,  eventCode: 'HOSES_CONNECTED',          eventName: 'Hoses Connected',                  eventSequenceOrder: 5,  description: null, isActive: true },
+    { sofEventTypeId: 6,  eventCode: 'COMMENCED_LOADING',         eventName: 'Commenced Loading',                eventSequenceOrder: 6,  description: null, isActive: true },
+    { sofEventTypeId: 7,  eventCode: 'COMPLETED_LOADING',          eventName: 'Completed Loading',                 eventSequenceOrder: 7,  description: null, isActive: true },
+    { sofEventTypeId: 8,  eventCode: 'COMMENCED_DISCHARGE',         eventName: 'Commenced Discharge',                eventSequenceOrder: 8,  description: null, isActive: true },
+    { sofEventTypeId: 9,  eventCode: 'COMPLETED_DISCHARGE',          eventName: 'Completed Discharge',                 eventSequenceOrder: 9,  description: null, isActive: true },
+    { sofEventTypeId: 10, eventCode: 'HOSES_DISCONNECTED',           eventName: 'Hoses Disconnected',                   eventSequenceOrder: 10, description: null, isActive: true },
+    { sofEventTypeId: 11, eventCode: 'VESSEL_DEPARTED',               eventName: 'Vessel Departed',                       eventSequenceOrder: 11, description: null, isActive: true },
+  ],
+  off_hire_reason_type: [
+    { offHireReasonTypeId: 1, reasonCode: 'BREAKDOWN',        reasonName: 'Machinery / Equipment Breakdown', description: null, isActive: true },
+    { offHireReasonTypeId: 2, reasonCode: 'DRY_DOCKING',       reasonName: 'Dry-Docking / Special Survey',     description: null, isActive: true },
+    { offHireReasonTypeId: 3, reasonCode: 'DEVIATION',          reasonName: 'Deviation from Voyage Orders',      description: null, isActive: true },
+    { offHireReasonTypeId: 4, reasonCode: 'AWAITING_ORDERS',     reasonName: 'Awaiting Charterer Orders',          description: null, isActive: true },
+    { offHireReasonTypeId: 5, reasonCode: 'CREW_ISSUE',           reasonName: 'Crew Issue / Illness',                description: null, isActive: true },
+    { offHireReasonTypeId: 6, reasonCode: 'INSPECTION',            reasonName: 'Vetting / Port State Inspection',      description: null, isActive: true },
+    { offHireReasonTypeId: 7, reasonCode: 'OTHER',                  reasonName: 'Other',                                 description: null, isActive: true },
   ],
   load_shape_template: [
     { loadShapeId: 1, shapeCode: 'BASELOAD',   shapeName: 'Baseload (7x24)',             shapeType: 'BASELOAD', startHour: 0,    endHour: 24,   intervalMinutes: 60, isComposite: false, isActive: true },

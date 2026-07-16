@@ -41,6 +41,13 @@ const LocationsPage = lazy1(() => import('@features/logistics/locations/Location
 const VesselsPage = lazy1(() => import('@features/logistics/vessels/VesselsPage'), 'VesselsPage');
 const PipelinesPage = lazy1(() => import('@features/logistics/pipelines/PipelinesPage'), 'PipelinesPage');
 
+// Voyage & Charter Ops
+const VoyagesPage = lazy1(() => import('@features/voyage-ops/voyages/VoyagesPage'), 'VoyagesPage');
+const VoyageWorkspace = lazy1(() => import('@features/voyage-ops/voyages/VoyageWorkspace'), 'VoyageWorkspace');
+const CharterPartiesPage = lazy1(() => import('@features/voyage-ops/charter-parties/CharterPartiesPage'), 'CharterPartiesPage');
+const CharterPartyWorkspace = lazy1(() => import('@features/voyage-ops/charter-parties/CharterPartyWorkspace'), 'CharterPartyWorkspace');
+const BunkerRobLedgerPage = lazy1(() => import('@features/voyage-ops/bunker-rob-ledger/BunkerRobLedgerPage'), 'BunkerRobLedgerPage');
+
 // Calendar
 const HolidayCalendarsPage = lazy1(() => import('@features/calendar/holiday-calendars/HolidayCalendarsPage'), 'HolidayCalendarsPage');
 const PeriodsPage = lazy1(() => import('@features/calendar/periods/PeriodsPage'), 'PeriodsPage');
@@ -172,6 +179,13 @@ export function AppRouter() {
         <Route path="/logistics/vessels" element={<S><VesselsPage /></S>} />
         <Route path="/logistics/pipelines" element={<S><PipelinesPage /></S>} />
         <Route path="/freight/routes" element={<S><TransportRoutesPage /></S>} />
+
+        {/* Voyage & Charter Ops */}
+        <Route path="/voyage-ops/voyages" element={<S><VoyagesPage /></S>} />
+        <Route path="/voyage-ops/voyages/:id" element={<S><VoyageWorkspace /></S>} />
+        <Route path="/voyage-ops/charter-parties" element={<S><CharterPartiesPage /></S>} />
+        <Route path="/voyage-ops/charter-parties/:id" element={<S><CharterPartyWorkspace /></S>} />
+        <Route path="/voyage-ops/bunker-rob-ledger" element={<S><BunkerRobLedgerPage /></S>} />
 
         {/* Calendar */}
         <Route path="/calendar/holiday-calendars" element={<S><HolidayCalendarsPage /></S>} />
