@@ -43,8 +43,12 @@ public class VoyageCargoParcel extends AuditableEntity {
     @JsonProperty
     private String productName;
 
-    @Column(name = "commodity_type", length = 20)
-    private String commodityType;
+    @Column(name = "commodity_type_id")
+    private Integer commodityTypeId;
+
+    @Transient
+    @JsonProperty
+    private String commodityTypeCode;
 
     @NotNull
     @Column(name = "quantity", nullable = false, precision = 18, scale = 4)
@@ -118,12 +122,20 @@ public class VoyageCargoParcel extends AuditableEntity {
         this.productName = productName;
     }
 
-    public String getCommodityType() {
-        return commodityType;
+    public Integer getCommodityTypeId() {
+        return commodityTypeId;
     }
 
-    public void setCommodityType(String commodityType) {
-        this.commodityType = commodityType;
+    public void setCommodityTypeId(Integer commodityTypeId) {
+        this.commodityTypeId = commodityTypeId;
+    }
+
+    public String getCommodityTypeCode() {
+        return commodityTypeCode;
+    }
+
+    public void setCommodityTypeCode(String commodityTypeCode) {
+        this.commodityTypeCode = commodityTypeCode;
     }
 
     public BigDecimal getQuantity() {

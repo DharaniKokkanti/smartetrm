@@ -63,6 +63,7 @@ function CargoParcelsTab({ voyageId }: { voyageId: number }) {
   const { data: products = [] } = useProducts();
   const { data: uoms = [] } = useUom();
   const { data: locations = [] } = useLocations();
+  const { data: commodityTypes = [] } = useTableRows('commodity_type');
   const [open, setOpen] = useState(false);
   const [form] = Form.useForm<VoyageCargoParcelInput>();
 
@@ -83,7 +84,7 @@ function CargoParcelsTab({ voyageId }: { voyageId: number }) {
         pagination={false}
         columns={[
           { title: 'Product', dataIndex: 'productName', render: (v) => v ?? '—' },
-          { title: 'Commodity', dataIndex: 'commodityType', render: (v) => v ?? '—' },
+          { title: 'Commodity', dataIndex: 'commodityTypeCode', render: (v) => v ?? '—' },
           { title: 'Quantity', dataIndex: 'quantity', render: (v: number) => v.toLocaleString() },
           { title: 'UOM', dataIndex: 'uomCode' },
           { title: 'Load Terminal', dataIndex: 'loadTerminalName', render: (v) => v ?? '—' },
@@ -95,6 +96,10 @@ function CargoParcelsTab({ voyageId }: { voyageId: number }) {
         <Form form={form} layout="vertical">
           <Form.Item name="productId" label="Product (Grade)"><Select showSearch optionFilterProp="label" allowClear
             options={products.map((p) => ({ value: p.productId, label: p.productName }))} /></Form.Item>
+          <Form.Item name="commodityTypeId" label="Commodity Type (defaults from Product if left blank)">
+            <Select allowClear showSearch optionFilterProp="label"
+              options={(commodityTypes as { commodityTypeId: number; typeCode: string }[]).map((c) => ({ value: c.commodityTypeId, label: c.typeCode }))} />
+          </Form.Item>
           <Form.Item name="quantity" label="Quantity" rules={[{ required: true }]}><InputNumber style={{ width: '100%' }} min={0} /></Form.Item>
           <Form.Item name="uomId" label="UOM" rules={[{ required: true }]}><Select showSearch optionFilterProp="label"
             options={uoms.map((u) => ({ value: u.uomId, label: u.uomCode }))} /></Form.Item>

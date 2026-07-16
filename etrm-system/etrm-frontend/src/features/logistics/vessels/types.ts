@@ -29,8 +29,10 @@ export interface Vessel {
   // minimum LNG heel volume retained between voyages to keep tanks cold.
   guaranteedBoilOffRatePctPerDay: number | null;
   heelCapacityCbm: number | null;
+  fleetId: number | null;
+  fleetName: string | null;
   isActive: boolean;
   createdAt: string;
 }
 
-export type VesselInput = Omit<Vessel, 'vesselId' | 'createdAt'>;
+export type VesselInput = Omit<Vessel, 'vesselId' | 'fleetName' | 'createdAt'>;

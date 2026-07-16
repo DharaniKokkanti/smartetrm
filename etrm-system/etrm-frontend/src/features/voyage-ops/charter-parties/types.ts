@@ -43,6 +43,8 @@ export interface CharterParty {
   bunkerClauseTolerancePct: number | null;
   optionPeriodMonths: number | null;
   status: CharterPartyStatus;
+  charterPartyTemplateId: number | null;
+  charterPartyTemplateCode: string | null;
   notes: string | null;
   isActive: boolean;
   createdAt: string;
@@ -58,6 +60,7 @@ export type CharterPartyInput = Omit<
   | 'vesselName'
   | 'counterpartyName'
   | 'hireCurrencyCode'
+  | 'charterPartyTemplateCode'
   | 'laytimeTermCode'
   | 'deliveryLocationName'
   | 'redeliveryLocationName'

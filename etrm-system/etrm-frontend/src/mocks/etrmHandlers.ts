@@ -295,13 +295,13 @@ const transportRouteStore: unknown[] = [
 
 // ─── VESSELS ──────────────────────────────────────────────────────────────────
 const vesselsStore: unknown[] = [
-  { vesselId: 1, imoNumber: 'IMO 9741060', vesselName: 'NORDIC LUNA', vesselType: 'VLCC', dwt: 307285, grossTonnage: 162028, buildYear: 2016, flagCountryId: 24, buildCountryId: 9, owner: 'Nordic Tankers AS', operator: 'Trafigura Maritime Logistics', classificationSociety: 'DNV', vettingExpiry: '2026-09-15', sireInspectionDate: '2025-09-15', cdiBerthStatus: 'APPROVED', statusCode: 'ACTIVE', grainCapacityCbm: null, baleCapacityCbm: null, guaranteedBoilOffRatePctPerDay: null, heelCapacityCbm: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { vesselId: 2, imoNumber: 'IMO 9634454', vesselName: 'FRONT ALTAIR', vesselType: 'SUEZMAX', dwt: 158000, grossTonnage: 86402, buildYear: 2013, flagCountryId: 25, buildCountryId: 9, owner: 'Frontline Ltd', operator: 'Frontline Management', classificationSociety: 'LR', vettingExpiry: '2026-08-01', sireInspectionDate: '2025-08-01', cdiBerthStatus: 'APPROVED', statusCode: 'ON_CHARTER', grainCapacityCbm: null, baleCapacityCbm: null, guaranteedBoilOffRatePctPerDay: null, heelCapacityCbm: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { vesselId: 3, imoNumber: 'IMO 9387890', vesselName: 'SCF SAKHALIN', vesselType: 'AFRAMAX', dwt: 105936, grossTonnage: 60196, buildYear: 2009, flagCountryId: 26, buildCountryId: 13, owner: 'Sovcomflot PAO', operator: 'Sovcomflot', classificationSociety: 'BV', vettingExpiry: '2026-07-10', sireInspectionDate: '2025-07-10', cdiBerthStatus: null, statusCode: 'ACTIVE', grainCapacityCbm: null, baleCapacityCbm: null, guaranteedBoilOffRatePctPerDay: null, heelCapacityCbm: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { vesselId: 4, imoNumber: 'IMO 9812744', vesselName: 'MARATHON TS', vesselType: 'MR', dwt: 49900, grossTonnage: 28500, buildYear: 2020, flagCountryId: 27, buildCountryId: 9, owner: 'Marathon Tanker AS', operator: 'Hafnia Management', classificationSociety: 'ABS', vettingExpiry: '2026-12-31', sireInspectionDate: '2025-12-31', cdiBerthStatus: 'APPROVED', statusCode: 'ACTIVE', grainCapacityCbm: null, baleCapacityCbm: null, guaranteedBoilOffRatePctPerDay: null, heelCapacityCbm: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { vesselId: 5, imoNumber: 'IMO 9462082', vesselName: 'ENERGY INNOVATOR', vesselType: 'LNG_CARRIER', dwt: 88000, grossTonnage: 107000, buildYear: 2011, flagCountryId: 24, buildCountryId: 9, owner: 'Teekay LNG AS', operator: 'Teekay LNG Partners', classificationSociety: 'LR', vettingExpiry: '2026-06-01', sireInspectionDate: '2025-06-01', cdiBerthStatus: null, statusCode: 'ON_CHARTER', grainCapacityCbm: null, baleCapacityCbm: null, guaranteedBoilOffRatePctPerDay: 0.10, heelCapacityCbm: 3000, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { vesselId: 6, imoNumber: 'IMO 9203536', vesselName: 'BUNGA KASTURI LIMA', vesselType: 'VLCC', dwt: 298337, grossTonnage: 160283, buildYear: 2001, flagCountryId: 28, buildCountryId: 10, owner: 'MISC Berhad', operator: 'MISC Petroleum', classificationSociety: 'LR', vettingExpiry: '2026-05-15', sireInspectionDate: '2025-05-15', cdiBerthStatus: 'CONDITIONAL', statusCode: 'IN_DRYDOCK', grainCapacityCbm: null, baleCapacityCbm: null, guaranteedBoilOffRatePctPerDay: null, heelCapacityCbm: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { vesselId: 7, imoNumber: 'IMO 9695123', vesselName: 'CAPE ENDURANCE', vesselType: 'BULK_CARRIER', dwt: 180000, grossTonnage: 93000, buildYear: 2017, flagCountryId: 27, buildCountryId: 10, owner: 'Star Bulk Carriers Corp', operator: 'Star Bulk Management', classificationSociety: 'ABS', vettingExpiry: null, sireInspectionDate: null, cdiBerthStatus: null, statusCode: 'ACTIVE', grainCapacityCbm: 198000, baleCapacityCbm: 189500, guaranteedBoilOffRatePctPerDay: null, heelCapacityCbm: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { vesselId: 1, imoNumber: 'IMO 9741060', vesselName: 'NORDIC LUNA', vesselType: 'VLCC', dwt: 307285, grossTonnage: 162028, buildYear: 2016, flagCountryId: 24, buildCountryId: 9, owner: 'Nordic Tankers AS', operator: 'Trafigura Maritime Logistics', classificationSociety: 'DNV', vettingExpiry: '2026-09-15', sireInspectionDate: '2025-09-15', cdiBerthStatus: 'APPROVED', statusCode: 'ACTIVE', grainCapacityCbm: null, baleCapacityCbm: null, guaranteedBoilOffRatePctPerDay: null, heelCapacityCbm: null, fleetId: 1, fleetName: 'Crude Tanker Fleet', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { vesselId: 2, imoNumber: 'IMO 9634454', vesselName: 'FRONT ALTAIR', vesselType: 'SUEZMAX', dwt: 158000, grossTonnage: 86402, buildYear: 2013, flagCountryId: 25, buildCountryId: 9, owner: 'Frontline Ltd', operator: 'Frontline Management', classificationSociety: 'LR', vettingExpiry: '2026-08-01', sireInspectionDate: '2025-08-01', cdiBerthStatus: 'APPROVED', statusCode: 'ON_CHARTER', grainCapacityCbm: null, baleCapacityCbm: null, guaranteedBoilOffRatePctPerDay: null, heelCapacityCbm: null, fleetId: 1, fleetName: 'Crude Tanker Fleet', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { vesselId: 3, imoNumber: 'IMO 9387890', vesselName: 'SCF SAKHALIN', vesselType: 'AFRAMAX', dwt: 105936, grossTonnage: 60196, buildYear: 2009, flagCountryId: 26, buildCountryId: 13, owner: 'Sovcomflot PAO', operator: 'Sovcomflot', classificationSociety: 'BV', vettingExpiry: '2026-07-10', sireInspectionDate: '2025-07-10', cdiBerthStatus: null, statusCode: 'ACTIVE', grainCapacityCbm: null, baleCapacityCbm: null, guaranteedBoilOffRatePctPerDay: null, heelCapacityCbm: null, fleetId: 1, fleetName: 'Crude Tanker Fleet', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { vesselId: 4, imoNumber: 'IMO 9812744', vesselName: 'MARATHON TS', vesselType: 'MR', dwt: 49900, grossTonnage: 28500, buildYear: 2020, flagCountryId: 27, buildCountryId: 9, owner: 'Marathon Tanker AS', operator: 'Hafnia Management', classificationSociety: 'ABS', vettingExpiry: '2026-12-31', sireInspectionDate: '2025-12-31', cdiBerthStatus: 'APPROVED', statusCode: 'ACTIVE', grainCapacityCbm: null, baleCapacityCbm: null, guaranteedBoilOffRatePctPerDay: null, heelCapacityCbm: null, fleetId: 2, fleetName: 'Product Tanker Fleet', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { vesselId: 5, imoNumber: 'IMO 9462082', vesselName: 'ENERGY INNOVATOR', vesselType: 'LNG_CARRIER', dwt: 88000, grossTonnage: 107000, buildYear: 2011, flagCountryId: 24, buildCountryId: 9, owner: 'Teekay LNG AS', operator: 'Teekay LNG Partners', classificationSociety: 'LR', vettingExpiry: '2026-06-01', sireInspectionDate: '2025-06-01', cdiBerthStatus: null, statusCode: 'ON_CHARTER', grainCapacityCbm: null, baleCapacityCbm: null, guaranteedBoilOffRatePctPerDay: 0.10, heelCapacityCbm: 3000, fleetId: 3, fleetName: 'Dry Bulk Fleet', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { vesselId: 6, imoNumber: 'IMO 9203536', vesselName: 'BUNGA KASTURI LIMA', vesselType: 'VLCC', dwt: 298337, grossTonnage: 160283, buildYear: 2001, flagCountryId: 28, buildCountryId: 10, owner: 'MISC Berhad', operator: 'MISC Petroleum', classificationSociety: 'LR', vettingExpiry: '2026-05-15', sireInspectionDate: '2025-05-15', cdiBerthStatus: 'CONDITIONAL', statusCode: 'IN_DRYDOCK', grainCapacityCbm: null, baleCapacityCbm: null, guaranteedBoilOffRatePctPerDay: null, heelCapacityCbm: null, fleetId: 1, fleetName: 'Crude Tanker Fleet', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { vesselId: 7, imoNumber: 'IMO 9695123', vesselName: 'CAPE ENDURANCE', vesselType: 'BULK_CARRIER', dwt: 180000, grossTonnage: 93000, buildYear: 2017, flagCountryId: 27, buildCountryId: 10, owner: 'Star Bulk Carriers Corp', operator: 'Star Bulk Management', classificationSociety: 'ABS', vettingExpiry: null, sireInspectionDate: null, cdiBerthStatus: null, statusCode: 'ACTIVE', grainCapacityCbm: 198000, baleCapacityCbm: 189500, guaranteedBoilOffRatePctPerDay: null, heelCapacityCbm: null, fleetId: 3, fleetName: 'Dry Bulk Fleet', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
 ];
 
 // ─── PIPELINES ────────────────────────────────────────────────────────────────
@@ -1899,6 +1899,7 @@ function hydrateCharterParty(input: Record<string, unknown>): Record<string, unk
   const laytimeTerm = (referenceRowSeed.laytime_term_template as unknown as Array<Record<string, unknown>>).find((t) => t['laytimeTermId'] === input['laytimeTermId']);
   const deliveryLoc = (locationsStore as Array<Record<string, unknown>>).find((l) => l['locationId'] === input['deliveryLocationId']);
   const redeliveryLoc = (locationsStore as Array<Record<string, unknown>>).find((l) => l['locationId'] === input['redeliveryLocationId']);
+  const template = (referenceRowSeed.charter_party_template as unknown as Array<Record<string, unknown>>).find((t) => t['templateId'] === input['charterPartyTemplateId']);
   return {
     ...input,
     charterPartyTypeCode: cpType?.['typeCode'] ?? null,
@@ -1908,10 +1909,11 @@ function hydrateCharterParty(input: Record<string, unknown>): Record<string, unk
     laytimeTermCode: laytimeTerm?.['termCode'] ?? null,
     deliveryLocationName: deliveryLoc?.['locationName'] ?? null,
     redeliveryLocationName: redeliveryLoc?.['locationName'] ?? null,
+    charterPartyTemplateCode: template?.['templateCode'] ?? null,
   };
 }
 const charterPartiesStore: unknown[] = [
-  { charterPartyId: 1, cpReference: 'CP-2026-VLCC-001', charterPartyTypeId: 1, charterPartyTypeCode: 'VOYAGE', vesselId: 1, vesselName: 'NORDIC LUNA', counterpartyId: 1, counterpartyName: 'Shell Trading International', direction: 'CHARTER_IN', hireRate: null, hireCurrencyId: null, hireCurrencyCode: null, hirePaymentFrequency: null, freightRate: 18.75, freightRateBasis: 'PER_TONNE', laytimeTermId: 2, laytimeTermCode: 'SHEX', demurrageRatePerDay: 45000, dispatchRatePerDay: 22500, deliveryLocationId: null, deliveryLocationName: null, redeliveryLocationId: null, redeliveryLocationName: null, deliveryDate: null, redeliveryDateEstimate: null, bunkerClauseBasis: null, bunkerClauseTolerancePct: null, optionPeriodMonths: null, status: 'FIXED', notes: 'AG-Europe VLCC voyage fixture.', isActive: true, createdAt: '2026-06-10T00:00:00Z', createdBy: 'mock-user', updatedAt: '2026-06-10T00:00:00Z', updatedBy: 'mock-user' },
+  { charterPartyId: 1, cpReference: 'CP-2026-VLCC-001', charterPartyTypeId: 1, charterPartyTypeCode: 'VOYAGE', vesselId: 1, vesselName: 'NORDIC LUNA', counterpartyId: 1, counterpartyName: 'Shell Trading International', direction: 'CHARTER_IN', hireRate: null, hireCurrencyId: null, hireCurrencyCode: null, hirePaymentFrequency: null, freightRate: 18.75, freightRateBasis: 'PER_TONNE', laytimeTermId: 2, laytimeTermCode: 'SHEX', demurrageRatePerDay: 45000, dispatchRatePerDay: 22500, deliveryLocationId: null, deliveryLocationName: null, redeliveryLocationId: null, redeliveryLocationName: null, deliveryDate: null, redeliveryDateEstimate: null, bunkerClauseBasis: null, bunkerClauseTolerancePct: null, optionPeriodMonths: null, status: 'FIXED', charterPartyTemplateId: 1, charterPartyTemplateCode: 'STD-VOYAGE-TANKER', notes: 'AG-Europe VLCC voyage fixture.', isActive: true, createdAt: '2026-06-10T00:00:00Z', createdBy: 'mock-user', updatedAt: '2026-06-10T00:00:00Z', updatedBy: 'mock-user' },
 ];
 
 function hydrateOffHireEvent(input: Record<string, unknown>): Record<string, unknown> {
@@ -1925,17 +1927,23 @@ function hydrateCargoParcel(input: Record<string, unknown>): Record<string, unkn
   const uom = (uomStore as Array<Record<string, unknown>>).find((u) => u['uomId'] === input['uomId']);
   const loadLoc = (locationsStore as Array<Record<string, unknown>>).find((l) => l['locationId'] === input['loadTerminalLocationId']);
   const dischargeLoc = (locationsStore as Array<Record<string, unknown>>).find((l) => l['locationId'] === input['dischargeTerminalLocationId']);
+  // commodity_type_id is a real, client-settable FK -- only defaulted (to OIL, the
+  // mock product seed has no commodityId to resolve properly) when left unset,
+  // same convention as the real backend's VoyageCargoParcelService.hydrate().
+  const commodityTypeId = input['commodityTypeId'] ?? (product ? 1 : null);
+  const commodityType = (referenceRowSeed.commodity_type as unknown as Array<Record<string, unknown>>).find((c) => c['commodityTypeId'] === commodityTypeId);
   return {
     ...input,
     productName: product?.['productName'] ?? null,
-    commodityType: product ? 'OIL' : null,
+    commodityTypeId,
+    commodityTypeCode: commodityType?.['typeCode'] ?? null,
     uomCode: uom?.['uomCode'] ?? null,
     loadTerminalName: loadLoc?.['locationName'] ?? null,
     dischargeTerminalName: dischargeLoc?.['locationName'] ?? null,
   };
 }
 const voyageCargoParcelsStore: unknown[] = [
-  { cargoParcelId: 1, voyageId: 1, productId: 1, productName: 'Brent Crude Oil', commodityType: 'OIL', quantity: 2000000, uomId: 1, uomCode: 'BBL', loadTerminalLocationId: 2, loadTerminalName: 'Ras Tanura Terminal', dischargeTerminalLocationId: 6, dischargeTerminalName: 'Port of Rotterdam', tradeOrderId: null, tradeItemId: null, notes: null, isActive: true, createdAt: '2026-06-15T00:00:00Z', createdBy: 'mock-user', updatedAt: '2026-06-15T00:00:00Z', updatedBy: 'mock-user' },
+  { cargoParcelId: 1, voyageId: 1, productId: 1, productName: 'Brent Crude Oil', commodityTypeId: 1, commodityTypeCode: 'OIL', quantity: 2000000, uomId: 1, uomCode: 'BBL', loadTerminalLocationId: 2, loadTerminalName: 'Ras Tanura Terminal', dischargeTerminalLocationId: 6, dischargeTerminalName: 'Port of Rotterdam', tradeOrderId: null, tradeItemId: null, notes: null, isActive: true, createdAt: '2026-06-15T00:00:00Z', createdBy: 'mock-user', updatedAt: '2026-06-15T00:00:00Z', updatedBy: 'mock-user' },
 ];
 
 function hydrateBunkerStem(input: Record<string, unknown>): Record<string, unknown> {
@@ -1983,7 +1991,127 @@ function hydrateLaytimeCalculation(input: Record<string, unknown>): Record<strin
 }
 const laytimeCalculationsStore: unknown[] = [];
 
+// ─── VESSEL PERFORMANCE CURVES / CARGO TANKS / PORT ACTIVITY TEMPLATE STEPS (V110) ────
+function hydrateVesselPerformanceCurve(input: Record<string, unknown>): Record<string, unknown> {
+  const vessel = (vesselsStore as Array<Record<string, unknown>>).find((v) => v['vesselId'] === input['vesselId']);
+  const fuelGrade = (referenceRowSeed.bunker_fuel_grade as unknown as Array<Record<string, unknown>>).find((f) => f['fuelGradeId'] === input['fuelGradeId']);
+  return { ...input, vesselName: vessel?.['vesselName'] ?? null, fuelGradeCode: fuelGrade?.['gradeCode'] ?? null };
+}
+const vesselPerformanceCurvesStore: unknown[] = [
+  { curveId: 1, vesselId: 1, vesselName: 'NORDIC LUNA', condition: 'LADEN', speedKnots: 12.5, mainEngineConsumptionMtPerDay: 55.2, auxEngineConsumptionMtPerDay: 2.5, fuelGradeId: 1, fuelGradeCode: 'VLSFO', effectiveFrom: '2026-01-01', notes: null, isActive: true, createdAt: '2026-01-01T00:00:00Z', createdBy: 'mock-user', updatedAt: '2026-01-01T00:00:00Z', updatedBy: 'mock-user' },
+  { curveId: 2, vesselId: 1, vesselName: 'NORDIC LUNA', condition: 'BALLAST', speedKnots: 13.0, mainEngineConsumptionMtPerDay: 50.1, auxEngineConsumptionMtPerDay: 2.5, fuelGradeId: 1, fuelGradeCode: 'VLSFO', effectiveFrom: '2026-01-01', notes: null, isActive: true, createdAt: '2026-01-01T00:00:00Z', createdBy: 'mock-user', updatedAt: '2026-01-01T00:00:00Z', updatedBy: 'mock-user' },
+];
+
+function hydrateVesselCargoTank(input: Record<string, unknown>): Record<string, unknown> {
+  const vessel = (vesselsStore as Array<Record<string, unknown>>).find((v) => v['vesselId'] === input['vesselId']);
+  return { ...input, vesselName: vessel?.['vesselName'] ?? null };
+}
+const vesselCargoTanksStore: unknown[] = [
+  { tankId: 1, vesselId: 1, vesselName: 'NORDIC LUNA', tankCode: '1P', tankType: 'CARGO_TANK', capacityCbm: 15000, coatingType: 'UNCOATED', segregationGroup: 'A', notes: null, isActive: true, createdAt: '2026-01-01T00:00:00Z', createdBy: 'mock-user', updatedAt: '2026-01-01T00:00:00Z', updatedBy: 'mock-user' },
+];
+
+function hydratePortActivityTemplateStep(input: Record<string, unknown>): Record<string, unknown> {
+  const eventType = (referenceRowSeed.sof_event_type as unknown as Array<Record<string, unknown>>).find((t) => t['sofEventTypeId'] === input['sofEventTypeId']);
+  return { ...input, eventCode: eventType?.['eventCode'] ?? null };
+}
+const portActivityTemplateStepsStore: unknown[] = [
+  { stepId: 1, templateId: 1, sofEventTypeId: 1, eventCode: 'NOR_TENDERED', stepSequence: 1, typicalDurationHours: 0.5, notes: null, createdAt: '2026-01-01T00:00:00Z', createdBy: 'mock-user', updatedAt: '2026-01-01T00:00:00Z', updatedBy: 'mock-user' },
+  { stepId: 2, templateId: 1, sofEventTypeId: 5, eventCode: 'HOSES_CONNECTED', stepSequence: 2, typicalDurationHours: 1, notes: null, createdAt: '2026-01-01T00:00:00Z', createdBy: 'mock-user', updatedAt: '2026-01-01T00:00:00Z', updatedBy: 'mock-user' },
+];
+
 export const etrmHandlers = [
+  // Vessel performance curves / cargo tanks / port activity template steps (V110)
+  http.get(`${API}/logistics/vessel-performance-curves`, ({ request }) => {
+    const url = new URL(request.url);
+    const vesselId = url.searchParams.get('vesselId');
+    let rows = vesselPerformanceCurvesStore as Array<Record<string, unknown>>;
+    if (vesselId) rows = rows.filter((r) => r['vesselId'] === Number(vesselId));
+    return HttpResponse.json(rows);
+  }),
+  http.post(`${API}/logistics/vessel-performance-curves`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const now_ = now();
+    const row = { ...hydrateVesselPerformanceCurve(input), curveId: nextId(), createdAt: now_, createdBy: 'mock-user', updatedAt: now_, updatedBy: 'mock-user' };
+    vesselPerformanceCurvesStore.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/logistics/vessel-performance-curves/:id`, async ({ params, request }) => {
+    const s = vesselPerformanceCurvesStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['curveId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Performance curve ${String(params.id)} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    s[idx] = { ...s[idx], ...hydrateVesselPerformanceCurve({ ...s[idx], ...input }), updatedAt: now() };
+    return HttpResponse.json(s[idx]);
+  }),
+  http.patch(`${API}/logistics/vessel-performance-curves/:id/deactivate`, ({ params }) => {
+    const s = vesselPerformanceCurvesStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['curveId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Performance curve ${String(params.id)} not found.`);
+    s[idx] = { ...s[idx], isActive: false };
+    return new HttpResponse(null, { status: 204 });
+  }),
+
+  http.get(`${API}/logistics/vessel-cargo-tanks`, ({ request }) => {
+    const url = new URL(request.url);
+    const vesselId = url.searchParams.get('vesselId');
+    let rows = vesselCargoTanksStore as Array<Record<string, unknown>>;
+    if (vesselId) rows = rows.filter((r) => r['vesselId'] === Number(vesselId));
+    return HttpResponse.json(rows);
+  }),
+  http.post(`${API}/logistics/vessel-cargo-tanks`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const now_ = now();
+    const row = { ...hydrateVesselCargoTank(input), tankId: nextId(), createdAt: now_, createdBy: 'mock-user', updatedAt: now_, updatedBy: 'mock-user' };
+    vesselCargoTanksStore.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/logistics/vessel-cargo-tanks/:id`, async ({ params, request }) => {
+    const s = vesselCargoTanksStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['tankId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Cargo tank ${String(params.id)} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    s[idx] = { ...s[idx], ...hydrateVesselCargoTank({ ...s[idx], ...input }), updatedAt: now() };
+    return HttpResponse.json(s[idx]);
+  }),
+  http.patch(`${API}/logistics/vessel-cargo-tanks/:id/deactivate`, ({ params }) => {
+    const s = vesselCargoTanksStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['tankId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Cargo tank ${String(params.id)} not found.`);
+    s[idx] = { ...s[idx], isActive: false };
+    return new HttpResponse(null, { status: 204 });
+  }),
+
+  http.get(`${API}/voyage-ops/port-activity-template-steps`, ({ request }) => {
+    const url = new URL(request.url);
+    const templateId = url.searchParams.get('templateId');
+    let rows = portActivityTemplateStepsStore as Array<Record<string, unknown>>;
+    if (templateId) rows = rows.filter((r) => r['templateId'] === Number(templateId));
+    return HttpResponse.json(rows);
+  }),
+  http.post(`${API}/voyage-ops/port-activity-template-steps`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const now_ = now();
+    const row = { ...hydratePortActivityTemplateStep(input), stepId: nextId(), createdAt: now_, createdBy: 'mock-user', updatedAt: now_, updatedBy: 'mock-user' };
+    portActivityTemplateStepsStore.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/voyage-ops/port-activity-template-steps/:id`, async ({ params, request }) => {
+    const s = portActivityTemplateStepsStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['stepId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Port activity template step ${String(params.id)} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    s[idx] = { ...s[idx], ...hydratePortActivityTemplateStep({ ...s[idx], ...input }), updatedAt: now() };
+    return HttpResponse.json(s[idx]);
+  }),
+  http.delete(`${API}/voyage-ops/port-activity-template-steps/:id`, ({ params }) => {
+    const s = portActivityTemplateStepsStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['stepId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Port activity template step ${String(params.id)} not found.`);
+    s.splice(idx, 1);
+    return new HttpResponse(null, { status: 204 });
+  }),
+
+
   // Voyage & Charter Ops (V108)
   http.get(`${API}/voyage-ops/voyages`, ({ request }) => {
     const url = new URL(request.url);

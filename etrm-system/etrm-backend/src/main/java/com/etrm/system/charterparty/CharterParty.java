@@ -123,6 +123,13 @@ public class CharterParty extends AuditableEntity {
     @Column(name = "status", nullable = false, length = 15)
     private String status = "ON_SUBS";
 
+    @Column(name = "charter_party_template_id")
+    private Integer charterPartyTemplateId;
+
+    @Transient
+    @JsonProperty
+    private String charterPartyTemplateCode;
+
     @Size(max = 1000)
     @Column(name = "notes", length = 1000)
     private String notes;
@@ -361,6 +368,22 @@ public class CharterParty extends AuditableEntity {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Integer getCharterPartyTemplateId() {
+        return charterPartyTemplateId;
+    }
+
+    public void setCharterPartyTemplateId(Integer charterPartyTemplateId) {
+        this.charterPartyTemplateId = charterPartyTemplateId;
+    }
+
+    public String getCharterPartyTemplateCode() {
+        return charterPartyTemplateCode;
+    }
+
+    public void setCharterPartyTemplateCode(String charterPartyTemplateCode) {
+        this.charterPartyTemplateCode = charterPartyTemplateCode;
     }
 
     public String getNotes() {

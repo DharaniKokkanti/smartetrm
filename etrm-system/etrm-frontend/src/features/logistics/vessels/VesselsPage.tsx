@@ -13,6 +13,7 @@ import { VESSEL_TYPES, VESSEL_STATUS_CODES, type Vessel, type VesselInput, type 
 import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import { useCountries } from '@features/reference/countries/hooks';
+import { useTableRows } from '@features/tier2/hooks';
 
 const TYPE_COLOR: Record<VesselType, string> = {
   VLCC: 'blue', SUEZMAX: 'geekblue', AFRAMAX: 'purple', PANAMAX: 'cyan',
@@ -33,6 +34,8 @@ export function VesselsPage() {
   const { data: countries = [] } = useCountries();
   const countryOptions = countries.map((c) => ({ value: c.countryId, label: `${c.countryCode} — ${c.countryName}` }));
   const countryLabelById = new Map(countries.map((c) => [c.countryId, `${c.countryCode} — ${c.countryName}`]));
+  const { data: fleets = [] } = useTableRows('fleet');
+  const fleetOptions = (fleets as { fleetId: number; fleetName: string }[]).map((f) => ({ value: f.fleetId, label: f.fleetName }));
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Vessel | null>(null);
   const [form] = Form.useForm<VesselInput>();
@@ -51,6 +54,7 @@ export function VesselsPage() {
       cdiBerthStatus: v.cdiBerthStatus ?? undefined, statusCode: v.statusCode, isActive: v.isActive,
       grainCapacityCbm: v.grainCapacityCbm ?? undefined, baleCapacityCbm: v.baleCapacityCbm ?? undefined,
       guaranteedBoilOffRatePctPerDay: v.guaranteedBoilOffRatePctPerDay ?? undefined, heelCapacityCbm: v.heelCapacityCbm ?? undefined,
+      fleetId: v.fleetId ?? undefined,
     });
     setOpen(true);
   }
@@ -167,6 +171,9 @@ export function VesselsPage() {
           </Form.Item>
           <Form.Item name="operator" label={hint('Operator', 'Commercial operator managing vessel employment. This is the entity you charter the vessel from or to. May be the same as owner for single-ship companies.', 'Scorpio Tankers Inc.')}>
             <Input placeholder="Operator name" />
+          </Form.Item>
+          <Form.Item name="fleetId" label={hint('Fleet', 'Which fleet this vessel is grouped under, for portfolio-level reporting and management.')}>
+            <Select allowClear showSearch optionFilterProp="label" options={fleetOptions} />
           </Form.Item>
           <Space style={{ width: '100%', gap: 12 }}>
             <Form.Item name="vettingExpiry" label={hint('Vetting Expiry', 'Date after which the vessel is not approved for loading at company-controlled terminals. SIRE (tankers) and CDI (chemicals) inspections typically valid 6-12 months. A vessel with expired vetting cannot load — trigger re-inspection 60 days before expiry.', '2026-12-31')} style={{ flex: 1 }}>

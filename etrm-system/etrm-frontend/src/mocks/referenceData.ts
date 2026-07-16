@@ -766,6 +766,92 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',            'Active',      'boolean', false, false, null),
     ],
   },
+  // V110 — Maritime Execution Platform phase 2 lookups.
+  fleet_group: {
+    tableName: 'fleet_group', displayName: 'Fleet Groups', primaryKeyColumn: 'fleetGroupId', isTemporal: false,
+    columns: [
+      col('fleetGroupId', 'ID',          'number',  false, true,  null),
+      col('groupCode',    'Code',        'string',  false, false, 30),
+      col('groupName',    'Name',        'string',  false, false, 150),
+      col('description',  'Description', 'string',  true,  false, 500),
+      col('isActive',     'Active',      'boolean', false, false, null),
+    ],
+  },
+  fleet: {
+    tableName: 'fleet', displayName: 'Fleets', primaryKeyColumn: 'fleetId', isTemporal: false,
+    columns: [
+      col('fleetId',         'ID',              'number',      false, true,  null),
+      col('fleetCode',       'Code',            'string',      false, false, 30),
+      col('fleetName',       'Name',            'string',      false, false, 150),
+      col('fleetGroupId',    'Fleet Group',     'foreign_key', true,  false, null, null, 'fleet_group'),
+      col('ownerOperatorId', 'Owner Operator',  'foreign_key', true,  false, null, null, 'transport_operator'),
+      col('description',     'Description',     'string',      true,  false, 500),
+      col('isActive',        'Active',          'boolean',     false, false, null),
+    ],
+  },
+  charter_party_template: {
+    tableName: 'charter_party_template', displayName: 'Charter Party Templates', primaryKeyColumn: 'templateId', isTemporal: false,
+    columns: [
+      col('templateId',                      'ID',                          'number',      false, true,  null),
+      col('templateCode',                     'Code',                        'string',      false, false, 30),
+      col('templateName',                     'Name',                        'string',      false, false, 150),
+      col('charterPartyTypeId',               'Charter Party Type',          'foreign_key', false, false, null, null, 'charter_party_type'),
+      col('defaultLaytimeTermId',             'Default Laytime Term',        'foreign_key', true,  false, null, null, 'laytime_term_template'),
+      col('defaultDemurrageRatePerDay',       'Default Demurrage Rate/Day',  'number',      true,  false, null, null, null, null, true),
+      col('defaultDispatchRatePerDay',        'Default Dispatch Rate/Day',   'number',      true,  false, null, null, null, null, true),
+      col('defaultBunkerClauseBasis',         'Default Bunker Clause Basis', 'enum',        true,  false, null, ['SAME_QUANTITY_PCT', 'AS_ON_DELIVERY', 'FIXED_PRICE']),
+      col('defaultBunkerClauseTolerancePct',  'Default Bunker Tolerance %',  'number',      true,  false, null, null, null, null, true),
+      col('defaultHirePaymentFrequency',      'Default Hire Frequency',      'enum',        true,  false, null, ['MONTHLY', 'SEMI_MONTHLY', 'FIFTEEN_DAYS']),
+      col('description',                      'Description',                'string',      true,  false, 500),
+      col('isActive',                         'Active',                     'boolean',     false, false, null),
+    ],
+  },
+  port_activity_template: {
+    tableName: 'port_activity_template', displayName: 'Port Activity Templates', primaryKeyColumn: 'templateId', isTemporal: false,
+    columns: [
+      col('templateId',      'ID',            'number',      false, true,  null),
+      col('templateCode',    'Code',          'string',      false, false, 30),
+      col('templateName',    'Name',          'string',      false, false, 150),
+      col('portLocationId',  'Port',          'foreign_key', true,  false, null, null, 'location'),
+      col('commodityTypeId', 'Commodity Type', 'foreign_key', true,  false, null, null, 'commodity_type'),
+      col('description',     'Description',   'string',      true,  false, 500),
+      col('isActive',        'Active',        'boolean',     false, false, null),
+    ],
+  },
+  emission_factor: {
+    tableName: 'emission_factor', displayName: 'Emission Factors', primaryKeyColumn: 'factorId', isTemporal: false,
+    columns: [
+      col('factorId',      'ID',             'number',      false, true,  null),
+      col('fuelGradeId',   'Fuel Grade',     'foreign_key', false, false, null, null, 'bunker_fuel_grade'),
+      col('emissionType',  'Emission Type',  'enum',        false, false, null, ['CO2', 'SOX', 'NOX', 'CH4', 'N2O']),
+      col('factorValue',   'Factor Value',   'number',      false, false, null, null, null, null, true),
+      col('uomBasis',      'UOM Basis',      'string',      false, false, 20),
+      col('source',        'Source',         'string',      true,  false, 100),
+      col('effectiveFrom', 'Effective From', 'date',        false, false, null),
+      col('notes',         'Notes',          'string',      true,  false, 500),
+      col('isActive',      'Active',         'boolean',     false, false, null),
+    ],
+  },
+  vessel_operational_status_type: {
+    tableName: 'vessel_operational_status_type', displayName: 'Vessel Operational Status Types', primaryKeyColumn: 'statusTypeId', isTemporal: false,
+    columns: [
+      col('statusTypeId', 'ID',          'number',  false, true,  null),
+      col('statusCode',   'Code',        'string',  false, false, 30),
+      col('statusName',   'Name',        'string',  false, false, 150),
+      col('description',  'Description', 'string',  true,  false, 300),
+      col('isActive',     'Active',      'boolean', false, false, null),
+    ],
+  },
+  delay_reason_type: {
+    tableName: 'delay_reason_type', displayName: 'Delay Reason Types', primaryKeyColumn: 'delayReasonTypeId', isTemporal: false,
+    columns: [
+      col('delayReasonTypeId', 'ID',          'number',  false, true,  null),
+      col('reasonCode',        'Code',        'string',  false, false, 30),
+      col('reasonName',        'Name',        'string',  false, false, 150),
+      col('description',       'Description', 'string',  true,  false, 300),
+      col('isActive',          'Active',      'boolean', false, false, null),
+    ],
+  },
   load_shape_template: {
     tableName: 'load_shape_template', displayName: 'Load Shape Templates', primaryKeyColumn: 'loadShapeId', isTemporal: false,
     columns: [
@@ -1485,6 +1571,14 @@ export const registrySeed: RegistryEntry[] = [
   { registryId: 250, tableName: 'bunker_fuel_grade',    displayName: 'Bunker Fuel Grades',    moduleGroup: 'Voyage & Charter Ops', description: 'VLSFO/HSFO/LSMGO/MGO plus alternative fuels (methanol, LNG boil-off, biofuel blend) — parent table for bunker_stem and the ROB ledger.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
   { registryId: 251, tableName: 'sof_event_type',       displayName: 'SOF Event Types',       moduleGroup: 'Voyage & Charter Ops', description: 'Standard Statement of Facts event codes (NOR tendered, all fast, hoses connected, commenced/completed loading-discharging) — parent table for voyage_sof_event.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
   { registryId: 252, tableName: 'off_hire_reason_type', displayName: 'Off-Hire Reason Types', moduleGroup: 'Voyage & Charter Ops', description: 'Standard time charter off-hire reasons — breakdown, dry-docking, deviation, awaiting orders — parent table for charter_off_hire_event.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
+  // V110 — Maritime Execution Platform phase 2
+  { registryId: 260, tableName: 'charter_party_template',         displayName: 'Charter Party Templates',         moduleGroup: 'Voyage & Charter Ops', description: 'Reusable clause-bundle defaults for a new fixture.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 4 },
+  { registryId: 261, tableName: 'port_activity_template',         displayName: 'Port Activity Templates',         moduleGroup: 'Voyage & Charter Ops', description: 'Standard ordered sequences of expected SOF events per port.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 5 },
+  { registryId: 262, tableName: 'emission_factor',                displayName: 'Emission Factors',                moduleGroup: 'Voyage & Charter Ops', description: 'Per-fuel-grade CO2/SOx/NOx/CH4/N2O emission factors.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 6 },
+  { registryId: 263, tableName: 'vessel_operational_status_type', displayName: 'Vessel Operational Status Types', moduleGroup: 'Voyage & Charter Ops', description: 'Real-time operational state vocabulary.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 7 },
+  { registryId: 264, tableName: 'delay_reason_type',              displayName: 'Delay Reason Types',              moduleGroup: 'Voyage & Charter Ops', description: 'Voyage-level underway/transit delay attribution.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 8 },
+  { registryId: 265, tableName: 'fleet_group',                    displayName: 'Fleet Groups',                    moduleGroup: 'Logistics & Delivery', description: 'Top-level portfolio grouping above individual fleets.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 20 },
+  { registryId: 266, tableName: 'fleet',                          displayName: 'Fleets',                          moduleGroup: 'Logistics & Delivery', description: 'Vessel groupings under an owner/operator and fleet group.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 21 },
   // V56 — dedicated FX tenor/period master, linked from fx_rate (not a lookup_value category — needs to scale to 1000+ daily-forward rows)
   { registryId: 209, tableName: 'fx_period',              displayName: 'FX Periods / Tenors',       moduleGroup: 'Pricing & Rates',    subGroup: 'FX',      description: 'Standard FX tenors (SPOT, 1M-2Y) plus individual daily-forward periods used to build a full FX forward curve. Linked from fx_rate.fx_period_id — scales to 1000+ daily delivery days without bloating the generic lookup table.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: true, isEnabled: true, displayOrder: 6 },
   // V59 — commodity_family: the missing middle tier between commodity (sector) and product (instrument), replacing product.product_family's raw unconstrained string
@@ -1809,6 +1903,50 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { offHireReasonTypeId: 5, reasonCode: 'CREW_ISSUE',           reasonName: 'Crew Issue / Illness',                description: null, isActive: true },
     { offHireReasonTypeId: 6, reasonCode: 'INSPECTION',            reasonName: 'Vetting / Port State Inspection',      description: null, isActive: true },
     { offHireReasonTypeId: 7, reasonCode: 'OTHER',                  reasonName: 'Other',                                 description: null, isActive: true },
+  ],
+  fleet_group: [
+    { fleetGroupId: 1, groupCode: 'TANKERS',    groupName: 'Tanker Division',    description: null, isActive: true },
+    { fleetGroupId: 2, groupCode: 'DRY_BULK',   groupName: 'Dry Bulk Division',  description: null, isActive: true },
+    { fleetGroupId: 3, groupCode: 'GAS',        groupName: 'Gas Carrier Division', description: null, isActive: true },
+  ],
+  fleet: [
+    { fleetId: 1, fleetCode: 'CRUDE-FLEET',  fleetName: 'Crude Tanker Fleet',   fleetGroupId: 1, ownerOperatorId: 1, description: null, isActive: true },
+    { fleetId: 2, fleetCode: 'PRODUCT-FLEET', fleetName: 'Product Tanker Fleet', fleetGroupId: 1, ownerOperatorId: 1, description: null, isActive: true },
+    { fleetId: 3, fleetCode: 'BULK-FLEET',    fleetName: 'Dry Bulk Fleet',       fleetGroupId: 2, ownerOperatorId: 2, description: null, isActive: true },
+  ],
+  charter_party_template: [
+    { templateId: 1, templateCode: 'STD-VOYAGE-TANKER', templateName: 'Standard Tanker Voyage Charter', charterPartyTypeId: 1, defaultLaytimeTermId: 2, defaultDemurrageRatePerDay: 45000, defaultDispatchRatePerDay: 22500, defaultBunkerClauseBasis: null, defaultBunkerClauseTolerancePct: null, defaultHirePaymentFrequency: null, description: 'Typical AG-Europe / AG-Asia crude voyage terms.', isActive: true },
+    { templateId: 2, templateCode: 'STD-TC-TANKER',     templateName: 'Standard Tanker Time Charter',    charterPartyTypeId: 2, defaultLaytimeTermId: null, defaultDemurrageRatePerDay: null, defaultDispatchRatePerDay: null, defaultBunkerClauseBasis: 'SAME_QUANTITY_PCT', defaultBunkerClauseTolerancePct: 5, defaultHirePaymentFrequency: 'FIFTEEN_DAYS', description: 'Typical 12-24 month period tanker time charter terms.', isActive: true },
+  ],
+  port_activity_template: [
+    { templateId: 1, templateCode: 'GENERIC-TANKER-PORT', templateName: 'Generic Tanker Port Call', portLocationId: null, commodityTypeId: 1, description: 'Standard load/discharge sequence for a tanker port call.', isActive: true },
+    { templateId: 2, templateCode: 'LNG-TERMINAL',        templateName: 'LNG Terminal Port Call',   portLocationId: null, commodityTypeId: 4, description: 'LNG-specific sequence including BOG management.', isActive: true },
+  ],
+  emission_factor: [
+    { factorId: 1, fuelGradeId: 1, emissionType: 'CO2', factorValue: 3.151, uomBasis: 'T_PER_T_FUEL', source: 'IMO 2020 Guidelines', effectiveFrom: '2020-01-01', notes: 'VLSFO', isActive: true },
+    { factorId: 2, fuelGradeId: 2, emissionType: 'CO2', factorValue: 3.114, uomBasis: 'T_PER_T_FUEL', source: 'IMO 2020 Guidelines', effectiveFrom: '2020-01-01', notes: 'HSFO', isActive: true },
+    { factorId: 3, fuelGradeId: 4, emissionType: 'CO2', factorValue: 3.206, uomBasis: 'T_PER_T_FUEL', source: 'IMO 2020 Guidelines', effectiveFrom: '2020-01-01', notes: 'LSMGO', isActive: true },
+    { factorId: 4, fuelGradeId: 7, emissionType: 'CO2', factorValue: 2.750, uomBasis: 'T_PER_T_FUEL', source: 'IMO 2020 Guidelines', effectiveFrom: '2020-01-01', notes: 'LNG boil-off as fuel', isActive: true },
+  ],
+  vessel_operational_status_type: [
+    { statusTypeId: 1, statusCode: 'AT_SEA',            statusName: 'At Sea',             description: null, isActive: true },
+    { statusTypeId: 2, statusCode: 'IN_PORT',            statusName: 'In Port',            description: null, isActive: true },
+    { statusTypeId: 3, statusCode: 'AT_ANCHOR',           statusName: 'At Anchor',           description: null, isActive: true },
+    { statusTypeId: 4, statusCode: 'AWAITING_BERTH',       statusName: 'Awaiting Berth',       description: null, isActive: true },
+    { statusTypeId: 5, statusCode: 'BUNKERING',              statusName: 'Bunkering',              description: null, isActive: true },
+    { statusTypeId: 6, statusCode: 'UNDERGOING_REPAIR',        statusName: 'Undergoing Repair',        description: null, isActive: true },
+    { statusTypeId: 7, statusCode: 'LAID_UP',                    statusName: 'Laid Up',                    description: null, isActive: true },
+    { statusTypeId: 8, statusCode: 'IDLE',                          statusName: 'Idle',                          description: null, isActive: true },
+    { statusTypeId: 9, statusCode: 'DRY_DOCK',                        statusName: 'Dry Dock',                        description: null, isActive: true },
+  ],
+  delay_reason_type: [
+    { delayReasonTypeId: 1, reasonCode: 'WEATHER_ROUTING',        reasonName: 'Weather Routing',                description: null, isActive: true },
+    { delayReasonTypeId: 2, reasonCode: 'PIRACY_REROUTE',          reasonName: 'Piracy Reroute',                  description: null, isActive: true },
+    { delayReasonTypeId: 3, reasonCode: 'CANAL_CONGESTION',         reasonName: 'Canal Congestion',                description: null, isActive: true },
+    { delayReasonTypeId: 4, reasonCode: 'MECHANICAL_SLOWDOWN',       reasonName: 'Mechanical Slowdown',              description: null, isActive: true },
+    { delayReasonTypeId: 5, reasonCode: 'AWAITING_BUNKERS',           reasonName: 'Awaiting Bunkers',                  description: null, isActive: true },
+    { delayReasonTypeId: 6, reasonCode: 'PORT_CONGESTION_TRANSIT',     reasonName: 'Port Congestion (Transit)',          description: null, isActive: true },
+    { delayReasonTypeId: 7, reasonCode: 'OTHER',                        reasonName: 'Other',                                description: null, isActive: true },
   ],
   load_shape_template: [
     { loadShapeId: 1, shapeCode: 'BASELOAD',   shapeName: 'Baseload (7x24)',             shapeType: 'BASELOAD', startHour: 0,    endHour: 24,   intervalMinutes: 60, isComposite: false, isActive: true },

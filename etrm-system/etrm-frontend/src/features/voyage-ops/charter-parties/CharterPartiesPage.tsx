@@ -31,6 +31,7 @@ export function CharterPartiesPage() {
   const { data: currencies = [] } = useCurrencies();
   const { data: cpTypes = [] } = useTableRows('charter_party_type');
   const { data: laytimeTerms = [] } = useTableRows('laytime_term_template');
+  const { data: cpTemplates = [] } = useTableRows('charter_party_template');
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<CharterParty | null>(null);
@@ -42,6 +43,29 @@ export function CharterPartiesPage() {
   const currencyOptions = currencies.map((c) => ({ value: c.currencyId, label: c.currencyCode }));
   const cpTypeOptions = (cpTypes as { charterPartyTypeId: number; typeCode: string }[]).map((t) => ({ value: t.charterPartyTypeId, label: t.typeCode }));
   const laytimeTermOptions = (laytimeTerms as { laytimeTermId: number; termCode: string }[]).map((t) => ({ value: t.laytimeTermId, label: t.termCode }));
+  type CpTemplate = {
+    templateId: number; templateCode: string; defaultLaytimeTermId: number | null;
+    defaultDemurrageRatePerDay: number | null; defaultDispatchRatePerDay: number | null;
+    defaultBunkerClauseBasis: string | null; defaultBunkerClauseTolerancePct: number | null;
+    defaultHirePaymentFrequency: string | null;
+  };
+  const cpTemplateOptions = (cpTemplates as CpTemplate[]).map((t) => ({ value: t.templateId, label: t.templateCode }));
+
+  // Fills in the template's defaults only where the corresponding field is currently empty —
+  // never clobbers a value the user already typed.
+  function applyTemplateDefaults(templateId: number) {
+    const template = (cpTemplates as CpTemplate[]).find((t) => t.templateId === templateId);
+    if (!template) return;
+    const current = form.getFieldsValue();
+    const patch: Record<string, unknown> = {};
+    if (current.laytimeTermId == null && template.defaultLaytimeTermId != null) patch.laytimeTermId = template.defaultLaytimeTermId;
+    if (current.demurrageRatePerDay == null && template.defaultDemurrageRatePerDay != null) patch.demurrageRatePerDay = template.defaultDemurrageRatePerDay;
+    if (current.dispatchRatePerDay == null && template.defaultDispatchRatePerDay != null) patch.dispatchRatePerDay = template.defaultDispatchRatePerDay;
+    if (current.bunkerClauseBasis == null && template.defaultBunkerClauseBasis != null) patch.bunkerClauseBasis = template.defaultBunkerClauseBasis;
+    if (current.bunkerClauseTolerancePct == null && template.defaultBunkerClauseTolerancePct != null) patch.bunkerClauseTolerancePct = template.defaultBunkerClauseTolerancePct;
+    if (current.hirePaymentFrequency == null && template.defaultHirePaymentFrequency != null) patch.hirePaymentFrequency = template.defaultHirePaymentFrequency;
+    if (Object.keys(patch).length > 0) form.setFieldsValue(patch);
+  }
 
   function openNew() {
     setEditing(null);
@@ -65,6 +89,7 @@ export function CharterPartiesPage() {
       redeliveryDateEstimate: cp.redeliveryDateEstimate ? (dayjs(cp.redeliveryDateEstimate) as unknown as string) : undefined,
       bunkerClauseBasis: cp.bunkerClauseBasis ?? undefined, bunkerClauseTolerancePct: cp.bunkerClauseTolerancePct ?? undefined,
       optionPeriodMonths: cp.optionPeriodMonths ?? undefined, status: cp.status, notes: cp.notes ?? undefined, isActive: cp.isActive,
+      charterPartyTemplateId: cp.charterPartyTemplateId ?? undefined,
     });
     setOpen(true);
   }
@@ -116,6 +141,9 @@ export function CharterPartiesPage() {
         <Form form={form} layout="vertical">
           <Form.Item name="cpReference" label="CP Reference" rules={[{ required: true }]}><Input /></Form.Item>
           <Form.Item name="charterPartyTypeId" label="Charter Party Type" rules={[{ required: true }]}><Select options={cpTypeOptions} showSearch optionFilterProp="label" /></Form.Item>
+          <Form.Item name="charterPartyTemplateId" label="Charter Party Template (fills in defaults below where left blank)">
+            <Select allowClear showSearch optionFilterProp="label" options={cpTemplateOptions} onChange={(id: number | undefined) => { if (id != null) applyTemplateDefaults(id); }} />
+          </Form.Item>
           <Form.Item name="vesselId" label="Vessel" rules={[{ required: true }]}><Select options={vesselOptions} showSearch optionFilterProp="label" /></Form.Item>
           <Form.Item name="counterpartyId" label="Counterparty" rules={[{ required: true }]}><Select options={counterpartyOptions} showSearch optionFilterProp="label" /></Form.Item>
           <Form.Item name="direction" label="Direction" rules={[{ required: true }]}>

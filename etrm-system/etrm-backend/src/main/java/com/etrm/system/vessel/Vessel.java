@@ -180,6 +180,13 @@ public class Vessel extends AuditableEntity {
     @JsonProperty
     private String buildCountryCode;
 
+    @Column(name = "fleet_id")
+    private Integer fleetId;
+
+    @Transient
+    @JsonProperty
+    private String fleetName;
+
     public Integer getVesselId() {
         return vesselId;
     }
@@ -498,5 +505,21 @@ public class Vessel extends AuditableEntity {
 
     public void setBuildCountryCode(String buildCountryCode) {
         this.buildCountryCode = buildCountryCode;
+    }
+
+    public Integer getFleetId() {
+        return fleetId;
+    }
+
+    public void setFleetId(Integer fleetId) {
+        this.fleetId = fleetId;
+    }
+
+    public String getFleetName() {
+        return fleetName;
+    }
+
+    public void setFleetName(String fleetName) {
+        this.fleetName = fleetName;
     }
 }

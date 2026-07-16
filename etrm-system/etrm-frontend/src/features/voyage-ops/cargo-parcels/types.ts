@@ -3,7 +3,8 @@ export interface VoyageCargoParcel {
   voyageId: number;
   productId: number | null;
   productName: string | null;
-  commodityType: string | null;
+  commodityTypeId: number | null;
+  commodityTypeCode: string | null;
   quantity: number;
   uomId: number;
   uomCode: string | null;
@@ -25,7 +26,7 @@ export type VoyageCargoParcelInput = Omit<
   VoyageCargoParcel,
   | 'cargoParcelId'
   | 'productName'
-  | 'commodityType'
+  | 'commodityTypeCode'
   | 'uomCode'
   | 'loadTerminalName'
   | 'dischargeTerminalName'

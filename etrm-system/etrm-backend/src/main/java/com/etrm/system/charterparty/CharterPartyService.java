@@ -22,11 +22,12 @@ public class CharterPartyService {
     private final CurrencyRepository currencyRepository;
     private final LaytimeTermTemplateRepository laytimeTermTemplateRepository;
     private final LocationRepository locationRepository;
+    private final CharterPartyTemplateRepository charterPartyTemplateRepository;
 
     public CharterPartyService(CharterPartyRepository repository, CharterPartyTypeRepository charterPartyTypeRepository,
                                 VesselRepository vesselRepository, CounterpartyRepository counterpartyRepository,
                                 CurrencyRepository currencyRepository, LaytimeTermTemplateRepository laytimeTermTemplateRepository,
-                                LocationRepository locationRepository) {
+                                LocationRepository locationRepository, CharterPartyTemplateRepository charterPartyTemplateRepository) {
         this.repository = repository;
         this.charterPartyTypeRepository = charterPartyTypeRepository;
         this.vesselRepository = vesselRepository;
@@ -34,6 +35,7 @@ public class CharterPartyService {
         this.currencyRepository = currencyRepository;
         this.laytimeTermTemplateRepository = laytimeTermTemplateRepository;
         this.locationRepository = locationRepository;
+        this.charterPartyTemplateRepository = charterPartyTemplateRepository;
     }
 
     private CharterParty hydrate(CharterParty cp) {
@@ -51,6 +53,9 @@ public class CharterPartyService {
         }
         if (cp.getRedeliveryLocationId() != null) {
             locationRepository.findById(cp.getRedeliveryLocationId()).ifPresent(l -> cp.setRedeliveryLocationName(l.getLocationName()));
+        }
+        if (cp.getCharterPartyTemplateId() != null) {
+            charterPartyTemplateRepository.findById(cp.getCharterPartyTemplateId()).ifPresent(t -> cp.setCharterPartyTemplateCode(t.getTemplateCode()));
         }
         return cp;
     }

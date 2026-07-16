@@ -47,6 +47,9 @@ const VoyageWorkspace = lazy1(() => import('@features/voyage-ops/voyages/VoyageW
 const CharterPartiesPage = lazy1(() => import('@features/voyage-ops/charter-parties/CharterPartiesPage'), 'CharterPartiesPage');
 const CharterPartyWorkspace = lazy1(() => import('@features/voyage-ops/charter-parties/CharterPartyWorkspace'), 'CharterPartyWorkspace');
 const BunkerRobLedgerPage = lazy1(() => import('@features/voyage-ops/bunker-rob-ledger/BunkerRobLedgerPage'), 'BunkerRobLedgerPage');
+const PortActivityTemplatesPage = lazy1(() => import('@features/voyage-ops/port-activity-templates/PortActivityTemplatesPage'), 'PortActivityTemplatesPage');
+const VesselPerformanceCurvesPage = lazy1(() => import('@features/logistics/vessel-performance-curves/VesselPerformanceCurvesPage'), 'VesselPerformanceCurvesPage');
+const VesselCargoTanksPage = lazy1(() => import('@features/logistics/vessel-cargo-tanks/VesselCargoTanksPage'), 'VesselCargoTanksPage');
 
 // Calendar
 const HolidayCalendarsPage = lazy1(() => import('@features/calendar/holiday-calendars/HolidayCalendarsPage'), 'HolidayCalendarsPage');
@@ -186,6 +189,9 @@ export function AppRouter() {
         <Route path="/voyage-ops/charter-parties" element={<S><CharterPartiesPage /></S>} />
         <Route path="/voyage-ops/charter-parties/:id" element={<S><CharterPartyWorkspace /></S>} />
         <Route path="/voyage-ops/bunker-rob-ledger" element={<S><BunkerRobLedgerPage /></S>} />
+        <Route path="/voyage-ops/port-activity-templates" element={<S><PortActivityTemplatesPage /></S>} />
+        <Route path="/logistics/vessel-performance-curves" element={<S><VesselPerformanceCurvesPage /></S>} />
+        <Route path="/logistics/vessel-cargo-tanks" element={<S><VesselCargoTanksPage /></S>} />
 
         {/* Calendar */}
         <Route path="/calendar/holiday-calendars" element={<S><HolidayCalendarsPage /></S>} />
