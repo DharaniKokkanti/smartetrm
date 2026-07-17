@@ -17,13 +17,16 @@ public class VesselService {
     private final TransportOperatorRepository operatorRepository;
     private final CountryRepository countryRepository;
     private final FleetRepository fleetRepository;
+    private final VesselTypeRepository vesselTypeRepository;
 
     public VesselService(VesselRepository repository, TransportOperatorRepository operatorRepository,
-                          CountryRepository countryRepository, FleetRepository fleetRepository) {
+                          CountryRepository countryRepository, FleetRepository fleetRepository,
+                          VesselTypeRepository vesselTypeRepository) {
         this.repository = repository;
         this.operatorRepository = operatorRepository;
         this.countryRepository = countryRepository;
         this.fleetRepository = fleetRepository;
+        this.vesselTypeRepository = vesselTypeRepository;
     }
 
     private Vessel hydrate(Vessel vessel) {
@@ -44,6 +47,7 @@ public class VesselService {
         if (vessel.getFleetId() != null) {
             fleetRepository.findById(vessel.getFleetId()).ifPresent(f -> vessel.setFleetName(f.getFleetName()));
         }
+        vesselTypeRepository.findById(vessel.getVesselTypeId()).ifPresent(t -> vessel.setVesselTypeCode(t.getTypeCode()));
         return vessel;
     }
 

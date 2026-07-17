@@ -299,6 +299,26 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
+    name: 'vessel_type', label: 'Vessel Types', pk: 'vesselTypeId', group: 'Logistics & Delivery', order: 22,
+    subGroup: 'Vessels', description: 'Vessel class classification — VLCC, Suezmax, Aframax, MR Tanker, LNG/LPG Carrier, Bulk Carrier. Parent table for vessel.vessel_type_id FK (V111 — converted from a hardcoded CHECK constraint).',
+    rows: [
+      { vesselTypeId: 1,  typeCode: 'VLCC',            typeName: 'Very Large Crude Carrier (200-320k DWT)', description: null, sortOrder: 1,  isActive: true },
+      { vesselTypeId: 2,  typeCode: 'SUEZMAX',         typeName: 'Suezmax (120-200k DWT)',                   description: null, sortOrder: 2,  isActive: true },
+      { vesselTypeId: 3,  typeCode: 'AFRAMAX',         typeName: 'Aframax (80-120k DWT)',                    description: null, sortOrder: 3,  isActive: true },
+      { vesselTypeId: 4,  typeCode: 'PANAMAX',         typeName: 'Panamax Tanker',                           description: null, sortOrder: 4,  isActive: true },
+      { vesselTypeId: 5,  typeCode: 'HANDYSIZE',       typeName: 'Handysize Tanker',                         description: null, sortOrder: 5,  isActive: true },
+      { vesselTypeId: 6,  typeCode: 'MR_TANKER',       typeName: 'Medium Range Product Tanker',              description: null, sortOrder: 6,  isActive: true },
+      { vesselTypeId: 7,  typeCode: 'LR1_TANKER',      typeName: 'Long Range 1 Product Tanker',              description: null, sortOrder: 7,  isActive: true },
+      { vesselTypeId: 8,  typeCode: 'LR2_TANKER',      typeName: 'Long Range 2 Product Tanker',              description: null, sortOrder: 8,  isActive: true },
+      { vesselTypeId: 9,  typeCode: 'LNG_CARRIER',     typeName: 'LNG Carrier',                              description: null, sortOrder: 9,  isActive: true },
+      { vesselTypeId: 10, typeCode: 'LPG_CARRIER',     typeName: 'LPG Carrier',                              description: null, sortOrder: 10, isActive: true },
+      { vesselTypeId: 11, typeCode: 'CHEMICAL_TANKER', typeName: 'Chemical / Specialty Tanker',               description: null, sortOrder: 11, isActive: true },
+      { vesselTypeId: 12, typeCode: 'BULK_CARRIER',    typeName: 'Dry Bulk (Agri, Metals)',                  description: null, sortOrder: 12, isActive: true },
+      { vesselTypeId: 13, typeCode: 'BARGE',           typeName: 'River / Coastal Barge',                    description: null, sortOrder: 13, isActive: true },
+      { vesselTypeId: 14, typeCode: 'OTHER',           typeName: 'Other',                                    description: null, sortOrder: 14, isActive: true },
+    ],
+  },
+  {
     name: 'transport_document_type', label: 'Transport Document Types', pk: 'transportDocumentTypeId', group: 'Contract & Legal', order: 3,
     subGroup: 'Documentation', description: 'Title and consignment documents produced when commodity is moved — Bills of Lading, CMR/CIM consignment notes, air waybills, pipeline batch tickets, and delivery notes.',
     rows: [

@@ -1474,14 +1474,16 @@ export function TradeBlotter() {
         .map((m) => ({ value: m.marketId, label: `${m.marketCode} — ${m.marketName}` }));
   }, [markets]);
   const vesselOpts    = useMemo(() => (vessels   as { vesselName: string; imoNumber: string }[]).map((v) => ({ value: v.vesselName, label: `${v.vesselName} (${v.imoNumber})` })), [vessels]);
-  // UoM options scoped to a commodity — a UoM with commodityTypes: null applies cross-commodity (e.g. MT); one with a
-  // populated list (e.g. MWH -> POWER/GAS) only shows up for those commodities, instead of every UoM regardless of leg type.
+  // UoM options scoped to a commodity — a UoM with commodityTypeId: null applies cross-commodity (e.g. MT); one with a
+  // specific commodityTypeCode (e.g. MWH -> POWER) only shows up for that broad commodity, instead of every UoM regardless of leg type.
   const uomOptionsFor = useMemo(() => {
     const rows = uomRows as Uom[];
-    return (commodityType: CommodityTypeTrade) =>
-      rows
-        .filter((r) => !r.commodityTypes || r.commodityTypes.includes(commodityType))
+    return (commodityType: CommodityTypeTrade) => {
+      const broad = COMMODITY_TRADE_TO_BROAD[commodityType];
+      return rows
+        .filter((r) => !r.commodityTypeCode || r.commodityTypeCode === broad)
         .map((r) => ({ value: r.uomId, label: r.uomCode }));
+    };
   }, [uomRows]);
   const currencyOpts  = useMemo(() => (currencyRows as { currencyId: number; currencyCode: string; currencyName: string }[]).map((r) => ({ value: r.currencyId, label: `${r.currencyCode} — ${r.currencyName}` })), [currencyRows]);
   const countryOpts   = useMemo(() => countries.filter((c) => c.isActive).map((c) => ({ value: c.countryId, label: `${c.countryCode} — ${c.countryName}` })), [countries]);

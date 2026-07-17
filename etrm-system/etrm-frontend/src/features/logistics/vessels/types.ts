@@ -1,6 +1,3 @@
-export const VESSEL_TYPES = ['VLCC', 'SUEZMAX', 'AFRAMAX', 'PANAMAX', 'MR', 'HANDYSIZE', 'LNG_CARRIER', 'LPG_CARRIER', 'PRODUCT_TANKER', 'CHEMICAL_TANKER', 'BULK_CARRIER', 'BUNKER_VESSEL', 'FSRU', 'FPSO'] as const;
-export type VesselType = (typeof VESSEL_TYPES)[number];
-
 export const VESSEL_STATUS_CODES = ['ACTIVE', 'ON_CHARTER', 'IN_DRYDOCK', 'IDLE', 'SCRAPPED', 'BLACKLISTED'] as const;
 export type VesselStatusCode = (typeof VESSEL_STATUS_CODES)[number];
 
@@ -8,14 +5,17 @@ export interface Vessel {
   vesselId: number;
   imoNumber: string;
   vesselName: string;
-  vesselType: VesselType;
+  vesselTypeId: number;
+  vesselTypeCode: string;
   dwt: number | null;
   grossTonnage: number | null;
   buildYear: number | null;
   flagCountryId: number;
   buildCountryId: number | null;
-  owner: string | null;
-  operator: string | null;
+  ownerOperatorId: number | null;
+  ownerOperatorName: string | null;
+  managerOperatorId: number | null;
+  managerOperatorName: string | null;
   classificationSociety: string | null;
   vettingExpiry: string | null;
   sireInspectionDate: string | null;
@@ -35,4 +35,4 @@ export interface Vessel {
   createdAt: string;
 }
 
-export type VesselInput = Omit<Vessel, 'vesselId' | 'fleetName' | 'createdAt'>;
+export type VesselInput = Omit<Vessel, 'vesselId' | 'vesselTypeCode' | 'ownerOperatorName' | 'managerOperatorName' | 'fleetName' | 'createdAt'>;

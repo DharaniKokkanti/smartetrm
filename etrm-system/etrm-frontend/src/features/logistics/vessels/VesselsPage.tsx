@@ -9,17 +9,17 @@ import { ActiveTag } from '@components/smart/StatusTag';
 import { ExpiryBadge } from '@components/smart/ExpiryBadge';
 import { hint } from '@components/smart/FieldHint';
 import { useVessels, useSaveVessel, useDeactivateVessel } from './hooks';
-import { VESSEL_TYPES, VESSEL_STATUS_CODES, type Vessel, type VesselInput, type VesselType, type VesselStatusCode } from './types';
+import { VESSEL_STATUS_CODES, type Vessel, type VesselInput, type VesselStatusCode } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import { useCountries } from '@features/reference/countries/hooks';
 import { useTableRows } from '@features/tier2/hooks';
 
-const TYPE_COLOR: Record<VesselType, string> = {
+const TYPE_COLOR: Record<string, string> = {
   VLCC: 'blue', SUEZMAX: 'geekblue', AFRAMAX: 'purple', PANAMAX: 'cyan',
-  MR: 'teal', HANDYSIZE: 'lime', LNG_CARRIER: 'gold', LPG_CARRIER: 'orange',
-  PRODUCT_TANKER: 'green', CHEMICAL_TANKER: 'volcano', BULK_CARRIER: 'brown',
-  BUNKER_VESSEL: 'default', FSRU: 'magenta', FPSO: 'red',
+  HANDYSIZE: 'lime', MR_TANKER: 'teal', LR1_TANKER: 'gold', LR2_TANKER: 'orange',
+  LNG_CARRIER: 'magenta', LPG_CARRIER: 'volcano', CHEMICAL_TANKER: 'purple',
+  BULK_CARRIER: 'brown', BARGE: 'default', OTHER: 'default',
 };
 
 const STATUS_COLOR: Record<VesselStatusCode, string> = {
@@ -36,25 +36,32 @@ export function VesselsPage() {
   const countryLabelById = new Map(countries.map((c) => [c.countryId, `${c.countryCode} — ${c.countryName}`]));
   const { data: fleets = [] } = useTableRows('fleet');
   const fleetOptions = (fleets as { fleetId: number; fleetName: string }[]).map((f) => ({ value: f.fleetId, label: f.fleetName }));
+  const { data: vesselTypes = [] } = useTableRows('vessel_type');
+  const typedVesselTypes = vesselTypes as { vesselTypeId: number; typeCode: string; typeName: string }[];
+  const vesselTypeOptions = typedVesselTypes.map((t) => ({ value: t.vesselTypeId, label: t.typeName }));
+  const { data: transportOperators = [] } = useTableRows('transport_operator');
+  const operatorOptions = (transportOperators as { operatorId: number; operatorName: string }[]).map((o) => ({ value: o.operatorId, label: o.operatorName }));
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Vessel | null>(null);
   const [form] = Form.useForm<VesselInput>();
   useFormDraft('logistics-vessels', { form, open, setOpen, editing, setEditing });
-  const watchedVesselType = Form.useWatch('vesselType', form);
+  const watchedVesselTypeId = Form.useWatch('vesselTypeId', form);
+  const watchedVesselTypeCode = typedVesselTypes.find((t) => t.vesselTypeId === watchedVesselTypeId)?.typeCode;
 
   function openNew() { setEditing(null); form.resetFields(); form.setFieldValue('isActive', true); form.setFieldValue('statusCode', 'ACTIVE'); setOpen(true); }
   function openEdit(v: Vessel) {
     setEditing(v);
     form.setFieldsValue({
-      imoNumber: v.imoNumber, vesselName: v.vesselName, vesselType: v.vesselType, dwt: v.dwt,
-      grossTonnage: v.grossTonnage, buildYear: v.buildYear, flagCountryId: v.flagCountryId, buildCountryId: v.buildCountryId ?? undefined, owner: v.owner ?? undefined,
-      operator: v.operator ?? undefined, classificationSociety: v.classificationSociety ?? undefined,
+      imoNumber: v.imoNumber, vesselName: v.vesselName, vesselTypeId: v.vesselTypeId, dwt: v.dwt,
+      grossTonnage: v.grossTonnage, buildYear: v.buildYear, flagCountryId: v.flagCountryId, buildCountryId: v.buildCountryId ?? undefined,
+      classificationSociety: v.classificationSociety ?? undefined,
       vettingExpiry: v.vettingExpiry ? (dayjs(v.vettingExpiry) as unknown as string) : undefined,
       sireInspectionDate: v.sireInspectionDate ? (dayjs(v.sireInspectionDate) as unknown as string) : undefined,
       cdiBerthStatus: v.cdiBerthStatus ?? undefined, statusCode: v.statusCode, isActive: v.isActive,
       grainCapacityCbm: v.grainCapacityCbm ?? undefined, baleCapacityCbm: v.baleCapacityCbm ?? undefined,
       guaranteedBoilOffRatePctPerDay: v.guaranteedBoilOffRatePctPerDay ?? undefined, heelCapacityCbm: v.heelCapacityCbm ?? undefined,
       fleetId: v.fleetId ?? undefined,
+      ownerOperatorId: v.ownerOperatorId ?? undefined, managerOperatorId: v.managerOperatorId ?? undefined,
     });
     setOpen(true);
   }
@@ -74,7 +81,7 @@ export function VesselsPage() {
     { field: 'imoNumber', headerName: 'IMO', cellClass: 'cell-mono', width: 110, pinned: 'left',
       tooltipValueGetter: () => 'IMO number — permanent 7-digit vessel identifier assigned by Lloyd\'s Register. Never changes even if vessel is renamed or re-flagged.' },
     { field: 'vesselName', headerName: 'Vessel', flex: 1.3, minWidth: 180 },
-    { field: 'vesselType', headerName: 'Type', width: 140, cellRenderer: (p: { value: VesselType }) => <Tag color={TYPE_COLOR[p.value] ?? 'default'}>{p.value.replace(/_/g, ' ')}</Tag> },
+    { field: 'vesselTypeCode', headerName: 'Type', width: 140, cellRenderer: (p: { value: string }) => <Tag color={TYPE_COLOR[p.value] ?? 'default'}>{p.value.replace(/_/g, ' ')}</Tag> },
     { field: 'dwt', headerName: 'DWT (MT)', width: 115, cellClass: 'cell-mono', valueFormatter: (p) => p.value != null ? Number(p.value).toLocaleString() : '—',
       tooltipValueGetter: () => 'Deadweight Tonnage — maximum cargo carrying capacity in metric tons. VLCC: 250,000-320,000 DWT. Aframax: 80,000-120,000 DWT.' },
     { field: 'flagCountryId', headerName: 'Flag', width: 130, valueFormatter: (p) => countryLabelById.get(p.value) ?? String(p.value) },
@@ -119,8 +126,8 @@ export function VesselsPage() {
           <Form.Item name="vesselName" label={hint('Vessel Name', 'Current registered vessel name. Vessels may be renamed — IMO number is the permanent identity.', 'NORDIC LUNA')} rules={[{ required: true }]}>
             <Input placeholder="NORDIC LUNA" />
           </Form.Item>
-          <Form.Item name="vesselType" label={hint('Vessel Type', 'VLCC: >200,000 DWT crude. SUEZMAX: 120,000-200,000 DWT. AFRAMAX: 80,000-120,000 DWT (North Sea, Med). MR: 25,000-55,000 DWT clean products. LNG_CARRIER: cryogenic LNG. FPSO: floating production storage offloading.', 'VLCC')} rules={[{ required: true }]}>
-            <Select options={VESSEL_TYPES.map((t) => ({ label: t.replace(/_/g, ' '), value: t }))} />
+          <Form.Item name="vesselTypeId" label={hint('Vessel Type', 'VLCC: >200,000 DWT crude. SUEZMAX: 120,000-200,000 DWT. AFRAMAX: 80,000-120,000 DWT (North Sea, Med). MR_TANKER: 25,000-55,000 DWT clean products. LNG_CARRIER: cryogenic LNG.', 'VLCC')} rules={[{ required: true }]}>
+            <Select options={vesselTypeOptions} showSearch optionFilterProp="label" placeholder="Select vessel type" />
           </Form.Item>
           <Space style={{ width: '100%', gap: 12 }}>
             <Form.Item name="dwt" label={hint('DWT (MT)', 'Deadweight Tonnage in metric tons — total cargo + fuel + water + crew. VLCC range: 250,000-320,000 MT. This drives cargo quantity planning and freight calculations.', '300000')} style={{ flex: 1 }}>
@@ -130,7 +137,7 @@ export function VesselsPage() {
               <InputNumber style={{ width: '100%' }} placeholder="160000" formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
             </Form.Item>
           </Space>
-          {watchedVesselType === 'BULK_CARRIER' && (
+          {watchedVesselTypeCode === 'BULK_CARRIER' && (
             <Space style={{ width: '100%', gap: 12 }}>
               <Form.Item name="grainCapacityCbm" label={hint('Grain Capacity (CBM)', 'Cargo hold capacity for free-flowing dry-bulk cargo (grain, most ores) — determines whether the vessel can lift the contractual metals/agri cargo quantity.', '198000')} style={{ flex: 1 }}>
                 <InputNumber style={{ width: '100%' }} placeholder="198000" />
@@ -140,7 +147,7 @@ export function VesselsPage() {
               </Form.Item>
             </Space>
           )}
-          {watchedVesselType === 'LNG_CARRIER' && (
+          {watchedVesselTypeCode === 'LNG_CARRIER' && (
             <Space style={{ width: '100%', gap: 12 }}>
               <Form.Item
                 name="guaranteedBoilOffRatePctPerDay"
@@ -166,11 +173,11 @@ export function VesselsPage() {
           <Form.Item name="classificationSociety" label={hint('Classification Society', 'Technical body that certifies vessel structural integrity and equipment. IACS members: LR (Lloyd\'s Register), DNV (Det Norske Veritas), BV (Bureau Veritas), ABS, ClassNK, RINA. Required for vetting approval.', 'DNV')}>
             <Input placeholder="DNV" style={{ fontFamily: 'monospace' }} />
           </Form.Item>
-          <Form.Item name="owner" label={hint('Owner', 'Registered shipowner (legal owner). May differ from commercial operator — important for sanctions screening.', 'Nordic Tankers AS')}>
-            <Input placeholder="Shipowner name" />
+          <Form.Item name="ownerOperatorId" label={hint('Owner', 'Registered shipowner (legal owner). May differ from commercial operator — important for sanctions screening.', 'Nordic Tankers AS')}>
+            <Select allowClear showSearch optionFilterProp="label" options={operatorOptions} placeholder="Select owner" />
           </Form.Item>
-          <Form.Item name="operator" label={hint('Operator', 'Commercial operator managing vessel employment. This is the entity you charter the vessel from or to. May be the same as owner for single-ship companies.', 'Scorpio Tankers Inc.')}>
-            <Input placeholder="Operator name" />
+          <Form.Item name="managerOperatorId" label={hint('Operator', 'Commercial operator managing vessel employment. This is the entity you charter the vessel from or to. May be the same as owner for single-ship companies.', 'Scorpio Tankers Inc.')}>
+            <Select allowClear showSearch optionFilterProp="label" options={operatorOptions} placeholder="Select operator" />
           </Form.Item>
           <Form.Item name="fleetId" label={hint('Fleet', 'Which fleet this vessel is grouped under, for portfolio-level reporting and management.')}>
             <Select allowClear showSearch optionFilterProp="label" options={fleetOptions} />

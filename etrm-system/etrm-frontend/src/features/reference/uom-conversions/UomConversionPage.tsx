@@ -9,7 +9,6 @@ import { useUomConversions, useSaveUomConversion, useDeleteUomConversion } from 
 import { useUom } from '@features/reference/uom/hooks';
 import { COMMODITY_TYPES, type CommodityType } from '@features/organization/desks/types';
 import type { UomConversion, UomConversionInput } from './types';
-import type { UomType } from '@features/reference/uom/types';
 import { useFormDraft } from '@components/smart/formDraft';
 
 const COMMODITY_COLOR: Record<CommodityType, string> = {
@@ -17,11 +16,11 @@ const COMMODITY_COLOR: Record<CommodityType, string> = {
   LNG: 'cyan', FREIGHT: 'orange', RINS: 'lime', ENVIRONMENTAL: 'geekblue', MULTI: 'magenta', OTHER: 'default',
 };
 
-const UOM_TYPE_COLOR: Record<UomType, string> = {
-  VOLUME: 'geekblue', WEIGHT: 'orange', ENERGY: 'gold', POWER: 'purple', QUANTITY: 'cyan', DISTANCE: 'green',
+const UOM_TYPE_COLOR: Record<string, string> = {
+  VOLUME: 'geekblue', WEIGHT: 'orange', ENERGY: 'gold', POWER: 'purple', TEMPERATURE: 'red', COUNT: 'cyan', OTHER: 'default',
 };
 
-function UomTag({ code, typeMap }: { code: string; typeMap: Map<string, UomType> }) {
+function UomTag({ code, typeMap }: { code: string; typeMap: Map<string, string> }) {
   const type = typeMap.get(code);
   return (
     <Space size={3}>
@@ -31,7 +30,7 @@ function UomTag({ code, typeMap }: { code: string; typeMap: Map<string, UomType>
   );
 }
 
-function ConversionTypeTag({ fromType, toType }: { fromType?: UomType; toType?: UomType }) {
+function ConversionTypeTag({ fromType, toType }: { fromType?: string; toType?: string }) {
   if (!fromType || !toType) return null;
   if (fromType === toType) {
     return <Tag color="default" style={{ fontSize: 10 }}>Same type — fixed ratio</Tag>;
@@ -67,8 +66,8 @@ export function UomConversionPage() {
 
   // code → uomType lookup built from live UoM list
   const uomTypeMap = useMemo(() => {
-    const m = new Map<string, UomType>();
-    uoms.forEach((u) => m.set(u.uomCode, u.uomType));
+    const m = new Map<string, string>();
+    uoms.forEach((u) => m.set(u.uomCode, u.uomTypeCode));
     return m;
   }, [uoms]);
 
@@ -80,7 +79,7 @@ export function UomConversionPage() {
       .map((u) => ({
         value: u.uomCode,
         label: `${u.uomCode} — ${u.uomName}`,
-        title: u.uomType,
+        title: u.uomTypeCode,
       })),
     [uoms],
   );

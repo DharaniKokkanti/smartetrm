@@ -29,6 +29,13 @@ import { AppDatePicker } from '@components/smart/AppDatePicker';
 import { hint } from '@components/smart/FieldHint';
 import { safeTextRule, integerInputNumberProps } from '@components/smart/fieldValidation';
 import { useCountries } from '@features/reference/countries/hooks';
+import { useCounterparties } from '@features/tier1/counterparty/hooks';
+import { useLocations } from '@features/logistics/locations/hooks';
+import { useHolidayCalendars } from '@features/calendar/holiday-calendars/hooks';
+import { useLegalEntities } from '@features/tier1/legal-entity/hooks';
+import { useProducts } from '@features/markets/products/hooks';
+import { useStorageFacilities } from '@features/logistics/storage/hooks';
+import { useVessels } from '@features/logistics/vessels/hooks';
 
 /** Column-name fragments that count as a "code/short-name" field — always
  *  stored uppercase, even if the user types lowercase. Codes with a stricter
@@ -85,6 +92,14 @@ const SEARCH_AND_FILTER_ROW_THRESHOLD = 50;
 const ISO_4217_COLS = new Set(['currencyCode']);
 /** Columns that must follow ISO 3166-1 alpha-2 (2-letter uppercase) */
 const ISO_3166_COLS = new Set(['countryCode', 'jurisdictionCode', 'incorporationCountry']);
+
+/** FK target tables that are dedicated Tier1-style entities (their own bespoke
+ *  API, not registered in master_data_table_registry) — see the fkTables doc
+ *  comment below for why these need a real /api/v1/... fetch instead of the
+ *  generic /reference-data/:table mechanism every other foreign_key column uses. */
+const DEDICATED_ENTITY_FK_TABLES = new Set([
+  'counterparty', 'location', 'holiday_calendar', 'legal_entity', 'product', 'storage_facility', 'vessel',
+]);
 
 /** Extra validation rules injected for globally-standardised codes */
 function isoRules(col: ColumnMetadata) {
@@ -341,12 +356,25 @@ export function ReferenceDataTable({ table }: Props) {
   // batch (useQueries handles the variable-length list safely; this
   // component remounts per table via Tier2HomePage's `key`, so the list is
   // stable for the component's lifetime).
-  // `country` is handled as a special case below (real /countries API, keyed
-  // by the numeric countryId now on that entity — see the countryRows/
-  // countryFkOptions block further down) rather than through the generic
-  // /reference-data/:table fetch, so it's excluded from the generic fetch list.
+  // `country` and the DEDICATED_ENTITY_FK_TABLES below are handled as special
+  // cases (real bespoke APIs, e.g. /locations, /vessels) rather than through
+  // the generic /reference-data/:table fetch — those tables are dedicated
+  // Tier1-style entities (their own controller, not registered in
+  // master_data_table_registry), so a plain foreign_key column pointing at
+  // one would otherwise 404 through the generic mechanism and silently
+  // render an empty dropdown. Found via a real audit: `sys.foreign_keys`
+  // cross-checked against every registered table's FK targets turned up ~20
+  // Tier2-registered tables (some pre-existing, e.g. generation_asset/
+  // transmission_zone -> location; some new, e.g. port_activity_template ->
+  // location) with a FK into one of these dedicated entities, every one of
+  // them silently broken the same way. `payment_term` and `unit_of_measure`
+  // are excluded here on purpose — neither has a real backend controller at
+  // all yet (confirmed via a live request: both 404 as NoResourceFoundException,
+  // surfaced as a 500 by GlobalExceptionHandler's catch-all), a separate,
+  // pre-existing gap this fix can't paper over — their FK dropdowns stay
+  // empty until that future controller work lands.
   const fkTables = useMemo(
-    () => Array.from(new Set(editableColumns.filter((c) => c.kind === 'foreign_key' && c.foreignKeyTable && c.foreignKeyTable !== 'country').map((c) => c.foreignKeyTable as string))),
+    () => Array.from(new Set(editableColumns.filter((c) => c.kind === 'foreign_key' && c.foreignKeyTable && c.foreignKeyTable !== 'country' && !DEDICATED_ENTITY_FK_TABLES.has(c.foreignKeyTable)).map((c) => c.foreignKeyTable as string))),
     [editableColumns],
   );
   const fkResults = useQueries({
@@ -397,11 +425,35 @@ export function ReferenceDataTable({ table }: Props) {
     [countryRows],
   );
 
+  // DEDICATED_ENTITY_FK_TABLES: each fetched via its own real bespoke API
+  // (unconditional hook calls — cheap, cached, same convention as
+  // countryRows above), not the generic /reference-data/:table mechanism.
+  const { data: counterpartyRows = [] } = useCounterparties();
+  const { data: locationRows = [] } = useLocations();
+  const { data: holidayCalendarRows = [] } = useHolidayCalendars();
+  const { data: legalEntityRows = [] } = useLegalEntities();
+  const { data: productRows = [] } = useProducts();
+  const { data: storageFacilityRows = [] } = useStorageFacilities();
+  const { data: vesselRows = [] } = useVessels();
+  const dedicatedEntityFkOptions = useMemo<Record<string, { value: number; label: string }[]>>(() => ({
+    counterparty: counterpartyRows.map((c) => ({ value: c.counterpartyId, label: c.legalName })),
+    location: locationRows.map((l) => ({ value: l.locationId, label: l.locationName })),
+    holiday_calendar: holidayCalendarRows.map((h) => ({ value: h.calendarId, label: h.calendarName })),
+    legal_entity: legalEntityRows.map((e) => ({ value: e.legalEntityId, label: e.entityName })),
+    product: productRows.map((p) => ({ value: p.productId, label: p.productName })),
+    storage_facility: storageFacilityRows.map((s) => ({ value: s.storageId, label: s.storageName })),
+    vessel: vesselRows.map((v) => ({ value: v.vesselId, label: v.vesselName })),
+  }), [counterpartyRows, locationRows, holidayCalendarRows, legalEntityRows, productRows, storageFacilityRows, vesselRows]);
+
   const fkOptions = useMemo(() => {
     const map: Record<string, { value: number; label: string }[]> = {};
     fkTargets.forEach(([key, { table, category }]) => {
       if (table === 'country') {
         map[key] = countryFkOptions;
+        return;
+      }
+      if (DEDICATED_ENTITY_FK_TABLES.has(table)) {
+        map[key] = dedicatedEntityFkOptions[table] ?? [];
         return;
       }
       const i = fkTables.indexOf(table);
@@ -414,7 +466,7 @@ export function ReferenceDataTable({ table }: Props) {
       map[key] = targetRows.map((r) => ({ value: r[pkField] as number, label: fkOptionLabel(r, r[pkField] as number) }));
     });
     return map;
-  }, [fkTargets, fkTables, fkResults, fkMetaResults, categoryIdByCode, countryFkOptions]);
+  }, [fkTargets, fkTables, fkResults, fkMetaResults, categoryIdByCode, countryFkOptions, dedicatedEntityFkOptions]);
 
   // ISO_3166_COLS columns (countryCode/jurisdictionCode/incorporationCountry)
   // resolve against the real country reference entity — see fieldControl's

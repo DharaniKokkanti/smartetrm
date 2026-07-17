@@ -49,10 +49,13 @@ public class Vessel extends AuditableEntity {
     @Column(name = "vessel_name", nullable = false, length = 200)
     private String vesselName;
 
-    @NotBlank
-    @Size(max = 30)
-    @Column(name = "vessel_type", nullable = false, length = 30)
-    private String vesselType;
+    @NotNull
+    @Column(name = "vessel_type_id", nullable = false)
+    private Integer vesselTypeId;
+
+    @Transient
+    @JsonProperty
+    private String vesselTypeCode;
 
     @Size(max = 10)
     @Column(name = "call_sign", length = 10)
@@ -211,12 +214,20 @@ public class Vessel extends AuditableEntity {
         this.vesselName = vesselName;
     }
 
-    public String getVesselType() {
-        return vesselType;
+    public Integer getVesselTypeId() {
+        return vesselTypeId;
     }
 
-    public void setVesselType(String vesselType) {
-        this.vesselType = vesselType;
+    public void setVesselTypeId(Integer vesselTypeId) {
+        this.vesselTypeId = vesselTypeId;
+    }
+
+    public String getVesselTypeCode() {
+        return vesselTypeCode;
+    }
+
+    public void setVesselTypeCode(String vesselTypeCode) {
+        this.vesselTypeCode = vesselTypeCode;
     }
 
     public String getCallSign() {
