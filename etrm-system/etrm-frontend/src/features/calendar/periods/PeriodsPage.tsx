@@ -7,6 +7,7 @@ import { PageHeader } from '@components/layout/PageHeader';
 import { SmartGrid } from '@components/smart/SmartGrid';
 import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
+import { AuditInfo } from '@components/smart/AuditInfo';
 import { usePeriods, useSavePeriod, useDeactivatePeriod } from './hooks';
 import {
   PERIOD_TYPES, PERIOD_STATUS_CODES, COMMODITY_TYPES, LOAD_TYPES, GAS_DAY_TYPES,
@@ -16,8 +17,9 @@ import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 
 const TYPE_COLOR: Record<PeriodType, string> = {
-  DAILY: 'default', WEEKLY: 'lime', MONTHLY: 'green', QUARTERLY: 'blue',
-  SEMI_ANNUAL: 'purple', ANNUAL: 'gold', PROMPT: 'orange', SPOT: 'red', CUSTOM: 'default',
+  DAY: 'default', WEEK: 'lime', MONTH: 'green', QUARTER: 'blue',
+  HALF_YEAR: 'purple', YEAR: 'gold', SEASON: 'cyan', CROP_YEAR: 'volcano',
+  INTRADAY: 'magenta', SPOT: 'red', CUSTOM: 'default',
 };
 
 const STATUS_COLOR: Record<PeriodStatusCode, string> = {
@@ -122,7 +124,7 @@ export function PeriodsPage() {
           <Form.Item name="periodName" label="Period Name" rules={[{ required: true }]}>
             <Input placeholder="January 2026" />
           </Form.Item>
-          <Form.Item name="periodType" label={hint('Period Type', 'MONTHLY: calendar month (most common in oil/gas). QUARTERLY: 3-month strips. ANNUAL: full-year position. PROMPT: next delivery month (M+1). SPOT: immediate/current month delivery. DAILY: gas/power daily.', 'MONTHLY')} rules={[{ required: true }]}>
+          <Form.Item name="periodType" label={hint('Period Type', 'MONTH: calendar month (most common in oil/gas). QUARTER: 3-month strips. YEAR: full calendar year. HALF_YEAR: 6-month strip. SEASON: e.g. Summer/Winter gas seasons. CROP_YEAR: agri marketing year. INTRADAY: sub-daily block. SPOT: immediate/current delivery. DAY: single day.', 'MONTH')} rules={[{ required: true }]}>
             <Select options={PERIOD_TYPES.map((t) => ({ label: t, value: t }))} />
           </Form.Item>
           <Space style={{ width: '100%', gap: 12 }}>
@@ -182,6 +184,7 @@ export function PeriodsPage() {
           </Form.Item>
           <Form.Item name="isActive" label="Active" valuePropName="checked"><Switch /></Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} createdBy={editing?.createdBy} />
       </Drawer>
     </>
   );

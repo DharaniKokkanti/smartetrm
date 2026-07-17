@@ -6,4 +6,8 @@ export const paymentTermsApi = {
   create: (input: PaymentTermInput) => apiClient.post<PaymentTerm>('/payment-terms', input).then((r) => r.data),
   update: (id: number, input: PaymentTermInput) => apiClient.put<PaymentTerm>(`/payment-terms/${id}`, input).then((r) => r.data),
   deactivate: (id: number) => apiClient.patch(`/payment-terms/${id}/deactivate`),
+  /** baseDate (YYYY-MM-DD) is the caller-resolved date for the term's base_date_event. */
+  calculateDueDate: (id: number, baseDate: string) =>
+    apiClient.get<{ dueDate: string }>(`/payment-terms/${id}/due-date`, { params: { baseDate } })
+      .then((r) => r.data.dueDate),
 };

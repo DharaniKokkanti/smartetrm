@@ -55,6 +55,11 @@ public class CounterpartyService {
         input.setCpCode(existing.getCpCode()); // immutable after creation, matches the frontend form
         input.setIsActive(existing.getIsActive());
         input.setDeactivatedDate(existing.getDeactivatedDate());
+        // created_at/created_by only populate via JPA auditing on insert — not
+        // copied here, the response would show them as null despite the DB
+        // value being untouched (updatable = false).
+        input.setCreatedAt(existing.getCreatedAt());
+        input.setCreatedBy(existing.getCreatedBy());
         return repository.save(input);
     }
 

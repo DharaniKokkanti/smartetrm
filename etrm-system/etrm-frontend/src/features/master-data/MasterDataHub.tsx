@@ -5,7 +5,7 @@ import {
   GlobalOutlined, CalendarOutlined, DollarOutlined,
   FileTextOutlined, SafetyCertificateOutlined, BankOutlined,
   ThunderboltOutlined, CarOutlined, WarningOutlined, CloudOutlined, AuditOutlined,
-  ReconciliationOutlined, LockOutlined,
+  ReconciliationOutlined, LockOutlined, DeploymentUnitOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '@components/layout/PageHeader';
@@ -32,6 +32,7 @@ const GROUPS = [
   { key: 'Contract & Legal', label: 'Contract & Legal', icon: <FileTextOutlined />, color: '#b45309', bg: '#fffbeb' },
   { key: 'Physical Operations', label: 'Physical Operations', icon: <ReconciliationOutlined />, color: '#0f766e', bg: '#f0fdfa' },
   { key: 'Logistics & Delivery', label: 'Logistics & Delivery', icon: <GlobalOutlined />, color: '#15803d', bg: '#f0fdf4' },
+  { key: 'Supply & Distribution', label: 'Supply & Distribution', icon: <DeploymentUnitOutlined />, color: '#166534', bg: '#f0fdf4' },
   { key: 'Freight & Shipping', label: 'Freight & Shipping', icon: <CarOutlined />, color: '#0f766e', bg: '#f0fdfa' },
   { key: 'Voyage & Charter Ops', label: 'Voyage & Charter Ops', icon: <CarOutlined />, color: '#0e7490', bg: '#ecfeff' },
   { key: 'Power & Energy', label: 'Power & Energy', icon: <ThunderboltOutlined />, color: '#6d28d9', bg: '#faf5ff' },
@@ -160,6 +161,16 @@ const ALL_ENTRIES: Entry[] = [
   { live: true,  db: 'railcar',                group: 'Logistics & Delivery', label: 'Rail Cars',              path: '/logistics/railcars',           description: 'Tank cars and bulk railcars — AAR designation, capacity, lessee, inspection date, commodity approval.', tags: ['railcar', 'tank car', 'aar', 'rail', 'bulk', 'lessee'], kind: 'entity' },
   { live: true,  db: 'mot_type',               group: 'Logistics & Delivery', label: 'Modes of Transport',     path: '/static-data/mot_type',               description: 'Transport medium types — SEA, PIPELINE, ROAD, RAIL, BARGE, AIR. Controls which logistics fields appear on a trade.', tags: ['mot', 'mode', 'sea', 'pipeline', 'road', 'rail', 'barge'] },
   { live: true,  db: 'transport_operator',     group: 'Logistics & Delivery', label: 'Transport Operators',    path: '/static-data/transport_operator', description: 'Haulage companies, rail operators, barge operators — contact, coverage area, commodity approvals.', tags: ['operator', 'haulage', 'rail', 'barge', 'carrier'] },
+
+  // ── Supply & Distribution (V116) ────────────────────────────────
+  { live: true,  db: 'loading_rack',             group: 'Supply & Distribution', label: 'Loading Racks',              path: '/static-data/loading_rack',             description: 'Custody-transfer measurement points at a terminal — rack number, meter type, prover certification and calibration dates. Distinct from tank.meter_ref, which only covers the tank side.', tags: ['loading rack', 'meter', 'prover', 'custody transfer', 'calibration', 'terminal'] },
+  { live: true,  db: 'movement_type',            group: 'Supply & Distribution', label: 'Movement Types',             path: '/static-data/movement_type',            description: 'Inventory movement classification — Receipt, Delivery, Internal Transfer, Blend, Loss/Gain.', tags: ['movement type', 'receipt', 'delivery', 'transfer', 'blend', 'loss', 'gain', 'inventory'] },
+  { live: true,  db: 'inventory_ownership_type', group: 'Supply & Distribution', label: 'Inventory Ownership Types', path: '/static-data/inventory_ownership_type', description: 'Company-owned vs. consignment vs. exchange borrow/loan vs. third-party-held stock — affects physical and title reconciliation.', tags: ['ownership', 'consignment', 'exchange borrow', 'exchange loan', 'third party', 'title'] },
+  { live: true,  db: 'blend_recipe',             group: 'Supply & Distribution', label: 'Blend Recipes',              path: '/static-data/blend_recipe',             description: 'Terminal splash-blending recipes — target product, tolerance, and component products (see Blend Recipe Components).', tags: ['blend', 'recipe', 'splash blend', 'ethanol', 'biodiesel', 'component'] },
+  { live: true,  db: 'blend_recipe_component',   group: 'Supply & Distribution', label: 'Blend Recipe Components',   path: '/static-data/blend_recipe_component',   description: 'Component products and target/min/max percentages within a blend recipe.', tags: ['blend', 'component', 'ratio', 'percentage', 'tolerance'] },
+  { live: true,  db: 'throughput_agreement',     group: 'Supply & Distribution', label: 'Throughput Agreements',      path: '/static-data/throughput_agreement',     description: 'Contracted third-party storage or throughput rights at a terminal the company does not own — the storage-side analogue of pipeline_tariff.', tags: ['throughput', 'storage agreement', 'third party', 'capacity', 'tariff'] },
+  { live: true,  db: 'product_interface_rule',   group: 'Supply & Distribution', label: 'Product Interface Rules',    path: '/static-data/product_interface_rule',   description: 'Minimum flush volume and downgrade rules when switching incompatible products through a shared line or rack.', tags: ['interface', 'flush volume', 'changeover', 'downgrade', 'compatibility', 'line'] },
+  { live: true,  db: 'road_tariff',              group: 'Supply & Distribution', label: 'Road (Truck) Tariffs',       path: '/static-data/road_tariff',              description: 'Truck freight rates by route — flat per load, per km, per MT/BBL — with fuel surcharge and minimum charge. The road-transport analogue of pipeline_tariff.', tags: ['road', 'truck', 'tariff', 'freight', 'rate', 'fuel surcharge', 'route'] },
 
   // ── Freight & Shipping ────────────────────────────────────────
   { live: true,  db: 'charter_party_type',     group: 'Freight & Shipping', label: 'Charter Party Types',    path: '/static-data/charter_party_type',       description: 'Voyage, time charter, bareboat, and COA charter types — rate basis (WS flat, LSUM, PDAY, PER_CBM for LNG), duration basis, and standard form reference (ASBATANKVOY/GENCON/LNGVOY/SHELLTIME4/BARECON). Parent table for charter_party FK.', tags: ['charter', 'voyage', 'time charter', 'bareboat', 'worldscale', 'lsum', 'lngvoy', 'shelltime'] },

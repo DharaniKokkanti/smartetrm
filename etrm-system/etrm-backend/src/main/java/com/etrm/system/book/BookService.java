@@ -63,9 +63,15 @@ public class BookService {
     }
 
     public Book update(Integer id, Book input) {
-        get(id);
+        Book existing = get(id);
         normalizeCodeField(input);
         input.setBookId(id);
+        // created_at/created_by are @CreatedDate/@CreatedBy — only populated by
+        // JPA auditing on insert, so the request body never carries them and
+        // they'd otherwise come back null in the response (DB value is safe,
+        // updatable = false, but the client would see provenance vanish).
+        input.setCreatedAt(existing.getCreatedAt());
+        input.setCreatedBy(existing.getCreatedBy());
         return denormalize(repository.save(input));
     }
 

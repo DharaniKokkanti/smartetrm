@@ -7,7 +7,6 @@ import com.etrm.system.lookup.LookupResolutionService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -76,7 +75,6 @@ public class PeriodService {
         }
         resolveForeignKeys(input);
         input.setPeriodId(null);
-        input.setCreatedAt(LocalDateTime.now());
         return hydrate(repository.save(input));
     }
 
@@ -86,7 +84,14 @@ public class PeriodService {
         normalizeCodeField(input);
         resolveForeignKeys(input);
         input.setPeriodId(id);
+        // created_at/created_by are @CreatedDate/@CreatedBy — JPA auditing only
+        // populates those on insert (deliberately, so a later update never
+        // overwrites who originally created the row), so the request body never
+        // carries them. Without copying them from the existing row, the DB value
+        // is untouched (updatable = false) but the response the client actually
+        // sees would show them as null — as if the record's provenance vanished.
         input.setCreatedAt(existing.getCreatedAt());
+        input.setCreatedBy(existing.getCreatedBy());
         return hydrate(repository.save(input));
     }
 

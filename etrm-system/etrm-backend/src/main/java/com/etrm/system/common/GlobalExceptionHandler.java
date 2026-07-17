@@ -8,9 +8,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.HashMap;
 import java.util.List;
@@ -221,6 +224,53 @@ public class GlobalExceptionHandler {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
         pd.setTitle("Forbidden");
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(pd);
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ProblemDetail> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
+        // A verb this endpoint's path doesn't support (e.g. DELETE against a
+        // deactivate-only controller, or a stale/mismatched frontend call).
+        // Previously fell through to the generic 500 handler — indistinguishable
+        // from an actual server crash. A found-but-wrong-verb request is a
+        // 405-shaped client error, not "something broke."
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.METHOD_NOT_ALLOWED, ex.getMessage());
+        pd.setTitle("Method Not Allowed");
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(pd);
+    }
+
+    private static final Pattern TRUNCATION_VIOLATION = Pattern.compile(
+            "String or binary data would be truncated in table '(?:.*\\.)?dbo\\.(.+?)', column '(.+?)'\\.");
+
+    @ExceptionHandler(InvalidDataAccessResourceUsageException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidResourceUsage(InvalidDataAccessResourceUsageException ex) {
+        // SQL Server throws this (not DataIntegrityViolationException) for a
+        // value that's too long for its column — e.g. a 21-character LEI code
+        // into a VARCHAR(20)). Previously fell through to the generic 500
+        // handler, hiding a real "this value is too long" 400 behind
+        // "An unexpected error occurred."
+        Throwable root = ex.getMostSpecificCause();
+        String driverMessage = root != null ? root.getMessage() : null;
+        Matcher m = driverMessage != null ? TRUNCATION_VIOLATION.matcher(driverMessage) : null;
+        String detail = (m != null && m.find())
+                ? "\"" + humanizeColumn(m.group(2)) + "\" is too long for this field."
+                : "One or more values are too long for their fields.";
+        log.warn("Truncation error: {}", driverMessage);
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, detail);
+        pd.setTitle("Bad Request");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(pd);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ProblemDetail> handleNoResourceFound(NoResourceFoundException ex) {
+        // No controller method matches the request path/verb (typo'd path, wrong
+        // HTTP method, or a base path with no bare-root mapping, e.g. GET
+        // /api/v1/permissions with no query params). Previously fell through to
+        // the generic 500 handler below — masking a client-side "wrong URL" as a
+        // server crash, and hiding real backend gaps (a table with no controller
+        // at all) behind the same undifferentiated 500 as an actual bug.
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, "No endpoint matches this request.");
+        pd.setTitle("Not Found");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(pd);
     }
 
     @ExceptionHandler(Exception.class)

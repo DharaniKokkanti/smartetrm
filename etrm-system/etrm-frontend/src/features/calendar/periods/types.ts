@@ -1,4 +1,9 @@
-export const PERIOD_TYPES = ['DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY', 'SEMI_ANNUAL', 'ANNUAL', 'PROMPT', 'SPOT', 'CUSTOM'] as const;
+// Must match dbo.period's chk_period_type CHECK constraint exactly — an
+// earlier version of this list (DAILY/WEEKLY/MONTHLY/QUARTERLY/SEMI_ANNUAL/
+// ANNUAL/PROMPT) never matched the live DB's actual values at all (only
+// SPOT/CUSTOM happened to overlap), so every real "Add Period"/"Edit Period"
+// through the GUI 409'd with a CHECK constraint violation for any other type.
+export const PERIOD_TYPES = ['DAY', 'WEEK', 'MONTH', 'QUARTER', 'HALF_YEAR', 'YEAR', 'SEASON', 'CROP_YEAR', 'INTRADAY', 'SPOT', 'CUSTOM'] as const;
 export type PeriodType = (typeof PERIOD_TYPES)[number];
 
 export const PERIOD_STATUS_CODES = ['OPEN', 'CLOSED', 'LOCKED', 'ARCHIVED'] as const;
@@ -42,6 +47,7 @@ export interface Period {
   statusCode: PeriodStatusCode;
   isActive: boolean;
   createdAt: string;
+  createdBy: string;
 }
 
-export type PeriodInput = Omit<Period, 'periodId' | 'createdAt'>;
+export type PeriodInput = Omit<Period, 'periodId' | 'createdAt' | 'createdBy'>;

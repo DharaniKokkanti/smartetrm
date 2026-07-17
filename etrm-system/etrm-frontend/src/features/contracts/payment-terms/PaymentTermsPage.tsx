@@ -9,6 +9,7 @@ import { PageHeader } from '@components/layout/PageHeader';
 import { SmartGrid } from '@components/smart/SmartGrid';
 import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
+import { AuditInfo } from '@components/smart/AuditInfo';
 import { useTableRows } from '@features/tier2/hooks';
 import { useCustomConfigOptions } from '@features/tier1/counterparty/configLookups';
 import { usePaymentTerms, useSavePaymentTerm, useDeactivatePaymentTerm } from './hooks';
@@ -403,6 +404,7 @@ export function PaymentTermsPage() {
               </Form.Item>
             </Space>
           </Form>
+          <AuditInfo createdAt={editing?.createdAt} />
         </Spin>
       </Drawer>
     </>

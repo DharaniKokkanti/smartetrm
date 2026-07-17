@@ -3,6 +3,7 @@ package com.etrm.system.period;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -11,23 +12,34 @@ import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 /**
- * dbo.period only ever got created_at (no created_by/updated_at/updated_by
- * — same minimal-audit pattern as dbo.currency/dbo.broker). commodity_type
- * FKs the dedicated dbo.commodity_type table (V85), NOT lookup_value — see
- * Book.java's doc comment for the full V55-vs-V85 story. load_type/
- * gas_day_type genuinely DO FK lookup_value (V57, never redirected by V85 —
- * only book_type/commodity_type were "the exception"). curve_label/notes
- * columns exist in the DB but have no frontend field — deliberately left
- * unmapped, matching the app's convention of not mapping unused columns.
+ * dbo.period only has created_at/created_by — NOT the full AuditableEntity
+ * 4-column set, confirmed directly against the live schema's sys.columns
+ * (there is no updated_at/updated_by on this table at all, unlike most other
+ * master data tables). An earlier version of this comment claimed
+ * created_at-only and left created_by completely unmapped, which made every
+ * create() 100% fail with a NOT NULL violation on created_by — fixed by
+ * mapping it here with the same @CreatedBy/@CreatedDate JPA-auditing
+ * annotations AuditableEntity uses, just without extending it (that
+ * superclass assumes all 4 columns exist). commodity_type FKs the dedicated
+ * dbo.commodity_type table (V85), NOT lookup_value — see Book.java's doc
+ * comment for the full V55-vs-V85 story. load_type/gas_day_type genuinely DO
+ * FK lookup_value (V57, never redirected by V85 — only book_type/
+ * commodity_type were "the exception"). curve_label/notes columns exist in
+ * the DB but have no frontend field — deliberately left unmapped, matching
+ * the app's convention of not mapping unused columns.
  */
 @Entity
 @Table(name = "period")
+@EntityListeners(AuditingEntityListener.class)
 public class Period {
 
     @Id
@@ -134,8 +146,13 @@ public class Period {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
+    @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @CreatedBy
+    @Column(name = "created_by", nullable = false, updatable = false, length = 100)
+    private String createdBy;
 
     public Integer getPeriodId() {
         return periodId;
@@ -365,5 +382,13 @@ public class Period {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
     }
 }

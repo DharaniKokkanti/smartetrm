@@ -8,6 +8,7 @@ export type BaseDateEvent =
   | 'COMPLETION_OF_DISCHARGE'
   | 'OUTTURN_DATE'
   | 'PRICING_DATE'
+  | 'END_OF_PRICING_PERIOD'
   | 'METER_READ_DATE'
   | 'SETTLEMENT_DATE';
 

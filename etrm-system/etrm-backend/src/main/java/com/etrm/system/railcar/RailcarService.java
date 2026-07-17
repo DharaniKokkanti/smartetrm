@@ -39,6 +39,12 @@ public class RailcarService {
         return repository.findAll().stream().map(this::hydrate).toList();
     }
 
+    @Transactional(readOnly = true)
+    public Railcar get(Integer id) {
+        return hydrate(repository.findById(id)
+                .orElseThrow(() -> new NotFoundException("No railcar with id " + id + ".")));
+    }
+
     public Railcar create(Railcar input) {
         if (repository.existsByCarNumberIgnoreCase(input.getCarNumber())) {
             throw new ConflictException("Car Number \"" + input.getCarNumber() + "\" already exists.");

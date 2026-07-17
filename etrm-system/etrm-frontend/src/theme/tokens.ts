@@ -158,7 +158,7 @@ export function moduleColor(group: string, palette: typeof color = color): strin
   if (key.includes('position')) return palette.modulePosition;
   if (key.includes('org') || key.includes('desk') || key.includes('book') || key.includes('trader')) return palette.moduleOrganization;
   if (key.includes('market') || key.includes('product') || key.includes('index') || key.includes('exchange')) return palette.moduleMarkets;
-  if (key.includes('vessel') || key.includes('pipeline') || key.includes('location') || key.includes('storage')) return palette.moduleLogistics;
+  if (key.includes('vessel') || key.includes('pipeline') || key.includes('location') || key.includes('storage') || key.includes('supply') || key.includes('distribution')) return palette.moduleLogistics;
   if (key.includes('calendar') || key.includes('period') || key.includes('holiday')) return palette.moduleCalendar;
   if (key.includes('pric') || key.includes('formula')) return palette.modulePricing;
   if (key.includes('credit') || key.includes('collateral') || key.includes('margin') || key.includes('lc') || key.includes('guarantee')) return palette.moduleCredit;
