@@ -6,4 +6,5 @@ export const locationsApi = {
   create: (input: LocationInput) => apiClient.post<Location>('/locations', input).then((r) => r.data),
   update: (id: number, input: LocationInput) => apiClient.put<Location>(`/locations/${id}`, input).then((r) => r.data),
   deactivate: (id: number) => apiClient.patch(`/locations/${id}/deactivate`),
+  listTradingDesks: () => apiClient.get<Location[]>('/locations/trading-desks').then((r) => r.data),
 };

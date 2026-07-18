@@ -21,6 +21,10 @@ export function useSaveLocation() {
   });
 }
 
+export function useTradingDeskLocations() {
+  return useQuery({ queryKey: ['locations', 'trading-desks'], queryFn: locationsApi.listTradingDesks, staleTime: 5 * 60 * 1000 });
+}
+
 export function useDeactivateLocation() {
   const qc = useQueryClient();
   const { message } = AntApp.useApp();

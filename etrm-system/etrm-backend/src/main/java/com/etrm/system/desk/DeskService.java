@@ -3,6 +3,7 @@ package com.etrm.system.desk;
 import com.etrm.system.common.ConflictException;
 import com.etrm.system.common.NotFoundException;
 import com.etrm.system.legalentity.LegalEntityRepository;
+import com.etrm.system.location.LocationRepository;
 import com.etrm.system.trader.TraderRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,11 +17,14 @@ public class DeskService {
     private final DeskRepository repository;
     private final LegalEntityRepository legalEntityRepository;
     private final TraderRepository traderRepository;
+    private final LocationRepository locationRepository;
 
-    public DeskService(DeskRepository repository, LegalEntityRepository legalEntityRepository, TraderRepository traderRepository) {
+    public DeskService(DeskRepository repository, LegalEntityRepository legalEntityRepository,
+                        TraderRepository traderRepository, LocationRepository locationRepository) {
         this.repository = repository;
         this.legalEntityRepository = legalEntityRepository;
         this.traderRepository = traderRepository;
+        this.locationRepository = locationRepository;
     }
 
     /** Populates the display-only denormalized fields the frontend Desk type expects. */
@@ -30,6 +34,12 @@ public class DeskService {
         if (desk.getHeadTraderId() != null) {
             traderRepository.findById(desk.getHeadTraderId())
                     .ifPresent(t -> desk.setHeadTraderName(t.getFullName() != null ? t.getFullName() : t.getTraderCode()));
+        }
+        if (desk.getLocationId() != null) {
+            locationRepository.findById(desk.getLocationId()).ifPresent(loc -> {
+                desk.setLocationCode(loc.getLocationCode());
+                desk.setLocationName(loc.getLocationName());
+            });
         }
         return desk;
     }

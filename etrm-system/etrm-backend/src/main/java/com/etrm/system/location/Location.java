@@ -109,6 +109,17 @@ public class Location {
     @Column(name = "unlocode", length = 10)
     private String unlocode;
 
+    // V118 — scopes this row to office/desk use, orthogonal to
+    // location_type_id's logistics classification. Both NOT NULL in the DB
+    // with a default of 0.
+    @NotNull
+    @Column(name = "office_loc_ind", nullable = false)
+    private Boolean officeLocInd = false;
+
+    @NotNull
+    @Column(name = "trading_desk_ind", nullable = false)
+    private Boolean tradingDeskInd = false;
+
     public Integer getLocationId() {
         return locationId;
     }
@@ -275,5 +286,21 @@ public class Location {
 
     public void setUnlocode(String unlocode) {
         this.unlocode = unlocode;
+    }
+
+    public Boolean getOfficeLocInd() {
+        return officeLocInd;
+    }
+
+    public void setOfficeLocInd(Boolean officeLocInd) {
+        this.officeLocInd = officeLocInd;
+    }
+
+    public Boolean getTradingDeskInd() {
+        return tradingDeskInd;
+    }
+
+    public void setTradingDeskInd(Boolean tradingDeskInd) {
+        this.tradingDeskInd = tradingDeskInd;
     }
 }

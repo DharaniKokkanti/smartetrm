@@ -17,6 +17,13 @@ export function bookTypeLabel(bookTypeId: number | null | undefined): string {
   return BOOK_TYPE_LOOKUP.find((b) => b.bookTypeId === bookTypeId)?.label ?? `#${bookTypeId}`;
 }
 
+export interface BookTraderView {
+  traderId: number;
+  traderName: string;
+  role: 'PRIMARY' | 'SECONDARY' | 'BACKUP';
+  isActive: boolean;
+}
+
 export interface Book {
   bookId: number;
   bookCode: string;
@@ -27,8 +34,8 @@ export interface Book {
   deskCode: string;
   legalEntityId: number;
   legalEntityCode: string;
-  responsibleTraderId: number | null;
-  responsibleTraderName: string | null;
+  parentBookId: number | null;
+  parentBookCode: string | null; // denormalized
   // FK to dbo.commodity_type(commodity_type_id) — see desks/types.ts COMMODITY_TYPE_LOOKUP.
   commodityType: number | null;
   baseCurrencyId: number; // FK -> dbo.currency(currency_id), NOT NULL default USD
@@ -38,9 +45,16 @@ export interface Book {
   goLiveDate: string | null;
   description: string | null;
   isActive: boolean;
+  archivedAt: string | null;
+  archivedReason: string | null;
+  // Denormalized, read-only — populated by the backend from book_trader.
+  traders: BookTraderView[];
   createdAt: string;
   updatedAt: string;
 }
 
-// deskCode, legalEntityCode, responsibleTraderName are denormalized — not sent on save
-export type BookInput = Omit<Book, 'bookId' | 'deskCode' | 'legalEntityCode' | 'responsibleTraderName' | 'createdAt' | 'updatedAt'>;
+// deskCode, legalEntityCode, parentBookCode, traders are denormalized/read-only;
+// archivedAt/archivedReason are only set via PATCH /books/{id}/archive — none
+// of these are sent on create/update.
+export type BookInput = Omit<Book,
+  'bookId' | 'deskCode' | 'legalEntityCode' | 'parentBookCode' | 'traders' | 'archivedAt' | 'archivedReason' | 'createdAt' | 'updatedAt'>;

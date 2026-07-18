@@ -26,6 +26,11 @@ public class LocationController {
         return service.list();
     }
 
+    @GetMapping("/trading-desks")
+    public List<Location> listTradingDesks() {
+        return service.listTradingDesks();
+    }
+
     @PostMapping
     public ResponseEntity<Location> create(@Valid @RequestBody Location input) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(input));

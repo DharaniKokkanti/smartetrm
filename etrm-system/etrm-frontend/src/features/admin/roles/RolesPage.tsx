@@ -18,6 +18,14 @@ import { useSystemUsers } from '@features/admin/system-users/hooks';
 import { useDraftState, useDraftValues } from '@components/smart/formDraft';
 import { hint } from '@components/smart/FieldHint';
 import { PageHeader } from '@components/layout/PageHeader';
+import { useLegalEntities } from '@features/tier1/legal-entity/hooks';
+import { useDesks } from '@features/organization/desks/hooks';
+import { useBooks } from '@features/organization/books/hooks';
+import {
+  useBookAccessGrants, useRequestBookAccessGrant,
+  useApproveBookAccessGrant, useRejectBookAccessGrant, useRevokeBookAccessGrant,
+} from '@features/admin/bookaccess/hooks';
+import type { BookAccessGrant, BookAccessGrantStatus, BookAccessScopeType, BookAccessLevel } from '@features/admin/bookaccess/types';
 
 const { Text } = Typography;
 
@@ -307,12 +315,106 @@ function AssignRoleModal({ open, onClose }: AssignRoleModalProps) {
   );
 }
 
+// ── Request book access modal ─────────────────────────────────────────────────
+const SCOPE_TYPE_OPTIONS: { label: string; value: BookAccessScopeType }[] = [
+  { label: 'Legal Entity', value: 'LEGAL_ENTITY' },
+  { label: 'Desk', value: 'DESK' },
+  { label: 'Book', value: 'BOOK' },
+];
+
+const ACCESS_LEVEL_OPTIONS: { label: string; value: BookAccessLevel }[] = [
+  { label: 'Read', value: 'READ' },
+  { label: 'Read-Write', value: 'READ_WRITE' },
+];
+
+const GRANT_STATUS_COLOR: Record<BookAccessGrantStatus, string> = {
+  ACTIVE: 'green',
+  PENDING_APPROVAL: 'orange',
+  REJECTED: 'red',
+  EXPIRED: 'default',
+};
+
+interface RequestAccessModalProps { open: boolean; onClose: () => void }
+
+function RequestAccessModal({ open, onClose }: RequestAccessModalProps) {
+  const [form] = Form.useForm<{ userId: number; scopeType: BookAccessScopeType; scopeId: number; accessLevel: BookAccessLevel }>();
+  const { data: users = [] } = useSystemUsers();
+  const { data: legalEntities = [] } = useLegalEntities();
+  const { data: desks = [] } = useDesks();
+  const { data: books = [] } = useBooks();
+  const requestGrant = useRequestBookAccessGrant();
+
+  const scopeType = Form.useWatch('scopeType', form);
+
+  const scopeTargetOptions = useMemo(() => {
+    if (scopeType === 'LEGAL_ENTITY') return legalEntities.map((e) => ({ label: `${e.entityCode} — ${e.entityName}`, value: e.legalEntityId }));
+    if (scopeType === 'DESK') return desks.map((d) => ({ label: `${d.deskCode} — ${d.deskName}`, value: d.deskId }));
+    if (scopeType === 'BOOK') return books.map((b) => ({ label: `${b.bookCode} — ${b.bookName}`, value: b.bookId }));
+    return [];
+  }, [scopeType, legalEntities, desks, books]);
+
+  async function handleOk() {
+    const vals = await form.validateFields();
+    await requestGrant.mutateAsync({
+      userId: vals.userId,
+      input: { scopeType: vals.scopeType, scopeId: vals.scopeId, accessLevel: vals.accessLevel },
+    }, { onSuccess: () => { form.resetFields(); onClose(); } });
+  }
+
+  return (
+    <Modal mask={false} forceRender
+      open={open}
+      title="Request Book Access"
+      onCancel={() => { form.resetFields(); onClose(); }}
+      onOk={handleOk}
+      okButtonProps={{ loading: requestGrant.isPending }}
+      okText="Request Access"
+      destroyOnHidden
+    >
+      <Form form={form} layout="vertical">
+        <Form.Item name="userId" label="User" rules={[{ required: true, message: 'User is required' }]}>
+          <Select
+            showSearch
+            placeholder="Select user"
+            optionFilterProp="label"
+            options={users.map((u) => ({ label: `${u.fullName} (${u.username})`, value: u.userId }))}
+          />
+        </Form.Item>
+        <Form.Item name="scopeType" label="Scope Type" rules={[{ required: true, message: 'Scope type is required' }]}>
+          <Select
+            placeholder="Select scope"
+            options={SCOPE_TYPE_OPTIONS}
+            onChange={() => form.setFieldValue('scopeId', undefined)}
+          />
+        </Form.Item>
+        <Form.Item
+          name="scopeId"
+          label={hint('Scope Target', 'The specific legal entity, desk, or book this access grant applies to.')}
+          rules={[{ required: true, message: 'Scope target is required' }]}
+        >
+          <Select
+            showSearch
+            optionFilterProp="label"
+            placeholder={scopeType ? 'Select target' : 'Select a scope type first'}
+            disabled={!scopeType}
+            options={scopeTargetOptions}
+          />
+        </Form.Item>
+        <Form.Item name="accessLevel" label="Access Level" rules={[{ required: true, message: 'Access level is required' }]}>
+          <Select placeholder="Select access level" options={ACCESS_LEVEL_OPTIONS} />
+        </Form.Item>
+      </Form>
+    </Modal>
+  );
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 export function RolesPage() {
   const { data: roles = [], isLoading: rolesLoading } = useRoles();
   const { data: modules = [] } = useModules();
   const { data: functions = [] } = useFunctions();
   const { data: assignments = [], isLoading: assignmentsLoading } = useAssignments();
+  const { data: bookAccessGrants = [], isLoading: bookAccessGrantsLoading } = useBookAccessGrants();
 
   const submitRole = useSubmitRole();
   const approveRole = useApproveRole();
@@ -320,6 +422,9 @@ export function RolesPage() {
   const approveAssignment = useApproveAssignment();
   const rejectAssignment = useRejectAssignment();
   const revokeAssignment = useRevokeAssignment();
+  const approveBookAccessGrant = useApproveBookAccessGrant();
+  const rejectBookAccessGrant = useRejectBookAccessGrant();
+  const revokeBookAccessGrant = useRevokeBookAccessGrant();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<UserRole | null>(null);
@@ -331,6 +436,10 @@ export function RolesPage() {
   const [assignOpen, setAssignOpen] = useState(false);
   const [roleSearch, setRoleSearch] = useState('');
   const [assignmentSearch, setAssignmentSearch] = useState('');
+  const [requestAccessOpen, setRequestAccessOpen] = useState(false);
+  const [bookAccessSearch, setBookAccessSearch] = useState('');
+  const [rejectGrantOpen, setRejectGrantOpen] = useState(false);
+  const [rejectGrantTarget, setRejectGrantTarget] = useState<number | null>(null);
 
   function openCreate() { setEditingRole(null); setFormOpen(true); }
   function openEdit(r: UserRole) { setEditingRole(r); setFormOpen(true); }
@@ -353,6 +462,15 @@ export function RolesPage() {
       a.roleName.toLowerCase().includes(q) ||
       a.roleCode.toLowerCase().includes(q));
   }, [assignments, assignmentSearch]);
+
+  const filteredBookAccessGrants = useMemo(() => {
+    const q = bookAccessSearch.trim().toLowerCase();
+    if (!q) return bookAccessGrants;
+    return bookAccessGrants.filter((g) =>
+      g.userFullName.toLowerCase().includes(q) ||
+      g.username.toLowerCase().includes(q) ||
+      g.scopeLabel.toLowerCase().includes(q));
+  }, [bookAccessGrants, bookAccessSearch]);
 
   const roleColumns: ColumnsType<UserRole> = [
     {
@@ -490,8 +608,74 @@ export function RolesPage() {
     },
   ];
 
+  const bookAccessColumns: ColumnsType<BookAccessGrant> = [
+    {
+      title: 'User',
+      dataIndex: 'userFullName',
+      width: 200,
+      render: (v, g) => <><Text strong>{v}</Text> <Text type="secondary" style={{ fontFamily: 'monospace' }}>({g.username})</Text></>,
+    },
+    {
+      title: 'Scope',
+      dataIndex: 'scopeLabel',
+      render: (v, g) => <><Tag>{g.scopeType.replace('_', ' ')}</Tag> {v}</>,
+    },
+    {
+      title: 'Access Level',
+      dataIndex: 'accessLevel',
+      width: 130,
+      render: (v: BookAccessLevel) => <Tag color={v === 'READ_WRITE' ? 'volcano' : 'blue'}>{v.replace('_', ' ')}</Tag>,
+      filters: ACCESS_LEVEL_OPTIONS.map((o) => ({ text: o.label, value: o.value })),
+      onFilter: (value, g) => g.accessLevel === value,
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      width: 155,
+      render: (v: BookAccessGrantStatus) => <Tag color={GRANT_STATUS_COLOR[v]}>{v.replace('_', ' ')}</Tag>,
+      filters: (['PENDING_APPROVAL', 'ACTIVE', 'REJECTED', 'EXPIRED'] as BookAccessGrantStatus[]).map((v) => ({ text: v.replace('_', ' '), value: v })),
+      onFilter: (value, g) => g.status === value,
+    },
+    { title: 'Assigned By', dataIndex: 'assignedBy', width: 120, render: (v) => <Text type="secondary">{v}</Text> },
+    { title: 'Valid From', dataIndex: 'validFrom', width: 110 },
+    {
+      title: 'Actions',
+      key: 'actions',
+      width: 160,
+      render: (_, g) => (
+        <Space size={4}>
+          {g.status === 'PENDING_APPROVAL' && (
+            <>
+              <Tooltip title="Approve grant">
+                <Popconfirm title="Approve this book access grant?" onConfirm={() => approveBookAccessGrant.mutate(g.grantId)}>
+                  <Button size="small" icon={<CheckOutlined />} type="primary" />
+                </Popconfirm>
+              </Tooltip>
+              <Tooltip title="Reject grant">
+                <Button
+                  size="small"
+                  icon={<CloseOutlined />}
+                  danger
+                  onClick={() => { setRejectGrantTarget(g.grantId); setRejectGrantOpen(true); }}
+                />
+              </Tooltip>
+            </>
+          )}
+          {g.status === 'ACTIVE' && (
+            <Tooltip title="Revoke">
+              <Popconfirm title="Revoke this access grant?" onConfirm={() => revokeBookAccessGrant.mutate({ userId: g.userId, grantId: g.grantId })}>
+                <Button size="small" icon={<CloseOutlined />} danger />
+              </Popconfirm>
+            </Tooltip>
+          )}
+        </Space>
+      ),
+    },
+  ];
+
   const pendingRoles = roles.filter((r) => r.status === 'PENDING_APPROVAL');
   const pendingAssignments = assignments.filter((a) => a.status === 'PENDING_APPROVAL');
+  const pendingBookAccessGrants = bookAccessGrants.filter((g) => g.status === 'PENDING_APPROVAL');
 
   return (
     <div style={{ maxWidth: 1100 }}>
@@ -506,7 +690,7 @@ export function RolesPage() {
         }
       />
 
-      {(pendingRoles.length > 0 || pendingAssignments.length > 0) && (
+      {(pendingRoles.length > 0 || pendingAssignments.length > 0 || pendingBookAccessGrants.length > 0) && (
         <Alert
           type="warning"
           showIcon
@@ -514,7 +698,8 @@ export function RolesPage() {
           message={
             <>
               {pendingRoles.length > 0 && <span><strong>{pendingRoles.length}</strong> role(s) pending approval. </span>}
-              {pendingAssignments.length > 0 && <span><strong>{pendingAssignments.length}</strong> assignment(s) pending approval.</span>}
+              {pendingAssignments.length > 0 && <span><strong>{pendingAssignments.length}</strong> assignment(s) pending approval. </span>}
+              {pendingBookAccessGrants.length > 0 && <span><strong>{pendingBookAccessGrants.length}</strong> access grant(s) pending approval.</span>}
             </>
           }
         />
@@ -584,6 +769,39 @@ export function RolesPage() {
               </>
             ),
           },
+          {
+            key: 'book-access',
+            label: (
+              <Badge count={pendingBookAccessGrants.length} offset={[8, 0]} color="orange">
+                Book Access
+              </Badge>
+            ),
+            children: (
+              <>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, marginBottom: 12 }}>
+                  <Input
+                    allowClear
+                    placeholder="Search by user or scope…"
+                    prefix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+                    value={bookAccessSearch}
+                    onChange={(e) => setBookAccessSearch(e.target.value)}
+                    style={{ maxWidth: 360 }}
+                  />
+                  <Button type="primary" icon={<UserAddOutlined />} onClick={() => setRequestAccessOpen(true)}>
+                    Request Access
+                  </Button>
+                </div>
+                <Table<BookAccessGrant>
+                  columns={bookAccessColumns}
+                  dataSource={filteredBookAccessGrants}
+                  rowKey="grantId"
+                  loading={bookAccessGrantsLoading}
+                  size="small"
+                  pagination={{ pageSize: 15, showSizeChanger: false }}
+                />
+              </>
+            ),
+          },
         ]}
       />
 
@@ -596,6 +814,8 @@ export function RolesPage() {
       />
 
       <AssignRoleModal open={assignOpen} onClose={() => setAssignOpen(false)} />
+
+      <RequestAccessModal open={requestAccessOpen} onClose={() => setRequestAccessOpen(false)} />
 
       <RejectModal
         open={rejectOpen}
@@ -618,6 +838,19 @@ export function RolesPage() {
           if (rejectAssignmentTarget !== null) {
             rejectAssignment.mutate({ assignmentId: rejectAssignmentTarget, reason }, {
               onSuccess: () => { setRejectAssignmentOpen(false); setRejectAssignmentTarget(null); },
+            });
+          }
+        }}
+      />
+
+      <RejectModal
+        open={rejectGrantOpen}
+        loading={rejectBookAccessGrant.isPending}
+        onCancel={() => setRejectGrantOpen(false)}
+        onOk={(reason) => {
+          if (rejectGrantTarget !== null) {
+            rejectBookAccessGrant.mutate({ grantId: rejectGrantTarget, reason }, {
+              onSuccess: () => { setRejectGrantOpen(false); setRejectGrantTarget(null); },
             });
           }
         }}

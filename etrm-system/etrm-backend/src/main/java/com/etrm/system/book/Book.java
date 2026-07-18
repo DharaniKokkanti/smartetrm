@@ -15,6 +15,7 @@ import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * dbo.book is a SQL Server system-versioned (temporal) table — valid_from/
@@ -73,13 +74,28 @@ public class Book extends AuditableEntity {
     @JsonProperty
     private String legalEntityCode;
 
-    @NotNull
-    @Column(name = "responsible_trader_id", nullable = false)
-    private Integer responsibleTraderId;
+    // FK -> dbo.book(book_id), self-referencing, nullable, arbitrary depth
+    // (V119). Cycle prevention and depth limits enforced in BookService —
+    // SQL Server can't express recursive integrity in a CHECK constraint.
+    @Column(name = "parent_book_id")
+    private Integer parentBookId;
 
     @Transient
     @JsonProperty
-    private String responsibleTraderName;
+    private String parentBookCode;
+
+    // Denormalized display of dbo.book_trader (V119) rows for this book —
+    // not persisted, populated by BookService.
+    @Transient
+    @JsonProperty
+    private List<BookTraderView> traders;
+
+    @Column(name = "archived_at")
+    private LocalDate archivedAt;
+
+    @Size(max = 200)
+    @Column(name = "archived_reason", length = 200)
+    private String archivedReason;
 
     // FK -> dbo.commodity_type(commodity_type_id) — see class doc comment.
     @NotNull
@@ -174,20 +190,44 @@ public class Book extends AuditableEntity {
         this.legalEntityCode = legalEntityCode;
     }
 
-    public Integer getResponsibleTraderId() {
-        return responsibleTraderId;
+    public Integer getParentBookId() {
+        return parentBookId;
     }
 
-    public void setResponsibleTraderId(Integer responsibleTraderId) {
-        this.responsibleTraderId = responsibleTraderId;
+    public void setParentBookId(Integer parentBookId) {
+        this.parentBookId = parentBookId;
     }
 
-    public String getResponsibleTraderName() {
-        return responsibleTraderName;
+    public String getParentBookCode() {
+        return parentBookCode;
     }
 
-    public void setResponsibleTraderName(String responsibleTraderName) {
-        this.responsibleTraderName = responsibleTraderName;
+    public void setParentBookCode(String parentBookCode) {
+        this.parentBookCode = parentBookCode;
+    }
+
+    public List<BookTraderView> getTraders() {
+        return traders;
+    }
+
+    public void setTraders(List<BookTraderView> traders) {
+        this.traders = traders;
+    }
+
+    public LocalDate getArchivedAt() {
+        return archivedAt;
+    }
+
+    public void setArchivedAt(LocalDate archivedAt) {
+        this.archivedAt = archivedAt;
+    }
+
+    public String getArchivedReason() {
+        return archivedReason;
+    }
+
+    public void setArchivedReason(String archivedReason) {
+        this.archivedReason = archivedReason;
     }
 
     public Integer getCommodityType() {

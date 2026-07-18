@@ -1,13 +1,19 @@
-import { useEffect } from 'react';
-import { Drawer, Form, Input, Select, Button, Space, Switch, InputNumber } from 'antd';
+import { useEffect, useMemo, useState } from 'react';
+import { Drawer, Form, Input, Select, Button, Space, Switch, InputNumber, Divider, Tag, Typography } from 'antd';
+import { CloseOutlined, PlusOutlined } from '@ant-design/icons';
 import dayjs, { type Dayjs } from 'dayjs';
-import { useSaveBook } from './hooks';
-import { BOOK_TYPE_LOOKUP, type Book, type BookInput } from './types';
+import { useSaveBook, useAddBookTrader, useRemoveBookTrader, useBooks } from './hooks';
+import { BOOK_TYPE_LOOKUP, type Book, type BookInput, type BookTraderView } from './types';
 import { COMMODITY_TYPE_LOOKUP } from '../desks/types';
 import { useCurrencies } from '@features/reference/currencies/hooks';
+import { useDesks } from '../desks/hooks';
+import { useTraders } from '../traders/hooks';
+import { useLegalEntities } from '@features/tier1/legal-entity/hooks';
 import { useDraftValues } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import { hint } from '@components/smart/FieldHint';
+
+const { Text } = Typography;
 
 interface Props {
   open: boolean;
@@ -16,14 +22,128 @@ interface Props {
   onSaved?: (saved: Book) => void;  // called on Save (stay open) so parent can switch to edit mode
 }
 
+const TRADER_ROLE_OPTIONS = [
+  { label: 'Primary', value: 'PRIMARY' },
+  { label: 'Secondary', value: 'SECONDARY' },
+  { label: 'Backup', value: 'BACKUP' },
+];
+
+/** Walks parentBookId chains to find every book that is a descendant of `rootId` — used to
+ *  keep the parent-book picker from offering a cycle (a book can't become its own ancestor). */
+function collectDescendants(books: Book[], rootId: number): Set<number> {
+  const result = new Set<number>();
+  let frontier = [rootId];
+  while (frontier.length) {
+    const next: number[] = [];
+    for (const b of books) {
+      if (b.parentBookId != null && frontier.includes(b.parentBookId) && !result.has(b.bookId)) {
+        result.add(b.bookId);
+        next.push(b.bookId);
+      }
+    }
+    frontier = next;
+  }
+  return result;
+}
+
+// ── Book traders sub-section (only shown when editing an existing book) ───────
+function BookTradersSection({ book }: { book: Book }) {
+  const { data: traders = [] } = useTraders();
+  const addTrader = useAddBookTrader();
+  const removeTrader = useRemoveBookTrader();
+  const [newTraderId, setNewTraderId] = useState<number | undefined>(undefined);
+  const [newRole, setNewRole] = useState<'PRIMARY' | 'SECONDARY' | 'BACKUP'>('SECONDARY');
+
+  const activeTraders = book.traders.filter((t) => t.isActive);
+  const existingIds = new Set(activeTraders.map((t) => t.traderId));
+  const availableTraders = traders.filter((t) => !existingIds.has(t.traderId));
+
+  function handleAdd() {
+    if (newTraderId == null) return;
+    addTrader.mutate({ bookId: book.bookId, traderId: newTraderId, role: newRole }, {
+      onSuccess: () => setNewTraderId(undefined),
+    });
+  }
+
+  return (
+    <>
+      <Divider style={{ margin: '8px 0 12px' }}>Book Traders</Divider>
+      <Space direction="vertical" style={{ width: '100%' }} size={6}>
+        {activeTraders.length === 0 && (
+          <Text type="secondary" style={{ fontSize: 12 }}>No traders assigned yet.</Text>
+        )}
+        {activeTraders.map((t: BookTraderView) => (
+          <Space key={t.traderId} style={{ width: '100%', justifyContent: 'space-between' }}>
+            <Space size={6}>
+              {t.role === 'PRIMARY' ? <Text strong>{t.traderName}</Text> : <Text>{t.traderName}</Text>}
+              <Tag color={t.role === 'PRIMARY' ? 'blue' : 'default'}>{t.role}</Tag>
+            </Space>
+            <Button
+              type="text" size="small" danger icon={<CloseOutlined />}
+              loading={removeTrader.isPending}
+              onClick={() => removeTrader.mutate({ bookId: book.bookId, traderId: t.traderId })}
+            />
+          </Space>
+        ))}
+        <Space style={{ width: '100%', marginTop: 4 }}>
+          <Select
+            showSearch
+            placeholder="Add trader"
+            optionFilterProp="label"
+            style={{ width: 200 }}
+            value={newTraderId}
+            onChange={setNewTraderId}
+            options={availableTraders.map((t) => ({ label: t.fullName, value: t.traderId }))}
+          />
+          <Select style={{ width: 120 }} value={newRole} onChange={setNewRole} options={TRADER_ROLE_OPTIONS} />
+          <Button icon={<PlusOutlined />} disabled={newTraderId == null} loading={addTrader.isPending} onClick={handleAdd} />
+        </Space>
+      </Space>
+    </>
+  );
+}
+
 export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
   const [form] = Form.useForm<BookInput>();
   const save = useSaveBook();
   const skipDraftReset = useDraftValues('org-books-v', form, open, editing);
   const { data: currencies = [], isLoading: loadingCurrencies } = useCurrencies();
+  const { data: desks = [] } = useDesks();
+  const { data: legalEntities = [] } = useLegalEntities();
+  const { data: allBooks = [] } = useBooks();
   const currencyOptions = currencies
     .filter((c) => c.isActive)
     .map((c) => ({ label: `${c.currencyCode} — ${c.currencyName}`, value: c.currencyId }));
+
+  const legalEntityId = Form.useWatch('legalEntityId', form);
+
+  const deskOptions = useMemo(() => desks
+    .filter((d) => legalEntityId == null || d.legalEntityId === legalEntityId)
+    .map((d) => ({ label: `${d.deskCode} — ${d.deskName}`, value: d.deskId })), [desks, legalEntityId]);
+
+  const parentBookOptions = useMemo(() => {
+    if (editing == null) {
+      return allBooks
+        .filter((b) => legalEntityId == null || b.legalEntityId === legalEntityId)
+        .map((b) => ({ label: `${b.bookCode} — ${b.bookName}`, value: b.bookId }));
+    }
+    const descendants = collectDescendants(allBooks, editing.bookId);
+    return allBooks
+      .filter((b) => b.bookId !== editing.bookId && !descendants.has(b.bookId))
+      .filter((b) => legalEntityId == null || b.legalEntityId === legalEntityId)
+      .map((b) => ({ label: `${b.bookCode} — ${b.bookName}`, value: b.bookId }));
+  }, [allBooks, editing, legalEntityId]);
+
+  // Clear deskId if it no longer matches the newly-selected legal entity.
+  useEffect(() => {
+    const currentDeskId = form.getFieldValue('deskId');
+    if (currentDeskId == null || legalEntityId == null) return;
+    const desk = desks.find((d) => d.deskId === currentDeskId);
+    if (desk && desk.legalEntityId !== legalEntityId) {
+      form.setFieldValue('deskId', undefined);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [legalEntityId]);
 
   useEffect(() => {
     if (skipDraftReset.current) { if (open) skipDraftReset.current = false; return; }
@@ -36,7 +156,7 @@ export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
           bookType:            editing.bookType,
           deskId:              editing.deskId,
           legalEntityId:       editing.legalEntityId,
-          responsibleTraderId: editing.responsibleTraderId,
+          parentBookId:        editing.parentBookId,
           commodityType:       editing.commodityType,
           baseCurrencyId:      editing.baseCurrencyId,
           positionLimit:       editing.positionLimit,
@@ -96,18 +216,25 @@ export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
           <Select options={BOOK_TYPE_LOOKUP.map((t) => ({ label: t.label, value: t.bookTypeId }))} />
         </Form.Item>
         <Form.Item
-          name="deskId"
-          label={hint('Desk (ID)', 'The trading desk this book rolls up to for desk-level P&L and risk aggregation.')}
+          name="legalEntityId"
+          label={hint('Legal Entity', 'The booking company this book’s trades settle against.')}
           rules={[{ required: true }]}
         >
-          <InputNumber style={{ width: '100%' }} placeholder="Desk ID" />
+          <Select showSearch optionFilterProp="label" placeholder="Select legal entity"
+            options={legalEntities.map((e) => ({ label: `${e.entityCode} — ${e.entityName}`, value: e.legalEntityId }))} />
         </Form.Item>
         <Form.Item
-          name="legalEntityId"
-          label={hint('Legal Entity (ID)', 'The booking company this book’s trades settle against.', '1=SETRM-LTD, 2=SETRM-NL, 3=SETRM-SG')}
+          name="deskId"
+          label={hint('Desk', 'The trading desk this book rolls up to for desk-level P&L and risk aggregation.')}
           rules={[{ required: true }]}
         >
-          <InputNumber style={{ width: '100%' }} placeholder="Legal Entity ID (1=SETRM-LTD, 2=SETRM-NL, 3=SETRM-SG)" />
+          <Select showSearch optionFilterProp="label" placeholder="Select desk" options={deskOptions} />
+        </Form.Item>
+        <Form.Item
+          name="parentBookId"
+          label={hint('Parent Book', 'Optional — nest this book under another for rolled-up P&L/risk reporting. Restricted to books in the same legal entity.')}
+        >
+          <Select allowClear showSearch optionFilterProp="label" placeholder="None (top-level book)" options={parentBookOptions} />
         </Form.Item>
         <Form.Item
           name="commodityType"
@@ -123,12 +250,6 @@ export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
         >
           <Select options={currencyOptions} loading={loadingCurrencies}
             showSearch optionFilterProp="label" placeholder="Select currency" style={{ width: 220 }} />
-        </Form.Item>
-        <Form.Item
-          name="responsibleTraderId"
-          label={hint('Responsible Trader (ID)', 'The trader accountable for this book’s daily risk and P&L. Optional.')}
-        >
-          <InputNumber style={{ width: '100%' }} placeholder="Trader ID (optional)" />
         </Form.Item>
         <Form.Item
           name="positionLimit"
@@ -161,6 +282,8 @@ export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
           <Switch />
         </Form.Item>
       </Form>
+
+      {editing !== null && <BookTradersSection book={editing} />}
     </Drawer>
   );
 }

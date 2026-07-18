@@ -30,8 +30,8 @@ export function LocationsPage() {
   const [form] = Form.useForm<LocationInput>();
   useFormDraft('logistics-locations', { form, open, setOpen, editing, setEditing });
 
-  function openNew() { setEditing(null); form.resetFields(); form.setFieldValue('isActive', true); setOpen(true); }
-  function openEdit(l: Location) { setEditing(l); form.setFieldsValue({ locationCode: l.locationCode, locationName: l.locationName, locationTypeCode: l.locationTypeCode, commodityType: l.commodityType, countryId: l.countryId, portCode: l.portCode ?? undefined, unlocode: l.unlocode ?? undefined, operator: l.operator ?? undefined, capacity: l.capacity, capacityUomCode: l.capacityUomCode ?? undefined, latitude: l.latitude, longitude: l.longitude, isActive: l.isActive }); setOpen(true); }
+  function openNew() { setEditing(null); form.resetFields(); form.setFieldsValue({ isActive: true, officeLocInd: false, tradingDeskInd: false }); setOpen(true); }
+  function openEdit(l: Location) { setEditing(l); form.setFieldsValue({ locationCode: l.locationCode, locationName: l.locationName, locationTypeCode: l.locationTypeCode, commodityType: l.commodityType, countryId: l.countryId, portCode: l.portCode ?? undefined, unlocode: l.unlocode ?? undefined, operator: l.operator ?? undefined, capacity: l.capacity, capacityUomCode: l.capacityUomCode ?? undefined, latitude: l.latitude, longitude: l.longitude, officeLocInd: l.officeLocInd, tradingDeskInd: l.tradingDeskInd, isActive: l.isActive }); setOpen(true); }
   async function submit(closeAfter = true) {
     const v = await form.validateFields();
     const saved = await save.mutateAsync({ id: editing?.locationId ?? null, input: v });
@@ -51,6 +51,8 @@ export function LocationsPage() {
     { field: 'operator', headerName: 'Operator', flex: 1, minWidth: 160, valueFormatter: (p) => p.value ?? '—', tooltipValueGetter: (p) => p.value },
     { field: 'capacity', headerName: 'Capacity', width: 120, cellClass: 'cell-mono',
       valueFormatter: (p) => p.value != null ? `${Number(p.value).toLocaleString()} ${p.data?.capacityUomCode ?? ''}` : '—' },
+    { field: 'officeLocInd', headerName: 'Office', width: 90, cellRenderer: (p: { value: boolean }) => p.value ? <Tag color="blue">Office</Tag> : null },
+    { field: 'tradingDeskInd', headerName: 'Desk', width: 90, cellRenderer: (p: { value: boolean }) => p.value ? <Tag color="gold">Desk</Tag> : null },
     { field: 'isActive', headerName: 'Status', width: 100, cellRenderer: (p: { value: boolean }) => <ActiveTag active={p.value} /> },
     {
       headerName: '', width: 90, sortable: false, filter: false, pinned: 'right',
@@ -115,6 +117,14 @@ export function LocationsPage() {
             </Form.Item>
             <Form.Item name="longitude" label="Longitude" style={{ flex: 1 }}>
               <InputNumber style={{ width: '100%' }} placeholder="-1.3167" step={0.0001} />
+            </Form.Item>
+          </Space>
+          <Space style={{ width: '100%', gap: 24 }}>
+            <Form.Item name="officeLocInd" label={hint('Office Location', 'This location is a business office — not a physical delivery or operational point.')} valuePropName="checked">
+              <Switch />
+            </Form.Item>
+            <Form.Item name="tradingDeskInd" label={hint('Trading Desk Location', 'Subset of office locations that actually host a trading desk — appears in the desk-location picker.')} valuePropName="checked">
+              <Switch />
             </Form.Item>
           </Space>
           <Form.Item name="isActive" label="Active" valuePropName="checked"><Switch /></Form.Item>

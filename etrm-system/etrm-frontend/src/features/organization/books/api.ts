@@ -1,5 +1,5 @@
 import { apiClient } from '@services/api';
-import type { Book, BookInput } from './types';
+import type { Book, BookInput, BookTraderView } from './types';
 
 export const booksApi = {
   list: () => apiClient.get<Book[]>('/books').then((r) => r.data),
@@ -7,4 +7,12 @@ export const booksApi = {
   create: (input: BookInput) => apiClient.post<Book>('/books', input).then((r) => r.data),
   update: (id: number, input: BookInput) => apiClient.put<Book>(`/books/${id}`, input).then((r) => r.data),
   deactivate: (id: number) => apiClient.patch(`/books/${id}/deactivate`),
+  archive: (id: number, reason: string) => apiClient.patch<Book>(`/books/${id}/archive`, { reason }).then((r) => r.data),
+  move: (id: number, body: { legalEntityId: number; deskId: number | null; parentBookId: number | null }) =>
+    apiClient.patch<Book>(`/books/${id}/move`, body).then((r) => r.data),
+  listTraders: (bookId: number) => apiClient.get<BookTraderView[]>(`/books/${bookId}/traders`).then((r) => r.data),
+  addTrader: (bookId: number, body: { traderId: number; role: string }) =>
+    apiClient.post(`/books/${bookId}/traders`, body),
+  removeTrader: (bookId: number, traderId: number) =>
+    apiClient.delete(`/books/${bookId}/traders/${traderId}`),
 };

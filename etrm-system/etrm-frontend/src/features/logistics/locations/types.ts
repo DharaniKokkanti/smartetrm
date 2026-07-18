@@ -17,6 +17,11 @@ export interface Location {
   capacityUomCode: string | null;
   latitude: number | null;
   longitude: number | null;
+  // True when this location is a business office (not a delivery/operational point).
+  officeLocInd: boolean;
+  // True when this office also hosts a trading desk — subset of officeLocInd locations,
+  // used to populate the desk-location picker (see useTradingDeskLocations()).
+  tradingDeskInd: boolean;
   isActive: boolean;
   createdAt: string;
 }

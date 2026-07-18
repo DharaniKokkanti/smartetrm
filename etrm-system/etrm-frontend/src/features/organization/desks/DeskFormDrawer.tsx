@@ -5,6 +5,7 @@ import { COMMODITY_TYPE_LOOKUP, type Desk, type DeskInput } from './types';
 import { useDraftValues } from '@components/smart/formDraft';
 import { hint } from '@components/smart/FieldHint';
 import { safeTextRule, integerRule } from '@components/smart/fieldValidation';
+import { useTradingDeskLocations } from '@features/logistics/locations/hooks';
 
 interface Props {
   open: boolean;
@@ -17,6 +18,7 @@ export function DeskFormDrawer({ open, editing, onClose, onSaved }: Props) {
   const [form] = Form.useForm<DeskInput>();
   const save = useSaveDesk();
   const skipDraftReset = useDraftValues('org-desks-v', form, open, editing);
+  const { data: tradingDeskLocations = [] } = useTradingDeskLocations();
 
   useEffect(() => {
     if (skipDraftReset.current) { if (open) skipDraftReset.current = false; return; }
@@ -28,6 +30,7 @@ export function DeskFormDrawer({ open, editing, onClose, onSaved }: Props) {
           legalEntityId: editing.legalEntityId,
           commodityType: editing.commodityType,
           headTraderId: editing.headTraderId,
+          locationId: editing.locationId,
           isActive: editing.isActive,
         });
       } else {
@@ -89,6 +92,13 @@ export function DeskFormDrawer({ open, editing, onClose, onSaved }: Props) {
           rules={[integerRule()]}
         >
           <Input type="number" placeholder="Trader ID" />
+        </Form.Item>
+        <Form.Item
+          name="locationId"
+          label={hint('Desk Location', 'The office location this trading desk is physically based at. Only offices flagged as trading-desk locations are selectable.')}
+        >
+          <Select allowClear showSearch optionFilterProp="label" placeholder="Select location"
+            options={tradingDeskLocations.map((l) => ({ label: `${l.locationCode} — ${l.locationName}`, value: l.locationId }))} />
         </Form.Item>
         <Form.Item name="isActive" label="Active" valuePropName="checked">
           <Switch />

@@ -53,6 +53,13 @@ public class LocationService {
         return repository.findAll().stream().map(this::hydrate).toList();
     }
 
+    /** Active, trading-desk-flagged locations — feeds the desk office-location picker. */
+    @Transactional(readOnly = true)
+    public List<Location> listTradingDesks() {
+        return repository.findByTradingDeskIndTrueAndIsActiveTrueOrderByLocationCodeAsc().stream()
+                .map(this::hydrate).toList();
+    }
+
     public Location create(Location input) {
         normalizeCodeField(input);
         if (repository.existsByLocationCodeIgnoreCase(input.getLocationCode())) {

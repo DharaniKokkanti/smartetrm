@@ -47,9 +47,13 @@ export interface Desk {
   commodityType: number | null;
   headTraderId: number | null;
   headTraderName: string | null;
+  // FK to dbo.location(location_id), restricted to locations with tradingDeskInd=true.
+  locationId: number | null;
+  locationCode: string | null; // denormalized
+  locationName: string | null; // denormalized
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
-export type DeskInput = Omit<Desk, 'deskId' | 'legalEntityCode' | 'headTraderName' | 'createdAt' | 'updatedAt'>;
+export type DeskInput = Omit<Desk, 'deskId' | 'legalEntityCode' | 'headTraderName' | 'locationCode' | 'locationName' | 'createdAt' | 'updatedAt'>;

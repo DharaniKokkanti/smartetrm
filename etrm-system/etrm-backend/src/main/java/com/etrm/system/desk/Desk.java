@@ -53,6 +53,19 @@ public class Desk extends AuditableEntity {
     @JsonProperty
     private String headTraderName;
 
+    // FK -> dbo.location(location_id) (V118). Nullable: not every desk has an
+    // office location on file yet.
+    @Column(name = "location_id")
+    private Integer locationId;
+
+    @Transient
+    @JsonProperty
+    private String locationCode;
+
+    @Transient
+    @JsonProperty
+    private String locationName;
+
     @NotNull
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
@@ -123,6 +136,30 @@ public class Desk extends AuditableEntity {
 
     public void setHeadTraderName(String headTraderName) {
         this.headTraderName = headTraderName;
+    }
+
+    public Integer getLocationId() {
+        return locationId;
+    }
+
+    public void setLocationId(Integer locationId) {
+        this.locationId = locationId;
+    }
+
+    public String getLocationCode() {
+        return locationCode;
+    }
+
+    public void setLocationCode(String locationCode) {
+        this.locationCode = locationCode;
+    }
+
+    public String getLocationName() {
+        return locationName;
+    }
+
+    public void setLocationName(String locationName) {
+        this.locationName = locationName;
     }
 
     public Boolean getIsActive() {

@@ -21,21 +21,22 @@ const now = () => new Date().toISOString();
 // ─── DESKS ────────────────────────────────────────────────────────────────────
 // commodityType is now the numeric FK id into COMMODITY_TYPE_LOOKUP (V55):
 // 1=OIL, 2=GAS, 3=POWER, 4=LNG, 5=AGRICULTURAL, 6=METALS, 7=FREIGHT, 8=RINS, 9=ENVIRONMENTAL, 10=MULTI, 11=OTHER
-const desksStore: unknown[] = [
-  { deskId: 1, deskCode: 'OIL-CRUDE', deskName: 'Crude Oil Trading', legalEntityId: 1, commodityType: 1, headTraderId: 1, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { deskId: 2, deskCode: 'GAS-EU', deskName: 'European Gas', legalEntityId: 1, commodityType: 2, headTraderId: 2, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { deskId: 3, deskCode: 'METALS-BASE', deskName: 'Base Metals', legalEntityId: 1, commodityType: 6, headTraderId: 3, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { deskId: 4, deskCode: 'POWER-EU', deskName: 'European Power', legalEntityId: 1, commodityType: 3, headTraderId: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { deskId: 5, deskCode: 'AGR-GRAINS', deskName: 'Grains & Oilseeds', legalEntityId: 2, commodityType: 5, headTraderId: null, isActive: false, createdAt: '2024-01-01T00:00:00Z' },
+export const desksStore: unknown[] = [
+  { deskId: 1, deskCode: 'OIL-CRUDE', deskName: 'Crude Oil Trading', legalEntityId: 1, commodityType: 1, headTraderId: 1, locationId: 1, locationCode: 'SULLOM-VOE', locationName: 'Sullom Voe Terminal', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { deskId: 2, deskCode: 'GAS-EU', deskName: 'European Gas', legalEntityId: 1, commodityType: 2, headTraderId: 2, locationId: 4, locationCode: 'NBP-UK', locationName: 'National Balancing Point UK', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { deskId: 3, deskCode: 'METALS-BASE', deskName: 'Base Metals', legalEntityId: 1, commodityType: 6, headTraderId: 3, locationId: null, locationCode: null, locationName: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { deskId: 4, deskCode: 'POWER-EU', deskName: 'European Power', legalEntityId: 1, commodityType: 3, headTraderId: null, locationId: null, locationCode: null, locationName: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { deskId: 5, deskCode: 'AGR-GRAINS', deskName: 'Grains & Oilseeds', legalEntityId: 2, commodityType: 5, headTraderId: null, locationId: null, locationCode: null, locationName: null, isActive: false, createdAt: '2024-01-01T00:00:00Z' },
 ];
 
 // ─── BOOKS ────────────────────────────────────────────────────────────────────
-const booksStore: unknown[] = [
-  { bookId: 1, bookCode: 'CRUDE-PROP',   bookName: 'Crude Proprietary',    bookType: 1,   deskId: 1, deskCode: 'OIL-CRUDE',   legalEntityId: 1, legalEntityCode: 'ACME-UK', responsibleTraderId: 1,    responsibleTraderName: 'John Doe',         commodityType: 1,             baseCurrencyId: 1, positionLimit: 5000000,  pnlLimit: 500000,  varLimit: 250000, goLiveDate: '2020-01-01', description: 'Primary crude proprietary trading book — Brent and WTI physical OTC.', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
-  { bookId: 2, bookCode: 'CRUDE-HEDGE',  bookName: 'Crude Hedge Book',     bookType: 2,   deskId: 1, deskCode: 'OIL-CRUDE',   legalEntityId: 1, legalEntityCode: 'ACME-UK', responsibleTraderId: null, responsibleTraderName: null,               commodityType: 1,             baseCurrencyId: 1, positionLimit: 10000000, pnlLimit: null,    varLimit: 100000, goLiveDate: '2020-01-01', description: 'Hedge book for crude oil futures offsetting physical exposure.',          isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
-  { bookId: 3, bookCode: 'GAS-EU-TRADE', bookName: 'EU Gas Trading',       bookType: 1,   deskId: 2, deskCode: 'GAS-EU',      legalEntityId: 2, legalEntityCode: 'ACME-US',  responsibleTraderId: 2,    responsibleTraderName: 'Alice Smith',       commodityType: 2,             baseCurrencyId: 2, positionLimit: 2000000,  pnlLimit: 200000,  varLimit: 50000,  goLiveDate: '2020-01-01', description: 'European natural gas physical and financial book — TTF and NBP.',         isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
-  { bookId: 4, bookCode: 'LME-CU-ARB',  bookName: 'Copper Arbitrage',     bookType: 3,   deskId: 3, deskCode: 'METALS-BASE', legalEntityId: 1, legalEntityCode: 'ACME-UK', responsibleTraderId: 3,    responsibleTraderName: 'Raj Kumar Patel',  commodityType: 6,             baseCurrencyId: 1, positionLimit: 1000,     pnlLimit: 100000,  varLimit: 25000,  goLiveDate: '2022-01-10', description: 'LME copper cash/3M arbitrage and spread trading book.',                 isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
-  { bookId: 5, bookCode: 'POWER-CLIENT', bookName: 'Power Client Book',    bookType: 5,   deskId: 4, deskCode: 'POWER-EU',    legalEntityId: 2, legalEntityCode: 'ACME-US',  responsibleTraderId: 6,    responsibleTraderName: 'Sarah Wong',        commodityType: 3,             baseCurrencyId: 2, positionLimit: 500000,   pnlLimit: null,    varLimit: null,   goLiveDate: '2024-02-01', description: 'European power client back-to-back book — EEX German and French baseload.', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+// traders below mirror tradersStore rows (JDO=1, ASM=2, RKP=3, SWN=6) — book_trader join, mocked inline.
+export const booksStore: unknown[] = [
+  { bookId: 1, bookCode: 'CRUDE-PROP',   bookName: 'Crude Proprietary',    bookType: 1,   deskId: 1, deskCode: 'OIL-CRUDE',   legalEntityId: 1, legalEntityCode: 'ACME-UK', parentBookId: null, parentBookCode: null, commodityType: 1,             baseCurrencyId: 1, positionLimit: 5000000,  pnlLimit: 500000,  varLimit: 250000, goLiveDate: '2020-01-01', description: 'Primary crude proprietary trading book — Brent and WTI physical OTC.', isActive: true, archivedAt: null, archivedReason: null, traders: [{ traderId: 1, traderName: 'John Doe', role: 'PRIMARY', isActive: true }], createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { bookId: 2, bookCode: 'CRUDE-HEDGE',  bookName: 'Crude Hedge Book',     bookType: 2,   deskId: 1, deskCode: 'OIL-CRUDE',   legalEntityId: 1, legalEntityCode: 'ACME-UK', parentBookId: 1,    parentBookCode: 'CRUDE-PROP', commodityType: 1,             baseCurrencyId: 1, positionLimit: 10000000, pnlLimit: null,    varLimit: 100000, goLiveDate: '2020-01-01', description: 'Hedge book for crude oil futures offsetting physical exposure.',          isActive: true, archivedAt: null, archivedReason: null, traders: [], createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { bookId: 3, bookCode: 'GAS-EU-TRADE', bookName: 'EU Gas Trading',       bookType: 1,   deskId: 2, deskCode: 'GAS-EU',      legalEntityId: 2, legalEntityCode: 'ACME-US',  parentBookId: null, parentBookCode: null, commodityType: 2,             baseCurrencyId: 2, positionLimit: 2000000,  pnlLimit: 200000,  varLimit: 50000,  goLiveDate: '2020-01-01', description: 'European natural gas physical and financial book — TTF and NBP.',         isActive: true, archivedAt: null, archivedReason: null, traders: [{ traderId: 2, traderName: 'Alice Smith', role: 'PRIMARY', isActive: true }], createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { bookId: 4, bookCode: 'LME-CU-ARB',  bookName: 'Copper Arbitrage',     bookType: 3,   deskId: 3, deskCode: 'METALS-BASE', legalEntityId: 1, legalEntityCode: 'ACME-UK', parentBookId: null, parentBookCode: null, commodityType: 6,             baseCurrencyId: 1, positionLimit: 1000,     pnlLimit: 100000,  varLimit: 25000,  goLiveDate: '2022-01-10', description: 'LME copper cash/3M arbitrage and spread trading book.',                 isActive: true, archivedAt: null, archivedReason: null, traders: [{ traderId: 3, traderName: 'Raj Kumar Patel', role: 'PRIMARY', isActive: true }], createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { bookId: 5, bookCode: 'POWER-CLIENT', bookName: 'Power Client Book',    bookType: 5,   deskId: 4, deskCode: 'POWER-EU',    legalEntityId: 2, legalEntityCode: 'ACME-US',  parentBookId: null, parentBookCode: null, commodityType: 3,             baseCurrencyId: 2, positionLimit: 500000,   pnlLimit: null,    varLimit: null,   goLiveDate: '2024-02-01', description: 'European power client back-to-back book — EEX German and French baseload.', isActive: true, archivedAt: null, archivedReason: null, traders: [{ traderId: 6, traderName: 'Sarah Wong', role: 'PRIMARY', isActive: true }], createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
 ];
 
 // ─── TRADERS ──────────────────────────────────────────────────────────────────
@@ -258,14 +259,14 @@ const exchangesStore: unknown[] = [
 
 // ─── LOCATIONS ────────────────────────────────────────────────────────────────
 const locationsStore: unknown[] = [
-  { locationId: 1, locationCode: 'SULLOM-VOE', locationName: 'Sullom Voe Terminal', locationTypeCode: 'PORT', commodityType: 'OIL', countryId: 1, portCode: 'SUL', unlocode: 'GBSUL', operator: 'Shetland Islands Council / Equinor', capacity: 12000000, capacityUomCode: 'BBL', latitude: 60.4833, longitude: -1.3167, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { locationId: 2, locationCode: 'RAS-TANURA', locationName: 'Ras Tanura Terminal', locationTypeCode: 'PORT', commodityType: 'OIL', countryId: 6, portCode: 'RAT', unlocode: 'SARAR', operator: 'Saudi Aramco', capacity: 40000000, capacityUomCode: 'BBL', latitude: 26.6500, longitude: 50.1667, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { locationId: 3, locationCode: 'CUSHING-OK', locationName: 'Cushing Oklahoma Hub', locationTypeCode: 'PIPELINE_HUB', commodityType: 'OIL', countryId: 2, portCode: null, unlocode: null, operator: 'Multiple', capacity: 80000000, capacityUomCode: 'BBL', latitude: 35.9847, longitude: -96.7693, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { locationId: 4, locationCode: 'NBP-UK', locationName: 'National Balancing Point UK', locationTypeCode: 'GAS_HUB', commodityType: 'GAS', countryId: 1, portCode: null, unlocode: null, operator: 'National Gas Transmission', capacity: null, capacityUomCode: null, latitude: null, longitude: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { locationId: 5, locationCode: 'TTF-NL', locationName: 'Title Transfer Facility Netherlands', locationTypeCode: 'GAS_HUB', commodityType: 'GAS', countryId: 3, portCode: null, unlocode: null, operator: 'Gasunie Transport Services', capacity: null, capacityUomCode: null, latitude: null, longitude: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { locationId: 6, locationCode: 'ROTTERDAM', locationName: 'Port of Rotterdam', locationTypeCode: 'PORT', commodityType: null, countryId: 3, portCode: 'RTM', unlocode: 'NLRTM', operator: 'Port of Rotterdam Authority', capacity: null, capacityUomCode: null, latitude: 51.9225, longitude: 4.4792, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { locationId: 7, locationCode: 'LME-WAREHOUSE', locationName: 'LME Rotterdam Approved Warehouse', locationTypeCode: 'WAREHOUSE', commodityType: 'METALS', countryId: 3, portCode: null, unlocode: 'NLRTM', operator: 'Steinweg BV', capacity: 100000, capacityUomCode: 'MT', latitude: 51.9225, longitude: 4.4792, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { locationId: 8, locationCode: 'FREEPORT-LNG', locationName: 'Freeport LNG Terminal', locationTypeCode: 'LNG_TERMINAL', commodityType: 'GAS', countryId: 2, portCode: null, unlocode: 'USFPT', operator: 'Freeport LNG Development', capacity: 15000000, capacityUomCode: 'MMBTU', latitude: 28.9000, longitude: -95.3700, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { locationId: 1, locationCode: 'SULLOM-VOE', locationName: 'Sullom Voe Terminal', locationTypeCode: 'PORT', commodityType: 'OIL', countryId: 1, portCode: 'SUL', unlocode: 'GBSUL', operator: 'Shetland Islands Council / Equinor', capacity: 12000000, capacityUomCode: 'BBL', latitude: 60.4833, longitude: -1.3167, officeLocInd: true, tradingDeskInd: true, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { locationId: 2, locationCode: 'RAS-TANURA', locationName: 'Ras Tanura Terminal', locationTypeCode: 'PORT', commodityType: 'OIL', countryId: 6, portCode: 'RAT', unlocode: 'SARAR', operator: 'Saudi Aramco', capacity: 40000000, capacityUomCode: 'BBL', latitude: 26.6500, longitude: 50.1667, officeLocInd: false, tradingDeskInd: false, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { locationId: 3, locationCode: 'CUSHING-OK', locationName: 'Cushing Oklahoma Hub', locationTypeCode: 'PIPELINE_HUB', commodityType: 'OIL', countryId: 2, portCode: null, unlocode: null, operator: 'Multiple', capacity: 80000000, capacityUomCode: 'BBL', latitude: 35.9847, longitude: -96.7693, officeLocInd: false, tradingDeskInd: false, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { locationId: 4, locationCode: 'NBP-UK', locationName: 'National Balancing Point UK', locationTypeCode: 'GAS_HUB', commodityType: 'GAS', countryId: 1, portCode: null, unlocode: null, operator: 'National Gas Transmission', capacity: null, capacityUomCode: null, latitude: null, longitude: null, officeLocInd: true, tradingDeskInd: true, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { locationId: 5, locationCode: 'TTF-NL', locationName: 'Title Transfer Facility Netherlands', locationTypeCode: 'GAS_HUB', commodityType: 'GAS', countryId: 3, portCode: null, unlocode: null, operator: 'Gasunie Transport Services', capacity: null, capacityUomCode: null, latitude: null, longitude: null, officeLocInd: true, tradingDeskInd: false, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { locationId: 6, locationCode: 'ROTTERDAM', locationName: 'Port of Rotterdam', locationTypeCode: 'PORT', commodityType: null, countryId: 3, portCode: 'RTM', unlocode: 'NLRTM', operator: 'Port of Rotterdam Authority', capacity: null, capacityUomCode: null, latitude: 51.9225, longitude: 4.4792, officeLocInd: false, tradingDeskInd: false, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { locationId: 7, locationCode: 'LME-WAREHOUSE', locationName: 'LME Rotterdam Approved Warehouse', locationTypeCode: 'WAREHOUSE', commodityType: 'METALS', countryId: 3, portCode: null, unlocode: 'NLRTM', operator: 'Steinweg BV', capacity: 100000, capacityUomCode: 'MT', latitude: 51.9225, longitude: 4.4792, officeLocInd: false, tradingDeskInd: false, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { locationId: 8, locationCode: 'FREEPORT-LNG', locationName: 'Freeport LNG Terminal', locationTypeCode: 'LNG_TERMINAL', commodityType: 'GAS', countryId: 2, portCode: null, unlocode: 'USFPT', operator: 'Freeport LNG Development', capacity: 15000000, capacityUomCode: 'MMBTU', latitude: 28.9000, longitude: -95.3700, officeLocInd: false, tradingDeskInd: false, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
 ];
 
 // ─── TRANSPORT ROUTES ───────────────────────────────────────────────────────────
@@ -2432,6 +2433,60 @@ export const etrmHandlers = [
 
   ...crudHandlers('desks', desksStore as Array<Record<string, unknown>>, 'deskId'),
   ...crudHandlers('books', booksStore as Array<Record<string, unknown>>, 'bookId'),
+
+  // ─── BOOKS — archive / move / book-trader sub-resource ─────────────────────────
+  http.patch(`${API}/books/:id/archive`, async ({ params, request }) => {
+    const books = booksStore as Array<Record<string, unknown>>;
+    const idx = books.findIndex((b) => b['bookId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Book ${String(params.id)} not found.`);
+    const { reason } = (await request.json()) as { reason: string };
+    books[idx] = { ...books[idx], isActive: false, archivedAt: now(), archivedReason: reason ?? null };
+    return HttpResponse.json(books[idx]);
+  }),
+  http.patch(`${API}/books/:id/move`, async ({ params, request }) => {
+    const books = booksStore as Array<Record<string, unknown>>;
+    const idx = books.findIndex((b) => b['bookId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Book ${String(params.id)} not found.`);
+    const body = (await request.json()) as { legalEntityId: number; deskId: number | null; parentBookId: number | null };
+    const desk = (desksStore as Array<Record<string, unknown>>).find((d) => d['deskId'] === body.deskId);
+    const parent = books.find((b) => b['bookId'] === body.parentBookId);
+    books[idx] = {
+      ...books[idx],
+      legalEntityId: body.legalEntityId,
+      deskId: body.deskId,
+      deskCode: desk ? desk['deskCode'] : books[idx]['deskCode'],
+      parentBookId: body.parentBookId,
+      parentBookCode: parent ? parent['bookCode'] : null,
+    };
+    return HttpResponse.json(books[idx]);
+  }),
+  http.get(`${API}/books/:bookId/traders`, ({ params }) => {
+    const book = (booksStore as Array<Record<string, unknown>>).find((b) => b['bookId'] === Number(params.bookId));
+    return HttpResponse.json((book ? book['traders'] : []) as Array<Record<string, unknown>>);
+  }),
+  http.post(`${API}/books/:bookId/traders`, async ({ params, request }) => {
+    const books = booksStore as Array<Record<string, unknown>>;
+    const idx = books.findIndex((b) => b['bookId'] === Number(params.bookId));
+    if (idx === -1) return problem(404, 'Not Found', `Book ${String(params.bookId)} not found.`);
+    const body = (await request.json()) as { traderId: number; role: string };
+    const trader = (tradersStore as Array<Record<string, unknown>>).find((t) => t['traderId'] === body.traderId);
+    const traders = [...(books[idx]['traders'] as Array<Record<string, unknown>>)];
+    const existingIdx = traders.findIndex((t) => t['traderId'] === body.traderId);
+    const row = { traderId: body.traderId, traderName: trader ? trader['fullName'] : `#${body.traderId}`, role: body.role, isActive: true };
+    if (existingIdx >= 0) traders[existingIdx] = row; else traders.push(row);
+    books[idx] = { ...books[idx], traders };
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.delete(`${API}/books/:bookId/traders/:traderId`, ({ params }) => {
+    const books = booksStore as Array<Record<string, unknown>>;
+    const idx = books.findIndex((b) => b['bookId'] === Number(params.bookId));
+    if (idx === -1) return problem(404, 'Not Found', `Book ${String(params.bookId)} not found.`);
+    const traders = (books[idx]['traders'] as Array<Record<string, unknown>>).map((t) =>
+      t['traderId'] === Number(params.traderId) ? { ...t, isActive: false } : t);
+    books[idx] = { ...books[idx], traders };
+    return new HttpResponse(null, { status: 204 });
+  }),
+
   ...crudHandlers('traders', tradersStore as Array<Record<string, unknown>>, 'traderId'),
   ...crudHandlers('products', productsStore as Array<Record<string, unknown>>, 'productId'),
 
@@ -2644,6 +2699,8 @@ export const etrmHandlers = [
 
   ...crudHandlers('price-indices', priceIndicesStore as Array<Record<string, unknown>>, 'priceIndexId'),
   ...crudHandlers('exchanges', exchangesStore as Array<Record<string, unknown>>, 'exchangeId'),
+  http.get(`${API}/locations/trading-desks`, () =>
+    HttpResponse.json((locationsStore as Array<Record<string, unknown>>).filter((l) => l['tradingDeskInd'] === true && l['isActive'] === true))),
   ...crudHandlers('locations', locationsStore as Array<Record<string, unknown>>, 'locationId'),
   ...crudHandlers('vessels', vesselsStore as Array<Record<string, unknown>>, 'vesselId'),
 
