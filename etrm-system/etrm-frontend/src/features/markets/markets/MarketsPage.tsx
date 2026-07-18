@@ -17,7 +17,7 @@ import {
   useMarketProductSources,
 } from './hooks';
 import { MARKET_TYPES, SETTLEMENT_TYPES_MKT, type Market, type MarketInput, type MarketProduct, type MarketType, type SettlementTypeMkt } from './types';
-import { COMMODITY_TYPES } from '@features/organization/desks/types';
+import { COMMODITY_TYPES } from '@features/reference/commodity-types/types';
 import { useProducts } from '@features/markets/products/hooks';
 import { useFormDraft } from '@components/smart/formDraft';
 import { useCountries } from '@features/reference/countries/hooks';

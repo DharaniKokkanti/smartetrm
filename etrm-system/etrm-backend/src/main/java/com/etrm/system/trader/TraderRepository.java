@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface TraderRepository extends JpaRepository<Trader, Integer> {
     boolean existsByTraderCodeIgnoreCase(String traderCode);
-    List<Trader> findByDeskId(Integer deskId);
+    List<Trader> findByBookId(Integer bookId);
 }

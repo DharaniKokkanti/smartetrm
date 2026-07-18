@@ -7,7 +7,7 @@ import { SmartGrid } from '@components/smart/SmartGrid';
 import { hint } from '@components/smart/FieldHint';
 import { useUomConversions, useSaveUomConversion, useDeleteUomConversion } from './hooks';
 import { useUom } from '@features/reference/uom/hooks';
-import { COMMODITY_TYPES, type CommodityType } from '@features/organization/desks/types';
+import { COMMODITY_TYPES, type CommodityType } from '@features/reference/commodity-types/types';
 import type { UomConversion, UomConversionInput } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
 

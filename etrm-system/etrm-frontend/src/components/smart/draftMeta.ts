@@ -14,7 +14,6 @@ export const DRAFT_META: Record<string, { route: string; label: string }> = {
   'trade-item':                   { route: '/trade/blotter',              label: 'Trade Item' },
   'org-brokers':                  { route: '/org/brokers',                label: 'Broker' },
   'org-traders':                  { route: '/org/traders',                label: 'Trader' },
-  'org-desks':                    { route: '/org/desks',                  label: 'Desk' },
   'org-books':                    { route: '/org/books',                 label: 'Book' },
   'credit-limits':                { route: '/credit/limits',              label: 'Credit Limit' },
   'credit-margin':                { route: '/credit/margin-agreements',   label: 'Margin Agreement' },

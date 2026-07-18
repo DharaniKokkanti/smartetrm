@@ -2,7 +2,6 @@ package com.etrm.system.book;
 
 import com.etrm.system.common.ConflictException;
 import com.etrm.system.common.NotFoundException;
-import com.etrm.system.desk.DeskRepository;
 import com.etrm.system.legalentity.LegalEntityRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,16 +18,14 @@ public class BookService {
 
     private final BookRepository repository;
     private final LegalEntityRepository legalEntityRepository;
-    private final DeskRepository deskRepository;
     private final BookTraderService bookTraderService;
     private final BookClassificationService bookClassificationService;
 
     public BookService(BookRepository repository, LegalEntityRepository legalEntityRepository,
-                        DeskRepository deskRepository, BookTraderService bookTraderService,
+                        BookTraderService bookTraderService,
                         BookClassificationService bookClassificationService) {
         this.repository = repository;
         this.legalEntityRepository = legalEntityRepository;
-        this.deskRepository = deskRepository;
         this.bookTraderService = bookTraderService;
         this.bookClassificationService = bookClassificationService;
     }
@@ -36,9 +33,6 @@ public class BookService {
     private Book denormalize(Book book) {
         legalEntityRepository.findById(book.getLegalEntityId())
                 .ifPresent(le -> book.setLegalEntityCode(le.getEntityCode()));
-        if (book.getDeskId() != null) {
-            deskRepository.findById(book.getDeskId()).ifPresent(d -> book.setDeskCode(d.getDeskCode()));
-        }
         if (book.getParentBookId() != null && !book.getParentBookId().equals(book.getBookId())) {
             repository.findById(book.getParentBookId()).ifPresent(p -> book.setParentBookCode(p.getBookCode()));
         }
@@ -145,21 +139,16 @@ public class BookService {
         return repository.findAllById(ids).stream().map(this::denormalize).toList();
     }
 
-    /** Partial update — moves a book to a different entity/desk/parent without touching any other field. */
-    public Book move(Integer id, Integer legalEntityId, Integer deskId, Integer parentBookId) {
+    /** Partial update — moves a book to a different entity/parent without touching any other field. */
+    public Book move(Integer id, Integer legalEntityId, Integer parentBookId) {
         Book existing = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("No book with id " + id + "."));
         legalEntityRepository.findById(Objects.requireNonNull(legalEntityId))
                 .orElseThrow(() -> new NotFoundException("No legal entity with id " + legalEntityId + "."));
-        if (deskId != null) {
-            deskRepository.findById(deskId)
-                    .orElseThrow(() -> new NotFoundException("No desk with id " + deskId + "."));
-        }
         if (parentBookId != null) {
             validateParentChain(id, parentBookId);
         }
         existing.setLegalEntityId(legalEntityId);
-        existing.setDeskId(deskId);
         existing.setParentBookId(parentBookId);
         return denormalize(repository.save(existing));
     }

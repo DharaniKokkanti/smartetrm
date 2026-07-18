@@ -1,5 +1,5 @@
 import { apiClient } from '@services/api';
-import type { Book, BookClassificationDimension, BookClassificationView, BookInput, BookTraderView } from './types';
+import type { Book, BookClassificationDimension, BookClassificationView, BookEodStatus, BookInput, BookTraderView } from './types';
 
 export const booksApi = {
   list: () => apiClient.get<Book[]>('/books').then((r) => r.data),
@@ -8,8 +8,13 @@ export const booksApi = {
   update: (id: number, input: BookInput) => apiClient.put<Book>(`/books/${id}`, input).then((r) => r.data),
   deactivate: (id: number) => apiClient.patch(`/books/${id}/deactivate`),
   archive: (id: number, reason: string) => apiClient.patch<Book>(`/books/${id}/archive`, { reason }).then((r) => r.data),
-  move: (id: number, body: { legalEntityId: number; deskId: number | null; parentBookId: number | null }) =>
+  move: (id: number, body: { legalEntityId: number; parentBookId: number | null }) =>
     apiClient.patch<Book>(`/books/${id}/move`, body).then((r) => r.data),
+  listEodStatus: (bookId: number) => apiClient.get<BookEodStatus[]>(`/books/${bookId}/eod-status`).then((r) => r.data),
+  lockEodStatus: (bookId: number, businessDate: string) =>
+    apiClient.post<BookEodStatus>(`/books/${bookId}/eod-status/lock`, { businessDate }).then((r) => r.data),
+  reopenEodStatus: (bookId: number, businessDate: string, reason: string) =>
+    apiClient.post<BookEodStatus>(`/books/${bookId}/eod-status/reopen`, { businessDate, reason }).then((r) => r.data),
   descendants: (id: number) => apiClient.get<Book[]>(`/books/${id}/descendants`).then((r) => r.data),
   listTraders: (bookId: number) => apiClient.get<BookTraderView[]>(`/books/${bookId}/traders`).then((r) => r.data),
   addTrader: (bookId: number, body: { traderId: number; role: string }) =>

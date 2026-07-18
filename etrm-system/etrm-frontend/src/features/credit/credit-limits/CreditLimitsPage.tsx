@@ -13,7 +13,7 @@ import { useCounterparties } from '@features/trade/hooks';
 import { useSystemUsers } from '@features/admin/system-users/hooks';
 import { useCurrencies } from '@features/reference/currencies/hooks';
 import { useCountries } from '@features/reference/countries/hooks';
-import { COMMODITY_TYPES } from '@features/organization/desks/types';
+import { COMMODITY_TYPES } from '@features/reference/commodity-types/types';
 import { useCreditLimits, useSaveCreditLimit, useSuspendCreditLimit, useReinstateCreditLimit } from './hooks';
 import type { CreditLimit, CreditLimitInput } from './types';
 import {

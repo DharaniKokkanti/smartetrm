@@ -1,6 +1,6 @@
 import { apiClient } from '@services/api';
 import type { Position } from './types';
-import type { CommodityType } from '@features/organization/desks/types';
+import type { CommodityType } from '@features/reference/commodity-types/types';
 
 export const positionsApi = {
   list: (params?: { commodityType?: CommodityType; bookId?: number; periodCode?: string }) =>

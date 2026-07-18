@@ -35,7 +35,7 @@ import {
   type CommodityRow, resolveCommodityType, resolveCommodityName,
   type ReportingGroup, type ProductReportingGroup,
 } from './types';
-import type { CommodityType } from '@features/organization/desks/types';
+import type { CommodityType } from '@features/reference/commodity-types/types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { useTableRows } from '@features/tier2/hooks';
 import { useCustomConfigOptions } from '@features/tier1/counterparty/configLookups';

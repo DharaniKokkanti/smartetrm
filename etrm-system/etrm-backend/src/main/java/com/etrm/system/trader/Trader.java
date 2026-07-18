@@ -46,16 +46,19 @@ public class Trader extends AuditableEntity {
     @JsonProperty
     private String legalEntityCode;
 
-    @Column(name = "desk_id")
-    private Integer deskId;
+    // FK -> dbo.book(book_id) (V123 — renamed from desk_id when dbo.desk was
+    // folded into dbo.book as a DESK-level node). Points at the trader's
+    // DESK-typed book row.
+    @Column(name = "book_id")
+    private Integer bookId;
 
     @Transient
     @JsonProperty
-    private String deskCode;
+    private String bookCode;
 
     @Transient
     @JsonProperty
-    private String deskName;
+    private String bookName;
 
     @NotBlank
     @Size(max = 20)
@@ -160,28 +163,28 @@ public class Trader extends AuditableEntity {
         this.legalEntityCode = legalEntityCode;
     }
 
-    public Integer getDeskId() {
-        return deskId;
+    public Integer getBookId() {
+        return bookId;
     }
 
-    public void setDeskId(Integer deskId) {
-        this.deskId = deskId;
+    public void setBookId(Integer bookId) {
+        this.bookId = bookId;
     }
 
-    public String getDeskCode() {
-        return deskCode;
+    public String getBookCode() {
+        return bookCode;
     }
 
-    public void setDeskCode(String deskCode) {
-        this.deskCode = deskCode;
+    public void setBookCode(String bookCode) {
+        this.bookCode = bookCode;
     }
 
-    public String getDeskName() {
-        return deskName;
+    public String getBookName() {
+        return bookName;
     }
 
-    public void setDeskName(String deskName) {
-        this.deskName = deskName;
+    public void setBookName(String bookName) {
+        this.bookName = bookName;
     }
 
     public String getTraderCode() {

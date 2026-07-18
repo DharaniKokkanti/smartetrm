@@ -3,8 +3,8 @@ package com.etrm.system.trader;
 import com.etrm.system.auth.AppUserRepository;
 import com.etrm.system.common.ConflictException;
 import com.etrm.system.common.NotFoundException;
+import com.etrm.system.book.BookRepository;
 import com.etrm.system.currency.CurrencyRepository;
-import com.etrm.system.desk.DeskRepository;
 import com.etrm.system.legalentity.LegalEntityRepository;
 import com.etrm.system.lookup.CommodityType;
 import com.etrm.system.lookup.CommodityTypeRepository;
@@ -24,19 +24,19 @@ public class TraderService {
     private final TraderCommodityLimitRepository limitRepository;
     private final AppUserRepository appUserRepository;
     private final LegalEntityRepository legalEntityRepository;
-    private final DeskRepository deskRepository;
+    private final BookRepository bookRepository;
     private final CurrencyRepository currencyRepository;
     private final CommodityTypeRepository commodityTypeRepository;
 
     public TraderService(TraderRepository repository, TraderCommodityLimitRepository limitRepository,
                           AppUserRepository appUserRepository, LegalEntityRepository legalEntityRepository,
-                          DeskRepository deskRepository, CurrencyRepository currencyRepository,
+                          BookRepository bookRepository, CurrencyRepository currencyRepository,
                           CommodityTypeRepository commodityTypeRepository) {
         this.repository = repository;
         this.limitRepository = limitRepository;
         this.appUserRepository = appUserRepository;
         this.legalEntityRepository = legalEntityRepository;
-        this.deskRepository = deskRepository;
+        this.bookRepository = bookRepository;
         this.currencyRepository = currencyRepository;
         this.commodityTypeRepository = commodityTypeRepository;
     }
@@ -63,10 +63,10 @@ public class TraderService {
         });
         legalEntityRepository.findById(trader.getLegalEntityId())
                 .ifPresent(le -> trader.setLegalEntityCode(le.getEntityCode()));
-        if (trader.getDeskId() != null) {
-            deskRepository.findById(trader.getDeskId()).ifPresent(d -> {
-                trader.setDeskCode(d.getDeskCode());
-                trader.setDeskName(d.getDeskName());
+        if (trader.getBookId() != null) {
+            bookRepository.findById(trader.getBookId()).ifPresent(b -> {
+                trader.setBookCode(b.getBookCode());
+                trader.setBookName(b.getBookName());
             });
         }
         if (trader.getApproverTraderId() != null) {

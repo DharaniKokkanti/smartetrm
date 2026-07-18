@@ -1,4 +1,4 @@
-import type { CommodityType } from '@features/organization/desks/types';
+import type { CommodityType } from '@features/reference/commodity-types/types';
 
 // V78: product.settlement_type is now a numeric FK id (settlement_type parent
 // table) — resolve a label via useCustomConfigOptions('SETTLEMENT_TYPE').

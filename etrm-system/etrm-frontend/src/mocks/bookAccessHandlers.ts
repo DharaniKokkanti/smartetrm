@@ -1,6 +1,6 @@
 import { http, HttpResponse } from 'msw';
 import { bookAccessGrantsStore, nextGrantId_ } from './bookAccessData';
-import { systemUsersStore, desksStore, booksStore } from './etrmHandlers';
+import { systemUsersStore, booksStore } from './etrmHandlers';
 import { legalEntityStore } from './handlers';
 import type { BookAccessGrant, BookAccessScopeType } from '@features/admin/bookaccess/types';
 
@@ -15,10 +15,6 @@ function resolveScopeLabel(scopeType: BookAccessScopeType, scopeId: number): str
   if (scopeType === 'LEGAL_ENTITY') {
     const e = legalEntityStore.find((r) => r.legalEntityId === scopeId);
     return e ? `${e.entityCode} — ${e.entityName}` : null;
-  }
-  if (scopeType === 'DESK') {
-    const d = (desksStore as Array<Record<string, unknown>>).find((r) => r['deskId'] === scopeId);
-    return d ? `${d['deskCode']} — ${d['deskName']}` : null;
   }
   const b = (booksStore as Array<Record<string, unknown>>).find((r) => r['bookId'] === scopeId);
   return b ? `${b['bookCode']} — ${b['bookName']}` : null;

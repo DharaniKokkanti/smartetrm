@@ -19,7 +19,22 @@
 -- the missing pair, backfilled from created_at/created_by for existing rows
 -- (no real update history to recover), same pattern as every other
 -- AuditableEntity-shaped table in the schema.
+--
+-- BUG 3 (found running this migration from a truly clean database for the
+-- first time, via V123's validation pass): V43 already created a
+-- dbo.trader_commodity_limit table (older shape — commodity_limit_id PK,
+-- VARCHAR commodity_type, limit_currency/effective_from/effective_to). This
+-- CREATE TABLE was written without realizing that, so it only ever succeeded
+-- on databases where that V43 table had separately been dropped out-of-band
+-- (never captured in a migration file) before reaching V99. The shape below
+-- is the one the live TraderCommodityLimit entity actually maps to, so it's
+-- the authoritative/current version — the DROP makes that explicit and
+-- makes this migration replayable from empty, pre-production clean break
+-- (same precedent as V119's).
 -- =============================================================================
+
+DROP TABLE IF EXISTS dbo.trader_commodity_limit;
+GO
 
 CREATE TABLE dbo.trader_commodity_limit (
     trader_commodity_limit_id  INT             NOT NULL IDENTITY(1,1),

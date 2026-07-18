@@ -1,4 +1,4 @@
-import type { CommodityType } from '@features/organization/desks/types';
+import type { CommodityType } from '@features/reference/commodity-types/types';
 
 export interface TransportRoute {
   routeId: number;

@@ -4,7 +4,7 @@ import { InfoCircleOutlined, ReloadOutlined } from '@ant-design/icons';
 import type { ColDef } from 'ag-grid-community';
 import { PageHeader } from '@components/layout/PageHeader';
 import { SmartGrid } from '@components/smart/SmartGrid';
-import { COMMODITY_TYPES, type CommodityType } from '@features/organization/desks/types';
+import { COMMODITY_TYPES, type CommodityType } from '@features/reference/commodity-types/types';
 import { usePositions } from './hooks';
 import type { Position, ConversionSource } from './types';
 

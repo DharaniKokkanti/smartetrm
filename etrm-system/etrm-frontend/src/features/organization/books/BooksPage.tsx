@@ -6,11 +6,10 @@ import { PageHeader } from '@components/layout/PageHeader';
 import { SmartGrid } from '@components/smart/SmartGrid';
 import { ActiveTag } from '@components/smart/StatusTag';
 import { useBooks, useArchiveBook, useMoveBook } from './hooks';
-import { bookTypeLabel } from './types';
+import { bookTypeLabel, bookLevelTypeLabel } from './types';
 import type { Book, BookTraderView, BookClassificationView } from './types';
 import { BookFormDrawer } from './BookFormDrawer';
 import { useDraftState } from '@components/smart/formDraft';
-import { useDesks } from '../desks/hooks';
 import { useLegalEntities } from '@features/tier1/legal-entity/hooks';
 
 const BOOK_TYPE_COLOR: Record<number, string> = {
@@ -78,17 +77,12 @@ function ArchiveModal({ book, onClose }: { book: Book | null; onClose: () => voi
 
 // ── Move modal ──────────────────────────────────────────────────────────────────
 function MoveModal({ book, onClose }: { book: Book | null; onClose: () => void }) {
-  const [form] = Form.useForm<{ legalEntityId: number; deskId: number | null; parentBookId: number | null }>();
+  const [form] = Form.useForm<{ legalEntityId: number; parentBookId: number | null }>();
   const { data: legalEntities = [] } = useLegalEntities();
-  const { data: desks = [] } = useDesks();
   const { data: allBooks = [] } = useBooks();
   const move = useMoveBook();
 
   const legalEntityId = Form.useWatch('legalEntityId', form);
-
-  const deskOptions = desks
-    .filter((d) => legalEntityId == null || d.legalEntityId === legalEntityId)
-    .map((d) => ({ label: `${d.deskCode} — ${d.deskName}`, value: d.deskId }));
 
   const parentBookOptions = useMemo(() => {
     if (!book) return [];
@@ -114,7 +108,7 @@ function MoveModal({ book, onClose }: { book: Book | null; onClose: () => void }
       destroyOnHidden
       afterOpenChange={(open) => {
         if (open && book) {
-          form.setFieldsValue({ legalEntityId: book.legalEntityId, deskId: book.deskId, parentBookId: book.parentBookId });
+          form.setFieldsValue({ legalEntityId: book.legalEntityId, parentBookId: book.parentBookId });
         }
       }}
     >
@@ -122,9 +116,6 @@ function MoveModal({ book, onClose }: { book: Book | null; onClose: () => void }
         <Form.Item name="legalEntityId" label="Legal Entity" rules={[{ required: true }]}>
           <Select showSearch optionFilterProp="label" placeholder="Select legal entity"
             options={legalEntities.map((e) => ({ label: `${e.entityCode} — ${e.entityName}`, value: e.legalEntityId }))} />
-        </Form.Item>
-        <Form.Item name="deskId" label="Desk" rules={[{ required: book?.bookRole !== 'CONSOLIDATION' }]}>
-          <Select allowClear={book?.bookRole === 'CONSOLIDATION'} showSearch optionFilterProp="label" placeholder="Select desk" options={deskOptions} />
         </Form.Item>
         <Form.Item name="parentBookId" label="Parent Book">
           <Select allowClear showSearch optionFilterProp="label" placeholder="None (top-level book)" options={parentBookOptions} />
@@ -155,7 +146,6 @@ export function BooksPage() {
       width: 130,
       cellRenderer: (p: { value: number }) => <Tag color={BOOK_TYPE_COLOR[p.value]}>{bookTypeLabel(p.value)}</Tag>,
     },
-    { field: 'deskCode', headerName: 'Desk', width: 130, cellClass: 'cell-mono' },
     { field: 'legalEntityCode', headerName: 'Entity', width: 110, cellClass: 'cell-mono' },
     { field: 'parentBookCode', headerName: 'Parent', width: 130, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },
     {
@@ -166,10 +156,11 @@ export function BooksPage() {
       tooltipValueGetter: (p) => classificationsDisplay(p.value ?? []),
     },
     {
-      field: 'bookRole',
-      headerName: 'Role',
+      field: 'bookLevelTypeId',
+      headerName: 'Level',
       width: 130,
-      cellRenderer: (p: { value: string }) => <Tag color={p.value === 'CONSOLIDATION' ? 'geekblue' : 'default'}>{p.value}</Tag>,
+      cellRenderer: (p: { data: Book }) =>
+        <Tag color={p.data.isLeafNode ? 'default' : 'geekblue'}>{bookLevelTypeLabel(p.data.bookLevelTypeId)}</Tag>,
     },
     {
       field: 'traders',
@@ -224,7 +215,7 @@ export function BooksPage() {
     <>
       <PageHeader
         title="P&L Books"
-        description="Trading books — each book is a P&L segregation unit linked to a desk and legal entity."
+        description="Trading book hierarchy — Desk/Strategy/Trading Book nodes in one self-referencing tree; only leaf Trading Book rows carry postings."
         moduleGroup="organization"
       />
       <div style={{ marginBottom: 12 }}>

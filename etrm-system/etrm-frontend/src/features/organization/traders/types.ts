@@ -1,4 +1,4 @@
-// FK to lookup_value(lookup_id), category='commodity_type' — see organization/desks/types.ts COMMODITY_TYPE_LOOKUP.
+// FK to lookup_value(lookup_id), category='commodity_type' — see reference/commodity-types/types.ts COMMODITY_TYPE_LOOKUP.
 export interface TraderCommodityLimit {
   commodityType: number;
   dailyTradeLimit: number;
@@ -14,9 +14,11 @@ export interface Trader {
   email: string;
   legalEntityId: number;
   legalEntityCode: string;
-  deskId: number;
-  deskCode: string;
-  deskName: string;
+  // FK to dbo.book(book_id), restricted to book_level_type=DESK rows (V123 —
+  // renamed from deskId when dbo.desk was folded into dbo.book).
+  bookId: number;
+  bookCode: string;
+  bookName: string;
   approverTraderId: number | null;
   approverName: string | null;
   commodityTypes: number[];
@@ -27,6 +29,6 @@ export interface Trader {
   updatedAt: string;
 }
 
-// fullName, email, legalEntityCode, deskCode, deskName, approverName are denormalized — not sent on save
+// fullName, email, legalEntityCode, bookCode, bookName, approverName are denormalized — not sent on save
 export type TraderInput = Omit<Trader,
-  'traderId' | 'fullName' | 'email' | 'legalEntityCode' | 'deskCode' | 'deskName' | 'approverName' | 'createdAt' | 'updatedAt'>;
+  'traderId' | 'fullName' | 'email' | 'legalEntityCode' | 'bookCode' | 'bookName' | 'approverName' | 'createdAt' | 'updatedAt'>;

@@ -1,6 +1,6 @@
 import { apiClient } from '@services/api';
 import type { UomConversion, UomConversionInput } from './types';
-import type { CommodityType } from '@features/organization/desks/types';
+import type { CommodityType } from '@features/reference/commodity-types/types';
 
 export const uomConversionApi = {
   list: (commodityType?: CommodityType | null) =>

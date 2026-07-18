@@ -7,7 +7,7 @@ import type {
   SpecParameter,
   ProductReportingGroup, ProductReportingGroupInput,
 } from './types';
-import type { CommodityType } from '@features/organization/desks/types';
+import type { CommodityType } from '@features/reference/commodity-types/types';
 
 export const productsApi = {
   list:       () => apiClient.get<Product[]>('/products').then((r) => r.data),

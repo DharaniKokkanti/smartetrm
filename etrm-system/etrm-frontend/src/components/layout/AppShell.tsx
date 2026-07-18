@@ -37,6 +37,12 @@ const NAV_ITEMS = [
     ],
   },
   {
+    key: 'g-books', icon: <AccountBookOutlined />, label: 'Book Manager',
+    children: [
+      { key: '/org/books', icon: <AccountBookOutlined />, label: 'P&L Books' },
+    ],
+  },
+  {
     key: 'g-credit', icon: <SafetyCertificateOutlined />, label: 'Credit & Risk',
     children: [
       { key: '/credit/margin-agreements',   icon: <DollarOutlined />,            label: 'Margin Agreements' },
@@ -92,6 +98,7 @@ const NAV_ITEMS = [
 
 const ALL_KEYS = [
   '/', '/trade/blotter', '/position', '/static-data', '/master-data',
+  '/org/books',
   '/credit/margin-agreements', '/credit/limits', '/credit/letters-of-credit',
   '/pricing/settlement-prices', '/pricing/tas', '/pricing/pricing-rules', '/pricing/price-sources',
   '/pricing/balmo-products', '/pricing/balmo',
@@ -105,6 +112,7 @@ const ALL_KEYS = [
 // route prefix → submenu group key (used to auto-open the group of the current page)
 function groupKeyFor(pathname: string): string[] {
   if (pathname.startsWith('/master-data') || pathname.startsWith('/static-data') || pathname.startsWith('/finance')) return ['g-master-data'];
+  if (pathname.startsWith('/org/books')) return ['g-books'];
   if (pathname.startsWith('/credit')) return ['g-credit'];
   if (pathname.startsWith('/pricing')) return ['g-pricing'];
   if (pathname.startsWith('/bolmo')) return ['g-operations'];

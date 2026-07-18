@@ -7,7 +7,7 @@ import { SmartGrid } from '@components/smart/SmartGrid';
 import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import { useTableRows } from '@features/tier2/hooks';
-import { COMMODITY_TYPE_LOOKUP, commodityLabel } from '@features/organization/desks/types';
+import { COMMODITY_TYPE_LOOKUP, commodityLabel } from '@features/reference/commodity-types/types';
 import { useLegalEntities } from '@features/tier1/legal-entity/hooks';
 import { useBooks } from '@features/organization/books/hooks';
 import { useCurrencies } from '@features/reference/currencies/hooks';

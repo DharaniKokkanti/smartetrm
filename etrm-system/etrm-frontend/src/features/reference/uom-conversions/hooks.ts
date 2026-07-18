@@ -3,7 +3,7 @@ import { App as AntApp } from 'antd';
 import { uomConversionApi } from './api';
 import type { UomConversionInput } from './types';
 import type { ProblemDetail } from '@services/api';
-import type { CommodityType } from '@features/organization/desks/types';
+import type { CommodityType } from '@features/reference/commodity-types/types';
 
 export function useUomConversions(commodityType?: CommodityType | null) {
   return useQuery({

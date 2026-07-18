@@ -48,7 +48,7 @@ import { useBooks } from '@features/organization/books/hooks';
 import { useProducts, useProductSpecTemplates, useSpecValues } from '@features/markets/products/hooks';
 import { resolveCommodityType, type CommodityRow, type ProductSpecValue } from '@features/markets/products/types';
 import { useMarkets } from '@features/markets/markets/hooks';
-import type { CommodityType } from '@features/organization/desks/types';
+import type { CommodityType } from '@features/reference/commodity-types/types';
 import { usePricingRules } from '@features/pricing/pricing-rules/hooks';
 import type { PricingRule } from '@features/pricing/pricing-rules/types';
 import { useBalmoProducts } from '@features/pricing/balmo-products/hooks';

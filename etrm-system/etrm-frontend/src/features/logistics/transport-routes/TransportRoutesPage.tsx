@@ -9,7 +9,7 @@ import { useFormDraft } from '@components/smart/formDraft';
 import { AuditInfo } from '@components/smart/AuditInfo';
 import { useTableRows } from '@features/tier2/hooks';
 import { useLocations } from '@features/logistics/locations/hooks';
-import { COMMODITY_TYPES } from '@features/organization/desks/types';
+import { COMMODITY_TYPES } from '@features/reference/commodity-types/types';
 import { useTransportRoutes, useSaveTransportRoute } from './hooks';
 import type { TransportRoute, TransportRouteInput } from './types';
 

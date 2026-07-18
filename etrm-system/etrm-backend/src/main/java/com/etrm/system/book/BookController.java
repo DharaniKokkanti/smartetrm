@@ -16,7 +16,7 @@ import java.util.List;
  *  PUT    /api/v1/books/{id}
  *  PATCH  /api/v1/books/{id}/deactivate
  *  PATCH  /api/v1/books/{id}/archive       { reason }
- *  PATCH  /api/v1/books/{id}/move          { legalEntityId, deskId, parentBookId }
+ *  PATCH  /api/v1/books/{id}/move          { legalEntityId, parentBookId }
  *  GET    /api/v1/books/{id}/descendants   book itself + every descendant (recursive CTE)
  *
  *  GET    /api/v1/books/{bookId}/traders
@@ -27,6 +27,10 @@ import java.util.List;
  *  POST   /api/v1/books/{bookId}/classifications                  { dimensionCode, valueCode, valueLabel, isPrimary }
  *  DELETE /api/v1/books/{bookId}/classifications/{bookClassificationId}
  *  GET    /api/v1/book-classification-dimensions
+ *
+ *  GET    /api/v1/books/{bookId}/eod-status               history, newest business date first
+ *  POST   /api/v1/books/{bookId}/eod-status/lock           { businessDate }
+ *  POST   /api/v1/books/{bookId}/eod-status/reopen         { businessDate, reason }
  */
 @RestController
 @RequestMapping("/api/v1/books")
@@ -35,12 +39,15 @@ public class BookController {
     private final BookService service;
     private final BookTraderService bookTraderService;
     private final BookClassificationService bookClassificationService;
+    private final BookEodStatusService bookEodStatusService;
 
     public BookController(BookService service, BookTraderService bookTraderService,
-                           BookClassificationService bookClassificationService) {
+                           BookClassificationService bookClassificationService,
+                           BookEodStatusService bookEodStatusService) {
         this.service = service;
         this.bookTraderService = bookTraderService;
         this.bookClassificationService = bookClassificationService;
+        this.bookEodStatusService = bookEodStatusService;
     }
 
     @GetMapping
@@ -76,7 +83,7 @@ public class BookController {
 
     @PatchMapping("/{id}/move")
     public Book move(@PathVariable Integer id, @RequestBody MoveRequest body) {
-        return service.move(id, body.legalEntityId(), body.deskId(), body.parentBookId());
+        return service.move(id, body.legalEntityId(), body.parentBookId());
     }
 
     @GetMapping("/{id}/descendants")
@@ -124,8 +131,27 @@ public class BookController {
         return ResponseEntity.noContent().build();
     }
 
+    // ── book_eod_status sub-resource ─────────────────────────────────────────
+
+    @GetMapping("/{bookId}/eod-status")
+    public List<BookEodStatus> listEodStatus(@PathVariable Integer bookId) {
+        return bookEodStatusService.list(bookId);
+    }
+
+    @PostMapping("/{bookId}/eod-status/lock")
+    public BookEodStatus lockEodStatus(@PathVariable Integer bookId, @RequestBody LockRequest body) {
+        return bookEodStatusService.lock(bookId, body.businessDate());
+    }
+
+    @PostMapping("/{bookId}/eod-status/reopen")
+    public BookEodStatus reopenEodStatus(@PathVariable Integer bookId, @RequestBody ReopenRequest body) {
+        return bookEodStatusService.reopen(bookId, body.businessDate(), body.reason());
+    }
+
     record ArchiveRequest(String reason) {}
-    record MoveRequest(Integer legalEntityId, Integer deskId, Integer parentBookId) {}
+    record MoveRequest(Integer legalEntityId, Integer parentBookId) {}
     record AddTraderRequest(Integer traderId, String role) {}
     record AddClassificationRequest(String dimensionCode, String valueCode, String valueLabel, Boolean isPrimary) {}
+    record LockRequest(java.time.LocalDate businessDate) {}
+    record ReopenRequest(java.time.LocalDate businessDate, String reason) {}
 }

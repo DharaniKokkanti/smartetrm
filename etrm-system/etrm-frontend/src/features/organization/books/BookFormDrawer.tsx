@@ -3,10 +3,11 @@ import { Drawer, Form, Input, Select, Button, Space, Switch, InputNumber, Divide
 import { CloseOutlined, PlusOutlined } from '@ant-design/icons';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useSaveBook, useAddBookTrader, useRemoveBookTrader, useBooks,
-  useAddBookClassification, useRemoveBookClassification } from './hooks';
-import { BOOK_TYPE_LOOKUP, BOOK_ROLE_OPTIONS, type Book, type BookInput, type BookTraderView,
-  type BookClassificationView } from './types';
-import { COMMODITY_TYPE_LOOKUP } from '../desks/types';
+  useAddBookClassification, useRemoveBookClassification,
+  useBookEodStatus, useLockBookEodStatus, useReopenBookEodStatus } from './hooks';
+import { BOOK_TYPE_LOOKUP, BOOK_LEVEL_TYPE_LOOKUP, TRADING_BOOK_LEVEL_TYPE_ID,
+  type Book, type BookInput, type BookTraderView, type BookClassificationView } from './types';
+import { COMMODITY_TYPE_LOOKUP } from '@features/reference/commodity-types/types';
 
 // dbo.book_classification_dimension (V122) is extensible in the DB — only
 // COMMODITY is seeded today. Add a dimension code here (value options for
@@ -15,7 +16,6 @@ const DIMENSION_VALUE_OPTIONS: Record<string, { label: string; value: string }[]
   COMMODITY: COMMODITY_TYPE_LOOKUP.map((c) => ({ label: c.label, value: c.code })),
 };
 import { useCurrencies } from '@features/reference/currencies/hooks';
-import { useDesks } from '../desks/hooks';
 import { useTraders } from '../traders/hooks';
 import { useLegalEntities } from '@features/tier1/legal-entity/hooks';
 import { useDraftValues } from '@components/smart/formDraft';
@@ -173,12 +173,64 @@ function BookClassificationsSection({ book }: { book: Book }) {
   );
 }
 
+// ── EOD status sub-section (leaf/TRADING_BOOK rows only) ──────────────────────
+function BookEodStatusSection({ book }: { book: Book }) {
+  const { data: history = [] } = useBookEodStatus(book.bookId);
+  const lock = useLockBookEodStatus();
+  const reopen = useReopenBookEodStatus();
+  const [reopenReason, setReopenReason] = useState('');
+
+  const today = dayjs().format('YYYY-MM-DD');
+  const todayRow = history.find((h) => h.businessDate === today);
+  const latestLocked = history.find((h) => h.status === 'LOCKED');
+
+  return (
+    <>
+      <Divider style={{ margin: '8px 0 12px' }}>
+        {hint('EOD Status', 'Per-business-date lock/reopen audit trail — locking a book freezes it against further postings for that day; reopen requires a reason.')}
+      </Divider>
+      <Space direction="vertical" style={{ width: '100%' }} size={6}>
+        {history.length === 0 && (
+          <Text type="secondary" style={{ fontSize: 12 }}>No EOD activity yet.</Text>
+        )}
+        {history.slice(0, 5).map((h) => (
+          <Space key={h.bookEodStatusId} style={{ width: '100%', justifyContent: 'space-between' }}>
+            <Space size={6}>
+              <Text style={{ fontSize: 12 }} type="secondary">{h.businessDate}</Text>
+              <Tag color={h.status === 'LOCKED' ? 'red' : h.status === 'REOPENED' ? 'orange' : 'default'}>{h.status}</Tag>
+            </Space>
+            {h.status === 'LOCKED' && <Text type="secondary" style={{ fontSize: 11 }}>by {h.lockedBy}</Text>}
+            {h.status === 'REOPENED' && <Text type="secondary" style={{ fontSize: 11 }}>{h.reopenReason}</Text>}
+          </Space>
+        ))}
+        {todayRow == null || todayRow.status !== 'LOCKED' ? (
+          <Button size="small" loading={lock.isPending} onClick={() => lock.mutate({ bookId: book.bookId, businessDate: today })}>
+            Lock for {today}
+          </Button>
+        ) : (
+          <Space style={{ width: '100%' }}>
+            <Input size="small" placeholder="Reopen reason" value={reopenReason} onChange={(e) => setReopenReason(e.target.value)} />
+            <Button
+              size="small" danger disabled={!reopenReason.trim()} loading={reopen.isPending}
+              onClick={() => reopen.mutate(
+                { bookId: book.bookId, businessDate: latestLocked?.businessDate ?? today, reason: reopenReason },
+                { onSuccess: () => setReopenReason('') },
+              )}
+            >
+              Reopen
+            </Button>
+          </Space>
+        )}
+      </Space>
+    </>
+  );
+}
+
 export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
   const [form] = Form.useForm<BookInput>();
   const save = useSaveBook();
   const skipDraftReset = useDraftValues('org-books-v', form, open, editing);
   const { data: currencies = [], isLoading: loadingCurrencies } = useCurrencies();
-  const { data: desks = [] } = useDesks();
   const { data: legalEntities = [] } = useLegalEntities();
   const { data: allBooks = [] } = useBooks();
   const currencyOptions = currencies
@@ -186,11 +238,6 @@ export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
     .map((c) => ({ label: `${c.currencyCode} — ${c.currencyName}`, value: c.currencyId }));
 
   const legalEntityId = Form.useWatch('legalEntityId', form);
-  const bookRole = Form.useWatch('bookRole', form);
-
-  const deskOptions = useMemo(() => desks
-    .filter((d) => legalEntityId == null || d.legalEntityId === legalEntityId)
-    .map((d) => ({ label: `${d.deskCode} — ${d.deskName}`, value: d.deskId })), [desks, legalEntityId]);
 
   const parentBookOptions = useMemo(() => {
     if (editing == null) {
@@ -205,17 +252,6 @@ export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
       .map((b) => ({ label: `${b.bookCode} — ${b.bookName}`, value: b.bookId }));
   }, [allBooks, editing, legalEntityId]);
 
-  // Clear deskId if it no longer matches the newly-selected legal entity.
-  useEffect(() => {
-    const currentDeskId = form.getFieldValue('deskId');
-    if (currentDeskId == null || legalEntityId == null) return;
-    const desk = desks.find((d) => d.deskId === currentDeskId);
-    if (desk && desk.legalEntityId !== legalEntityId) {
-      form.setFieldValue('deskId', undefined);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [legalEntityId]);
-
   useEffect(() => {
     // eslint-disable-next-line react-hooks/immutability -- skipDraftReset is a useRef() from useDraftValues; the compiler cannot see refs through a custom hook boundary
     if (skipDraftReset.current) { if (open) skipDraftReset.current = false; return; }
@@ -226,10 +262,9 @@ export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
           bookCode:            editing.bookCode,
           bookName:            editing.bookName,
           bookType:            editing.bookType,
-          deskId:              editing.deskId,
+          bookLevelTypeId:     editing.bookLevelTypeId,
           legalEntityId:       editing.legalEntityId,
           parentBookId:        editing.parentBookId,
-          bookRole:            editing.bookRole,
           baseCurrencyId:      editing.baseCurrencyId,
           positionLimit:       editing.positionLimit,
           pnlLimit:            editing.pnlLimit,
@@ -239,7 +274,7 @@ export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
           isActive:            editing.isActive,
         } as unknown as BookInput);
       } else {
-        form.setFieldsValue({ isActive: true, bookType: 1, baseCurrencyId: 1, bookRole: 'TRADING' });
+        form.setFieldsValue({ isActive: true, bookType: 1, baseCurrencyId: 1, bookLevelTypeId: TRADING_BOOK_LEVEL_TYPE_ID });
       }
     }
   }, [open, editing, form]);
@@ -249,6 +284,9 @@ export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
     const v = values as unknown as Record<string, Dayjs | undefined>;
     const input: BookInput = {
       ...values,
+      // Only a TRADING_BOOK-level row can hold direct postings — derived from
+      // the level picked above rather than a separate form control.
+      isLeafNode: values.bookLevelTypeId === TRADING_BOOK_LEVEL_TYPE_ID,
       goLiveDate: v.goLiveDate ? v.goLiveDate.format('YYYY-MM-DD') : null,
     };
     const saved = await save.mutateAsync({ id: editing?.bookId ?? null, input });
@@ -296,24 +334,17 @@ export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
             options={legalEntities.map((e) => ({ label: `${e.entityCode} — ${e.entityName}`, value: e.legalEntityId }))} />
         </Form.Item>
         <Form.Item
-          name="deskId"
-          label={hint('Desk', 'The trading desk this book rolls up to for desk-level P&L and risk aggregation. Optional for a Consolidation book spanning multiple desks.')}
-          rules={[{ required: bookRole !== 'CONSOLIDATION' }]}
+          name="bookLevelTypeId"
+          label={hint('Level', 'Desk = top-level org container. Strategy = optional grouping under a desk. Trading Book = leaf node — the only level that can hold direct trade/cost/assay postings.')}
+          rules={[{ required: true }]}
         >
-          <Select allowClear={bookRole === 'CONSOLIDATION'} showSearch optionFilterProp="label" placeholder="Select desk" options={deskOptions} />
+          <Select options={BOOK_LEVEL_TYPE_LOOKUP.map((l) => ({ label: l.label, value: l.levelTypeId }))} />
         </Form.Item>
         <Form.Item
           name="parentBookId"
-          label={hint('Parent Book', 'Optional — nest this book under another for rolled-up P&L/risk reporting. Restricted to books in the same legal entity.')}
+          label={hint('Parent Book', 'Optional — nest this book under a Desk or Strategy row for rolled-up P&L/risk reporting and desk assignment. Restricted to books in the same legal entity.')}
         >
           <Select allowClear showSearch optionFilterProp="label" placeholder="None (top-level book)" options={parentBookOptions} />
-        </Form.Item>
-        <Form.Item
-          name="bookRole"
-          label={hint('Book Role', 'Trading = holds direct trade bookings. Consolidation = pure rollup node over its children (e.g. all US Oil desks’ books) — carries no bookings of its own.')}
-          rules={[{ required: true }]}
-        >
-          <Select options={BOOK_ROLE_OPTIONS} />
         </Form.Item>
         <Form.Item
           name="baseCurrencyId"
@@ -357,6 +388,7 @@ export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
 
       {editing !== null && <BookTradersSection book={editing} />}
       {editing !== null && <BookClassificationsSection book={editing} />}
+      {editing !== null && editing.isLeafNode && <BookEodStatusSection book={editing} />}
     </Drawer>
   );
 }

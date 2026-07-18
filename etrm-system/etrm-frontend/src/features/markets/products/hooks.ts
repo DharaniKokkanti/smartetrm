@@ -3,7 +3,7 @@ import { App as AntApp } from 'antd';
 import { productsApi, productIndexApi, productMarketApi, productSpecApi, productBlendApi, productReportingGroupApi } from './api';
 import type { ProductInput, ProductPriceIndexInput, BlendComponentInput, ProductReportingGroupInput } from './types';
 import type { ProblemDetail } from '@services/api';
-import type { CommodityType } from '@features/organization/desks/types';
+import type { CommodityType } from '@features/reference/commodity-types/types';
 import { marketsApi } from '@features/markets/markets/api';
 import type { MarketProductInput } from '@features/markets/markets/types';
 

@@ -1,4 +1,4 @@
-import type { CommodityType } from '@features/organization/desks/types';
+import type { CommodityType } from '@features/reference/commodity-types/types';
 
 export type ConversionSource =
   | 'SAME_UOM'          // traded UoM is already the base UoM (MT or MWH)

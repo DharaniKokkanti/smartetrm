@@ -8,7 +8,7 @@ import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import { usePriceIndices, useSavePriceIndex, useDeactivatePriceIndex } from './hooks';
 import { PUBLICATION_SOURCES, type PriceIndex, type PriceIndexInput } from './types';
-import { COMMODITY_TYPES, type CommodityType } from '@features/organization/desks/types';
+import { COMMODITY_TYPES, type CommodityType } from '@features/reference/commodity-types/types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AuditInfo } from '@components/smart/AuditInfo';
 

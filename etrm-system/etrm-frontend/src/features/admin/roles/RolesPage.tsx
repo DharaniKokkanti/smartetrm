@@ -19,7 +19,6 @@ import { useDraftState, useDraftValues } from '@components/smart/formDraft';
 import { hint } from '@components/smart/FieldHint';
 import { PageHeader } from '@components/layout/PageHeader';
 import { useLegalEntities } from '@features/tier1/legal-entity/hooks';
-import { useDesks } from '@features/organization/desks/hooks';
 import { useBooks } from '@features/organization/books/hooks';
 import {
   useBookAccessGrants, useRequestBookAccessGrant,
@@ -321,7 +320,6 @@ function AssignRoleModal({ open, onClose }: AssignRoleModalProps) {
 // ── Request book access modal ─────────────────────────────────────────────────
 const SCOPE_TYPE_OPTIONS: { label: string; value: BookAccessScopeType }[] = [
   { label: 'Legal Entity', value: 'LEGAL_ENTITY' },
-  { label: 'Desk', value: 'DESK' },
   { label: 'Book', value: 'BOOK' },
 ];
 
@@ -343,7 +341,6 @@ function RequestAccessModal({ open, onClose }: RequestAccessModalProps) {
   const [form] = Form.useForm<{ userId: number; scopeType: BookAccessScopeType; scopeId: number; accessLevel: BookAccessLevel }>();
   const { data: users = [] } = useSystemUsers();
   const { data: legalEntities = [] } = useLegalEntities();
-  const { data: desks = [] } = useDesks();
   const { data: books = [] } = useBooks();
   const requestGrant = useRequestBookAccessGrant();
 
@@ -351,10 +348,9 @@ function RequestAccessModal({ open, onClose }: RequestAccessModalProps) {
 
   const scopeTargetOptions = useMemo(() => {
     if (scopeType === 'LEGAL_ENTITY') return legalEntities.map((e) => ({ label: `${e.entityCode} — ${e.entityName}`, value: e.legalEntityId }));
-    if (scopeType === 'DESK') return desks.map((d) => ({ label: `${d.deskCode} — ${d.deskName}`, value: d.deskId }));
     if (scopeType === 'BOOK') return books.map((b) => ({ label: `${b.bookCode} — ${b.bookName}`, value: b.bookId }));
     return [];
-  }, [scopeType, legalEntities, desks, books]);
+  }, [scopeType, legalEntities, books]);
 
   async function handleOk() {
     const vals = await form.validateFields();
@@ -392,7 +388,7 @@ function RequestAccessModal({ open, onClose }: RequestAccessModalProps) {
         </Form.Item>
         <Form.Item
           name="scopeId"
-          label={hint('Scope Target', 'The specific legal entity, desk, or book this access grant applies to.')}
+          label={hint('Scope Target', 'The specific legal entity or book (including Desk/Strategy-level rows) this access grant applies to.')}
           rules={[{ required: true, message: 'Scope target is required' }]}
         >
           <Select

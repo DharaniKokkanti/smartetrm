@@ -9,11 +9,12 @@ import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import { useTraders, useDeactivateTrader, useSaveTrader } from './hooks';
 import type { Trader, TraderInput } from './types';
-import { COMMODITY_TYPE_LOOKUP, commodityLabel, commodityCodeById } from '../desks/types';
+import { COMMODITY_TYPE_LOOKUP, commodityLabel, commodityCodeById } from '@features/reference/commodity-types/types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import { AuditInfo } from '@components/smart/AuditInfo';
-import { useDesks } from '../desks/hooks';
+import { useBooks } from '../books/hooks';
+import { DESK_LEVEL_TYPE_ID } from '../books/types';
 import { useLegalEntities } from '@features/tier1/legal-entity/hooks';
 import { useSystemUsers } from '@features/admin/system-users/hooks';
 
@@ -27,7 +28,8 @@ const COMMODITY_COLOR: Record<string, string> = {
 
 export function TradersPage() {
   const { data, isLoading, refetch } = useTraders();
-  const { data: desks } = useDesks();
+  const { data: books } = useBooks();
+  const deskBooks = (books ?? []).filter((b) => b.bookLevelTypeId === DESK_LEVEL_TYPE_ID);
   const { data: legalEntities } = useLegalEntities();
   const { data: systemUsers } = useSystemUsers();
   const deactivate = useDeactivateTrader();
@@ -41,7 +43,7 @@ export function TradersPage() {
   function openEdit(t: Trader) {
     setEditing(t);
     form.resetFields();
-    form.setFieldsValue({ traderCode: t.traderCode, userId: t.userId, legalEntityId: t.legalEntityId, deskId: t.deskId, approverTraderId: t.approverTraderId, commodityTypes: t.commodityTypes, goLiveDate: t.goLiveDate ? dayjs(t.goLiveDate) : undefined, isActive: t.isActive } as unknown as TraderInput);
+    form.setFieldsValue({ traderCode: t.traderCode, userId: t.userId, legalEntityId: t.legalEntityId, bookId: t.bookId, approverTraderId: t.approverTraderId, commodityTypes: t.commodityTypes, goLiveDate: t.goLiveDate ? dayjs(t.goLiveDate) : undefined, isActive: t.isActive } as unknown as TraderInput);
     setOpen(true);
   }
   async function submit(closeAfter = true) {
@@ -57,7 +59,7 @@ export function TradersPage() {
       tooltipValueGetter: () => 'Unique trader identifier used across deal capture and risk systems' },
     { field: 'fullName', headerName: 'Name', flex: 1.2, minWidth: 160 },
     { field: 'email', headerName: 'Email', flex: 1.2, minWidth: 200 },
-    { field: 'deskCode', headerName: 'Desk', width: 130, cellClass: 'cell-mono' },
+    { field: 'bookCode', headerName: 'Desk', width: 130, cellClass: 'cell-mono' },
     {
       field: 'commodityTypes', headerName: 'Commodities', width: 260, sortable: false,
       tooltipValueGetter: () => 'Commodities this trader is authorised to trade — separate limits apply per commodity',
@@ -129,9 +131,9 @@ export function TradersPage() {
             <Select allowClear showSearch optionFilterProp="label" placeholder="Select legal entity"
               options={(legalEntities ?? []).map((le) => ({ label: `${le.entityCode} — ${le.entityName}`, value: le.legalEntityId }))} />
           </Form.Item>
-          <Form.Item name="deskId" label={hint('Trading Desk', 'Desk this trader belongs to. Determines P&L book hierarchy, commodity specialisation, and default approval routing.')} rules={[{ required: true }]}>
+          <Form.Item name="bookId" label={hint('Trading Desk', 'Desk (top-level book hierarchy node) this trader belongs to. Determines P&L book hierarchy, commodity specialisation, and default approval routing.')} rules={[{ required: true }]}>
             <Select allowClear showSearch optionFilterProp="label" placeholder="Select trading desk"
-              options={(desks ?? []).map((d) => ({ label: `${d.deskCode} — ${d.deskName}`, value: d.deskId }))} />
+              options={deskBooks.map((d) => ({ label: `${d.bookCode} — ${d.bookName}`, value: d.bookId }))} />
           </Form.Item>
           <Form.Item name="commodityTypes" label={hint('Authorised Commodities', 'Commodities this trader is approved to trade. Each commodity gets independent position and trade limits. A trader covering OIL and POWER has two separate limit rows.', 'OIL, POWER')} rules={[{ required: true }]}>
             <Select mode="multiple" options={COMMODITY_TYPE_LOOKUP.map((l) => ({ label: l.label, value: l.lookupId }))} placeholder="Select commodities" />

@@ -24,14 +24,40 @@ export interface BookTraderView {
   isActive: boolean;
 }
 
-// TRADING = direct trade bookings land here. CONSOLIDATION = pure rollup node
-// (P&L/risk aggregation only — see parentBookId); the application layer
-// should reject direct trade bookings against a CONSOLIDATION book.
-export type BookRole = 'TRADING' | 'CONSOLIDATION';
-export const BOOK_ROLE_OPTIONS: { label: string; value: BookRole }[] = [
-  { label: 'Trading', value: 'TRADING' },
-  { label: 'Consolidation (rollup only)', value: 'CONSOLIDATION' },
+// FK to dbo.book_level_type(level_type_id) (V123) — what kind of hierarchy
+// node this row is. Same no-dedicated-entity treatment as BOOK_TYPE_LOOKUP
+// above (a fixed, rarely-changing set; ids mirror the real seed order).
+// dbo.legal_entity is NOT part of this tree (it keeps its own table/hierarchy
+// — see legalEntityId below), so DESK is the top level here.
+export interface BookLevelTypeLookupRow { levelTypeId: number; code: string; label: string }
+export const BOOK_LEVEL_TYPE_LOOKUP: BookLevelTypeLookupRow[] = [
+  { levelTypeId: 1, code: 'DESK', label: 'Desk' },
+  { levelTypeId: 2, code: 'STRATEGY', label: 'Strategy' },
+  { levelTypeId: 3, code: 'TRADING_BOOK', label: 'Trading Book' },
 ];
+export function bookLevelTypeLabel(levelTypeId: number | null | undefined): string {
+  if (levelTypeId == null) return '—';
+  return BOOK_LEVEL_TYPE_LOOKUP.find((l) => l.levelTypeId === levelTypeId)?.label ?? `#${levelTypeId}`;
+}
+export function bookLevelTypeCode(levelTypeId: number | null | undefined): string | null {
+  if (levelTypeId == null) return null;
+  return BOOK_LEVEL_TYPE_LOOKUP.find((l) => l.levelTypeId === levelTypeId)?.code ?? null;
+}
+export const DESK_LEVEL_TYPE_ID = 1;
+export const TRADING_BOOK_LEVEL_TYPE_ID = 3;
+
+export interface BookEodStatus {
+  bookEodStatusId: number;
+  bookId: number;
+  businessDate: string;
+  status: 'OPEN' | 'LOCKED' | 'REOPENED';
+  lockedBy: string | null;
+  lockedAt: string | null;
+  reopenedBy: string | null;
+  reopenedAt: string | null;
+  reopenReason: string | null;
+  createdAt: string;
+}
 
 // dbo.book_classification_dimension (V122) — the extensible axis list a book
 // can carry a classification value on. Only COMMODITY is seeded today; add a
@@ -61,13 +87,14 @@ export interface Book {
   bookName: string;
   // FK to dbo.book_type(book_type_id) — see BOOK_TYPE_LOOKUP above.
   bookType: number;
-  deskId: number;
-  deskCode: string;
+  // FK to dbo.book_level_type(level_type_id) (V123) — see BOOK_LEVEL_TYPE_LOOKUP above.
+  bookLevelTypeId: number;
+  // Can this row hold direct trade/cost/assay postings? (V123, supersedes bookRole)
+  isLeafNode: boolean;
   legalEntityId: number;
   legalEntityCode: string;
   parentBookId: number | null;
   parentBookCode: string | null; // denormalized
-  bookRole: BookRole;
   baseCurrencyId: number; // FK -> dbo.currency(currency_id), NOT NULL default USD
   positionLimit: number | null;
   pnlLimit: number | null;
@@ -85,9 +112,9 @@ export interface Book {
   updatedAt: string;
 }
 
-// deskCode, legalEntityCode, parentBookCode, traders, classifications are
+// legalEntityCode, parentBookCode, traders, classifications are
 // denormalized/read-only; archivedAt/archivedReason are only set via
 // PATCH /books/{id}/archive — none of these are sent on create/update.
 export type BookInput = Omit<Book,
-  'bookId' | 'deskCode' | 'legalEntityCode' | 'parentBookCode' | 'traders' | 'classifications'
+  'bookId' | 'legalEntityCode' | 'parentBookCode' | 'traders' | 'classifications'
   | 'archivedAt' | 'archivedReason' | 'createdAt' | 'updatedAt'>;

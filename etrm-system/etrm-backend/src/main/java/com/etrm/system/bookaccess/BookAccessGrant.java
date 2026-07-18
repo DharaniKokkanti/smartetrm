@@ -12,16 +12,18 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * dbo.book_access_grant (V120) — legal-entity/desk/book scoped data access,
+ * dbo.book_access_grant (V120) — legal-entity/book scoped data access,
  * layered underneath the existing role-based RBAC (which governs WHAT
  * actions a role can perform, never WHICH entity's data). Mirrors
  * dbo.user_role_assignment's exact PENDING_APPROVAL -> ACTIVE | REJECTED ->
  * EXPIRED workflow (same columns, same semantics) — see UserRoleAssignment.
  *
- * scope_id is a plain INT resolved to legal_entity/desk/book in the
- * application layer, keyed off scope_type — see V120's migration header for
- * the full resolution rule (not re-implemented here; this class is CRUD +
- * workflow only).
+ * scope_id is a plain INT resolved to legal_entity/book in the application
+ * layer, keyed off scope_type — see V120's migration header for the full
+ * resolution rule (not re-implemented here; this class is CRUD + workflow
+ * only). The original DESK case collapsed into BOOK in V123, once dbo.desk
+ * became just another dbo.book row — a grant on a DESK-level book already
+ * cascades to its descendants via BookRepository.findDescendantIds (V122).
  */
 @Entity
 @Table(name = "book_access_grant")
@@ -36,7 +38,7 @@ public class BookAccessGrant {
     private Integer userId;
 
     @Column(name = "scope_type", nullable = false, length = 20)
-    private String scopeType;   // LEGAL_ENTITY | DESK | BOOK
+    private String scopeType;   // LEGAL_ENTITY | BOOK
 
     @Column(name = "scope_id", nullable = false)
     private Integer scopeId;

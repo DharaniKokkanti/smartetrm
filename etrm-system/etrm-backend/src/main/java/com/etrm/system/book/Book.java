@@ -38,6 +38,17 @@ import java.util.List;
  * classification axis) now lives in dbo.book_classification instead, so the
  * core book table never grows a new commodity/physical-attribute column
  * again. See BookClassification/BookClassificationDimension.
+ *
+ * V123 collapsed dbo.desk into this table and replaced book_role (V122's
+ * TRADING/CONSOLIDATION binary) with two columns: bookLevelTypeId (FK ->
+ * dbo.book_level_type — DESK/STRATEGY/TRADING_BOOK, same no-dedicated-entity
+ * treatment as bookType/dbo.book_type, just a plain Integer here) says WHAT
+ * KIND of hierarchy node this row is; isLeafNode says whether it can hold
+ * direct trade/cost/assay postings, independent of level type so that check
+ * stays a single boolean rather than an IN-list. dbo.legal_entity is
+ * deliberately NOT part of this tree — it keeps its own table and its own
+ * parent_entity_id corporate-ownership hierarchy (V62); legalEntityId below
+ * is unchanged from before.
  */
 @Entity
 @Table(name = "book")
@@ -63,12 +74,16 @@ public class Book extends AuditableEntity {
     @Column(name = "book_type", nullable = false)
     private Integer bookType;
 
-    @Column(name = "desk_id")
-    private Integer deskId;
+    // FK -> dbo.book_level_type(level_type_id) (V123) — DESK/STRATEGY/TRADING_BOOK.
+    @NotNull
+    @Column(name = "book_level_type_id", nullable = false)
+    private Integer bookLevelTypeId;
 
-    @Transient
-    @JsonProperty
-    private String deskCode;
+    // Can this row hold direct trade/cost/assay postings? Independent of
+    // bookLevelTypeId (V123) — supersedes book_role.
+    @NotNull
+    @Column(name = "is_leaf_node", nullable = false)
+    private Boolean isLeafNode = false;
 
     @NotNull
     @Column(name = "legal_entity_id", nullable = false)
@@ -100,12 +115,6 @@ public class Book extends AuditableEntity {
     @Size(max = 200)
     @Column(name = "archived_reason", length = 200)
     private String archivedReason;
-
-    // TRADING | CONSOLIDATION (V122) — CONSOLIDATION marks a pure rollup node;
-    // application layer should reject direct trade bookings against one.
-    @NotBlank
-    @Column(name = "book_role", nullable = false, length = 20)
-    private String bookRole = "TRADING";
 
     // Denormalized display of dbo.book_classification (V122) rows for this
     // book — not persisted, populated by BookService.
@@ -169,20 +178,20 @@ public class Book extends AuditableEntity {
         this.bookType = bookType;
     }
 
-    public Integer getDeskId() {
-        return deskId;
+    public Integer getBookLevelTypeId() {
+        return bookLevelTypeId;
     }
 
-    public void setDeskId(Integer deskId) {
-        this.deskId = deskId;
+    public void setBookLevelTypeId(Integer bookLevelTypeId) {
+        this.bookLevelTypeId = bookLevelTypeId;
     }
 
-    public String getDeskCode() {
-        return deskCode;
+    public Boolean getIsLeafNode() {
+        return isLeafNode;
     }
 
-    public void setDeskCode(String deskCode) {
-        this.deskCode = deskCode;
+    public void setIsLeafNode(Boolean isLeafNode) {
+        this.isLeafNode = isLeafNode;
     }
 
     public Integer getLegalEntityId() {
@@ -239,14 +248,6 @@ public class Book extends AuditableEntity {
 
     public void setArchivedReason(String archivedReason) {
         this.archivedReason = archivedReason;
-    }
-
-    public String getBookRole() {
-        return bookRole;
-    }
-
-    public void setBookRole(String bookRole) {
-        this.bookRole = bookRole;
     }
 
     public List<BookClassificationView> getClassifications() {

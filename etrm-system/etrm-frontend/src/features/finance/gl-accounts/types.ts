@@ -5,7 +5,7 @@ export interface GlAccount {
   accountCode: string;
   accountName: string;
   accountType: string;
-  // FK to lookup_value(lookup_id), category='commodity_type' — see organization/desks/types.ts COMMODITY_TYPE_LOOKUP.
+  // FK to lookup_value(lookup_id), category='commodity_type' — see reference/commodity-types/types.ts COMMODITY_TYPE_LOOKUP.
   commodityType: number | null;
   costCenter: string | null;
   description: string | null;

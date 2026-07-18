@@ -1,4 +1,7 @@
-// Master data commodity classification for desks, books, GL accounts, trader limits.
+// Master data commodity classification — shared across desks/books/GL accounts/
+// trader limits/products/positions/credit limits/locations/etc. Moved here from
+// organization/desks/types (V123 folded dbo.desk into dbo.book; this export has
+// never been desk-specific, just historically homed in that file).
 // Superset of tradeable commodities (trade/types.ts COMMODITY_TYPES_TRADE) plus MULTI/OTHER.
 // NOTE: kept as a string union because several OTHER tables (product, price_index,
 // market, location, uom_conversion, credit_limit, position — see their own
@@ -36,24 +39,3 @@ export function commodityCodeById(lookupId: number | null | undefined): Commodit
   if (lookupId == null) return null;
   return COMMODITY_TYPE_LOOKUP.find((l) => l.lookupId === lookupId)?.code ?? null;
 }
-
-export interface Desk {
-  deskId: number;
-  deskCode: string;
-  deskName: string;
-  legalEntityId: number;
-  legalEntityCode: string;
-  // FK to dbo.commodity_type(commodity_type_id) — see COMMODITY_TYPE_LOOKUP above.
-  commodityType: number | null;
-  headTraderId: number | null;
-  headTraderName: string | null;
-  // FK to dbo.location(location_id), restricted to locations with tradingDeskInd=true.
-  locationId: number | null;
-  locationCode: string | null; // denormalized
-  locationName: string | null; // denormalized
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export type DeskInput = Omit<Desk, 'deskId' | 'legalEntityCode' | 'headTraderName' | 'locationCode' | 'locationName' | 'createdAt' | 'updatedAt'>;

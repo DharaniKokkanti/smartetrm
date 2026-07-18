@@ -1,4 +1,4 @@
-import type { CommodityType } from '@features/organization/desks/types';
+import type { CommodityType } from '@features/reference/commodity-types/types';
 
 export const LOCATION_TYPE_CODES = ['PORT', 'PIPELINE_HUB', 'GAS_HUB', 'GRID_NODE', 'POWER_PLANT', 'WAREHOUSE', 'EXCHANGE', 'REFINERY', 'LNG_TERMINAL', 'STORAGE_TANK', 'CUSTOMS_POINT'] as const;
 export type LocationTypeCode = (typeof LOCATION_TYPE_CODES)[number];

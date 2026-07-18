@@ -45,7 +45,7 @@ export function useMoveBook() {
   const qc = useQueryClient();
   const { message } = AntApp.useApp();
   return useMutation({
-    mutationFn: ({ id, body }: { id: number; body: { legalEntityId: number; deskId: number | null; parentBookId: number | null } }) =>
+    mutationFn: ({ id, body }: { id: number; body: { legalEntityId: number; parentBookId: number | null } }) =>
       booksApi.move(id, body),
     onSuccess: () => { qc.invalidateQueries({ queryKey: KEY }); message.success('Book moved.'); },
     onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Move failed.'),
@@ -98,5 +98,35 @@ export function useRemoveBookClassification() {
       booksApi.removeClassification(bookId, bookClassificationId),
     onSuccess: () => { qc.invalidateQueries({ queryKey: KEY }); message.success('Classification removed.'); },
     onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Remove classification failed.'),
+  });
+}
+
+export function useBookEodStatus(bookId: number | undefined) {
+  return useQuery({
+    queryKey: ['book-eod-status', bookId],
+    queryFn: () => booksApi.listEodStatus(bookId as number),
+    enabled: bookId != null,
+  });
+}
+
+export function useLockBookEodStatus() {
+  const qc = useQueryClient();
+  const { message } = AntApp.useApp();
+  return useMutation({
+    mutationFn: ({ bookId, businessDate }: { bookId: number; businessDate: string }) =>
+      booksApi.lockEodStatus(bookId, businessDate),
+    onSuccess: (_, { bookId }) => { qc.invalidateQueries({ queryKey: ['book-eod-status', bookId] }); message.success('Book locked for the day.'); },
+    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Lock failed.'),
+  });
+}
+
+export function useReopenBookEodStatus() {
+  const qc = useQueryClient();
+  const { message } = AntApp.useApp();
+  return useMutation({
+    mutationFn: ({ bookId, businessDate, reason }: { bookId: number; businessDate: string; reason: string }) =>
+      booksApi.reopenEodStatus(bookId, businessDate, reason),
+    onSuccess: (_, { bookId }) => { qc.invalidateQueries({ queryKey: ['book-eod-status', bookId] }); message.success('Book reopened.'); },
+    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Reopen failed.'),
   });
 }

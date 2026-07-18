@@ -4,7 +4,6 @@ import com.etrm.system.auth.AppUserRepository;
 import com.etrm.system.book.BookRepository;
 import com.etrm.system.common.ConflictException;
 import com.etrm.system.common.NotFoundException;
-import com.etrm.system.desk.DeskRepository;
 import com.etrm.system.legalentity.LegalEntityRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
@@ -37,19 +36,16 @@ public class BookAccessGrantController {
     private final BookAccessGrantRepository grantRepo;
     private final AppUserRepository userRepo;
     private final LegalEntityRepository legalEntityRepo;
-    private final DeskRepository deskRepo;
     private final BookRepository bookRepo;
 
     public BookAccessGrantController(
             BookAccessGrantRepository grantRepo,
             AppUserRepository userRepo,
             LegalEntityRepository legalEntityRepo,
-            DeskRepository deskRepo,
             BookRepository bookRepo) {
         this.grantRepo = grantRepo;
         this.userRepo = userRepo;
         this.legalEntityRepo = legalEntityRepo;
-        this.deskRepo = deskRepo;
         this.bookRepo = bookRepo;
     }
 
@@ -122,7 +118,6 @@ public class BookAccessGrantController {
     private void validateScope(String scopeType, Integer scopeId) {
         boolean exists = switch (scopeType) {
             case "LEGAL_ENTITY" -> legalEntityRepo.existsById(scopeId);
-            case "DESK" -> deskRepo.existsById(scopeId);
             case "BOOK" -> bookRepo.existsById(scopeId);
             default -> throw new ConflictException("Unknown scope type \"" + scopeType + "\".");
         };

@@ -25,7 +25,6 @@ const CommercialTermsPage = lazy1(() => import('@features/counterparties/commerc
 const GtcAgreementsPage = lazy1(() => import('@features/counterparties/gtc-agreements/GtcAgreementsPage'), 'GtcAgreementsPage');
 
 // Organization
-const DesksPage = lazy1(() => import('@features/organization/desks/DesksPage'), 'DesksPage');
 const BooksPage = lazy1(() => import('@features/organization/books/BooksPage'), 'BooksPage');
 const TradersPage = lazy1(() => import('@features/organization/traders/TradersPage'), 'TradersPage');
 const BrokersPage = lazy1(() => import('@features/organization/brokers/BrokersPage'), 'BrokersPage');
@@ -156,7 +155,6 @@ export function AppRouter() {
         <Route path="/" element={<DashboardPage />} />
 
         {/* Organization */}
-        <Route path="/org/desks" element={<S><DesksPage /></S>} />
         <Route path="/org/books" element={<S><BooksPage /></S>} />
         <Route path="/org/traders" element={<S><TradersPage /></S>} />
         <Route path="/org/brokers" element={<S><BrokersPage /></S>} />

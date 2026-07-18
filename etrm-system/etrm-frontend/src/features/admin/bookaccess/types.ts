@@ -1,4 +1,6 @@
-export type BookAccessScopeType = 'LEGAL_ENTITY' | 'DESK' | 'BOOK';
+// DESK collapsed into BOOK (V123) — a grant on a DESK-level book row already
+// cascades to its descendants via the book hierarchy's recursive lookup.
+export type BookAccessScopeType = 'LEGAL_ENTITY' | 'BOOK';
 export type BookAccessLevel = 'READ' | 'READ_WRITE';
 export type BookAccessGrantStatus = 'PENDING_APPROVAL' | 'ACTIVE' | 'REJECTED' | 'EXPIRED';
 
