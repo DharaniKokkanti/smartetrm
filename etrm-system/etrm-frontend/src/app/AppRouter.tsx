@@ -26,6 +26,8 @@ const GtcAgreementsPage = lazy1(() => import('@features/counterparties/gtc-agree
 
 // Organization
 const BooksPage = lazy1(() => import('@features/organization/books/BooksPage'), 'BooksPage');
+const BookTreeExplorerPage = lazy(() =>
+  import('@features/organization/books/BookTreeExplorer').then((m) => ({ default: m.BookTreeExplorerPage })));
 const TradersPage = lazy1(() => import('@features/organization/traders/TradersPage'), 'TradersPage');
 const BrokersPage = lazy1(() => import('@features/organization/brokers/BrokersPage'), 'BrokersPage');
 
@@ -156,6 +158,7 @@ export function AppRouter() {
 
         {/* Organization */}
         <Route path="/org/books" element={<S><BooksPage /></S>} />
+        <Route path="/org/books/hierarchy" element={<S><BookTreeExplorerPage /></S>} />
         <Route path="/org/traders" element={<S><TradersPage /></S>} />
         <Route path="/org/brokers" element={<S><BrokersPage /></S>} />
 

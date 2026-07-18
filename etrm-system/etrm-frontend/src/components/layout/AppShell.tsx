@@ -8,7 +8,7 @@ import {
   GlobalOutlined, FileProtectOutlined, AccountBookOutlined,
   AuditOutlined, TagsOutlined, IdcardOutlined, InboxOutlined,
   LineChartOutlined, StockOutlined, ScheduleOutlined, ReconciliationOutlined, CalendarOutlined,
-  DatabaseOutlined, SettingOutlined,
+  DatabaseOutlined, SettingOutlined, DoubleLeftOutlined, DoubleRightOutlined,
 } from '@ant-design/icons';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useUiStore } from '@store/uiStore';
@@ -40,6 +40,7 @@ const NAV_ITEMS = [
     key: 'g-books', icon: <AccountBookOutlined />, label: 'Book Manager',
     children: [
       { key: '/org/books', icon: <AccountBookOutlined />, label: 'P&L Books' },
+      { key: '/org/books/hierarchy', icon: <ApartmentOutlined />, label: 'Book Hierarchy' },
     ],
   },
   {
@@ -98,7 +99,7 @@ const NAV_ITEMS = [
 
 const ALL_KEYS = [
   '/', '/trade/blotter', '/position', '/static-data', '/master-data',
-  '/org/books',
+  '/org/books/hierarchy', '/org/books',
   '/credit/margin-agreements', '/credit/limits', '/credit/letters-of-credit',
   '/pricing/settlement-prices', '/pricing/tas', '/pricing/pricing-rules', '/pricing/price-sources',
   '/pricing/balmo-products', '/pricing/balmo',
@@ -197,16 +198,35 @@ export function AppShell() {
         </Header>
 
         <Layout>
-          <Sider collapsible collapsed={sidebarCollapsed} trigger={null} width={210} style={{ borderRight: `1px solid ${color.border}`, overflowY: 'auto', height: 'calc(100vh - 64px)', position: 'sticky', top: 64 }}>
+          <Sider collapsible collapsed={sidebarCollapsed} trigger={null} width={210} style={{
+            borderRight: `1px solid ${color.border}`, overflowY: 'auto', height: 'calc(100vh - 64px)',
+            position: 'sticky', top: 64, display: 'flex', flexDirection: 'column',
+          }}>
             <Menu
               mode="inline"
               selectedKeys={[activeKey]}
               // openKeys must not be controlled while the sider is collapsed (antd popup mode)
               {...(!sidebarCollapsed ? { openKeys, onOpenChange: handleOpenChange } : {})}
-              style={{ borderRight: 'none', paddingTop: 4, fontSize: 13 }}
+              style={{ borderRight: 'none', paddingTop: 4, fontSize: 13, flex: 1 }}
               items={NAV_ITEMS}
               onClick={({ key }) => { void navigate(key); }}
             />
+            {/* Same collapse state/store as the header hamburger button above —
+                this is just a second, more discoverable affordance for it,
+                anchored to the sidebar itself (matching the edge-tab pattern
+                used for the Book Hierarchy tree panel). */}
+            <div style={{
+              borderTop: `1px solid ${color.border}`, padding: '6px',
+              display: 'flex', justifyContent: sidebarCollapsed ? 'center' : 'flex-end',
+            }}>
+              <Tooltip title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'} placement="right">
+                <Button
+                  type="text" size="small"
+                  icon={sidebarCollapsed ? <DoubleRightOutlined /> : <DoubleLeftOutlined />}
+                  onClick={toggleSidebar}
+                />
+              </Tooltip>
+            </div>
           </Sider>
           <Layout style={{ background: color.bg }}>
             <Content style={{ padding: 24, minHeight: 280 }}>

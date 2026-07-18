@@ -103,3 +103,14 @@ body {
   overflow-y: auto;
   flex: 1 1 auto;
 }
+
+/* Book Hierarchy details pane — antd's Descriptions `size="small"` only
+   trims padding, not font-size (its label/content cells keep the ambient
+   14px), so a plain inline style on the wrapper doesn't cascade past
+   antd's own CSS-in-JS rules on the inner cells. Scoped override instead
+   of a global Descriptions change, since this page wants a denser look
+   than the rest of the app's default-sized Descriptions usages. */
+.book-details-descriptions .ant-descriptions-item-label,
+.book-details-descriptions .ant-descriptions-item-content {
+  font-size: 12px;
+}

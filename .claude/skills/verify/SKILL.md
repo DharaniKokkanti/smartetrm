@@ -26,17 +26,38 @@ sleep 5 && curl -s -o /dev/null -w "%{http_code}\n" http://localhost:5183
 ```
 
 Use a port distinct from whatever the user's own dev server (usually 5173)
-might be running on — don't kill their session.
+might be running on — don't kill their session. **But when verifying against
+the real backend (`VITE_USE_MOCKS=false`), a fresh port other than 5173 will
+fail login with a generic "Login failed" / a 403 "Invalid CORS request"** —
+`etrm-backend/.env`'s `CORS_ORIGINS` only whitelists `http://localhost:5173`.
+If the user's own dev server is already up on 5173, it's simplest (and safe —
+navigating it in a second Playwright-controlled tab doesn't disturb their
+session) to just drive that instance directly instead of launching a new one;
+Vite HMR means your code changes are already live on it. Only fall back to a
+fresh port + backend `CORS_ORIGINS` edit if 5173 isn't available and mocks
+aren't an option.
 
 ## Drive it (Playwright)
 
 Playwright must run from `etrm-frontend/` (or anywhere `node_modules`
 resolves) — a script in `/tmp` or the scratchpad fails with
 `ERR_MODULE_NOT_FOUND: playwright`. Write `.tmp_*.mjs` scripts directly in
-`etrm-frontend/`, run with plain `node`, delete when done.
+`etrm-frontend/`, run with plain `node`, delete when done. **If
+`etrm-frontend/node_modules` has no `playwright`/`playwright-core`** (true as
+of 2026-07-18, no devDependency on it), `npx --yes playwright install
+chromium` + `npx --yes playwright --version` still resolves and caches a
+working copy under `~/.npm/_npx/<hash>/node_modules/playwright` — find that
+hash with `find ~/.npm/_npx -maxdepth 4 -iname playwright -type d`, then
+`import { chromium } from '<that path>/index.mjs'` by absolute path in the
+`.tmp_*.mjs` script (plain `import 'playwright'` won't resolve without it
+being an actual node_modules dependency, and `NODE_PATH` doesn't affect ESM
+resolution — the absolute-path import is the one thing that reliably works).
 
 Login shortcut: `page.locator('text=Sign in as dev.admin').click()` — no
-credentials needed in dev mode.
+credentials needed in dev mode, **but only works when MSW mocks are active**
+(`VITE_USE_MOCKS=true`); against the real backend, `dev.admin` isn't a real
+`app_user` row — use real credentials instead (see "Login credentials"
+below).
 
 Sidebar nav: many admin pages are nested under a collapsible "Admin" group.
 Pattern that survives whether it's already expanded or not:

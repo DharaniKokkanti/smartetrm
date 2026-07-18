@@ -1,10 +1,11 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { Typography, Space } from 'antd';
 import { color, moduleColor } from '@theme/tokens';
 
 interface PageHeaderProps {
   title: string;
   description?: string;
+  descriptionStyle?: CSSProperties;
   moduleGroup?: string;
   extra?: ReactNode;
 }
@@ -16,7 +17,7 @@ interface PageHeaderProps {
  * low-effort visual answer to "which part of the system am I in" — the same
  * job color does in the schema reference docs, carried into the live app.
  */
-export function PageHeader({ title, description, moduleGroup, extra }: PageHeaderProps) {
+export function PageHeader({ title, description, descriptionStyle, moduleGroup, extra }: PageHeaderProps) {
   const railColor = moduleGroup ? moduleColor(moduleGroup) : color.primary;
 
   return (
@@ -37,7 +38,7 @@ export function PageHeader({ title, description, moduleGroup, extra }: PageHeade
           </Typography.Title>
         </Space>
         {description && (
-          <Typography.Text type="secondary" style={{ display: 'block', marginTop: 4 }}>
+          <Typography.Text type="secondary" style={{ display: 'block', marginTop: 4, ...descriptionStyle }}>
             {description}
           </Typography.Text>
         )}

@@ -29,6 +29,12 @@ interface Props {
   editing: Book | null;
   onClose: () => void;
   onSaved?: (saved: Book) => void;  // called on Save (stay open) so parent can switch to edit mode
+  // Pre-fills Parent Book (+ Legal Entity, inherited from that parent) when
+  // opening in create mode from a specific point in the tree — e.g. the Book
+  // Hierarchy explorer's "New Book" button defaults to whatever's selected,
+  // rather than making the user re-pick a parent they were just looking at.
+  // Ignored when editing an existing book.
+  defaultParentBookId?: number | null;
 }
 
 const TRADER_ROLE_OPTIONS = [
@@ -226,7 +232,7 @@ function BookEodStatusSection({ book }: { book: Book }) {
   );
 }
 
-export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
+export function BookFormDrawer({ open, editing, onClose, onSaved, defaultParentBookId }: Props) {
   const [form] = Form.useForm<BookInput>();
   const save = useSaveBook();
   const skipDraftReset = useDraftValues('org-books-v', form, open, editing);
@@ -238,6 +244,16 @@ export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
     .map((c) => ({ label: `${c.currencyCode} — ${c.currencyName}`, value: c.currencyId }));
 
   const legalEntityId = Form.useWatch('legalEntityId', form);
+
+  // Resolved to primitive ids (not the object/array reference) so the reset
+  // effect below only re-runs when the actual default parent changes, not on
+  // every background refetch of `allBooks` while the drawer sits open — that
+  // would otherwise wipe in-progress form input via the unconditional
+  // form.resetFields() a few lines down.
+  const defaultParent = useMemo(
+    () => (defaultParentBookId != null ? allBooks.find((b) => b.bookId === defaultParentBookId) : undefined),
+    [allBooks, defaultParentBookId],
+  );
 
   const parentBookOptions = useMemo(() => {
     if (editing == null) {
@@ -274,10 +290,19 @@ export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
           isActive:            editing.isActive,
         } as unknown as BookInput);
       } else {
-        form.setFieldsValue({ isActive: true, bookType: 1, baseCurrencyId: 1, bookLevelTypeId: TRADING_BOOK_LEVEL_TYPE_ID });
+        // Default level is TRADING_BOOK (the common case: creating a
+        // postable book) — not an assumption about where it sits under the
+        // parent, since the hierarchy's level ordering is admin-defined and
+        // not a fixed Desk→Strategy→Trading-Book chain (a book can nest
+        // under any other book, any number of levels, in any order).
+        form.setFieldsValue({
+          isActive: true, bookType: 1, baseCurrencyId: 1, bookLevelTypeId: TRADING_BOOK_LEVEL_TYPE_ID,
+          parentBookId: defaultParent?.bookId,
+          legalEntityId: defaultParent?.legalEntityId,
+        });
       }
     }
-  }, [open, editing, form]);
+  }, [open, editing, form, defaultParent?.bookId, defaultParent?.legalEntityId]);
 
   async function submit(closeAfter = true) {
     const values = await form.validateFields();

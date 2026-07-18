@@ -109,6 +109,15 @@ export function useBookEodStatus(bookId: number | undefined) {
   });
 }
 
+/** V122's recursive CTE (`GET /books/{id}/descendants`) — every book, of any level, nested anywhere under `bookId`. Used to roll up positions/P&L for a selected container (DESK/STRATEGY/etc.) from its leaf Trading Book descendants, however many levels deep the admin-defined hierarchy happens to be. */
+export function useBookDescendants(bookId: number | undefined, enabled = true) {
+  return useQuery({
+    queryKey: ['book-descendants', bookId],
+    queryFn: () => booksApi.descendants(bookId as number),
+    enabled: bookId != null && enabled,
+  });
+}
+
 export function useLockBookEodStatus() {
   const qc = useQueryClient();
   const { message } = AntApp.useApp();
