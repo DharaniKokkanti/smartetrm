@@ -21,6 +21,7 @@ import { COMMODITY_TYPES } from '@features/organization/desks/types';
 import { useProducts } from '@features/markets/products/hooks';
 import { useFormDraft } from '@components/smart/formDraft';
 import { useCountries } from '@features/reference/countries/hooks';
+import { useExchanges } from '@features/markets/exchanges/hooks';
 
 const MKT_TYPE_COLOR: Record<MarketType, string> = {
   EXCHANGE: 'blue', OTC_CLEARED: 'cyan', OTC_BILATERAL: 'orange', OTC_PHYSICAL: 'green', BROKER: 'purple', INTERNAL: 'default',
@@ -246,6 +247,8 @@ export function MarketsPage() {
   const deactivate = useDeactivateMarket();
   const { data: countries = [] } = useCountries();
   const countryOptions = countries.map((c) => ({ value: c.countryId, label: `${c.countryCode} — ${c.countryName}` }));
+  const { data: exchanges = [] } = useExchanges();
+  const exchangeOptions = exchanges.map((e) => ({ value: e.exchangeId, label: `${e.exchangeCode} — ${e.exchangeName}` }));
   const [editOpen, setEditOpen] = useState(false);
   const [detailMarket, setDetailMarket] = useState<Market | null>(null);
   const [editing, setEditing] = useState<Market | null>(null);
@@ -346,8 +349,8 @@ export function MarketsPage() {
             </Form.Item>
           </Space>
           <Space style={{ width: '100%', gap: 12 }}>
-            <Form.Item name="exchangeId" label={hint('Exchange ID', 'Optional — link to Exchange master data. Leave blank for OTC/bilateral markets with no formal exchange listing.')} style={{ flex: 1 }}>
-              <InputNumber style={{ width: '100%' }} placeholder="1 = ICE" />
+            <Form.Item name="exchangeId" label={hint('Exchange', 'Optional — link to Exchange master data. Leave blank for OTC/bilateral markets with no formal exchange listing.')} style={{ flex: 1 }}>
+              <Select allowClear showSearch optionFilterProp="label" options={exchangeOptions} placeholder="Select exchange" />
             </Form.Item>
             <Form.Item name="currencyCode" label={hint('Currency', 'Market quoting currency. Most crude oil markets: USD. European gas/power: EUR. UK gas: GBP. LME base metals: USD.', 'USD, EUR, GBP')} rules={[{ required: true }]} style={{ flex: 1 }}>
               <Input placeholder="USD" maxLength={3} style={{ fontFamily: 'monospace', textTransform: 'uppercase' }} />

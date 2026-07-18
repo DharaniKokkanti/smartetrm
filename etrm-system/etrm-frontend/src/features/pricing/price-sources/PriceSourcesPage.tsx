@@ -21,6 +21,7 @@ import {
 } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
+import { usePriceIndices } from '@features/markets/price-indices/hooks';
 
 const TYPE_COLOR: Record<SourceType, string> = {
   EXCHANGE: 'blue', VENDOR: 'green', BROKER: 'purple', BLOOMBERG: 'cyan',
@@ -36,6 +37,7 @@ const FREQ_COLOR: Record<string, string> = {
 // ─── Index-Source Links Drawer ─────────────────────────────────────────────────
 function IndexLinksDrawer({ source, onClose }: { source: PriceSource; onClose: () => void }) {
   const { data: links, isLoading } = usePriceIndexSources(source.priceSourceId);
+  const { data: priceIndices = [] } = usePriceIndices();
   const save = useSavePriceIndexSource();
   const remove = useRemovePriceIndexSource();
   const [addOpen, setAddOpen] = useState(false);
@@ -104,8 +106,9 @@ function IndexLinksDrawer({ source, onClose }: { source: PriceSource; onClose: (
         <div style={{ marginTop: 16, padding: 16, border: '1px solid #d9d9d9', borderRadius: 6 }}>
           <Form form={form} layout="vertical">
             <Space style={{ width: '100%', gap: 12 }}>
-              <Form.Item name="priceIndexId" label={hint('Price Index ID', 'ID from the Price Indices master data table. The index must already exist. Multiple roles can link the same index-source pair with different roles.', '1')} rules={[{ required: true }]} style={{ flex: 1 }}>
-                <InputNumber style={{ width: '100%' }} />
+              <Form.Item name="priceIndexId" label={hint('Price Index', 'Index from the Price Indices master data table. The index must already exist. Multiple roles can link the same index-source pair with different roles.')} rules={[{ required: true }]} style={{ flex: 1 }}>
+                <Select allowClear showSearch optionFilterProp="label" placeholder="Select price index"
+                  options={priceIndices.map((pi) => ({ label: `${pi.indexCode} — ${pi.indexName}`, value: pi.priceIndexId }))} />
               </Form.Item>
               <Form.Item name="sourceRole" label={hint('Role', 'PRIMARY_MTM: used every day for mark-to-market. SETTLEMENT: used only at contract expiry (may differ from MTM — e.g. NYMEX settlement vs Bloomberg spot). BACKUP: fallback if primary fails SLA. REFERENCE: cross-check only, not used in calculations.', 'PRIMARY_MTM')} rules={[{ required: true }]} style={{ flex: 1 }}>
                 <Select options={SOURCE_ROLES.map((r) => ({ label: r.replace('_', ' '), value: r }))} />

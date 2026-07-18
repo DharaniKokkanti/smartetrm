@@ -4,8 +4,10 @@ import { useSaveDesk } from './hooks';
 import { COMMODITY_TYPE_LOOKUP, type Desk, type DeskInput } from './types';
 import { useDraftValues } from '@components/smart/formDraft';
 import { hint } from '@components/smart/FieldHint';
-import { safeTextRule, integerRule } from '@components/smart/fieldValidation';
+import { safeTextRule } from '@components/smart/fieldValidation';
 import { useTradingDeskLocations } from '@features/logistics/locations/hooks';
+import { useLegalEntities } from '@features/tier1/legal-entity/hooks';
+import { useTraders } from '@features/organization/traders/hooks';
 
 interface Props {
   open: boolean;
@@ -19,6 +21,8 @@ export function DeskFormDrawer({ open, editing, onClose, onSaved }: Props) {
   const save = useSaveDesk();
   const skipDraftReset = useDraftValues('org-desks-v', form, open, editing);
   const { data: tradingDeskLocations = [] } = useTradingDeskLocations();
+  const { data: legalEntities = [] } = useLegalEntities();
+  const { data: traders = [] } = useTraders();
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/immutability -- skipDraftReset is a useRef() from useDraftValues; the compiler cannot see refs through a custom hook boundary
@@ -75,9 +79,10 @@ export function DeskFormDrawer({ open, editing, onClose, onSaved }: Props) {
         <Form.Item
           name="legalEntityId"
           label={hint('Legal Entity', 'The booking company this desk trades under — drives which legal entity trades booked to this desk settle against.')}
-          rules={[{ required: true }, integerRule()]}
+          rules={[{ required: true }]}
         >
-          <Input type="number" placeholder="Entity ID" />
+          <Select allowClear showSearch optionFilterProp="label" placeholder="Select legal entity"
+            options={legalEntities.map((le) => ({ label: `${le.entityCode} — ${le.entityName}`, value: le.legalEntityId }))} />
         </Form.Item>
         <Form.Item
           name="commodityType"
@@ -89,10 +94,10 @@ export function DeskFormDrawer({ open, editing, onClose, onSaved }: Props) {
         </Form.Item>
         <Form.Item
           name="headTraderId"
-          label={hint('Head Trader (ID)', 'The trader accountable for this desk’s risk and P&L — shown on desk-level reports.')}
-          rules={[integerRule()]}
+          label={hint('Head Trader', 'The trader accountable for this desk’s risk and P&L — shown on desk-level reports.')}
         >
-          <Input type="number" placeholder="Trader ID" />
+          <Select allowClear showSearch optionFilterProp="label" placeholder="Select head trader"
+            options={traders.map((t) => ({ label: `${t.traderCode} — ${t.fullName}`, value: t.traderId }))} />
         </Form.Item>
         <Form.Item
           name="locationId"

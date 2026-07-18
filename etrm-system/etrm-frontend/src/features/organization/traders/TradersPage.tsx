@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Space, Popconfirm, Tag, Tooltip, Drawer, Form, Input, Select, Switch, InputNumber, Divider, Typography } from 'antd';
+import { Button, Space, Popconfirm, Tag, Tooltip, Drawer, Form, Input, Select, Switch, Divider, Typography } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import { StopOutlined, EditOutlined } from '@ant-design/icons';
 import type { ColDef } from 'ag-grid-community';
@@ -12,6 +12,9 @@ import type { Trader, TraderInput } from './types';
 import { COMMODITY_TYPE_LOOKUP, commodityLabel, commodityCodeById } from '../desks/types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
+import { useDesks } from '../desks/hooks';
+import { useLegalEntities } from '@features/tier1/legal-entity/hooks';
+import { useSystemUsers } from '@features/admin/system-users/hooks';
 
 // Keyed by CommodityType code (not lookup_id) — resolve the id to its code
 // via commodityCodeById() first, same as the rest of this codebase's
@@ -23,6 +26,9 @@ const COMMODITY_COLOR: Record<string, string> = {
 
 export function TradersPage() {
   const { data, isLoading, refetch } = useTraders();
+  const { data: desks } = useDesks();
+  const { data: legalEntities } = useLegalEntities();
+  const { data: systemUsers } = useSystemUsers();
   const deactivate = useDeactivateTrader();
   const save = useSaveTrader();
   const [open, setOpen] = useState(false);
@@ -114,21 +120,25 @@ export function TradersPage() {
           <Form.Item name="traderCode" label={hint('Trader Code', 'Unique alphanumeric identifier used in deal capture, risk reports, and position attribution. Cannot be changed once assigned.', 'JD-OIL-001', 'AAA-NNN-NNN')} rules={[{ required: true }]}>
             <Input placeholder="JD-OIL-001" style={{ fontFamily: 'monospace' }} />
           </Form.Item>
-          <Form.Item name="userId" label={hint('User Account (ID)', 'Links this trader profile to the system login account (app_user table). One-to-one relationship — one user can hold only one active trader profile.')} rules={[{ required: true }]}>
-            <InputNumber style={{ width: '100%' }} placeholder="User ID from user management" />
+          <Form.Item name="userId" label={hint('User Account', 'Links this trader profile to the system login account (app_user table). One-to-one relationship — one user can hold only one active trader profile.')} rules={[{ required: true }]}>
+            <Select allowClear showSearch optionFilterProp="label" placeholder="Select user account"
+              options={(systemUsers ?? []).map((u) => ({ label: `${u.fullName} (${u.username})`, value: u.userId }))} />
           </Form.Item>
-          <Form.Item name="legalEntityId" label={hint('Legal Entity (ID)', 'Legal entity this trader belongs to — determines regulatory reporting scope and trade booking entity. 1=SETRM-LTD, 2=SETRM-NL, 3=SETRM-SG.')} rules={[{ required: true }]}>
-            <InputNumber style={{ width: '100%' }} placeholder="Legal Entity ID" />
+          <Form.Item name="legalEntityId" label={hint('Legal Entity', 'Legal entity this trader belongs to — determines regulatory reporting scope and trade booking entity.')} rules={[{ required: true }]}>
+            <Select allowClear showSearch optionFilterProp="label" placeholder="Select legal entity"
+              options={(legalEntities ?? []).map((le) => ({ label: `${le.entityCode} — ${le.entityName}`, value: le.legalEntityId }))} />
           </Form.Item>
-          <Form.Item name="deskId" label={hint('Trading Desk (ID)', 'Desk this trader belongs to. Determines P&L book hierarchy, commodity specialisation, and default approval routing.', '3 (OIL-CRUDE desk)')} rules={[{ required: true }]}>
-            <InputNumber style={{ width: '100%' }} placeholder="Desk ID" />
+          <Form.Item name="deskId" label={hint('Trading Desk', 'Desk this trader belongs to. Determines P&L book hierarchy, commodity specialisation, and default approval routing.')} rules={[{ required: true }]}>
+            <Select allowClear showSearch optionFilterProp="label" placeholder="Select trading desk"
+              options={(desks ?? []).map((d) => ({ label: `${d.deskCode} — ${d.deskName}`, value: d.deskId }))} />
           </Form.Item>
           <Form.Item name="commodityTypes" label={hint('Authorised Commodities', 'Commodities this trader is approved to trade. Each commodity gets independent position and trade limits. A trader covering OIL and POWER has two separate limit rows.', 'OIL, POWER')} rules={[{ required: true }]}>
             <Select mode="multiple" options={COMMODITY_TYPE_LOOKUP.map((l) => ({ label: l.label, value: l.lookupId }))} placeholder="Select commodities" />
           </Form.Item>
           <Divider style={{ margin: '12px 0' }}><Typography.Text type="secondary" style={{ fontSize: 12 }}>Approval Chain</Typography.Text></Divider>
-          <Form.Item name="approverTraderId" label={hint('Approver Trader (ID)', 'Senior trader or desk head who must approve deals exceeding this trader\'s single-trade limit. Must have a higher limit than this trader. Leave blank if no approval required (e.g. senior traders).')}>
-            <InputNumber style={{ width: '100%' }} placeholder="Approver Trader ID (optional)" />
+          <Form.Item name="approverTraderId" label={hint('Approver Trader', 'Senior trader or desk head who must approve deals exceeding this trader\'s single-trade limit. Must have a higher limit than this trader. Leave blank if no approval required (e.g. senior traders).')}>
+            <Select allowClear showSearch optionFilterProp="label" placeholder="Select approver (optional)"
+              options={(data ?? []).filter((t) => t.traderId !== editing?.traderId).map((t) => ({ label: `${t.traderCode} — ${t.fullName}`, value: t.traderId }))} />
           </Form.Item>
           <Form.Item name="goLiveDate" label={hint('Go-Live Date', 'Date from which this trader can submit live trades. Before this date the account is in setup mode — limits apply but deals are flagged as paper trades.', '2026-01-15', 'YYYY-MM-DD')}>
             <AppDatePicker />
