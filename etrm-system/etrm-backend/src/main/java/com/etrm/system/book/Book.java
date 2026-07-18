@@ -29,11 +29,15 @@ import java.util.List;
  * dbo.book_type — see V85__lookup_category.sql's own comment: "book_type is
  * the one exception among V17's 13 pairs"). This entity maps only book_type
  * (NOT NULL, the one actually enforced) and leaves the redundant
- * book_type_id unmapped. commodity_type similarly FKs a dedicated
- * dbo.commodity_type table (also V85, not lookup_value). Frontend
- * Book.bookType was a stale string enum before this change and is now the
- * numeric commodity_type/book_type id, same convention already used for
- * desk.commodityType.
+ * book_type_id unmapped. Frontend Book.bookType was a stale string enum
+ * before this change and is now the numeric book_type id, same convention
+ * already used for desk.commodityType.
+ *
+ * commodity_type (V85's dedicated dbo.commodity_type FK) was dropped from
+ * this table in V122 — a book's commodity classification (and any future
+ * classification axis) now lives in dbo.book_classification instead, so the
+ * core book table never grows a new commodity/physical-attribute column
+ * again. See BookClassification/BookClassificationDimension.
  */
 @Entity
 @Table(name = "book")
@@ -97,10 +101,17 @@ public class Book extends AuditableEntity {
     @Column(name = "archived_reason", length = 200)
     private String archivedReason;
 
-    // FK -> dbo.commodity_type(commodity_type_id) — see class doc comment.
-    @NotNull
-    @Column(name = "commodity_type", nullable = false)
-    private Integer commodityType;
+    // TRADING | CONSOLIDATION (V122) — CONSOLIDATION marks a pure rollup node;
+    // application layer should reject direct trade bookings against one.
+    @NotBlank
+    @Column(name = "book_role", nullable = false, length = 20)
+    private String bookRole = "TRADING";
+
+    // Denormalized display of dbo.book_classification (V122) rows for this
+    // book — not persisted, populated by BookService.
+    @Transient
+    @JsonProperty
+    private List<BookClassificationView> classifications;
 
     @NotNull
     @Column(name = "base_currency_id", nullable = false)
@@ -230,12 +241,20 @@ public class Book extends AuditableEntity {
         this.archivedReason = archivedReason;
     }
 
-    public Integer getCommodityType() {
-        return commodityType;
+    public String getBookRole() {
+        return bookRole;
     }
 
-    public void setCommodityType(Integer commodityType) {
-        this.commodityType = commodityType;
+    public void setBookRole(String bookRole) {
+        this.bookRole = bookRole;
+    }
+
+    public List<BookClassificationView> getClassifications() {
+        return classifications;
+    }
+
+    public void setClassifications(List<BookClassificationView> classifications) {
+        this.classifications = classifications;
     }
 
     public Integer getBaseCurrencyId() {

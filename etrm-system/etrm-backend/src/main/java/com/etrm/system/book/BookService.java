@@ -21,13 +21,16 @@ public class BookService {
     private final LegalEntityRepository legalEntityRepository;
     private final DeskRepository deskRepository;
     private final BookTraderService bookTraderService;
+    private final BookClassificationService bookClassificationService;
 
     public BookService(BookRepository repository, LegalEntityRepository legalEntityRepository,
-                        DeskRepository deskRepository, BookTraderService bookTraderService) {
+                        DeskRepository deskRepository, BookTraderService bookTraderService,
+                        BookClassificationService bookClassificationService) {
         this.repository = repository;
         this.legalEntityRepository = legalEntityRepository;
         this.deskRepository = deskRepository;
         this.bookTraderService = bookTraderService;
+        this.bookClassificationService = bookClassificationService;
     }
 
     private Book denormalize(Book book) {
@@ -41,6 +44,7 @@ public class BookService {
         }
         if (book.getBookId() != null) {
             book.setTraders(bookTraderService.list(book.getBookId()));
+            book.setClassifications(bookClassificationService.list(book.getBookId()));
         }
         return book;
     }
@@ -126,6 +130,19 @@ public class BookService {
         existing.setArchivedAt(LocalDate.now());
         existing.setArchivedReason(reason);
         return denormalize(repository.save(existing));
+    }
+
+    /**
+     * The book itself plus every descendant reachable via parent_book_id
+     * (recursive SQL Server CTE) — the rollup set for a CONSOLIDATION book's
+     * P&L/risk aggregation, or for "give me every book under this desk's
+     * top book" style reporting.
+     */
+    @Transactional(readOnly = true)
+    public List<Book> descendants(Integer id) {
+        get(id); // 404s if id doesn't resolve, before spending a recursive query on it
+        List<Integer> ids = repository.findDescendantIds(id);
+        return repository.findAllById(ids).stream().map(this::denormalize).toList();
     }
 
     /** Partial update — moves a book to a different entity/desk/parent without touching any other field. */

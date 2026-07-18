@@ -17,10 +17,16 @@ import java.util.List;
  *  PATCH  /api/v1/books/{id}/deactivate
  *  PATCH  /api/v1/books/{id}/archive       { reason }
  *  PATCH  /api/v1/books/{id}/move          { legalEntityId, deskId, parentBookId }
+ *  GET    /api/v1/books/{id}/descendants   book itself + every descendant (recursive CTE)
  *
  *  GET    /api/v1/books/{bookId}/traders
  *  POST   /api/v1/books/{bookId}/traders            { traderId, role }
  *  DELETE /api/v1/books/{bookId}/traders/{traderId}
+ *
+ *  GET    /api/v1/books/{bookId}/classifications
+ *  POST   /api/v1/books/{bookId}/classifications                  { dimensionCode, valueCode, valueLabel, isPrimary }
+ *  DELETE /api/v1/books/{bookId}/classifications/{bookClassificationId}
+ *  GET    /api/v1/book-classification-dimensions
  */
 @RestController
 @RequestMapping("/api/v1/books")
@@ -28,10 +34,13 @@ public class BookController {
 
     private final BookService service;
     private final BookTraderService bookTraderService;
+    private final BookClassificationService bookClassificationService;
 
-    public BookController(BookService service, BookTraderService bookTraderService) {
+    public BookController(BookService service, BookTraderService bookTraderService,
+                           BookClassificationService bookClassificationService) {
         this.service = service;
         this.bookTraderService = bookTraderService;
+        this.bookClassificationService = bookClassificationService;
     }
 
     @GetMapping
@@ -70,6 +79,32 @@ public class BookController {
         return service.move(id, body.legalEntityId(), body.deskId(), body.parentBookId());
     }
 
+    @GetMapping("/{id}/descendants")
+    public List<Book> descendants(@PathVariable Integer id) {
+        return service.descendants(id);
+    }
+
+    // ── book_classification sub-resource ─────────────────────────────────────
+
+    @GetMapping("/{bookId}/classifications")
+    public List<BookClassificationView> listClassifications(@PathVariable Integer bookId) {
+        return bookClassificationService.list(bookId);
+    }
+
+    @PostMapping("/{bookId}/classifications")
+    public ResponseEntity<BookClassification> addClassification(@PathVariable Integer bookId,
+                                                                  @RequestBody AddClassificationRequest body) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(bookClassificationService.add(
+                bookId, body.dimensionCode(), body.valueCode(), body.valueLabel(), body.isPrimary()));
+    }
+
+    @DeleteMapping("/{bookId}/classifications/{bookClassificationId}")
+    public ResponseEntity<Void> removeClassification(@PathVariable Integer bookId,
+                                                       @PathVariable Integer bookClassificationId) {
+        bookClassificationService.remove(bookId, bookClassificationId);
+        return ResponseEntity.noContent().build();
+    }
+
     // ── book_trader sub-resource ─────────────────────────────────────────────
 
     @GetMapping("/{bookId}/traders")
@@ -92,4 +127,5 @@ public class BookController {
     record ArchiveRequest(String reason) {}
     record MoveRequest(Integer legalEntityId, Integer deskId, Integer parentBookId) {}
     record AddTraderRequest(Integer traderId, String role) {}
+    record AddClassificationRequest(String dimensionCode, String valueCode, String valueLabel, Boolean isPrimary) {}
 }

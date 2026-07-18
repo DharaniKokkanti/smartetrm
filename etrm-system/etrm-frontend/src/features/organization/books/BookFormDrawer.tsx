@@ -2,9 +2,18 @@ import { useEffect, useMemo, useState } from 'react';
 import { Drawer, Form, Input, Select, Button, Space, Switch, InputNumber, Divider, Tag, Typography } from 'antd';
 import { CloseOutlined, PlusOutlined } from '@ant-design/icons';
 import dayjs, { type Dayjs } from 'dayjs';
-import { useSaveBook, useAddBookTrader, useRemoveBookTrader, useBooks } from './hooks';
-import { BOOK_TYPE_LOOKUP, type Book, type BookInput, type BookTraderView } from './types';
+import { useSaveBook, useAddBookTrader, useRemoveBookTrader, useBooks,
+  useAddBookClassification, useRemoveBookClassification } from './hooks';
+import { BOOK_TYPE_LOOKUP, BOOK_ROLE_OPTIONS, type Book, type BookInput, type BookTraderView,
+  type BookClassificationView } from './types';
 import { COMMODITY_TYPE_LOOKUP } from '../desks/types';
+
+// dbo.book_classification_dimension (V122) is extensible in the DB — only
+// COMMODITY is seeded today. Add a dimension code here (value options for
+// the "Add classification" picker) when a new dimension row is inserted.
+const DIMENSION_VALUE_OPTIONS: Record<string, { label: string; value: string }[]> = {
+  COMMODITY: COMMODITY_TYPE_LOOKUP.map((c) => ({ label: c.label, value: c.code })),
+};
 import { useCurrencies } from '@features/reference/currencies/hooks';
 import { useDesks } from '../desks/hooks';
 import { useTraders } from '../traders/hooks';
@@ -103,6 +112,67 @@ function BookTradersSection({ book }: { book: Book }) {
   );
 }
 
+// ── Book classifications sub-section (only shown when editing an existing book) ──
+function BookClassificationsSection({ book }: { book: Book }) {
+  const addClassification = useAddBookClassification();
+  const removeClassification = useRemoveBookClassification();
+  const [dimensionCode, setDimensionCode] = useState<string>('COMMODITY');
+  const [valueCode, setValueCode] = useState<string | undefined>(undefined);
+
+  const dimensionOptions = Object.keys(DIMENSION_VALUE_OPTIONS).map((code) => ({ label: code, value: code }));
+  const existingValues = new Set(
+    book.classifications.filter((c) => c.dimensionCode === dimensionCode).map((c) => c.valueCode));
+  const valueOptions = (DIMENSION_VALUE_OPTIONS[dimensionCode] ?? []).filter((o) => !existingValues.has(o.value));
+
+  function handleAdd() {
+    if (valueCode == null) return;
+    const label = DIMENSION_VALUE_OPTIONS[dimensionCode]?.find((o) => o.value === valueCode)?.label;
+    addClassification.mutate({ bookId: book.bookId, dimensionCode, valueCode, valueLabel: label }, {
+      onSuccess: () => setValueCode(undefined),
+    });
+  }
+
+  return (
+    <>
+      <Divider style={{ margin: '8px 0 12px' }}>
+        {hint('Classifications', 'Decoupled tags (commodity, and future axes) — a book carries zero or more of these instead of a fixed schema column per axis.')}
+      </Divider>
+      <Space direction="vertical" style={{ width: '100%' }} size={6}>
+        {book.classifications.length === 0 && (
+          <Text type="secondary" style={{ fontSize: 12 }}>No classifications assigned yet.</Text>
+        )}
+        {book.classifications.map((c: BookClassificationView) => (
+          <Space key={c.bookClassificationId} style={{ width: '100%', justifyContent: 'space-between' }}>
+            <Space size={6}>
+              <Tag color={c.isPrimary ? 'blue' : 'default'}>{c.dimensionCode}</Tag>
+              <Text>{c.valueLabel ?? c.valueCode}</Text>
+            </Space>
+            <Button
+              type="text" size="small" danger icon={<CloseOutlined />}
+              loading={removeClassification.isPending}
+              onClick={() => removeClassification.mutate({ bookId: book.bookId, bookClassificationId: c.bookClassificationId })}
+            />
+          </Space>
+        ))}
+        <Space style={{ width: '100%', marginTop: 4 }}>
+          <Select style={{ width: 130 }} value={dimensionCode}
+            onChange={(v) => { setDimensionCode(v); setValueCode(undefined); }} options={dimensionOptions} />
+          <Select
+            showSearch
+            placeholder="Add value"
+            optionFilterProp="label"
+            style={{ width: 180 }}
+            value={valueCode}
+            onChange={setValueCode}
+            options={valueOptions}
+          />
+          <Button icon={<PlusOutlined />} disabled={valueCode == null} loading={addClassification.isPending} onClick={handleAdd} />
+        </Space>
+      </Space>
+    </>
+  );
+}
+
 export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
   const [form] = Form.useForm<BookInput>();
   const save = useSaveBook();
@@ -116,6 +186,7 @@ export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
     .map((c) => ({ label: `${c.currencyCode} — ${c.currencyName}`, value: c.currencyId }));
 
   const legalEntityId = Form.useWatch('legalEntityId', form);
+  const bookRole = Form.useWatch('bookRole', form);
 
   const deskOptions = useMemo(() => desks
     .filter((d) => legalEntityId == null || d.legalEntityId === legalEntityId)
@@ -158,7 +229,7 @@ export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
           deskId:              editing.deskId,
           legalEntityId:       editing.legalEntityId,
           parentBookId:        editing.parentBookId,
-          commodityType:       editing.commodityType,
+          bookRole:            editing.bookRole,
           baseCurrencyId:      editing.baseCurrencyId,
           positionLimit:       editing.positionLimit,
           pnlLimit:            editing.pnlLimit,
@@ -168,7 +239,7 @@ export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
           isActive:            editing.isActive,
         } as unknown as BookInput);
       } else {
-        form.setFieldsValue({ isActive: true, bookType: 1, baseCurrencyId: 1 });
+        form.setFieldsValue({ isActive: true, bookType: 1, baseCurrencyId: 1, bookRole: 'TRADING' });
       }
     }
   }, [open, editing, form]);
@@ -226,10 +297,10 @@ export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
         </Form.Item>
         <Form.Item
           name="deskId"
-          label={hint('Desk', 'The trading desk this book rolls up to for desk-level P&L and risk aggregation.')}
-          rules={[{ required: true }]}
+          label={hint('Desk', 'The trading desk this book rolls up to for desk-level P&L and risk aggregation. Optional for a Consolidation book spanning multiple desks.')}
+          rules={[{ required: bookRole !== 'CONSOLIDATION' }]}
         >
-          <Select showSearch optionFilterProp="label" placeholder="Select desk" options={deskOptions} />
+          <Select allowClear={bookRole === 'CONSOLIDATION'} showSearch optionFilterProp="label" placeholder="Select desk" options={deskOptions} />
         </Form.Item>
         <Form.Item
           name="parentBookId"
@@ -238,11 +309,11 @@ export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
           <Select allowClear showSearch optionFilterProp="label" placeholder="None (top-level book)" options={parentBookOptions} />
         </Form.Item>
         <Form.Item
-          name="commodityType"
-          label={hint('Commodity Type', 'Restricts this book to one commodity for position/limit segregation. Leave blank for a multi-commodity book.')}
+          name="bookRole"
+          label={hint('Book Role', 'Trading = holds direct trade bookings. Consolidation = pure rollup node over its children (e.g. all US Oil desks’ books) — carries no bookings of its own.')}
+          rules={[{ required: true }]}
         >
-          <Select allowClear placeholder="Leave blank for multi-commodity"
-            options={COMMODITY_TYPE_LOOKUP.map((l) => ({ label: l.label, value: l.lookupId }))} />
+          <Select options={BOOK_ROLE_OPTIONS} />
         </Form.Item>
         <Form.Item
           name="baseCurrencyId"
@@ -285,6 +356,7 @@ export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
       </Form>
 
       {editing !== null && <BookTradersSection book={editing} />}
+      {editing !== null && <BookClassificationsSection book={editing} />}
     </Drawer>
   );
 }

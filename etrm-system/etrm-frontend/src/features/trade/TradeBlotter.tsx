@@ -1491,14 +1491,16 @@ export function TradeBlotter() {
   const countryOpts   = useMemo(() => countries.filter((c) => c.isActive).map((c) => ({ value: c.countryId, label: `${c.countryCode} — ${c.countryName}` })), [countries]);
   const paymentCalendarOpts = useMemo(() => holidayCalendars.filter((c) => c.isActive).map((c) => ({ value: c.calendarCode, label: `${c.calendarCode} — ${c.calendarName}` })), [holidayCalendars]);
   const legalEntityOpts = useMemo(() => legalEntities.map((le) => ({ value: le.legalEntityId, label: `${le.entityCode} — ${le.entityName}` })), [legalEntities]);
-  // Book options scoped to a leg's commodity — dbo.commodity_type ids (1-9) line up 1:1 with COMMODITY_TYPES_TRADE's
-  // order (OIL=1 ... ENVIRONMENTAL=9); a null commodityType on the book means it's a cross-commodity book (e.g. house/other).
+  // Book options scoped to a leg's commodity — dbo.book_classification (V122) COMMODITY-dimension
+  // valueCode is the same string as CommodityTypeTrade directly; a book with no COMMODITY
+  // classification at all is a cross-commodity book (e.g. house/other), shown for every commodity.
   const bookOptionsFor = useMemo(() => {
-    const rows = books as { bookId: number; bookCode: string; bookName: string; commodityType: number | null }[];
     return (commodityType: CommodityTypeTrade) => {
-      const id = COMMODITY_TYPES_TRADE.indexOf(commodityType) + 1;
-      return rows
-        .filter((b) => b.commodityType == null || b.commodityType === id)
+      return books
+        .filter((b) => {
+          const commodityTags = b.classifications.filter((c) => c.dimensionCode === 'COMMODITY');
+          return commodityTags.length === 0 || commodityTags.some((c) => c.valueCode === commodityType);
+        })
         .map((b) => ({ value: b.bookId, label: `${b.bookCode} — ${b.bookName}` }));
     };
   }, [books]);

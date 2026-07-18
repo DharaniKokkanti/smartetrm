@@ -73,3 +73,30 @@ export function useRemoveBookTrader() {
     onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Remove trader failed.'),
   });
 }
+
+export function useBookClassificationDimensions() {
+  return useQuery({ queryKey: ['book-classification-dimensions'], queryFn: booksApi.listClassificationDimensions });
+}
+
+export function useAddBookClassification() {
+  const qc = useQueryClient();
+  const { message } = AntApp.useApp();
+  return useMutation({
+    mutationFn: ({ bookId, dimensionCode, valueCode, valueLabel }:
+      { bookId: number; dimensionCode: string; valueCode: string; valueLabel?: string | null }) =>
+      booksApi.addClassification(bookId, { dimensionCode, valueCode, valueLabel }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: KEY }); message.success('Classification added.'); },
+    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Add classification failed.'),
+  });
+}
+
+export function useRemoveBookClassification() {
+  const qc = useQueryClient();
+  const { message } = AntApp.useApp();
+  return useMutation({
+    mutationFn: ({ bookId, bookClassificationId }: { bookId: number; bookClassificationId: number }) =>
+      booksApi.removeClassification(bookId, bookClassificationId),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: KEY }); message.success('Classification removed.'); },
+    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Remove classification failed.'),
+  });
+}

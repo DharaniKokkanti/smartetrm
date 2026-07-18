@@ -32,11 +32,11 @@ export const desksStore: unknown[] = [
 // ─── BOOKS ────────────────────────────────────────────────────────────────────
 // traders below mirror tradersStore rows (JDO=1, ASM=2, RKP=3, SWN=6) — book_trader join, mocked inline.
 export const booksStore: unknown[] = [
-  { bookId: 1, bookCode: 'CRUDE-PROP',   bookName: 'Crude Proprietary',    bookType: 1,   deskId: 1, deskCode: 'OIL-CRUDE',   legalEntityId: 1, legalEntityCode: 'ACME-UK', parentBookId: null, parentBookCode: null, commodityType: 1,             baseCurrencyId: 1, positionLimit: 5000000,  pnlLimit: 500000,  varLimit: 250000, goLiveDate: '2020-01-01', description: 'Primary crude proprietary trading book — Brent and WTI physical OTC.', isActive: true, archivedAt: null, archivedReason: null, traders: [{ traderId: 1, traderName: 'John Doe', role: 'PRIMARY', isActive: true }], createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
-  { bookId: 2, bookCode: 'CRUDE-HEDGE',  bookName: 'Crude Hedge Book',     bookType: 2,   deskId: 1, deskCode: 'OIL-CRUDE',   legalEntityId: 1, legalEntityCode: 'ACME-UK', parentBookId: 1,    parentBookCode: 'CRUDE-PROP', commodityType: 1,             baseCurrencyId: 1, positionLimit: 10000000, pnlLimit: null,    varLimit: 100000, goLiveDate: '2020-01-01', description: 'Hedge book for crude oil futures offsetting physical exposure.',          isActive: true, archivedAt: null, archivedReason: null, traders: [], createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
-  { bookId: 3, bookCode: 'GAS-EU-TRADE', bookName: 'EU Gas Trading',       bookType: 1,   deskId: 2, deskCode: 'GAS-EU',      legalEntityId: 2, legalEntityCode: 'ACME-US',  parentBookId: null, parentBookCode: null, commodityType: 2,             baseCurrencyId: 2, positionLimit: 2000000,  pnlLimit: 200000,  varLimit: 50000,  goLiveDate: '2020-01-01', description: 'European natural gas physical and financial book — TTF and NBP.',         isActive: true, archivedAt: null, archivedReason: null, traders: [{ traderId: 2, traderName: 'Alice Smith', role: 'PRIMARY', isActive: true }], createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
-  { bookId: 4, bookCode: 'LME-CU-ARB',  bookName: 'Copper Arbitrage',     bookType: 3,   deskId: 3, deskCode: 'METALS-BASE', legalEntityId: 1, legalEntityCode: 'ACME-UK', parentBookId: null, parentBookCode: null, commodityType: 6,             baseCurrencyId: 1, positionLimit: 1000,     pnlLimit: 100000,  varLimit: 25000,  goLiveDate: '2022-01-10', description: 'LME copper cash/3M arbitrage and spread trading book.',                 isActive: true, archivedAt: null, archivedReason: null, traders: [{ traderId: 3, traderName: 'Raj Kumar Patel', role: 'PRIMARY', isActive: true }], createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
-  { bookId: 5, bookCode: 'POWER-CLIENT', bookName: 'Power Client Book',    bookType: 5,   deskId: 4, deskCode: 'POWER-EU',    legalEntityId: 2, legalEntityCode: 'ACME-US',  parentBookId: null, parentBookCode: null, commodityType: 3,             baseCurrencyId: 2, positionLimit: 500000,   pnlLimit: null,    varLimit: null,   goLiveDate: '2024-02-01', description: 'European power client back-to-back book — EEX German and French baseload.', isActive: true, archivedAt: null, archivedReason: null, traders: [{ traderId: 6, traderName: 'Sarah Wong', role: 'PRIMARY', isActive: true }], createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { bookId: 1, bookCode: 'CRUDE-PROP',   bookName: 'Crude Proprietary',    bookType: 1,   deskId: 1, deskCode: 'OIL-CRUDE',   legalEntityId: 1, legalEntityCode: 'ACME-UK', parentBookId: null, parentBookCode: null, bookRole: 'TRADING',       baseCurrencyId: 1, positionLimit: 5000000,  pnlLimit: 500000,  varLimit: 250000, goLiveDate: '2020-01-01', description: 'Primary crude proprietary trading book — Brent and WTI physical OTC.', isActive: true, archivedAt: null, archivedReason: null, traders: [{ traderId: 1, traderName: 'John Doe', role: 'PRIMARY', isActive: true }], classifications: [{ bookClassificationId: 1, dimensionCode: 'COMMODITY', dimensionName: 'Commodity', valueCode: 'OIL', valueLabel: 'Oil', isPrimary: true }], createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { bookId: 2, bookCode: 'CRUDE-HEDGE',  bookName: 'Crude Hedge Book',     bookType: 2,   deskId: 1, deskCode: 'OIL-CRUDE',   legalEntityId: 1, legalEntityCode: 'ACME-UK', parentBookId: 1,    parentBookCode: 'CRUDE-PROP', bookRole: 'TRADING',    baseCurrencyId: 1, positionLimit: 10000000, pnlLimit: null,    varLimit: 100000, goLiveDate: '2020-01-01', description: 'Hedge book for crude oil futures offsetting physical exposure.',          isActive: true, archivedAt: null, archivedReason: null, traders: [], classifications: [{ bookClassificationId: 2, dimensionCode: 'COMMODITY', dimensionName: 'Commodity', valueCode: 'OIL', valueLabel: 'Oil', isPrimary: true }], createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { bookId: 3, bookCode: 'GAS-EU-TRADE', bookName: 'EU Gas Trading',       bookType: 1,   deskId: 2, deskCode: 'GAS-EU',      legalEntityId: 2, legalEntityCode: 'ACME-US',  parentBookId: null, parentBookCode: null, bookRole: 'TRADING',       baseCurrencyId: 2, positionLimit: 2000000,  pnlLimit: 200000,  varLimit: 50000,  goLiveDate: '2020-01-01', description: 'European natural gas physical and financial book — TTF and NBP.',         isActive: true, archivedAt: null, archivedReason: null, traders: [{ traderId: 2, traderName: 'Alice Smith', role: 'PRIMARY', isActive: true }], classifications: [{ bookClassificationId: 3, dimensionCode: 'COMMODITY', dimensionName: 'Commodity', valueCode: 'GAS', valueLabel: 'Gas', isPrimary: true }], createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { bookId: 4, bookCode: 'LME-CU-ARB',  bookName: 'Copper Arbitrage',     bookType: 3,   deskId: 3, deskCode: 'METALS-BASE', legalEntityId: 1, legalEntityCode: 'ACME-UK', parentBookId: null, parentBookCode: null, bookRole: 'TRADING',       baseCurrencyId: 1, positionLimit: 1000,     pnlLimit: 100000,  varLimit: 25000,  goLiveDate: '2022-01-10', description: 'LME copper cash/3M arbitrage and spread trading book.',                 isActive: true, archivedAt: null, archivedReason: null, traders: [{ traderId: 3, traderName: 'Raj Kumar Patel', role: 'PRIMARY', isActive: true }], classifications: [{ bookClassificationId: 4, dimensionCode: 'COMMODITY', dimensionName: 'Commodity', valueCode: 'METALS', valueLabel: 'Metals', isPrimary: true }], createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { bookId: 5, bookCode: 'POWER-CLIENT', bookName: 'Power Client Book',    bookType: 5,   deskId: 4, deskCode: 'POWER-EU',    legalEntityId: 2, legalEntityCode: 'ACME-US',  parentBookId: null, parentBookCode: null, bookRole: 'TRADING',       baseCurrencyId: 2, positionLimit: 500000,   pnlLimit: null,    varLimit: null,   goLiveDate: '2024-02-01', description: 'European power client back-to-back book — EEX German and French baseload.', isActive: true, archivedAt: null, archivedReason: null, traders: [{ traderId: 6, traderName: 'Sarah Wong', role: 'PRIMARY', isActive: true }], classifications: [{ bookClassificationId: 5, dimensionCode: 'COMMODITY', dimensionName: 'Commodity', valueCode: 'POWER', valueLabel: 'Power', isPrimary: true }], createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
 ];
 
 // ─── TRADERS ──────────────────────────────────────────────────────────────────
@@ -2490,6 +2490,38 @@ export const etrmHandlers = [
     books[idx] = { ...books[idx], traders };
     return new HttpResponse(null, { status: 204 });
   }),
+  http.get(`${API}/books/:bookId/classifications`, ({ params }) => {
+    const book = (booksStore as Array<Record<string, unknown>>).find((b) => b['bookId'] === Number(params.bookId));
+    return HttpResponse.json((book ? book['classifications'] : []) as Array<Record<string, unknown>>);
+  }),
+  http.post(`${API}/books/:bookId/classifications`, async ({ params, request }) => {
+    const books = booksStore as Array<Record<string, unknown>>;
+    const idx = books.findIndex((b) => b['bookId'] === Number(params.bookId));
+    if (idx === -1) return problem(404, 'Not Found', `Book ${String(params.bookId)} not found.`);
+    const body = (await request.json()) as { dimensionCode: string; valueCode: string; valueLabel?: string | null };
+    const classifications = [...(books[idx]['classifications'] as Array<Record<string, unknown>>)];
+    const maxId = classifications.reduce((m, c) => Math.max(m, Number(c['bookClassificationId'])), 0);
+    const row = {
+      bookClassificationId: maxId + 1, dimensionCode: body.dimensionCode, dimensionName: body.dimensionCode,
+      valueCode: body.valueCode, valueLabel: body.valueLabel ?? null,
+      isPrimary: !classifications.some((c) => c['dimensionCode'] === body.dimensionCode),
+    };
+    classifications.push(row);
+    books[idx] = { ...books[idx], classifications };
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.delete(`${API}/books/:bookId/classifications/:bookClassificationId`, ({ params }) => {
+    const books = booksStore as Array<Record<string, unknown>>;
+    const idx = books.findIndex((b) => b['bookId'] === Number(params.bookId));
+    if (idx === -1) return problem(404, 'Not Found', `Book ${String(params.bookId)} not found.`);
+    const classifications = (books[idx]['classifications'] as Array<Record<string, unknown>>)
+      .filter((c) => c['bookClassificationId'] !== Number(params.bookClassificationId));
+    books[idx] = { ...books[idx], classifications };
+    return new HttpResponse(null, { status: 204 });
+  }),
+  http.get(`${API}/book-classification-dimensions`, () => HttpResponse.json([
+    { dimensionId: 1, dimensionCode: 'COMMODITY', dimensionName: 'Commodity', isMultiValued: true, sortOrder: 1, isActive: true },
+  ])),
 
   ...crudHandlers('traders', tradersStore as Array<Record<string, unknown>>, 'traderId'),
   ...crudHandlers('products', productsStore as Array<Record<string, unknown>>, 'productId'),

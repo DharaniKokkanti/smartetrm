@@ -24,6 +24,37 @@ export interface BookTraderView {
   isActive: boolean;
 }
 
+// TRADING = direct trade bookings land here. CONSOLIDATION = pure rollup node
+// (P&L/risk aggregation only — see parentBookId); the application layer
+// should reject direct trade bookings against a CONSOLIDATION book.
+export type BookRole = 'TRADING' | 'CONSOLIDATION';
+export const BOOK_ROLE_OPTIONS: { label: string; value: BookRole }[] = [
+  { label: 'Trading', value: 'TRADING' },
+  { label: 'Consolidation (rollup only)', value: 'CONSOLIDATION' },
+];
+
+// dbo.book_classification_dimension (V122) — the extensible axis list a book
+// can carry a classification value on. Only COMMODITY is seeded today; add a
+// new dimension by inserting a row in the DB, then a matching entry in
+// DIMENSION_VALUE_OPTIONS below (no other schema/API change needed).
+export interface BookClassificationDimension {
+  dimensionId: number;
+  dimensionCode: string;
+  dimensionName: string;
+  isMultiValued: boolean;
+  sortOrder: number;
+  isActive: boolean;
+}
+
+export interface BookClassificationView {
+  bookClassificationId: number;
+  dimensionCode: string;
+  dimensionName: string;
+  valueCode: string;
+  valueLabel: string | null;
+  isPrimary: boolean;
+}
+
 export interface Book {
   bookId: number;
   bookCode: string;
@@ -36,8 +67,7 @@ export interface Book {
   legalEntityCode: string;
   parentBookId: number | null;
   parentBookCode: string | null; // denormalized
-  // FK to dbo.commodity_type(commodity_type_id) — see desks/types.ts COMMODITY_TYPE_LOOKUP.
-  commodityType: number | null;
+  bookRole: BookRole;
   baseCurrencyId: number; // FK -> dbo.currency(currency_id), NOT NULL default USD
   positionLimit: number | null;
   pnlLimit: number | null;
@@ -49,12 +79,15 @@ export interface Book {
   archivedReason: string | null;
   // Denormalized, read-only — populated by the backend from book_trader.
   traders: BookTraderView[];
+  // Denormalized, read-only — populated by the backend from book_classification (V122).
+  classifications: BookClassificationView[];
   createdAt: string;
   updatedAt: string;
 }
 
-// deskCode, legalEntityCode, parentBookCode, traders are denormalized/read-only;
-// archivedAt/archivedReason are only set via PATCH /books/{id}/archive — none
-// of these are sent on create/update.
+// deskCode, legalEntityCode, parentBookCode, traders, classifications are
+// denormalized/read-only; archivedAt/archivedReason are only set via
+// PATCH /books/{id}/archive — none of these are sent on create/update.
 export type BookInput = Omit<Book,
-  'bookId' | 'deskCode' | 'legalEntityCode' | 'parentBookCode' | 'traders' | 'archivedAt' | 'archivedReason' | 'createdAt' | 'updatedAt'>;
+  'bookId' | 'deskCode' | 'legalEntityCode' | 'parentBookCode' | 'traders' | 'classifications'
+  | 'archivedAt' | 'archivedReason' | 'createdAt' | 'updatedAt'>;

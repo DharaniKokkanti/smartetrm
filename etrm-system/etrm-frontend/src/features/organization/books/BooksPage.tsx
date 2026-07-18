@@ -6,9 +6,8 @@ import { PageHeader } from '@components/layout/PageHeader';
 import { SmartGrid } from '@components/smart/SmartGrid';
 import { ActiveTag } from '@components/smart/StatusTag';
 import { useBooks, useArchiveBook, useMoveBook } from './hooks';
-import { commodityLabel } from '../desks/types';
 import { bookTypeLabel } from './types';
-import type { Book, BookTraderView } from './types';
+import type { Book, BookTraderView, BookClassificationView } from './types';
 import { BookFormDrawer } from './BookFormDrawer';
 import { useDraftState } from '@components/smart/formDraft';
 import { useDesks } from '../desks/hooks';
@@ -22,6 +21,11 @@ const BOOK_TYPE_COLOR: Record<number, string> = {
   5: 'orange', // CLIENT
   6: 'gold',   // RISK_MGMT
 };
+
+function classificationsDisplay(classifications: BookClassificationView[]): string {
+  if (classifications.length === 0) return 'MULTI';
+  return classifications.map((c) => c.valueLabel ?? c.valueCode).join(', ');
+}
 
 function tradersDisplay(traders: BookTraderView[]): string {
   const active = traders.filter((t) => t.isActive);
@@ -119,8 +123,8 @@ function MoveModal({ book, onClose }: { book: Book | null; onClose: () => void }
           <Select showSearch optionFilterProp="label" placeholder="Select legal entity"
             options={legalEntities.map((e) => ({ label: `${e.entityCode} — ${e.entityName}`, value: e.legalEntityId }))} />
         </Form.Item>
-        <Form.Item name="deskId" label="Desk" rules={[{ required: true }]}>
-          <Select showSearch optionFilterProp="label" placeholder="Select desk" options={deskOptions} />
+        <Form.Item name="deskId" label="Desk" rules={[{ required: book?.bookRole !== 'CONSOLIDATION' }]}>
+          <Select allowClear={book?.bookRole === 'CONSOLIDATION'} showSearch optionFilterProp="label" placeholder="Select desk" options={deskOptions} />
         </Form.Item>
         <Form.Item name="parentBookId" label="Parent Book">
           <Select allowClear showSearch optionFilterProp="label" placeholder="None (top-level book)" options={parentBookOptions} />
@@ -154,8 +158,19 @@ export function BooksPage() {
     { field: 'deskCode', headerName: 'Desk', width: 130, cellClass: 'cell-mono' },
     { field: 'legalEntityCode', headerName: 'Entity', width: 110, cellClass: 'cell-mono' },
     { field: 'parentBookCode', headerName: 'Parent', width: 130, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },
-    { field: 'commodityType', headerName: 'Commodity', width: 120,
-      cellRenderer: (p: { value: number | null }) => p.value != null ? <Tag>{commodityLabel(p.value)}</Tag> : <Tag color="default">MULTI</Tag> },
+    {
+      field: 'classifications',
+      headerName: 'Classification',
+      width: 160,
+      valueFormatter: (p) => classificationsDisplay(p.value ?? []),
+      tooltipValueGetter: (p) => classificationsDisplay(p.value ?? []),
+    },
+    {
+      field: 'bookRole',
+      headerName: 'Role',
+      width: 130,
+      cellRenderer: (p: { value: string }) => <Tag color={p.value === 'CONSOLIDATION' ? 'geekblue' : 'default'}>{p.value}</Tag>,
+    },
     {
       field: 'traders',
       headerName: 'Traders',
