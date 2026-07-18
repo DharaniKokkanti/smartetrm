@@ -7,6 +7,7 @@ import { SmartGrid } from '@components/smart/SmartGrid';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import { hint } from '@components/smart/FieldHint';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AuditInfo } from '@components/smart/AuditInfo';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useLocations } from '@features/logistics/locations/hooks';
 import { useTanks } from '@features/logistics/tanks/hooks';
@@ -201,6 +202,7 @@ export function DeliveryInstructionsPage() {
             <Input.TextArea rows={2} />
           </Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} updatedAt={editing?.updatedAt} />
       </Drawer>
     </>
   );

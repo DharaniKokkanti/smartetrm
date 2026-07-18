@@ -14,6 +14,7 @@ import {
 } from './hooks';
 import { CALENDAR_TYPES, type HolidayCalendar, type HolidayCalendarInput, type CalendarType, type CalendarHoliday, type HolidayInput, type HolidayUploadRow } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AuditInfo } from '@components/smart/AuditInfo';
 import { downloadBlob, generateHolidayTemplate } from './excelTemplateHolidays';
 import { parseHolidayUpload } from './excelUploadHolidays';
 import { HolidayUploadReviewModal } from './HolidayUploadReviewModal';
@@ -225,6 +226,7 @@ export function HolidayCalendarsPage() {
           </Form.Item>
           <Form.Item name="isActive" label="Active" valuePropName="checked"><Switch /></Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} />
       </Drawer>
     </>
   );

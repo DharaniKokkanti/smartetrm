@@ -22,6 +22,7 @@ import {
 } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
+import { AuditInfo } from '@components/smart/AuditInfo';
 import dayjs, { type Dayjs } from 'dayjs';
 
 const { Text } = Typography;
@@ -619,6 +620,7 @@ export function CreditLimitsPage() {
             </>
           )}
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} updatedAt={editing?.updatedAt} />
       </Drawer>
     </>
   );

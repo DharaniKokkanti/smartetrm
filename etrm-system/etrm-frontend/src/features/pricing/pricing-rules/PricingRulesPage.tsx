@@ -9,6 +9,7 @@ import { hint } from '@components/smart/FieldHint';
 import { usePricingRules, useSavePricingRule, useDeactivatePricingRule } from './hooks';
 import { PRICING_TYPES, AVERAGING_METHODS, ROUNDING_RULES, TAS_EXCHANGES, TAS_CONTRACT_SERIES, BALMO_EXCHANGES, BALMO_CONTRACT_SERIES, type PricingRule, type PricingRuleInput, type PricingType } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AuditInfo } from '@components/smart/AuditInfo';
 
 const TYPE_COLOR: Record<PricingType, string> = {
   FIXED: 'default', FLOATING: 'blue', FORMULA: 'purple', DIFFERENTIAL: 'cyan',
@@ -185,6 +186,7 @@ export function PricingRulesPage() {
           </Space>
           <Form.Item name="isActive" label="Active" valuePropName="checked"><Switch /></Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} />
       </Drawer>
     </>
   );

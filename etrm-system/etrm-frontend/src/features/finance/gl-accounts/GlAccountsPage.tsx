@@ -14,6 +14,7 @@ import { useCurrencies } from '@features/reference/currencies/hooks';
 import { useGlAccounts, useSaveGlAccount, useDeactivateGlAccount } from './hooks';
 import type { GlAccount, GlAccountInput } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AuditInfo } from '@components/smart/AuditInfo';
 
 const NORMAL_BALANCE_OPTS = [
   { value: 'DEBIT', label: 'Debit' },
@@ -176,6 +177,7 @@ export function GlAccountsPage() {
           </Form.Item>
           <Form.Item name="isActive" label="Active" valuePropName="checked"><Switch /></Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} />
       </Drawer>
     </>
   );

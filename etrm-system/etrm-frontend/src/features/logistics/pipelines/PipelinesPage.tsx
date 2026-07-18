@@ -9,6 +9,7 @@ import { hint } from '@components/smart/FieldHint';
 import { usePipelines, useSavePipeline, useDeactivatePipeline } from './hooks';
 import { PIPELINE_TYPES, PIPELINE_STATUS_CODES, type Pipeline, type PipelineInput, type PipelineType, type PipelineStatusCode } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AuditInfo } from '@components/smart/AuditInfo';
 
 const TYPE_COLOR: Record<PipelineType, string> = {
   CRUDE_OIL: 'blue', REFINED_PRODUCTS: 'green', NATURAL_GAS: 'orange', LNG: 'gold',
@@ -125,6 +126,7 @@ export function PipelinesPage() {
           </Form.Item>
           <Form.Item name="isActive" label="Active" valuePropName="checked"><Switch /></Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} />
       </Drawer>
     </>
   );

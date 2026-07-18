@@ -24,7 +24,7 @@ public class AppFunction {
     private String description;
 
     @Column(name = "sort_order", nullable = false)
-    private Integer sortOrder = 0;
+    private Short sortOrder = 0;
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
@@ -39,8 +39,8 @@ public class AppFunction {
     public void setFunctionName(String functionName) { this.functionName = functionName; }
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
-    public Integer getSortOrder() { return sortOrder; }
-    public void setSortOrder(Integer sortOrder) { this.sortOrder = sortOrder; }
+    public Short getSortOrder() { return sortOrder; }
+    public void setSortOrder(Short sortOrder) { this.sortOrder = sortOrder; }
     public Boolean getIsActive() { return isActive; }
     public void setIsActive(Boolean isActive) { this.isActive = isActive; }
 }

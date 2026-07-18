@@ -9,6 +9,7 @@ import { hint } from '@components/smart/FieldHint';
 import { useSystemUsers, useSaveSystemUser, useDeactivateSystemUser } from './hooks';
 import type { SystemUser, SystemUserInput } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AuditInfo } from '@components/smart/AuditInfo';
 import { useRoles } from '@features/admin/roles/hooks';
 
 export function SystemUsersPage() {
@@ -202,6 +203,7 @@ export function SystemUsersPage() {
             <Switch />
           </Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} />
       </Drawer>
     </>
   );

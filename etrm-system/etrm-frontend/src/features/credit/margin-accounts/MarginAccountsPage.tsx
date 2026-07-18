@@ -7,6 +7,7 @@ import { SmartGrid } from '@components/smart/SmartGrid';
 import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AuditInfo } from '@components/smart/AuditInfo';
 import { useCounterparties } from '@features/trade/hooks';
 import { useLegalEntities } from '@features/tier1/legal-entity/hooks';
 import { useCurrencies } from '@features/reference/currencies/hooks';
@@ -173,6 +174,7 @@ export function MarginAccountsPage() {
             <Switch />
           </Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} />
       </Drawer>
     </>
   );

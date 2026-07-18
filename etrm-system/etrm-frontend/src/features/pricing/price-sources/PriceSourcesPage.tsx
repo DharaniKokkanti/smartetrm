@@ -21,6 +21,7 @@ import {
 } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
+import { AuditInfo } from '@components/smart/AuditInfo';
 import { usePriceIndices } from '@features/markets/price-indices/hooks';
 
 const TYPE_COLOR: Record<SourceType, string> = {
@@ -256,6 +257,7 @@ export function PriceSourcesPage() {
           </Form.Item>
           <Form.Item name="isActive" label="Active" valuePropName="checked"><Switch /></Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} />
       </Drawer>
     </>
   );

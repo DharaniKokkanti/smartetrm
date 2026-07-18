@@ -12,6 +12,7 @@ import { GTC_TYPES, type Gtc, type GtcInput, type GtcType } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { useCountries } from '@features/reference/countries/hooks';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
+import { AuditInfo } from '@components/smart/AuditInfo';
 
 const TYPE_COLOR: Record<GtcType, string> = {
   CRUDE_OIL: 'blue',
@@ -234,6 +235,7 @@ export function GtcsPage() {
             <Switch />
           </Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} />
       </Drawer>
     </>
   );

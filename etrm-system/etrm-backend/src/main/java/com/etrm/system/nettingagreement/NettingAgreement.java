@@ -3,6 +3,7 @@ package com.etrm.system.nettingagreement;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -10,6 +11,9 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -17,10 +21,16 @@ import java.time.LocalDateTime;
 /**
  * dbo.netting_agreement only ever got created_at/created_by, no
  * updated_at/updated_by — matches the frontend NettingAgreement type,
- * which only has createdAt. Does not extend AuditableEntity.
+ * which only has createdAt. Does not extend AuditableEntity, but created_by
+ * is still NOT NULL on the live schema, so it's mapped here with the same
+ * @CreatedDate/@CreatedBy field-level JPA-auditing annotations PeriodField
+ * uses (see Period.java's doc comment) — an earlier version of this entity
+ * left created_by completely unmapped, which made every POST here 100% fail
+ * with a NOT NULL constraint violation.
  */
 @Entity
 @Table(name = "netting_agreement")
+@EntityListeners(AuditingEntityListener.class)
 public class NettingAgreement {
 
     @Id
@@ -70,8 +80,13 @@ public class NettingAgreement {
     @Column(name = "notes", length = 500)
     private String notes;
 
+    @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @CreatedBy
+    @Column(name = "created_by", nullable = false, updatable = false, length = 100)
+    private String createdBy;
 
     public Integer getNettingId() {
         return nettingId;
@@ -167,5 +182,13 @@ public class NettingAgreement {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
     }
 }

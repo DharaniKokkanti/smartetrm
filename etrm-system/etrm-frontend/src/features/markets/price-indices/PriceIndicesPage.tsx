@@ -10,6 +10,7 @@ import { usePriceIndices, useSavePriceIndex, useDeactivatePriceIndex } from './h
 import { PUBLICATION_SOURCES, type PriceIndex, type PriceIndexInput } from './types';
 import { COMMODITY_TYPES, type CommodityType } from '@features/organization/desks/types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AuditInfo } from '@components/smart/AuditInfo';
 
 const SOURCE_COLOR: Record<string, string> = {
   PLATTS: 'blue', ARGUS: 'cyan', ICE: 'purple', LME: 'gold',
@@ -125,6 +126,7 @@ export function PriceIndicesPage() {
           </Form.Item>
           <Form.Item name="isActive" label="Active" valuePropName="checked"><Switch /></Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} />
       </Drawer>
     </>
   );

@@ -39,7 +39,12 @@ public class PipelineTariff {
     @JsonProperty
     private String pipelineName;
 
-    @NotNull
+    // Not @NotNull: fromPointId/toPointId are always resolved from
+    // fromPointCode/toPointCode by PipelineTariffService.resolveForeignKeys
+    // before save — same rationale as PipelineSegment's identical fields
+    // (see that class's doc comment); a @NotNull here made every real
+    // create 400 (caught by PipelineTariffControllerTest). The DB's own
+    // NOT NULL constraint is still the final backstop.
     @Column(name = "from_point_id", nullable = false)
     private Integer fromPointId;
 
@@ -47,7 +52,6 @@ public class PipelineTariff {
     @JsonProperty
     private String fromPointCode;
 
-    @NotNull
     @Column(name = "to_point_id", nullable = false)
     private Integer toPointId;
 

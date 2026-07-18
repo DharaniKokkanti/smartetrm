@@ -12,6 +12,7 @@ import { useEmissionObligations, useSaveEmissionObligation } from './hooks';
 import type { EmissionObligation, EmissionObligationInput } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
+import { AuditInfo } from '@components/smart/AuditInfo';
 import dayjs, { type Dayjs } from 'dayjs';
 
 const STATUS_COLOR: Record<string, string> = {
@@ -134,6 +135,7 @@ export function EmissionObligationsPage() {
             <Input.TextArea rows={2} placeholder="Verifier name, submission reference, any outstanding issues..." />
           </Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} />
       </Drawer>
     </>
   );

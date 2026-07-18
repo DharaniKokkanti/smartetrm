@@ -247,6 +247,13 @@ function fieldControl(
       // never ends up storing "3.5". The real hard rejection is server-side
       // (ReferenceDataCrudService.validateValue) for a value posted
       // directly to the API, bypassing this widget entirely.
+      if (col.name === 'sortOrder') {
+        // dbo.*.sort_order is TINYINT (V121) — unsigned 0-255, display
+        // order within a small list. A negative or >255 value has no
+        // meaning here, so reject both client-side instead of only
+        // relying on the DB CHECK/overflow error.
+        return <InputNumber style={{ width: '100%' }} {...integerInputNumberProps} min={0} max={255} />;
+      }
       return col.numericSubKind === 'integer'
         ? <InputNumber style={{ width: '100%' }} {...integerInputNumberProps} />
         : <InputNumber style={{ width: '100%' }} />;

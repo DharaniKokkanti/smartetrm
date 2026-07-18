@@ -9,6 +9,7 @@ import { hint } from '@components/smart/FieldHint';
 import { usePaymentMethods, useSavePaymentMethod, useDeactivatePaymentMethod } from './hooks';
 import { PAYMENT_METHOD_TYPES, type PaymentMethod, type PaymentMethodInput, type PaymentMethodType } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AuditInfo } from '@components/smart/AuditInfo';
 
 const TYPE_COLOR: Record<PaymentMethodType, string> = {
   SWIFT: 'blue',
@@ -174,6 +175,7 @@ export function PaymentMethodsPage() {
             <Switch />
           </Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} />
       </Drawer>
     </>
   );

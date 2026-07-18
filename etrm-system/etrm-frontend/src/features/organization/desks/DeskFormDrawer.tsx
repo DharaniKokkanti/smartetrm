@@ -8,6 +8,7 @@ import { safeTextRule } from '@components/smart/fieldValidation';
 import { useTradingDeskLocations } from '@features/logistics/locations/hooks';
 import { useLegalEntities } from '@features/tier1/legal-entity/hooks';
 import { useTraders } from '@features/organization/traders/hooks';
+import { AuditInfo } from '@components/smart/AuditInfo';
 
 interface Props {
   open: boolean;
@@ -110,6 +111,7 @@ export function DeskFormDrawer({ open, editing, onClose, onSaved }: Props) {
           <Switch />
         </Form.Item>
       </Form>
+      <AuditInfo createdAt={editing?.createdAt} updatedAt={editing?.updatedAt} />
     </Drawer>
   );
 }

@@ -10,6 +10,7 @@ import { useLegalEntities } from '@features/trade/hooks';
 import { useRinAccounts, useSaveRinAccount, useDeactivateRinAccount } from './hooks';
 import type { RinAccount, RinAccountInput } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AuditInfo } from '@components/smart/AuditInfo';
 
 const ACCOUNT_TYPE_COLOR: Record<string, string> = {
   OBLIGATED_PARTY: 'red', RENEWABLE_FUEL_PRODUCER: 'green', TRADING: 'blue', EXPORTER: 'orange',
@@ -114,6 +115,7 @@ export function RinAccountsPage() {
           </Space>
           <Form.Item name="isActive" label="Active" valuePropName="checked"><Switch /></Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} />
       </Drawer>
     </>
   );

@@ -12,6 +12,7 @@ import type { Trader, TraderInput } from './types';
 import { COMMODITY_TYPE_LOOKUP, commodityLabel, commodityCodeById } from '../desks/types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
+import { AuditInfo } from '@components/smart/AuditInfo';
 import { useDesks } from '../desks/hooks';
 import { useLegalEntities } from '@features/tier1/legal-entity/hooks';
 import { useSystemUsers } from '@features/admin/system-users/hooks';
@@ -147,6 +148,7 @@ export function TradersPage() {
             <Switch />
           </Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} updatedAt={editing?.updatedAt} />
       </Drawer>
     </>
   );

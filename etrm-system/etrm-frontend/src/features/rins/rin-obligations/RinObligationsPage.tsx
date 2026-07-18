@@ -11,6 +11,7 @@ import { useRinObligations, useSaveRinObligation } from './hooks';
 import type { RinObligation, RinObligationInput } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
+import { AuditInfo } from '@components/smart/AuditInfo';
 import dayjs, { type Dayjs } from 'dayjs';
 
 const D_CODE_COLOR: Record<string, string> = { D3: 'purple', D4: 'blue', D5: 'green', D6: 'orange', D7: 'cyan' };
@@ -175,6 +176,7 @@ export function RinObligationsPage() {
             <Input.TextArea rows={2} placeholder="EPA calculation reference, volume data source, any adjustments or carry-forward notes..." />
           </Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} updatedAt={editing?.updatedAt} />
       </Drawer>
     </>
   );

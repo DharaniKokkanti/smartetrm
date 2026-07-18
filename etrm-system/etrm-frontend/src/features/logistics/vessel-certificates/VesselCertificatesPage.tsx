@@ -7,6 +7,7 @@ import { SmartGrid } from '@components/smart/SmartGrid';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import { hint } from '@components/smart/FieldHint';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AuditInfo } from '@components/smart/AuditInfo';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useVessels } from '@features/logistics/vessels/hooks';
 import { useVesselCertificates, useSaveVesselCertificate } from './hooks';
@@ -144,6 +145,7 @@ export function VesselCertificatesPage() {
             <Input.TextArea rows={3} />
           </Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} />
       </Drawer>
     </>
   );

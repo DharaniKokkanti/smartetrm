@@ -9,6 +9,7 @@ import { hint } from '@components/smart/FieldHint';
 import { useStorageFacilities, useSaveStorageFacility, useDeactivateStorageFacility } from './hooks';
 import { STORAGE_STATUS_CODES, type StorageFacility, type StorageFacilityInput, type StorageStatusCode } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AuditInfo } from '@components/smart/AuditInfo';
 import { useCustomConfigOptions } from '@features/tier1/counterparty/configLookups';
 
 const TYPE_COLOR: Record<string, string> = {
@@ -265,6 +266,7 @@ export function StoragePage() {
             <Switch />
           </Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} />
       </Drawer>
     </>
   );

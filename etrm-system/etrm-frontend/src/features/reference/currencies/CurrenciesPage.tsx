@@ -9,6 +9,7 @@ import { hint } from '@components/smart/FieldHint';
 import { useCurrencies, useSaveCurrency, useDeactivateCurrency } from './hooks';
 import type { Currency, CurrencyInput } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AuditInfo } from '@components/smart/AuditInfo';
 import { useCountries } from '@features/reference/countries/hooks';
 
 export function CurrenciesPage() {
@@ -91,6 +92,7 @@ export function CurrenciesPage() {
             <Switch />
           </Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} />
       </Drawer>
     </>
   );

@@ -37,7 +37,14 @@ public class PipelineSegment {
     @JsonProperty
     private String pipelineName;
 
-    @NotNull
+    // Not @NotNull: fromPointId/toPointId are always resolved from
+    // fromPointCode/toPointCode by PipelineSegmentService.resolveForeignKeys
+    // before save — the frontend never sends the raw ids (no dropdown was
+    // built against pipeline_point, see its own class doc). Bean validation
+    // on the raw @RequestBody runs before that resolution, so a @NotNull
+    // here made every real create 400 (caught by
+    // PipelineSegmentControllerTest). The DB's own NOT NULL constraint is
+    // still the final backstop.
     @Column(name = "from_point_id", nullable = false)
     private Integer fromPointId;
 
@@ -45,7 +52,6 @@ public class PipelineSegment {
     @JsonProperty
     private String fromPointCode;
 
-    @NotNull
     @Column(name = "to_point_id", nullable = false)
     private Integer toPointId;
 

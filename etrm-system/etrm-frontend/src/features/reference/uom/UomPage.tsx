@@ -10,6 +10,7 @@ import { useUom, useSaveUom, useDeactivateUom } from './hooks';
 import { useTableRows } from '@features/tier2/hooks';
 import type { Uom, UomInput } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AuditInfo } from '@components/smart/AuditInfo';
 import { type CommodityRow, resolveCommodityName } from '@features/markets/products/types';
 
 const TYPE_COLOR: Record<string, string> = { VOLUME: 'blue', WEIGHT: 'orange', ENERGY: 'volcano', POWER: 'gold', TEMPERATURE: 'red', COUNT: 'cyan', OTHER: 'default' };
@@ -89,6 +90,7 @@ export function UomPage() {
             <Switch />
           </Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} />
       </Drawer>
     </>
   );

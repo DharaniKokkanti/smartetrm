@@ -59,7 +59,16 @@ public class Truck {
     @Column(name = "fleet_no", length = 20)
     private String vehicleCode;
 
-    @NotNull
+    // Not @NotNull: the frontend Truck type has NO operatorId field at all
+    // (only operatorName, see this class's own doc comment above) —
+    // TruckService.resolveForeignKeys resolves operatorName -> operatorId
+    // before save. Bean validation on the raw @RequestBody runs before that
+    // resolution, so a @NotNull here made every real operatorName-only
+    // create 400 (caught by
+    // TruckControllerTest.create_with_operatorName_only_resolves_operatorId
+    // — same bug pattern as CalendarHoliday.calendarId/PipelineSegment.
+    // fromPointId/Trader.limitCurrencyId, fixed earlier this session). The
+    // DB's own NOT NULL constraint is still the final backstop.
     @Column(name = "operator_id", nullable = false)
     private Integer operatorId;
 

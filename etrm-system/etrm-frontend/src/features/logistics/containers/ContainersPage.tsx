@@ -8,6 +8,7 @@ import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AuditInfo } from '@components/smart/AuditInfo';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useTableRows } from '@features/tier2/hooks';
 import { useContainers, useSaveContainer, useDeactivateContainer } from './hooks';
@@ -164,6 +165,7 @@ export function ContainersPage() {
             <Switch />
           </Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} />
       </Drawer>
     </>
   );

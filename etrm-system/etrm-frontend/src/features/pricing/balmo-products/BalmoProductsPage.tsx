@@ -12,6 +12,7 @@ import {
 } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
+import { AuditInfo } from '@components/smart/AuditInfo';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useUom } from '@features/reference/uom/hooks';
 import { useCurrencies } from '@features/reference/currencies/hooks';
@@ -207,6 +208,7 @@ export function BalmoProductsPage() {
             <Input.TextArea rows={2} placeholder="Notes on this BALMO contract listing..." />
           </Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} updatedAt={editing?.updatedAt} />
       </Drawer>
     </>
   );

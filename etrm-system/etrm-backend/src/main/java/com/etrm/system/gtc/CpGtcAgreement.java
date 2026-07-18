@@ -3,6 +3,7 @@ package com.etrm.system.gtc;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -10,6 +11,9 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -22,9 +26,16 @@ import java.time.LocalDateTime;
  * frontend's gtcId to gtc_version_id via GtcVersion.isCurrent — "the
  * current version of this GTC" — matching that flattening rather than
  * exposing the version table here too.
+ *
+ * created_by is NOT NULL on the live schema but was previously left
+ * completely unmapped, so every POST here 100% failed with a NOT NULL
+ * constraint violation (same bug shape documented on Period.java). Fixed
+ * with the same @CreatedDate/@CreatedBy field-level JPA-auditing
+ * annotations.
  */
 @Entity
 @Table(name = "cp_gtc_agreement")
+@EntityListeners(AuditingEntityListener.class)
 public class CpGtcAgreement {
 
     @Id
@@ -48,7 +59,14 @@ public class CpGtcAgreement {
     @JsonProperty
     private String legalEntityName;
 
-    @NotNull
+    // Not @NotNull: this is resolved server-side from the client-supplied
+    // gtcId by CpGtcAgreementService.resolveGtcVersion() *after* Bean
+    // Validation already ran on the incoming request — the client never
+    // sends gtc_version_id directly (see the class doc comment). An earlier
+    // @NotNull here made every POST/PUT 100% fail with "gtcVersionId must
+    // not be null" before the controller method ever ran. Same convention
+    // as Period.commodityTypeId / MarginAgreement.agreementTypeId, which
+    // are resolved the same way and deliberately have no @NotNull either.
     @Column(name = "gtc_version_id", nullable = false)
     private Integer gtcVersionId;
 
@@ -84,8 +102,13 @@ public class CpGtcAgreement {
     @Column(name = "notes", length = 500)
     private String notes;
 
+    @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @CreatedBy
+    @Column(name = "created_by", nullable = false, updatable = false, length = 100)
+    private String createdBy;
 
     public Integer getCpGtcId() {
         return cpGtcId;
@@ -215,5 +238,13 @@ public class CpGtcAgreement {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
     }
 }

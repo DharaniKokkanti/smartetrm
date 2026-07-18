@@ -9,6 +9,7 @@ import { ActiveTag } from '@components/smart/StatusTag';
 import { useBrokers, useSaveBroker, useDeactivateBroker } from './hooks';
 import { BROKER_TYPES, BROKER_TYPE_META, type Broker, type BrokerInput, type BrokerType } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AuditInfo } from '@components/smart/AuditInfo';
 import { useCountries } from '@features/reference/countries/hooks';
 import { useUom } from '@features/reference/uom/hooks';
 
@@ -271,6 +272,7 @@ export function BrokersPage() {
             <Switch />
           </Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} />
       </Drawer>
     </>
   );

@@ -26,7 +26,7 @@ public class ScreenFieldRegistry {
     private Boolean isRequiredField = false;
 
     @Column(name = "sort_order", nullable = false)
-    private Integer sortOrder = 0;
+    private Short sortOrder = 0;
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
@@ -43,8 +43,8 @@ public class ScreenFieldRegistry {
     public void setFieldGroup(String fieldGroup) { this.fieldGroup = fieldGroup; }
     public Boolean getIsRequiredField() { return isRequiredField; }
     public void setIsRequiredField(Boolean isRequiredField) { this.isRequiredField = isRequiredField; }
-    public Integer getSortOrder() { return sortOrder; }
-    public void setSortOrder(Integer sortOrder) { this.sortOrder = sortOrder; }
+    public Short getSortOrder() { return sortOrder; }
+    public void setSortOrder(Short sortOrder) { this.sortOrder = sortOrder; }
     public Boolean getIsActive() { return isActive; }
     public void setIsActive(Boolean isActive) { this.isActive = isActive; }
 }

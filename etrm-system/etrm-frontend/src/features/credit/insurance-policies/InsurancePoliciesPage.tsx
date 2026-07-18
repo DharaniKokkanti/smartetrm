@@ -7,6 +7,7 @@ import { SmartGrid } from '@components/smart/SmartGrid';
 import { hint } from '@components/smart/FieldHint';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AuditInfo } from '@components/smart/AuditInfo';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useLegalEntities } from '@features/tier1/legal-entity/hooks';
 import { useCurrencies } from '@features/reference/currencies/hooks';
@@ -202,6 +203,7 @@ export function InsurancePoliciesPage() {
             <Input.TextArea rows={3} />
           </Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} updatedAt={editing?.updatedAt} />
       </Drawer>
     </>
   );

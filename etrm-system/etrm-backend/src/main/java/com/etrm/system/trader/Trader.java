@@ -101,7 +101,14 @@ public class Trader extends AuditableEntity {
     @Column(name = "deactivated_date")
     private LocalDate deactivatedDate;
 
-    @NotNull
+    // Not @NotNull: the frontend TraderInput type has no limitCurrencyId
+    // field at all (see TraderService.defaultLimitCurrency's own doc
+    // comment) — every real save from today's UI omits it, and
+    // TraderService fills in the system base currency before save. Bean
+    // validation on the raw @RequestBody runs before that defaulting logic,
+    // so a @NotNull here made every real create 400 (caught by
+    // TraderControllerTest.create_without_limitCurrencyId_defaults_to_base_currency).
+    // The DB's own NOT NULL constraint is still the final backstop.
     @Column(name = "limit_currency_id", nullable = false)
     private Integer limitCurrencyId;
 

@@ -20,6 +20,7 @@ import {
   type BrokerFeeAgreement, type BrokerFeeAgreementInput, type FeeType, type PayPeriod,
 } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AuditInfo } from '@components/smart/AuditInfo';
 import { useTableRows } from '@features/tier2/hooks';
 import { useUom } from '@features/reference/uom/hooks';
 import { useCurrencies } from '@features/reference/currencies/hooks';
@@ -459,6 +460,7 @@ export function BrokerFeeAgreementsPage() {
             <Switch />
           </Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} />
       </Drawer>
     </>
   );

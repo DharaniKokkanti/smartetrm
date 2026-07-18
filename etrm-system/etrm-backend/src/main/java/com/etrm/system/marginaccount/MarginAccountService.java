@@ -8,7 +8,6 @@ import com.etrm.system.market.MarketRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -48,7 +47,6 @@ public class MarginAccountService {
 
     public MarginAccount create(MarginAccount input) {
         input.setMarginAccountId(null);
-        input.setCreatedAt(LocalDateTime.now());
         return hydrate(repository.save(input));
     }
 
@@ -56,7 +54,12 @@ public class MarginAccountService {
         MarginAccount existing = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("No margin account with id " + id + "."));
         input.setMarginAccountId(id);
+        // created_at/created_by are @CreatedDate/@CreatedBy — JPA auditing only
+        // populates those on insert, so the request body never carries them;
+        // without copying them from the existing row here, updatable=false
+        // keeps the DB value untouched but the response would show them as null.
         input.setCreatedAt(existing.getCreatedAt());
+        input.setCreatedBy(existing.getCreatedBy());
         return hydrate(repository.save(input));
     }
 

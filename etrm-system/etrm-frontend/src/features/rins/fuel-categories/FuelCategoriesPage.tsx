@@ -9,6 +9,7 @@ import { hint } from '@components/smart/FieldHint';
 import { useRinFuelCategories, useSaveRinFuelCategory, useDeactivateRinFuelCategory } from './hooks';
 import type { RinFuelCategory, RinFuelCategoryInput } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AuditInfo } from '@components/smart/AuditInfo';
 
 const D_CODE_COLOR: Record<string, string> = {
   D3: 'purple', D4: 'blue', D5: 'green', D6: 'orange', D7: 'cyan',
@@ -117,6 +118,7 @@ export function FuelCategoriesPage() {
           </Form.Item>
           <Form.Item name="isActive" label="Active" valuePropName="checked"><Switch /></Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} />
       </Drawer>
     </>
   );

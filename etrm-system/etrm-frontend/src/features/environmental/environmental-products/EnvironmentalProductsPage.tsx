@@ -12,6 +12,7 @@ import { useCarbonRegistries } from '@features/environmental/carbon-registries/h
 import { useEnvironmentalProducts, useSaveEnvironmentalProduct, useDeactivateEnvironmentalProduct } from './hooks';
 import type { EnvironmentalProduct, EnvironmentalProductInput } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AuditInfo } from '@components/smart/AuditInfo';
 
 const PRODUCT_TYPE_COLOR: Record<string, string> = { ALLOWANCE: 'blue', CERTIFICATE: 'green', OFFSET: 'orange' };
 
@@ -112,6 +113,7 @@ export function EnvironmentalProductsPage() {
           </Form.Item>
           <Form.Item name="isActive" label="Active" valuePropName="checked"><Switch /></Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} />
       </Drawer>
     </>
   );

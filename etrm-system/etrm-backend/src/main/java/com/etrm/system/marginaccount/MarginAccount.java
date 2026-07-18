@@ -3,6 +3,7 @@ package com.etrm.system.marginaccount;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -11,13 +12,24 @@ import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/** dbo.margin_account only ever got created_at/created_by, no updated_at/updated_by. */
+/**
+ * dbo.margin_account only ever got created_at/created_by, no updated_at/
+ * updated_by. created_by is NOT NULL on the live schema but was previously
+ * left completely unmapped despite the comment above claiming otherwise —
+ * that made every POST here 100% fail with a NOT NULL constraint violation
+ * (same bug shape documented on Period.java). Fixed with the same
+ * @CreatedDate/@CreatedBy field-level JPA-auditing annotations.
+ */
 @Entity
 @Table(name = "margin_account")
+@EntityListeners(AuditingEntityListener.class)
 public class MarginAccount {
 
     @Id
@@ -89,8 +101,13 @@ public class MarginAccount {
     @Column(name = "notes", length = 300)
     private String notes;
 
+    @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @CreatedBy
+    @Column(name = "created_by", nullable = false, updatable = false, length = 100)
+    private String createdBy;
 
     public Integer getMarginAccountId() {
         return marginAccountId;
@@ -234,5 +251,13 @@ public class MarginAccount {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
     }
 }

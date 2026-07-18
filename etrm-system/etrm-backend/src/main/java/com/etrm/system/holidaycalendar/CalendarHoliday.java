@@ -22,7 +22,14 @@ public class CalendarHoliday {
     @Column(name = "holiday_id")
     private Integer holidayId;
 
-    @NotNull
+    // Not @NotNull: calendarId is always resolved from the {calendarId} path
+    // variable by HolidayCalendarController/Service, never sent in the
+    // request body (HolidayCalendarService.createHoliday sets it before
+    // save) — a request body legitimately omits it. Bean validation runs on
+    // the raw @RequestBody before that resolution happens, so a @NotNull
+    // here made POST .../{calendarId}/holidays 400 on every real call
+    // (caught by HolidayCalendarControllerTest). The DB's own NOT NULL
+    // constraint is still the final backstop.
     @Column(name = "calendar_id", nullable = false)
     private Integer calendarId;
 

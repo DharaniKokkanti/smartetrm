@@ -6,6 +6,7 @@ import { PageHeader } from '@components/layout/PageHeader';
 import { SmartGrid } from '@components/smart/SmartGrid';
 import { hint } from '@components/smart/FieldHint';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AuditInfo } from '@components/smart/AuditInfo';
 import { useTableRows } from '@features/tier2/hooks';
 import { useLocations } from '@features/logistics/locations/hooks';
 import { COMMODITY_TYPES } from '@features/organization/desks/types';
@@ -177,6 +178,7 @@ export function TransportRoutesPage() {
             <Input.TextArea rows={3} />
           </Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} />
       </Drawer>
     </>
   );

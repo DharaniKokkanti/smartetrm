@@ -7,6 +7,7 @@ import { SmartGrid } from '@components/smart/SmartGrid';
 import { hint } from '@components/smart/FieldHint';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AuditInfo } from '@components/smart/AuditInfo';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useCounterparties } from '@features/trade/hooks';
 import { useLegalEntities } from '@features/tier1/legal-entity/hooks';
@@ -197,6 +198,7 @@ export function BankGuaranteesPage() {
             <Input.TextArea rows={3} />
           </Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} updatedAt={editing?.updatedAt} />
       </Drawer>
     </>
   );

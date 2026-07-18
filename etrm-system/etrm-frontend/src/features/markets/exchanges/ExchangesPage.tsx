@@ -9,6 +9,7 @@ import { hint } from '@components/smart/FieldHint';
 import { useExchanges, useSaveExchange, useDeactivateExchange } from './hooks';
 import { EXCHANGE_TYPES, type Exchange, type ExchangeInput } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AuditInfo } from '@components/smart/AuditInfo';
 import { useCountries } from '@features/reference/countries/hooks';
 
 const TYPE_COLOR: Record<string, string> = {
@@ -103,6 +104,7 @@ export function ExchangesPage() {
           </Form.Item>
           <Form.Item name="isActive" label="Active" valuePropName="checked"><Switch /></Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} />
       </Drawer>
     </>
   );

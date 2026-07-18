@@ -5,6 +5,7 @@ import type { ColDef } from 'ag-grid-community';
 import { PageHeader } from '@components/layout/PageHeader';
 import { SmartGrid } from '@components/smart/SmartGrid';
 import { ActiveTag } from '@components/smart/StatusTag';
+import { AuditInfo } from '@components/smart/AuditInfo';
 import { useVessels } from '@features/logistics/vessels/hooks';
 import { useVesselCargoTanks, useSaveVesselCargoTank } from './hooks';
 import { TANK_TYPES, type VesselCargoTank, type VesselCargoTankInput } from './types';
@@ -92,6 +93,7 @@ export function VesselCargoTanksPage() {
           <Form.Item name="notes" label="Notes"><Input.TextArea rows={2} /></Form.Item>
           <Form.Item name="isActive" hidden initialValue={true}><Input /></Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} createdBy={editing?.createdBy} updatedAt={editing?.updatedAt} updatedBy={editing?.updatedBy} />
       </Drawer>
     </>
   );

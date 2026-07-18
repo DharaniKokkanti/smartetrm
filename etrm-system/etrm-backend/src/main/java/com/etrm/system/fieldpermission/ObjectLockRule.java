@@ -33,7 +33,7 @@ public class ObjectLockRule {
     private String lockReason;
 
     @Column(name = "sort_order", nullable = false)
-    private Integer sortOrder = 0;
+    private Short sortOrder = 0;
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
@@ -52,8 +52,8 @@ public class ObjectLockRule {
     public void setLockedTo(String lockedTo) { this.lockedTo = lockedTo; }
     public String getLockReason() { return lockReason; }
     public void setLockReason(String lockReason) { this.lockReason = lockReason; }
-    public Integer getSortOrder() { return sortOrder; }
-    public void setSortOrder(Integer sortOrder) { this.sortOrder = sortOrder; }
+    public Short getSortOrder() { return sortOrder; }
+    public void setSortOrder(Short sortOrder) { this.sortOrder = sortOrder; }
     public Boolean getIsActive() { return isActive; }
     public void setIsActive(Boolean isActive) { this.isActive = isActive; }
 }

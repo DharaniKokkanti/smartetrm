@@ -17,6 +17,7 @@ import type { MarginAgreement, MarginAgreementInput } from './types';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AuditInfo } from '@components/smart/AuditInfo';
 
 const { Text } = Typography;
 
@@ -338,6 +339,7 @@ export function MarginAgreementsPage() {
             <Switch />
           </Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} updatedAt={editing?.updatedAt} />
       </Drawer>
     </>
   );

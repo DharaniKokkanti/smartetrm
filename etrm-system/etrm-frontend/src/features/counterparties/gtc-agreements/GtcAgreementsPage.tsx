@@ -8,6 +8,7 @@ import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AuditInfo } from '@components/smart/AuditInfo';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useCounterparties } from '@features/trade/hooks';
 import { useLegalEntities } from '@features/tier1/legal-entity/hooks';
@@ -173,6 +174,7 @@ export function GtcAgreementsPage() {
             <Switch />
           </Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} />
       </Drawer>
     </>
   );

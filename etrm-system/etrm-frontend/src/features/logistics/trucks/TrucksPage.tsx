@@ -12,6 +12,7 @@ import { useTrucks, useSaveTruck, useDeactivateTruck } from './hooks';
 import { VEHICLE_TYPES, VEHICLE_STATUS_CODES, type Truck, type TruckInput, type VehicleType, type VehicleStatusCode } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
+import { AuditInfo } from '@components/smart/AuditInfo';
 import { useCountries } from '@features/reference/countries/hooks';
 
 const TYPE_COLOR: Record<VehicleType, string> = {
@@ -275,6 +276,7 @@ export function TrucksPage() {
             <Switch />
           </Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} />
       </Drawer>
     </>
   );

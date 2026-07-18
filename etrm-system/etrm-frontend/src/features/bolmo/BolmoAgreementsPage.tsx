@@ -23,6 +23,7 @@ import { useCounterparties, useLegalEntities } from '@features/trade/hooks';
 import { COMMODITY_TYPES_TRADE } from '@features/trade/types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
+import { AuditInfo } from '@components/smart/AuditInfo';
 import { useUom } from '@features/reference/uom/hooks';
 import { useLocations } from '@features/logistics/locations/hooks';
 import { useCurrencies } from '@features/reference/currencies/hooks';
@@ -443,6 +444,7 @@ export function BolmoAgreementsPage() {
             <Input.TextArea rows={2} placeholder="Additional context, legal references, dispute details..." />
           </Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} updatedAt={editing?.updatedAt} />
       </Drawer>
 
       {/* ══ LEG DRAWER ══════════════════════════════════════════════════════════ */}

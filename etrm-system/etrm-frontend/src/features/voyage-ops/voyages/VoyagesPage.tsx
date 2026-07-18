@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '@components/layout/PageHeader';
 import { SmartGrid } from '@components/smart/SmartGrid';
 import { ActiveTag } from '@components/smart/StatusTag';
+import { AuditInfo } from '@components/smart/AuditInfo';
 import { useVessels } from '@features/logistics/vessels/hooks';
 import { useLocations } from '@features/logistics/locations/hooks';
 import { useVoyages, useSaveVoyage } from './hooks';
@@ -114,6 +115,7 @@ export function VoyagesPage() {
           <Form.Item name="notes" label="Notes"><Input.TextArea rows={3} /></Form.Item>
           <Form.Item name="isActive" hidden initialValue={true}><Input /></Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} createdBy={editing?.createdBy} updatedAt={editing?.updatedAt} updatedBy={editing?.updatedBy} />
       </Drawer>
     </div>
   );

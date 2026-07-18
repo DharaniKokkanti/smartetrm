@@ -7,6 +7,7 @@ import { SmartGrid } from '@components/smart/SmartGrid';
 import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AuditInfo } from '@components/smart/AuditInfo';
 import { COMMODITY_TYPES_TRADE } from '@features/trade/types';
 import { useFormulaTemplates, useSaveFormulaTemplate, useDeactivateFormulaTemplate } from './hooks';
 import {
@@ -142,6 +143,7 @@ export function FormulaTemplatesPage() {
             <Switch />
           </Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} />
       </Drawer>
     </>
   );

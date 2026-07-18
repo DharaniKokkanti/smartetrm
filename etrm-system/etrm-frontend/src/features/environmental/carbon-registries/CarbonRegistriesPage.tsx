@@ -10,6 +10,7 @@ import { useTableRows } from '@features/tier2/hooks';
 import { useCarbonRegistries, useSaveCarbonRegistry, useDeactivateCarbonRegistry } from './hooks';
 import type { CarbonRegistry, CarbonRegistryInput } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AuditInfo } from '@components/smart/AuditInfo';
 
 const TYPE_COLOR: Record<string, string> = { COMPLIANCE: 'blue', VOLUNTARY: 'green' };
 
@@ -88,6 +89,7 @@ export function CarbonRegistriesPage() {
           </Form.Item>
           <Form.Item name="isActive" label="Active" valuePropName="checked"><Switch /></Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} />
       </Drawer>
     </>
   );

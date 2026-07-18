@@ -10,6 +10,7 @@ import { useLocations, useSaveLocation, useDeactivateLocation } from './hooks';
 import { LOCATION_TYPE_CODES, type Location, type LocationInput, type LocationTypeCode } from './types';
 import { COMMODITY_TYPES, type CommodityType } from '@features/organization/desks/types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { AuditInfo } from '@components/smart/AuditInfo';
 import { useCountries } from '@features/reference/countries/hooks';
 
 const TYPE_COLOR: Record<LocationTypeCode, string> = {
@@ -129,6 +130,7 @@ export function LocationsPage() {
           </Space>
           <Form.Item name="isActive" label="Active" valuePropName="checked"><Switch /></Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} />
       </Drawer>
     </>
   );

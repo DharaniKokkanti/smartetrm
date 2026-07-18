@@ -12,6 +12,7 @@ import { useVessels, useSaveVessel, useDeactivateVessel } from './hooks';
 import { VESSEL_STATUS_CODES, type Vessel, type VesselInput, type VesselStatusCode } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
+import { AuditInfo } from '@components/smart/AuditInfo';
 import { useCountries } from '@features/reference/countries/hooks';
 import { useTableRows } from '@features/tier2/hooks';
 
@@ -197,6 +198,7 @@ export function VesselsPage() {
           </Form.Item>
           <Form.Item name="isActive" label="Active" valuePropName="checked"><Switch /></Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} />
       </Drawer>
     </>
   );

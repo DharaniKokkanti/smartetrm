@@ -7,6 +7,7 @@ import { PageHeader } from '@components/layout/PageHeader';
 import { SmartGrid } from '@components/smart/SmartGrid';
 import { ActiveTag } from '@components/smart/StatusTag';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
+import { AuditInfo } from '@components/smart/AuditInfo';
 import { useVessels } from '@features/logistics/vessels/hooks';
 import { useTableRows } from '@features/tier2/hooks';
 import { useVesselPerformanceCurves, useSaveVesselPerformanceCurve } from './hooks';
@@ -105,6 +106,7 @@ export function VesselPerformanceCurvesPage() {
           <Form.Item name="notes" label="Notes"><Input.TextArea rows={2} /></Form.Item>
           <Form.Item name="isActive" hidden initialValue={true}><Input /></Form.Item>
         </Form>
+        <AuditInfo createdAt={editing?.createdAt} createdBy={editing?.createdBy} updatedAt={editing?.updatedAt} updatedBy={editing?.updatedBy} />
       </Drawer>
     </>
   );

@@ -33,7 +33,15 @@ public class Location {
     @Column(name = "location_id")
     private Integer locationId;
 
-    @NotNull
+    // Not @NotNull: the frontend LocationTypeCode is a plain code string,
+    // not the numeric location_type_id FK (see this class's own doc
+    // comment) — LocationService.resolveForeignKeys resolves
+    // locationTypeCode -> locationTypeId before save. Bean validation on
+    // the raw @RequestBody runs before that resolution, so a @NotNull here
+    // made every real code-only create 400 (caught by
+    // LocationControllerTest.create_with_locationTypeCode_only_resolves_locationTypeId
+    // — same bug pattern found and fixed elsewhere this session). The DB's
+    // own NOT NULL constraint is still the final backstop.
     @Column(name = "location_type_id", nullable = false)
     private Integer locationTypeId;
 

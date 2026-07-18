@@ -6,7 +6,6 @@ import com.etrm.system.legalentity.LegalEntityRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -59,7 +58,6 @@ public class CpGtcAgreementService {
     public CpGtcAgreement create(CpGtcAgreement input) {
         resolveGtcVersion(input);
         input.setCpGtcId(null);
-        input.setCreatedAt(LocalDateTime.now());
         return hydrate(repository.save(input));
     }
 
@@ -68,7 +66,12 @@ public class CpGtcAgreementService {
                 .orElseThrow(() -> new NotFoundException("No GTC agreement with id " + id + "."));
         resolveGtcVersion(input);
         input.setCpGtcId(id);
+        // created_at/created_by are @CreatedDate/@CreatedBy — JPA auditing only
+        // populates those on insert, so the request body never carries them;
+        // without copying them from the existing row here, updatable=false
+        // keeps the DB value untouched but the response would show them as null.
         input.setCreatedAt(existing.getCreatedAt());
+        input.setCreatedBy(existing.getCreatedBy());
         return hydrate(repository.save(input));
     }
 
