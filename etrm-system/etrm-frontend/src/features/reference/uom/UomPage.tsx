@@ -18,11 +18,9 @@ export function UomPage() {
   const { data, isLoading, refetch } = useUom();
   const save = useSaveUom();
   const deactivate = useDeactivateUom();
-  const { data: uomTypeRows = [] } = useTableRows('uom_type');
-  type UomTypeRow = { uomTypeId: number; typeCode: string; typeName: string };
-  const uomTypeOpts = (uomTypeRows as UomTypeRow[]).map((r) => ({ value: r.uomTypeId, label: r.typeName }));
-  const { data: commodityRows = [] } = useTableRows('commodity');
-  const commodities = commodityRows as CommodityRow[];
+  const { data: uomTypeRows = [] } = useTableRows<{ uomTypeId: number; typeCode: string; typeName: string }>('uom_type');
+  const uomTypeOpts = uomTypeRows.map((r) => ({ value: r.uomTypeId, label: r.typeName }));
+  const { data: commodities = [] } = useTableRows<CommodityRow>('commodity');
   const commodityOpts = commodities.map((c) => ({ value: c.commodityId, label: c.commodityName }));
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Uom | null>(null);

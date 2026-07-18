@@ -146,6 +146,7 @@ export function GuaranteeFormDrawer({ open, onClose, editing, prefill }: Props) 
 
   useEffect(() => {
     if (!open) return;
+    // eslint-disable-next-line react-hooks/immutability -- skipDraftReset is a useRef() from useDraftValues; the compiler cannot see refs through a custom hook boundary
     if (skipDraftReset.current) { if (open) skipDraftReset.current = false; return; }
     // Deliberate: hydrates local role-type state (guarantorType/principalType/
     // beneficiaryType) from the `editing` record when the drawer opens for an

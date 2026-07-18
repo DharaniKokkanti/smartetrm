@@ -20,8 +20,8 @@ export function TanksPage() {
   const { data = [], isLoading, refetch } = useTanks();
   const save = useSaveTank();
   const deactivate = useDeactivateTank();
-  const { data: facilityRows = [] } = useTableRows('storage_facility');
-  const { data: productRows = [] } = useTableRows('product');
+  const { data: facilityRows = [] } = useTableRows<{ facilityId: number; facilityCode: string; facilityName: string }>('storage_facility');
+  const { data: productRows = [] } = useTableRows<{ productId: number; productCode: string; productName: string }>('product');
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Tank | null>(null);
@@ -48,13 +48,11 @@ export function TanksPage() {
   }
 
   const facilityOpts = useMemo(
-    () => (facilityRows as unknown as { facilityId: number; facilityCode: string; facilityName: string }[])
-      .map((f) => ({ value: f.facilityId, label: `${f.facilityCode} — ${f.facilityName}` })),
+    () => facilityRows.map((f) => ({ value: f.facilityId, label: `${f.facilityCode} — ${f.facilityName}` })),
     [facilityRows],
   );
   const productOpts = useMemo(
-    () => (productRows as unknown as { productId: number; productCode: string; productName: string }[])
-      .map((p) => ({ value: p.productId, label: `${p.productCode} — ${p.productName}` })),
+    () => productRows.map((p) => ({ value: p.productId, label: `${p.productCode} — ${p.productName}` })),
     [productRows],
   );
 

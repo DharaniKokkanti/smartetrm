@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Tooltip, Typography } from 'antd';
 import { LockOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import type { FieldPermissionMap } from './types';
@@ -8,10 +9,10 @@ interface PermissionFieldProps {
   fieldKey: string;
   permissions: FieldPermissionMap;
   /** Current display value shown when field is VIEW-only (pass the formatted string). */
-  readValue?: React.ReactNode;
+  readValue?: ReactNode;
   /** Tooltip shown when the field is VIEW due to a Layer 1 lock. */
   lockReason?: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 /**

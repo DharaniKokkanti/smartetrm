@@ -29,9 +29,15 @@ export function CharterPartiesPage() {
   const { data: locations = [] } = useLocations();
   const { data: counterparties = [] } = useCounterparties();
   const { data: currencies = [] } = useCurrencies();
-  const { data: cpTypes = [] } = useTableRows('charter_party_type');
-  const { data: laytimeTerms = [] } = useTableRows('laytime_term_template');
-  const { data: cpTemplates = [] } = useTableRows('charter_party_template');
+  const { data: cpTypes = [] } = useTableRows<{ charterPartyTypeId: number; typeCode: string }>('charter_party_type');
+  const { data: laytimeTerms = [] } = useTableRows<{ laytimeTermId: number; termCode: string }>('laytime_term_template');
+  type CpTemplate = {
+    templateId: number; templateCode: string; defaultLaytimeTermId: number | null;
+    defaultDemurrageRatePerDay: number | null; defaultDispatchRatePerDay: number | null;
+    defaultBunkerClauseBasis: string | null; defaultBunkerClauseTolerancePct: number | null;
+    defaultHirePaymentFrequency: string | null;
+  };
+  const { data: cpTemplates = [] } = useTableRows<CpTemplate>('charter_party_template');
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<CharterParty | null>(null);
@@ -41,20 +47,14 @@ export function CharterPartiesPage() {
   const locationOptions = locations.map((l) => ({ value: l.locationId, label: l.locationName }));
   const counterpartyOptions = counterparties.map((c) => ({ value: c.counterpartyId, label: c.legalName }));
   const currencyOptions = currencies.map((c) => ({ value: c.currencyId, label: c.currencyCode }));
-  const cpTypeOptions = (cpTypes as { charterPartyTypeId: number; typeCode: string }[]).map((t) => ({ value: t.charterPartyTypeId, label: t.typeCode }));
-  const laytimeTermOptions = (laytimeTerms as { laytimeTermId: number; termCode: string }[]).map((t) => ({ value: t.laytimeTermId, label: t.termCode }));
-  type CpTemplate = {
-    templateId: number; templateCode: string; defaultLaytimeTermId: number | null;
-    defaultDemurrageRatePerDay: number | null; defaultDispatchRatePerDay: number | null;
-    defaultBunkerClauseBasis: string | null; defaultBunkerClauseTolerancePct: number | null;
-    defaultHirePaymentFrequency: string | null;
-  };
-  const cpTemplateOptions = (cpTemplates as CpTemplate[]).map((t) => ({ value: t.templateId, label: t.templateCode }));
+  const cpTypeOptions = cpTypes.map((t) => ({ value: t.charterPartyTypeId, label: t.typeCode }));
+  const laytimeTermOptions = laytimeTerms.map((t) => ({ value: t.laytimeTermId, label: t.termCode }));
+  const cpTemplateOptions = cpTemplates.map((t) => ({ value: t.templateId, label: t.templateCode }));
 
   // Fills in the template's defaults only where the corresponding field is currently empty —
   // never clobbers a value the user already typed.
   function applyTemplateDefaults(templateId: number) {
-    const template = (cpTemplates as CpTemplate[]).find((t) => t.templateId === templateId);
+    const template = cpTemplates.find((t) => t.templateId === templateId);
     if (!template) return;
     const current = form.getFieldsValue();
     const patch: Record<string, unknown> = {};

@@ -25,7 +25,7 @@ export function CollateralPage() {
   const { data: counterparties = [] } = useCounterparties();
   const { data: legalEntities = [] } = useLegalEntities();
   const { data: currencies = [] } = useCurrencies();
-  const { data: collateralTypeRows = [] } = useTableRows('collateral_type');
+  const { data: collateralTypeRows = [] } = useTableRows<{ collateralTypeId: number; typeCode: string; typeName: string }>('collateral_type');
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Collateral | null>(null);
@@ -63,13 +63,11 @@ export function CollateralPage() {
   }
 
   const cpOpts = useMemo(
-    () => (counterparties as { counterpartyId: number; counterpartyCode: string; name: string }[])
-      .map((c) => ({ value: c.counterpartyId, label: `${c.counterpartyCode} — ${c.name}` })),
+    () => counterparties.map((c) => ({ value: c.counterpartyId, label: `${c.cpCode} — ${c.legalName}` })),
     [counterparties],
   );
   const leOpts = useMemo(
-    () => (legalEntities as { legalEntityId: number; entityCode: string; entityName: string }[])
-      .map((e) => ({ value: e.legalEntityId, label: `${e.entityCode} — ${e.entityName}` })),
+    () => legalEntities.map((e) => ({ value: e.legalEntityId, label: `${e.entityCode} — ${e.entityName}` })),
     [legalEntities],
   );
   const currencyOpts = useMemo(
@@ -77,8 +75,7 @@ export function CollateralPage() {
     [currencies],
   );
   const collateralTypeOpts = useMemo(
-    () => (collateralTypeRows as unknown as { collateralTypeId: number; typeCode: string; typeName: string; standardHaircutPct: number }[])
-      .map((t) => ({ value: t.collateralTypeId, label: `${t.typeCode} — ${t.typeName}` })),
+    () => collateralTypeRows.map((t) => ({ value: t.collateralTypeId, label: `${t.typeCode} — ${t.typeName}` })),
     [collateralTypeRows],
   );
 

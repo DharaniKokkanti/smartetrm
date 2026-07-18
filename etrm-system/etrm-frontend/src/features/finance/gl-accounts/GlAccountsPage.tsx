@@ -28,9 +28,8 @@ export function GlAccountsPage() {
   const { data = [], isLoading, refetch } = useGlAccounts();
   const save       = useSaveGlAccount();
   const deactivate = useDeactivateGlAccount();
-  const { data: accountTypeRows = [] } = useTableRows('gl_account_type');
-  type LR = { typeCode: string; typeName: string };
-  const accountTypeOpts = (accountTypeRows as LR[]).map((r) => ({ value: r.typeCode, label: r.typeName }));
+  const { data: accountTypeRows = [] } = useTableRows<{ typeCode: string; typeName: string }>('gl_account_type');
+  const accountTypeOpts = accountTypeRows.map((r) => ({ value: r.typeCode, label: r.typeName }));
 
   const { data: legalEntities = [] } = useLegalEntities();
   const legalEntityOpts = legalEntities.map((e) => ({ value: e.legalEntityId, label: `${e.entityCode} — ${e.entityName}` }));

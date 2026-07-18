@@ -56,7 +56,11 @@ export function LegalEntityFormDrawer({ open, onClose, editing, onSaved }: Props
   const [taxRegistrations, setTaxRegistrations] = useState<TaxRegistration[]>([]);
   const [loadingChildren, setLoadingChildren] = useState(false);
 
+  // Kicks off a child-record fetch and tracks its loading state — genuine
+  // sync-with-external-system effect, not derivable during render.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability -- skipDraftReset is a useRef() from useDraftValues; the compiler cannot see refs through a custom hook boundary
     if (skipDraftReset.current) { if (open) skipDraftReset.current = false; return; }
     if (open && editing) {
       form.setFieldsValue({
@@ -82,6 +86,7 @@ export function LegalEntityFormDrawer({ open, onClose, editing, onSaved }: Props
       setTaxRegistrations([]);
     }
   }, [open, editing, form]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const parentOptions = (entities ?? [])
     .filter((e) => e.legalEntityId !== editing?.legalEntityId)

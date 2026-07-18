@@ -21,7 +21,7 @@ export function RegulatoryObligationsPage() {
   const save = useSaveRegulatoryObligation();
   const deactivate = useDeactivateRegulatoryObligation();
   const { data: legalEntities = [] } = useLegalEntities();
-  const { data: reportTypeRows = [] } = useTableRows('regulatory_report_type');
+  const { data: reportTypeRows = [] } = useTableRows<{ reportTypeId: number; reportCode: string; reportName: string }>('regulatory_report_type');
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<RegulatoryObligation | null>(null);
@@ -60,13 +60,11 @@ export function RegulatoryObligationsPage() {
   }
 
   const leOpts = useMemo(
-    () => (legalEntities as { legalEntityId: number; entityCode: string; entityName: string }[])
-      .map((e) => ({ value: e.legalEntityId, label: `${e.entityCode} — ${e.entityName}` })),
+    () => legalEntities.map((e) => ({ value: e.legalEntityId, label: `${e.entityCode} — ${e.entityName}` })),
     [legalEntities],
   );
   const reportTypeOpts = useMemo(
-    () => (reportTypeRows as unknown as { reportTypeId: number; reportCode: string; reportName: string }[])
-      .map((t) => ({ value: t.reportTypeId, label: `${t.reportCode} — ${t.reportName}` })),
+    () => reportTypeRows.map((t) => ({ value: t.reportTypeId, label: `${t.reportCode} — ${t.reportName}` })),
     [reportTypeRows],
   );
 

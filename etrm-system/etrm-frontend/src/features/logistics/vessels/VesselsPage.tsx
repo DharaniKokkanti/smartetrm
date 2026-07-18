@@ -34,13 +34,12 @@ export function VesselsPage() {
   const { data: countries = [] } = useCountries();
   const countryOptions = countries.map((c) => ({ value: c.countryId, label: `${c.countryCode} — ${c.countryName}` }));
   const countryLabelById = new Map(countries.map((c) => [c.countryId, `${c.countryCode} — ${c.countryName}`]));
-  const { data: fleets = [] } = useTableRows('fleet');
-  const fleetOptions = (fleets as { fleetId: number; fleetName: string }[]).map((f) => ({ value: f.fleetId, label: f.fleetName }));
-  const { data: vesselTypes = [] } = useTableRows('vessel_type');
-  const typedVesselTypes = vesselTypes as { vesselTypeId: number; typeCode: string; typeName: string }[];
+  const { data: fleets = [] } = useTableRows<{ fleetId: number; fleetName: string }>('fleet');
+  const fleetOptions = fleets.map((f) => ({ value: f.fleetId, label: f.fleetName }));
+  const { data: typedVesselTypes = [] } = useTableRows<{ vesselTypeId: number; typeCode: string; typeName: string }>('vessel_type');
   const vesselTypeOptions = typedVesselTypes.map((t) => ({ value: t.vesselTypeId, label: t.typeName }));
-  const { data: transportOperators = [] } = useTableRows('transport_operator');
-  const operatorOptions = (transportOperators as { operatorId: number; operatorName: string }[]).map((o) => ({ value: o.operatorId, label: o.operatorName }));
+  const { data: transportOperators = [] } = useTableRows<{ operatorId: number; operatorName: string }>('transport_operator');
+  const operatorOptions = transportOperators.map((o) => ({ value: o.operatorId, label: o.operatorName }));
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Vessel | null>(null);
   const [form] = Form.useForm<VesselInput>();

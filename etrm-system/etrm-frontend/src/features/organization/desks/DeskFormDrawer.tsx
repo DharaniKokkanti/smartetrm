@@ -21,6 +21,7 @@ export function DeskFormDrawer({ open, editing, onClose, onSaved }: Props) {
   const { data: tradingDeskLocations = [] } = useTradingDeskLocations();
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability -- skipDraftReset is a useRef() from useDraftValues; the compiler cannot see refs through a custom hook boundary
     if (skipDraftReset.current) { if (open) skipDraftReset.current = false; return; }
     if (open) {
       if (editing) {

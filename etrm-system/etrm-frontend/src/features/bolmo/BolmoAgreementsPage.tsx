@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import {
   Button, Space, Popconfirm, Tag, Drawer, Form, Input, Select, InputNumber,
   Card, Table, Divider, Typography, Row, Col, Tooltip, Badge, Empty, Alert,
@@ -36,7 +36,7 @@ const STATUS_COLOR: Record<BolmoStatus, string> = {
 const DIRECTION_COLOR: Record<string, string> = { BUY: 'green', SELL: 'red' };
 
 function statusTag(s: BolmoStatus) {
-  const icons: Partial<Record<BolmoStatus, React.ReactNode>> = {
+  const icons: Partial<Record<BolmoStatus, ReactNode>> = {
     AGREED: <CheckCircleOutlined />, COMPLETED: <FileDoneOutlined />, DISPUTED: <WarningOutlined />,
   };
   return <Tag color={STATUS_COLOR[s]} icon={icons[s]} style={{ fontSize: 10 }}>{s}</Tag>;
@@ -349,8 +349,7 @@ export function BolmoAgreementsPage() {
                 <Select
                   showSearch allowClear
                   filterOption={(i, o) => (o?.label ?? '').toLowerCase().includes(i.toLowerCase())}
-                  options={(counterparties as unknown as { counterpartyId: number; counterpartyCode: string; counterpartyName: string }[])
-                    .map((c) => ({ value: c.counterpartyId, label: `${c.counterpartyCode} — ${c.counterpartyName}` }))}
+                  options={counterparties.map((c) => ({ value: c.counterpartyId, label: `${c.cpCode} — ${c.legalName}` }))}
                   placeholder="Select counterparty"
                 />
               </Form.Item>
@@ -359,8 +358,7 @@ export function BolmoAgreementsPage() {
               <Form.Item name="legalEntityId" label="Our Legal Entity" rules={[{ required: true }]}>
                 <Select
                   showSearch allowClear
-                  options={(legalEntities as unknown as { legalEntityId: number; entityCode: string; entityName: string }[])
-                    .map((e) => ({ value: e.legalEntityId, label: `${e.entityCode} — ${e.entityName}` }))}
+                  options={legalEntities.map((e) => ({ value: e.legalEntityId, label: `${e.entityCode} — ${e.entityName}` }))}
                   placeholder="Select legal entity"
                 />
               </Form.Item>

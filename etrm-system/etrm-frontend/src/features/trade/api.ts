@@ -2,8 +2,12 @@ import type {
   Trade, TradeInput, TradeFilter, TradeOrder, TradeOrderInput, TradeItem, TradeItemInput,
   TradeCost, TradeCostInput, TradeOrderCost, TradeOrderCostInput, TradeAssayResult, TradeAssayResultInput,
   CustomFieldDefinition, CustomFieldDefinitionInput, TradeCustomFieldValue, TradeCustomFieldValueInput,
-  TradeOrderCustomFieldValue, TradeOrderCustomFieldValueInput,
+  TradeOrderCustomFieldValue, TradeOrderCustomFieldValueInput, CommodityTypeTrade,
 } from './types';
+import type { Counterparty } from '@features/tier1/counterparty/types';
+import type { LegalEntity } from '@features/tier1/legal-entity/types';
+
+export type { Counterparty, LegalEntity };
 
 const BASE = '/api/v1';
 
@@ -242,17 +246,12 @@ export async function deleteLegCustomFieldValue(id: number): Promise<void> {
 
 // ─── Reference data dropdowns ─────────────────────────────────────────────────
 
-// NOTE: these declared shapes are stale — /counterparties and /legal-entities
-// are actually served by the tier1 handlers (registered before etrmHandlers in
-// mocks/browser.ts), whose rows use cpCode/legalName and entityCode/entityName.
-// ~12 consuming pages cast to this stale shape, so labels built from
-// counterpartyCode/name render "undefined" at runtime. Kept as-is here to
-// avoid a mass ripple; fix consumers to cpCode/legalName as they're touched
-// (TradeBlotter already reads the real fields).
-export interface Counterparty { counterpartyId: number; counterpartyCode: string; name: string; }
-export interface LegalEntity { legalEntityId: number; entityCode: string; name: string; }
+// /counterparties and /legal-entities are actually served by the tier1
+// handlers (registered before etrmHandlers in mocks/browser.ts) — Counterparty
+// and LegalEntity above are the real tier1 row shapes, re-exported for callers
+// that only need the reference-data subset.
 export interface Incoterm { incotermId: number; incotermCode: string; incotermName: string; }
-export interface BrokerRef { brokerId: number; brokerCode: string; brokerName: string; isActive: boolean; }
+export interface BrokerRef { brokerId: number; brokerCode: string; brokerName: string; commodityType: CommodityTypeTrade | null; isActive: boolean; }
 export interface PipelineRef { pipelineId: number; pipelineCode: string; pipelineName: string; pipelineType: string; }
 
 export async function fetchCounterparties(): Promise<Counterparty[]> {

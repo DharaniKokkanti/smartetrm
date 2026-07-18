@@ -28,7 +28,7 @@ export function InsurancePoliciesPage() {
   const save = useSaveInsurancePolicy();
   const { data: legalEntities = [] } = useLegalEntities();
   const { data: currencies = [] } = useCurrencies();
-  const { data: providerRows = [] } = useTableRows('insurance_provider');
+  const { data: providerRows = [] } = useTableRows<{ providerId: number; providerCode: string; providerName: string }>('insurance_provider');
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<InsurancePolicy | null>(null);
@@ -65,8 +65,7 @@ export function InsurancePoliciesPage() {
   }
 
   const providerOpts = useMemo(
-    () => (providerRows as unknown as { providerId: number; providerCode: string; providerName: string }[])
-      .map((p) => ({ value: p.providerId, label: `${p.providerCode} — ${p.providerName}` })),
+    () => providerRows.map((p) => ({ value: p.providerId, label: `${p.providerCode} — ${p.providerName}` })),
     [providerRows],
   );
   const leOpts = useMemo(

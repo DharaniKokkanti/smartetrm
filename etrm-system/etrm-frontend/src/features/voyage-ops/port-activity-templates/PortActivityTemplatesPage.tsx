@@ -21,11 +21,9 @@ interface TemplateRow {
 }
 
 export function PortActivityTemplatesPage() {
-  const { data: templates = [], isLoading } = useTableRows('port_activity_template');
+  const { data: rows = [], isLoading } = useTableRows<TemplateRow>('port_activity_template');
   const navigate = useNavigate();
   const [stepsFor, setStepsFor] = useState<TemplateRow | null>(null);
-
-  const rows = templates as unknown as TemplateRow[];
 
   return (
     <div>
@@ -61,7 +59,7 @@ function StepsDrawer({ template, onClose }: { template: TemplateRow; onClose: ()
   const { data = [], isLoading } = usePortActivityTemplateSteps(template.templateId);
   const save = useSavePortActivityTemplateStep();
   const del = useDeletePortActivityTemplateStep();
-  const { data: eventTypes = [] } = useTableRows('sof_event_type');
+  const { data: eventTypes = [] } = useTableRows<{ sofEventTypeId: number; eventCode: string }>('sof_event_type');
   const [open, setOpen] = useState(false);
   const [form] = Form.useForm<PortActivityTemplateStepInput>();
 
@@ -105,7 +103,7 @@ function StepsDrawer({ template, onClose }: { template: TemplateRow; onClose: ()
         </Space>}>
         <Form form={form} layout="vertical" initialValues={{ stepSequence: (data.length ?? 0) + 1 }}>
           <Form.Item name="sofEventTypeId" label="Event" rules={[{ required: true }]}>
-            <Select showSearch optionFilterProp="label" options={(eventTypes as { sofEventTypeId: number; eventCode: string }[]).map((t) => ({ value: t.sofEventTypeId, label: t.eventCode }))} />
+            <Select showSearch optionFilterProp="label" options={eventTypes.map((t) => ({ value: t.sofEventTypeId, label: t.eventCode }))} />
           </Form.Item>
           <Form.Item name="stepSequence" label="Step #" rules={[{ required: true }]}><InputNumber style={{ width: '100%' }} min={1} /></Form.Item>
           <Form.Item name="typicalDurationHours" label="Typical Duration (hrs)"><InputNumber style={{ width: '100%' }} min={0} /></Form.Item>

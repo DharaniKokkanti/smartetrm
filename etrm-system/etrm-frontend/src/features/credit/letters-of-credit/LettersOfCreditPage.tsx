@@ -41,13 +41,12 @@ export function LettersOfCreditPage() {
   const cancel = useCancelLetterOfCredit();
   const { data: counterparties = [] } = useCounterparties();
   const { data: legalEntities = [] }  = useLegalEntities();
-  const { data: lcTypeRows = [] }     = useTableRows('lc_type');
-  const { data: lcStatusRows = [] }   = useTableRows('lc_status_type');
+  const { data: lcTypeRows = [] }     = useTableRows<{ typeCode: string; typeName: string }>('lc_type');
+  const { data: lcStatusRows = [] }   = useTableRows<{ typeCode: string; typeName: string }>('lc_status_type');
   const { data: currencies = [] }     = useCurrencies();
 
-  type LookupRow = { typeCode: string; typeName: string };
-  const lcTypeOpts   = (lcTypeRows   as LookupRow[]).map((r) => ({ value: r.typeCode, label: r.typeName }));
-  const lcStatusOpts = (lcStatusRows as LookupRow[]).map((r) => ({ value: r.typeCode, label: r.typeName }));
+  const lcTypeOpts   = lcTypeRows.map((r) => ({ value: r.typeCode, label: r.typeName }));
+  const lcStatusOpts = lcStatusRows.map((r) => ({ value: r.typeCode, label: r.typeName }));
   const currencyOpts = useMemo(
     () => currencies.map((c) => ({ value: c.currencyId, label: `${c.currencyCode} — ${c.currencyName}` })),
     [currencies],
@@ -99,13 +98,11 @@ export function LettersOfCreditPage() {
   }
 
   const cpOpts = useMemo(
-    () => (counterparties as { counterpartyId: number; counterpartyCode: string; name: string }[])
-      .map((c) => ({ value: c.counterpartyId, label: `${c.counterpartyCode} — ${c.name}` })),
+    () => counterparties.map((c) => ({ value: c.counterpartyId, label: `${c.cpCode} — ${c.legalName}` })),
     [counterparties],
   );
   const leOpts = useMemo(
-    () => (legalEntities as { legalEntityId: number; entityCode: string; name: string }[])
-      .map((e) => ({ value: e.legalEntityId, label: `${e.entityCode} — ${e.name}` })),
+    () => legalEntities.map((e) => ({ value: e.legalEntityId, label: `${e.entityCode} — ${e.entityName}` })),
     [legalEntities],
   );
 

@@ -28,7 +28,7 @@ export function PipelineCyclesPage() {
   const deactivate = useDeactivatePipelineCycle();
   const { data: pipelines = [] } = usePipelines();
   const { data: calendars = [] } = useHolidayCalendars();
-  const { data: productRows = [] } = useTableRows('product');
+  const { data: productRows = [] } = useTableRows<{ productId: number; productCode: string; productName: string }>('product');
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<PipelineCycle | null>(null);
@@ -82,8 +82,7 @@ export function PipelineCyclesPage() {
     [calendars],
   );
   const productOpts = useMemo(
-    () => (productRows as unknown as { productId: number; productCode: string; productName: string }[])
-      .map((p) => ({ value: p.productId, label: `${p.productCode} — ${p.productName}` })),
+    () => productRows.map((p) => ({ value: p.productId, label: `${p.productCode} — ${p.productName}` })),
     [productRows],
   );
 

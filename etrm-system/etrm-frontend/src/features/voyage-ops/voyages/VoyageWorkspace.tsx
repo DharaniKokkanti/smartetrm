@@ -63,7 +63,7 @@ function CargoParcelsTab({ voyageId }: { voyageId: number }) {
   const { data: products = [] } = useProducts();
   const { data: uoms = [] } = useUom();
   const { data: locations = [] } = useLocations();
-  const { data: commodityTypes = [] } = useTableRows('commodity_type');
+  const { data: commodityTypes = [] } = useTableRows<{ commodityTypeId: number; typeCode: string }>('commodity_type');
   const [open, setOpen] = useState(false);
   const [form] = Form.useForm<VoyageCargoParcelInput>();
 
@@ -98,7 +98,7 @@ function CargoParcelsTab({ voyageId }: { voyageId: number }) {
             options={products.map((p) => ({ value: p.productId, label: p.productName }))} /></Form.Item>
           <Form.Item name="commodityTypeId" label="Commodity Type (defaults from Product if left blank)">
             <Select allowClear showSearch optionFilterProp="label"
-              options={(commodityTypes as { commodityTypeId: number; typeCode: string }[]).map((c) => ({ value: c.commodityTypeId, label: c.typeCode }))} />
+              options={commodityTypes.map((c) => ({ value: c.commodityTypeId, label: c.typeCode }))} />
           </Form.Item>
           <Form.Item name="quantity" label="Quantity" rules={[{ required: true }]}><InputNumber style={{ width: '100%' }} min={0} /></Form.Item>
           <Form.Item name="uomId" label="UOM" rules={[{ required: true }]}><Select showSearch optionFilterProp="label"
@@ -119,7 +119,7 @@ function CargoParcelsTab({ voyageId }: { voyageId: number }) {
 function BunkerStemsTab({ voyageId, vesselId }: { voyageId: number; vesselId: number }) {
   const { data = [], isLoading } = useBunkerStems({ voyageId });
   const save = useSaveBunkerStem();
-  const { data: fuelGrades = [] } = useTableRows('bunker_fuel_grade');
+  const { data: fuelGrades = [] } = useTableRows<{ fuelGradeId: number; gradeCode: string }>('bunker_fuel_grade');
   const { data: locations = [] } = useLocations();
   const [open, setOpen] = useState(false);
   const [form] = Form.useForm<BunkerStemInput>();
@@ -159,7 +159,7 @@ function BunkerStemsTab({ voyageId, vesselId }: { voyageId: number; vesselId: nu
       <Modal title="Add Bunker Stem" open={open} onCancel={() => setOpen(false)} onOk={() => void submit()} confirmLoading={save.isPending}>
         <Form form={form} layout="vertical" initialValues={{ status: 'NOMINATED' }}>
           <Form.Item name="fuelGradeId" label="Fuel Grade" rules={[{ required: true }]}>
-            <Select showSearch optionFilterProp="label" options={(fuelGrades as { fuelGradeId: number; gradeCode: string }[]).map((f) => ({ value: f.fuelGradeId, label: f.gradeCode }))} />
+            <Select showSearch optionFilterProp="label" options={fuelGrades.map((f) => ({ value: f.fuelGradeId, label: f.gradeCode }))} />
           </Form.Item>
           <Form.Item name="quantityMt" label="Quantity (MT)" rules={[{ required: true }]}><InputNumber style={{ width: '100%' }} min={0} /></Form.Item>
           <Form.Item name="pricePerMt" label="Price per MT"><InputNumber style={{ width: '100%' }} min={0} /></Form.Item>
@@ -181,7 +181,7 @@ function BunkerStemsTab({ voyageId, vesselId }: { voyageId: number; vesselId: nu
 function SofEventsTab({ voyageId }: { voyageId: number }) {
   const { data = [], isLoading } = useSofEvents(voyageId);
   const save = useSaveSofEvent();
-  const { data: eventTypes = [] } = useTableRows('sof_event_type');
+  const { data: eventTypes = [] } = useTableRows<{ sofEventTypeId: number; eventCode: string }>('sof_event_type');
   const { data: locations = [] } = useLocations();
   const [open, setOpen] = useState(false);
   const [form] = Form.useForm<VoyageSofEventInput>();
@@ -222,7 +222,7 @@ function SofEventsTab({ voyageId }: { voyageId: number }) {
           </Form.Item>
           <Form.Item name="portCallSequence" label="Port Call #" rules={[{ required: true }]}><InputNumber style={{ width: '100%' }} min={1} /></Form.Item>
           <Form.Item name="sofEventTypeId" label="Event Type" rules={[{ required: true }]}>
-            <Select showSearch optionFilterProp="label" options={(eventTypes as { sofEventTypeId: number; eventCode: string }[]).map((t) => ({ value: t.sofEventTypeId, label: t.eventCode }))} />
+            <Select showSearch optionFilterProp="label" options={eventTypes.map((t) => ({ value: t.sofEventTypeId, label: t.eventCode }))} />
           </Form.Item>
           <Form.Item name="eventTimestamp" label="Timestamp" rules={[{ required: true }]}><DatePicker showTime style={{ width: '100%' }} /></Form.Item>
           <Form.Item name="remarks" label="Remarks"><Input.TextArea rows={2} /></Form.Item>
@@ -236,7 +236,7 @@ function LaytimeTab({ voyageId }: { voyageId: number }) {
   const { data = [], isLoading } = useLaytimeCalculations(voyageId);
   const create = useCreateLaytimeCalculation();
   const { data: locations = [] } = useLocations();
-  const { data: laytimeTerms = [] } = useTableRows('laytime_term_template');
+  const { data: laytimeTerms = [] } = useTableRows<{ laytimeTermId: number; termCode: string }>('laytime_term_template');
   const [open, setOpen] = useState(false);
   const [form] = Form.useForm<LaytimeCalculationInput>();
 
@@ -272,7 +272,7 @@ function LaytimeTab({ voyageId }: { voyageId: number }) {
             <Select showSearch optionFilterProp="label" options={locations.map((l) => ({ value: l.locationId, label: l.locationName }))} />
           </Form.Item>
           <Form.Item name="laytimeTermId" label="Laytime Term"><Select allowClear showSearch optionFilterProp="label"
-            options={(laytimeTerms as { laytimeTermId: number; termCode: string }[]).map((t) => ({ value: t.laytimeTermId, label: t.termCode }))} /></Form.Item>
+            options={laytimeTerms.map((t) => ({ value: t.laytimeTermId, label: t.termCode }))} /></Form.Item>
           <Form.Item name="allowedLaytimeHours" label="Allowed Laytime (hrs)"><InputNumber style={{ width: '100%' }} /></Form.Item>
           <Form.Item name="usedLaytimeHours" label="Used Laytime (hrs)"><InputNumber style={{ width: '100%' }} /></Form.Item>
           <Form.Item name="demurrageHours" label="Demurrage (hrs)"><InputNumber style={{ width: '100%' }} /></Form.Item>

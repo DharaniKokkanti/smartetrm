@@ -172,7 +172,8 @@ function RoleFormModal({ open, editing, modules, functions, onClose }: RoleFormM
 
   const [grantMap, setGrantMap] = useState<Map<number, 'READ' | 'READ_WRITE'>>(new Map());
 
-  // Seed grantMap when role detail loads
+  // Seed grantMap when role detail loads — genuine sync-with-external-query-data effect.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (detail?.functions) {
       const m = new Map<number, 'READ' | 'READ_WRITE'>();
@@ -183,6 +184,7 @@ function RoleFormModal({ open, editing, modules, functions, onClose }: RoleFormM
 
   // Reset when switching between roles (or create vs edit)
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability -- skipDraftReset is a useRef() from useDraftValues; the compiler cannot see refs through a custom hook boundary
     if (skipDraftReset.current) { if (open) skipDraftReset.current = false; return; }
     if (!editing) {
       form.resetFields();
@@ -191,6 +193,7 @@ function RoleFormModal({ open, editing, modules, functions, onClose }: RoleFormM
       form.setFieldsValue({ roleCode: editing.roleCode, roleName: editing.roleName, description: editing.description });
     }
   }, [editing, form, open]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   async function handleOk() {
     const vals = await form.validateFields();

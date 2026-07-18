@@ -16,13 +16,13 @@ export function VesselPerformanceCurvesPage() {
   const { data = [], isLoading, refetch } = useVesselPerformanceCurves();
   const save = useSaveVesselPerformanceCurve();
   const { data: vessels = [] } = useVessels();
-  const { data: fuelGrades = [] } = useTableRows('bunker_fuel_grade');
+  const { data: fuelGrades = [] } = useTableRows<{ fuelGradeId: number; gradeCode: string }>('bunker_fuel_grade');
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<VesselPerformanceCurve | null>(null);
   const [form] = Form.useForm<VesselPerformanceCurveInput>();
 
   const vesselOptions = vessels.map((v) => ({ value: v.vesselId, label: v.vesselName }));
-  const fuelGradeOptions = (fuelGrades as { fuelGradeId: number; gradeCode: string }[]).map((f) => ({ value: f.fuelGradeId, label: f.gradeCode }));
+  const fuelGradeOptions = fuelGrades.map((f) => ({ value: f.fuelGradeId, label: f.gradeCode }));
 
   function openNew() {
     setEditing(null);

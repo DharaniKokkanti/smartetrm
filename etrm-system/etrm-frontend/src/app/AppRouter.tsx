@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, type ComponentType, type ReactNode } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Spin } from 'antd';
 import { AppShell } from '@components/layout/AppShell';
@@ -7,11 +7,11 @@ import { NotFoundPage } from '@pages/NotFoundPage';
 import { LoginPage } from '@features/auth/LoginPage';
 import { RequireAuth } from '@features/auth/RequireAuth';
 
-function lazy1<T extends Record<string, React.ComponentType>>(
+function lazy1<T extends Record<string, ComponentType>>(
   factory: () => Promise<T>,
   exportName: keyof T,
 ) {
-  return lazy(() => factory().then((m) => ({ default: m[exportName] as React.ComponentType })));
+  return lazy(() => factory().then((m) => ({ default: m[exportName] as ComponentType })));
 }
 
 // Legacy tier pages
@@ -144,7 +144,7 @@ function RouteFallback() {
   return <div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}><Spin size="large" /></div>;
 }
 
-function S({ children }: { children: React.ReactNode }) {
+function S({ children }: { children: ReactNode }) {
   return <Suspense fallback={<RouteFallback />}>{children}</Suspense>;
 }
 

@@ -29,13 +29,12 @@ function ApprovedProductsDrawer({ railcar, onClose }: { railcar: Railcar; onClos
   const { data = [], isLoading } = useRailcarApprovedProducts(railcarId);
   const save = useSaveRailcarApprovedProduct(railcarId);
   const remove = useDeleteRailcarApprovedProduct(railcarId);
-  const { data: productRows = [] } = useTableRows('product');
+  const { data: productRows = [] } = useTableRows<{ productId: number; productCode: string; productName: string }>('product');
   const [addOpen, setAddOpen] = useState(false);
   const [form] = Form.useForm<{ productId: number; approvalStatus: string; effectiveFrom: Dayjs; effectiveTo?: Dayjs; regulatoryRef?: string; conditions?: string }>();
 
   const productOpts = useMemo(
-    () => (productRows as unknown as { productId: number; productCode: string; productName: string }[])
-      .map((p) => ({ value: p.productId, label: `${p.productCode} — ${p.productName}` })),
+    () => productRows.map((p) => ({ value: p.productId, label: `${p.productCode} — ${p.productName}` })),
     [productRows],
   );
 
@@ -117,7 +116,7 @@ export function RailcarsPage() {
   const { data = [], isLoading, refetch } = useRailcars();
   const save = useSaveRailcar();
   const deactivate = useDeactivateRailcar();
-  const { data: operatorRows = [] } = useTableRows('transport_operator');
+  const { data: operatorRows = [] } = useTableRows<{ operatorId: number; operatorCode: string; operatorName: string }>('transport_operator');
   const { data: countries = [] } = useCountries();
 
   const [open, setOpen] = useState(false);
@@ -158,8 +157,7 @@ export function RailcarsPage() {
   }
 
   const operatorOpts = useMemo(
-    () => (operatorRows as unknown as { operatorId: number; operatorCode: string; operatorName: string }[])
-      .map((o) => ({ value: o.operatorId, label: `${o.operatorCode} — ${o.operatorName}` })),
+    () => operatorRows.map((o) => ({ value: o.operatorId, label: `${o.operatorCode} — ${o.operatorName}` })),
     [operatorRows],
   );
   const countryOpts = useMemo(

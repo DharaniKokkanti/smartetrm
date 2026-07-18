@@ -17,7 +17,7 @@ export function ContainersPage() {
   const { data = [], isLoading, refetch } = useContainers();
   const save = useSaveContainer();
   const deactivate = useDeactivateContainer();
-  const { data: operatorRows = [] } = useTableRows('transport_operator');
+  const { data: operatorRows = [] } = useTableRows<{ operatorId: number; operatorCode: string; operatorName: string }>('transport_operator');
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Container | null>(null);
@@ -56,8 +56,7 @@ export function ContainersPage() {
   }
 
   const operatorOpts = useMemo(
-    () => (operatorRows as unknown as { operatorId: number; operatorCode: string; operatorName: string }[])
-      .map((o) => ({ value: o.operatorId, label: `${o.operatorCode} — ${o.operatorName}` })),
+    () => operatorRows.map((o) => ({ value: o.operatorId, label: `${o.operatorCode} — ${o.operatorName}` })),
     [operatorRows],
   );
 

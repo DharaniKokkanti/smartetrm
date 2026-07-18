@@ -61,8 +61,7 @@ export function RinTransactionsPage() {
     [accounts],
   );
   const cpOpts = useMemo(
-    () => (counterparties as { counterpartyId: number; counterpartyCode: string; name: string }[])
-      .map((c) => ({ value: c.counterpartyId, label: `${c.counterpartyCode} — ${c.name}` })),
+    () => counterparties.map((c) => ({ value: c.counterpartyId, label: `${c.cpCode} — ${c.legalName}` })),
     [counterparties],
   );
   const obligationOpts = useMemo(

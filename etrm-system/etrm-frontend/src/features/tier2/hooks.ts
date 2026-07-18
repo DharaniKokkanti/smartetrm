@@ -22,10 +22,10 @@ export function useTableMetadata(tableName: string | null) {
   });
 }
 
-export function useTableRows(tableName: string | null) {
+export function useTableRows<T = ReferenceDataRow>(tableName: string | null) {
   return useQuery({
     queryKey: ['reference-data', tableName, 'rows'],
-    queryFn: () => referenceDataApi.listRows(tableName!),
+    queryFn: () => referenceDataApi.listRows(tableName!) as Promise<T[]>,
     enabled: tableName !== null,
   });
 }

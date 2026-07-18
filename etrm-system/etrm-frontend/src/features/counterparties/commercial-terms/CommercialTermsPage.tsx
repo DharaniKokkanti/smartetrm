@@ -25,7 +25,7 @@ export function CommercialTermsPage() {
   const { data: counterparties = [] } = useCounterparties();
   const { data: legalEntities = [] } = useLegalEntities();
   const { data: paymentTerms = [] } = usePaymentTerms();
-  const { data: creditTermRows = [] } = useTableRows('credit_term');
+  const { data: creditTermRows = [] } = useTableRows<{ creditTermId: number; termCode: string; termName: string }>('credit_term');
   const { data: currencies = [] } = useCurrencies();
 
   const [open, setOpen] = useState(false);
@@ -63,13 +63,11 @@ export function CommercialTermsPage() {
   }
 
   const cpOpts = useMemo(
-    () => (counterparties as { counterpartyId: number; counterpartyCode: string; name: string }[])
-      .map((c) => ({ value: c.counterpartyId, label: `${c.counterpartyCode} — ${c.name}` })),
+    () => counterparties.map((c) => ({ value: c.counterpartyId, label: `${c.cpCode} — ${c.legalName}` })),
     [counterparties],
   );
   const leOpts = useMemo(
-    () => (legalEntities as { legalEntityId: number; entityCode: string; entityName: string }[])
-      .map((e) => ({ value: e.legalEntityId, label: `${e.entityCode} — ${e.entityName}` })),
+    () => legalEntities.map((e) => ({ value: e.legalEntityId, label: `${e.entityCode} — ${e.entityName}` })),
     [legalEntities],
   );
   const paymentTermOpts = useMemo(
@@ -78,8 +76,7 @@ export function CommercialTermsPage() {
     [paymentTerms],
   );
   const creditTermOpts = useMemo(
-    () => (creditTermRows as unknown as { creditTermId: number; termCode: string; termName: string }[])
-      .map((t) => ({ value: t.creditTermId, label: `${t.termCode} — ${t.termName}` })),
+    () => creditTermRows.map((t) => ({ value: t.creditTermId, label: `${t.termCode} — ${t.termName}` })),
     [creditTermRows],
   );
   const currencyOpts = useMemo(

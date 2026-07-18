@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import { Button, Space, Tag, Drawer, Form, Input, InputNumber, Select, Switch } from 'antd';
 import { EditOutlined } from '@ant-design/icons';
 import type { ColDef } from 'ag-grid-community';
-import type { ReferenceDataRow } from '@models/referenceData';
 import { PageHeader } from '@components/layout/PageHeader';
 import { SmartGrid } from '@components/smart/SmartGrid';
 import { hint } from '@components/smart/FieldHint';
@@ -17,7 +16,7 @@ export function TransportRoutesPage() {
   const { data = [], isLoading, refetch } = useTransportRoutes();
   const save = useSaveTransportRoute();
   const { data: locations = [] } = useLocations();
-  const { data: motTypes = [] } = useTableRows('mot_type');
+  const { data: motTypes = [] } = useTableRows<{ motTypeId: number; typeName: string }>('mot_type');
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<TransportRoute | null>(null);
@@ -50,7 +49,7 @@ export function TransportRoutesPage() {
   );
 
   const motTypeOpts = useMemo(
-    () => (motTypes as ReferenceDataRow[]).map((m) => ({ value: m['motTypeId'] as number, label: m['typeName'] as string })),
+    () => motTypes.map((m) => ({ value: m.motTypeId, label: m.typeName })),
     [motTypes],
   );
 

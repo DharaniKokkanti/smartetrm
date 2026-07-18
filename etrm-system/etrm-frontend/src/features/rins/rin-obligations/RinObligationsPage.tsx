@@ -31,8 +31,7 @@ export function RinObligationsPage() {
   const { data: fuelCats = [] }      = useRinFuelCategories();
 
   const leOpts = useMemo(
-    () => (legalEntities as { legalEntityId: number; entityCode: string; name: string }[])
-      .map((e) => ({ value: e.legalEntityId, label: `${e.entityCode} — ${e.name}` })),
+    () => legalEntities.map((e) => ({ value: e.legalEntityId, label: `${e.entityCode} — ${e.entityName}` })),
     [legalEntities],
   );
   const dCodeOpts = useMemo(

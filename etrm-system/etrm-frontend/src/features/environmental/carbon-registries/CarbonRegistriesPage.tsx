@@ -17,9 +17,8 @@ export function CarbonRegistriesPage() {
   const { data = [], isLoading, refetch } = useCarbonRegistries();
   const save       = useSaveCarbonRegistry();
   const deactivate = useDeactivateCarbonRegistry();
-  const { data: registryTypeRows = [] } = useTableRows('carbon_registry_type');
-  type LR = { typeCode: string; typeName: string };
-  const registryTypeOpts = (registryTypeRows as LR[]).map((r) => ({ value: r.typeCode, label: r.typeName }));
+  const { data: registryTypeRows = [] } = useTableRows<{ typeCode: string; typeName: string }>('carbon_registry_type');
+  const registryTypeOpts = registryTypeRows.map((r) => ({ value: r.typeCode, label: r.typeName }));
 
   const [open, setOpen]       = useState(false);
   const [editing, setEditing] = useState<CarbonRegistry | null>(null);

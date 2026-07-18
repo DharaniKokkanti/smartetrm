@@ -23,13 +23,11 @@ export function EmissionObligationsPage() {
   const save = useSaveEmissionObligation();
   const { data: legalEntities = [] } = useLegalEntities();
   const { data: schemes = [] }       = useEmissionSchemes();
-  const { data: statusRows = [] }    = useTableRows('emission_obligation_status');
-  type LR = { typeCode: string; typeName: string };
-  const statusOpts = (statusRows as LR[]).map((r) => ({ value: r.typeCode, label: r.typeName }));
+  const { data: statusRows = [] }    = useTableRows<{ typeCode: string; typeName: string }>('emission_obligation_status');
+  const statusOpts = statusRows.map((r) => ({ value: r.typeCode, label: r.typeName }));
 
   const leOpts = useMemo(
-    () => (legalEntities as { legalEntityId: number; entityCode: string; name: string }[])
-      .map((e) => ({ value: e.legalEntityId, label: `${e.entityCode} — ${e.name}` })),
+    () => legalEntities.map((e) => ({ value: e.legalEntityId, label: `${e.entityCode} — ${e.entityName}` })),
     [legalEntities],
   );
   const schemeOpts = useMemo(

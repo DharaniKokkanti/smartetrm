@@ -61,13 +61,11 @@ export function BankGuaranteesPage() {
   }
 
   const cpOpts = useMemo(
-    () => (counterparties as { counterpartyId: number; counterpartyCode: string; name: string }[])
-      .map((c) => ({ value: c.counterpartyId, label: `${c.counterpartyCode} — ${c.name}` })),
+    () => counterparties.map((c) => ({ value: c.counterpartyId, label: `${c.cpCode} — ${c.legalName}` })),
     [counterparties],
   );
   const leOpts = useMemo(
-    () => (legalEntities as { legalEntityId: number; entityCode: string; entityName: string }[])
-      .map((e) => ({ value: e.legalEntityId, label: `${e.entityCode} — ${e.entityName}` })),
+    () => legalEntities.map((e) => ({ value: e.legalEntityId, label: `${e.entityCode} — ${e.entityName}` })),
     [legalEntities],
   );
   const currencyOpts = useMemo(

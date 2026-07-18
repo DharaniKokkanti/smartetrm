@@ -28,8 +28,7 @@ export function RinAccountsPage() {
   const { data: legalEntities = [] } = useLegalEntities();
 
   const leOpts = useMemo(
-    () => (legalEntities as { legalEntityId: number; entityCode: string; name: string }[])
-      .map((e) => ({ value: e.legalEntityId, label: `${e.entityCode} — ${e.name}` })),
+    () => legalEntities.map((e) => ({ value: e.legalEntityId, label: `${e.entityCode} — ${e.entityName}` })),
     [legalEntities],
   );
 

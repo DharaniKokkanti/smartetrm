@@ -27,7 +27,7 @@ export function PipelineTariffsPage() {
   const { data: pipelines = [] } = usePipelines();
   const { data: currencies = [] } = useCurrencies();
   const { data: uoms = [] } = useUom();
-  const { data: productRows = [] } = useTableRows('product');
+  const { data: productRows = [] } = useTableRows<{ productId: number; productCode: string; productName: string }>('product');
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<PipelineTariff | null>(null);
@@ -69,8 +69,7 @@ export function PipelineTariffsPage() {
     [pipelines],
   );
   const productOpts = useMemo(
-    () => (productRows as unknown as { productId: number; productCode: string; productName: string }[])
-      .map((p) => ({ value: p.productId, label: `${p.productCode} — ${p.productName}` })),
+    () => productRows.map((p) => ({ value: p.productId, label: `${p.productCode} — ${p.productName}` })),
     [productRows],
   );
   const currencyOpts = useMemo(

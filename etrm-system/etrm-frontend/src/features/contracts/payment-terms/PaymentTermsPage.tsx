@@ -52,14 +52,14 @@ export function PaymentTermsPage() {
 
   // Load base date events and BDC types from static data (same source as Tier 2 UI)
   const { data: bdeRows = [], isLoading: bdeLoading } =
-    useTableRows('base_date_event_type');
+    useTableRows<{ typeCode: string; typeName: string; applicableCommodity: string | null }>('base_date_event_type');
   const { data: bdcRows = [], isLoading: bdcLoading } =
-    useTableRows('business_day_convention_type');
+    useTableRows<{ typeCode: string; typeName: string }>('business_day_convention_type');
   const { data: paymentMethodOptions = [], isLoading: pmLoading } = useCustomConfigOptions('PAYMENT_METHOD');
 
   // Build label map for formula column display
   const bdeLabelMap = useMemo(
-    () => Object.fromEntries(bdeRows.map((r) => [r['typeCode'] as string, r['typeName'] as string])),
+    () => Object.fromEntries(bdeRows.map((r) => [r.typeCode, r.typeName])),
     [bdeRows],
   );
 
@@ -67,22 +67,22 @@ export function PaymentTermsPage() {
   const bdeOptions = useMemo(() => {
     const groups: Record<string, typeof bdeRows> = {};
     for (const r of bdeRows) {
-      const grp = (r['applicableCommodity'] as string) ?? 'Other';
+      const grp = r.applicableCommodity ?? 'Other';
       (groups[grp] ??= []).push(r);
     }
     return Object.entries(groups).map(([label, items]) => ({
       label,
       options: items.map((r) => ({
-        value: r['typeCode'] as string,
-        label: r['typeName'] as string,
+        value: r.typeCode,
+        label: r.typeName,
       })),
     }));
   }, [bdeRows]);
 
   const bdcOptions = useMemo(
     () => bdcRows.map((r) => ({
-      value: r['typeCode'] as string,
-      label: r['typeName'] as string,
+      value: r.typeCode,
+      label: r.typeName,
     })),
     [bdcRows],
   );

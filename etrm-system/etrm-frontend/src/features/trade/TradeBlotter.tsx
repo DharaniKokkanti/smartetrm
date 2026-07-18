@@ -597,7 +597,7 @@ function EnvironmentalSection() {
 function GradeDeliveredSelect({ onPick }: { onPick: (grade: Record<string, unknown>) => void }) {
   const productId = Form.useWatch('productId') as number | undefined;
   const { data: gradeRows = [] } = useTableRows('commodity_grade_standard');
-  const grades = (gradeRows as Record<string, unknown>[]).filter(
+  const grades = gradeRows.filter(
     (g) => g.productId === productId && g.isActive,
   );
   if (!productId || grades.length === 0) return null;
@@ -1338,7 +1338,7 @@ export function TradeBlotter() {
   const { data: books = [] } = useBooks();
   const { data: products = [] } = useProducts();
   const { data: markets = [] } = useMarkets();
-  const { data: commodityRows = [] } = useTableRows('commodity');
+  const { data: commodityRows = [] } = useTableRows<CommodityRow>('commodity');
   const { data: pricingRules = [] } = usePricingRules();
   const { data: balmoProducts = [] } = useBalmoProducts();
   const { data: locations = [] } = useLocations();
@@ -1350,15 +1350,15 @@ export function TradeBlotter() {
   // Capture drawers span the full content area — flush to the nav sidebar edge
   const { sidebarCollapsed } = useUiStore();
   const fullDrawerWidth = `calc(100vw - ${sidebarCollapsed ? 80 : 210}px)`;
-  const { data: currencyRows = [] }       = useTableRows('currency');
+  const { data: currencyRows = [] }       = useTableRows<{ currencyId: number; currencyCode: string; currencyName: string }>('currency');
   const { data: countries = [] }          = useCountries();
   const { data: holidayCalendars = [] }   = useHolidayCalendars();
-  const { data: crudeGradeRows = [] }     = useTableRows('crude_grade_type');
-  const { data: metalShapeRows = [] }     = useTableRows('metal_shape');
-  const { data: gasDayTypeRows = [] }     = useTableRows('gas_day_type');
-  const { data: nominationTypeRows = [] } = useTableRows('nomination_type');
-  const { data: lngPriceBasisRows = [] }  = useTableRows('lng_price_basis');
-  const { data: powerLoadTypeRows = [] }  = useTableRows('power_load_type');
+  const { data: crudeGradeRows = [] }     = useTableRows<{ typeCode: string; typeName: string }>('crude_grade_type');
+  const { data: metalShapeRows = [] }     = useTableRows<{ typeCode: string; typeName: string }>('metal_shape');
+  const { data: gasDayTypeRows = [] }     = useTableRows<{ typeCode: string; typeName: string }>('gas_day_type');
+  const { data: nominationTypeRows = [] } = useTableRows<{ typeCode: string; typeName: string }>('nomination_type');
+  const { data: lngPriceBasisRows = [] }  = useTableRows<{ typeCode: string; typeName: string }>('lng_price_basis');
+  const { data: powerLoadTypeRows = [] }  = useTableRows<{ typeCode: string; typeName: string }>('power_load_type');
 
   // ── Trades ──
   const { data: trades = [], isLoading: tradesLoading, refetch } = useTrades();
@@ -1392,6 +1392,8 @@ export function TradeBlotter() {
   // Keep the always-mounted trade form in sync with the selected trade when not
   // actively editing/creating, so the header strip + Details tab show real
   // values in view mode (fields render `disabled` via the Form itself below).
+  // Genuine sync-with-external-query-data effect, not derivable during render.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (tradeOpen || !selectedTrade) return;
     setTradeCommodity(selectedTrade.commodityType);
@@ -1411,6 +1413,7 @@ export function TradeBlotter() {
       setSelectedOrderId(orders[0].orderId);
     }
   }, [selectedTrade, orders, selectedOrderId]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // ── Order / leg drawer ──
   const [orderOpen, setOrderOpen] = useState(false);
@@ -1457,11 +1460,10 @@ export function TradeBlotter() {
   // the filter ProductsPage.tsx already applies to its own list, just never applied here before.
   const productOptionsFor = useMemo(() => {
     const rows = products as { productId: number; productCode: string; productName: string; commodityId: number }[];
-    const commodities = commodityRows as CommodityRow[];
     return (commodityType: CommodityTypeTrade) => {
       const broad = COMMODITY_TRADE_TO_BROAD[commodityType];
       return rows
-        .filter((p) => broad && resolveCommodityType(commodities, p.commodityId) === broad)
+        .filter((p) => broad && resolveCommodityType(commodityRows, p.commodityId) === broad)
         .map((p) => ({ value: p.productId, label: `${p.productCode} — ${p.productName}` }));
     };
   }, [products, commodityRows]);
@@ -1485,10 +1487,10 @@ export function TradeBlotter() {
         .map((r) => ({ value: r.uomId, label: r.uomCode }));
     };
   }, [uomRows]);
-  const currencyOpts  = useMemo(() => (currencyRows as { currencyId: number; currencyCode: string; currencyName: string }[]).map((r) => ({ value: r.currencyId, label: `${r.currencyCode} — ${r.currencyName}` })), [currencyRows]);
+  const currencyOpts  = useMemo(() => currencyRows.map((r) => ({ value: r.currencyId, label: `${r.currencyCode} — ${r.currencyName}` })), [currencyRows]);
   const countryOpts   = useMemo(() => countries.filter((c) => c.isActive).map((c) => ({ value: c.countryId, label: `${c.countryCode} — ${c.countryName}` })), [countries]);
   const paymentCalendarOpts = useMemo(() => holidayCalendars.filter((c) => c.isActive).map((c) => ({ value: c.calendarCode, label: `${c.calendarCode} — ${c.calendarName}` })), [holidayCalendars]);
-  const legalEntityOpts = useMemo(() => (legalEntities as unknown as { legalEntityId: number; entityCode: string; entityName: string }[]).map((le) => ({ value: le.legalEntityId, label: `${le.entityCode} — ${le.entityName}` })), [legalEntities]);
+  const legalEntityOpts = useMemo(() => legalEntities.map((le) => ({ value: le.legalEntityId, label: `${le.entityCode} — ${le.entityName}` })), [legalEntities]);
   // Book options scoped to a leg's commodity — dbo.commodity_type ids (1-9) line up 1:1 with COMMODITY_TYPES_TRADE's
   // order (OIL=1 ... ENVIRONMENTAL=9); a null commodityType on the book means it's a cross-commodity book (e.g. house/other).
   const bookOptionsFor = useMemo(() => {
@@ -1503,19 +1505,18 @@ export function TradeBlotter() {
   // Broker options scoped to a leg's commodity — Broker.commodityType is a direct CommodityTypeTrade string (V89);
   // null means a generalist IDB offered for every commodity (e.g. TP ICAP).
   const brokerOptionsFor = useMemo(() => {
-    const rows = brokers as unknown as { brokerId: number; brokerCode: string; brokerName: string; commodityType: CommodityTypeTrade | null }[];
     return (commodityType: CommodityTypeTrade) =>
-      rows
+      brokers
         .filter((b) => b.commodityType == null || b.commodityType === commodityType)
         .map((b) => ({ value: b.brokerId, label: `${b.brokerCode} — ${b.brokerName}` }));
   }, [brokers]);
   const pipelineOpts  = useMemo(() => (pipelines as { pipelineId: number; pipelineCode: string; pipelineName: string }[]).map((p) => ({ value: p.pipelineId, label: `${p.pipelineCode} — ${p.pipelineName}` })), [pipelines]);
-  const crudeGradeOpts= useMemo(() => (crudeGradeRows  as { typeCode: string; typeName: string }[]).map((r) => ({ value: r.typeCode, label: `${r.typeCode} — ${r.typeName}` })), [crudeGradeRows]);
-  const metalShapeOpts= useMemo(() => (metalShapeRows  as { typeCode: string; typeName: string }[]).map((r) => ({ value: r.typeCode, label: r.typeName })), [metalShapeRows]);
-  const gasDayTypeOpts= useMemo(() => (gasDayTypeRows  as { typeCode: string; typeName: string }[]).map((r) => ({ value: r.typeCode, label: r.typeName })), [gasDayTypeRows]);
-  const nominationOpts= useMemo(() => (nominationTypeRows as { typeCode: string; typeName: string }[]).map((r) => ({ value: r.typeCode, label: r.typeName })), [nominationTypeRows]);
-  const lngPriceOpts  = useMemo(() => (lngPriceBasisRows  as { typeCode: string; typeName: string }[]).map((r) => ({ value: r.typeCode, label: r.typeName })), [lngPriceBasisRows]);
-  const powerLoadOpts = useMemo(() => (powerLoadTypeRows  as { typeCode: string; typeName: string }[]).map((r) => ({ value: r.typeCode, label: r.typeName })), [powerLoadTypeRows]);
+  const crudeGradeOpts= useMemo(() => crudeGradeRows.map((r) => ({ value: r.typeCode, label: `${r.typeCode} — ${r.typeName}` })), [crudeGradeRows]);
+  const metalShapeOpts= useMemo(() => metalShapeRows.map((r) => ({ value: r.typeCode, label: r.typeName })), [metalShapeRows]);
+  const gasDayTypeOpts= useMemo(() => gasDayTypeRows.map((r) => ({ value: r.typeCode, label: r.typeName })), [gasDayTypeRows]);
+  const nominationOpts= useMemo(() => nominationTypeRows.map((r) => ({ value: r.typeCode, label: r.typeName })), [nominationTypeRows]);
+  const lngPriceOpts  = useMemo(() => lngPriceBasisRows.map((r) => ({ value: r.typeCode, label: r.typeName })), [lngPriceBasisRows]);
+  const powerLoadOpts = useMemo(() => powerLoadTypeRows.map((r) => ({ value: r.typeCode, label: r.typeName })), [powerLoadTypeRows]);
 
   const deliveryFieldProps = {
     locationOpts: locationOptionsFor(orderCommodity), vesselOpts, uomOpts: uomOptionsFor(orderCommodity), currencyOpts, countryOpts, incoterms,
@@ -2015,7 +2016,7 @@ export function TradeBlotter() {
                 <Col span={7}>
                   <Form.Item name="counterpartyId" label={hint('Counterparty', 'The external party you are trading with. Determines deal indicator automatically.')} rules={[{ required: true }]}>
                     <Select
-                      options={(counterparties as unknown as { counterpartyId: number; cpCode: string; legalName: string }[]).map((cp) => ({ value: cp.counterpartyId, label: `${cp.cpCode} — ${cp.legalName}` }))}
+                      options={counterparties.map((cp) => ({ value: cp.counterpartyId, label: `${cp.cpCode} — ${cp.legalName}` }))}
                       placeholder="Select counterparty" showSearch filterOption={(i, o) => (o?.label ?? '').toLowerCase().includes(i.toLowerCase())}
                     />
                   </Form.Item>

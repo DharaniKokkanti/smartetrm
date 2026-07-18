@@ -146,6 +146,7 @@ export function BookFormDrawer({ open, editing, onClose, onSaved }: Props) {
   }, [legalEntityId]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability -- skipDraftReset is a useRef() from useDraftValues; the compiler cannot see refs through a custom hook boundary
     if (skipDraftReset.current) { if (open) skipDraftReset.current = false; return; }
     if (open) {
       form.resetFields();

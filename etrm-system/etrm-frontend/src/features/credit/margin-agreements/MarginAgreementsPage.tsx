@@ -45,15 +45,14 @@ export function MarginAgreementsPage() {
   const save       = useSaveMarginAgreement();
   const deactivate = useDeactivateMarginAgreement();
   const { data: counterparties = [] }        = useCounterparties();
-  const { data: agreementTypeRows = [] }     = useTableRows('margin_agreement_type');
-  const { data: valuationFreqRows = [] }     = useTableRows('valuation_frequency_type');
-  const { data: governingLawRows = [] }      = useTableRows('governing_law_type');
+  const { data: agreementTypeRows = [] }     = useTableRows<{ typeCode: string; typeName: string }>('margin_agreement_type');
+  const { data: valuationFreqRows = [] }     = useTableRows<{ typeCode: string; typeName: string }>('valuation_frequency_type');
+  const { data: governingLawRows = [] }      = useTableRows<{ typeCode: string; typeName: string }>('governing_law_type');
   const { data: currencies = [] }            = useCurrencies();
 
-  type LookupRow = { typeCode: string; typeName: string };
-  const agreementTypeOpts = (agreementTypeRows as LookupRow[]).map((r) => ({ value: r.typeCode, label: r.typeName }));
-  const valuationFreqOpts = (valuationFreqRows as LookupRow[]).map((r) => ({ value: r.typeCode, label: r.typeName }));
-  const governingLawOpts  = (governingLawRows  as LookupRow[]).map((r) => ({ value: r.typeCode, label: r.typeName }));
+  const agreementTypeOpts = agreementTypeRows.map((r) => ({ value: r.typeCode, label: r.typeName }));
+  const valuationFreqOpts = valuationFreqRows.map((r) => ({ value: r.typeCode, label: r.typeName }));
+  const governingLawOpts  = governingLawRows.map((r) => ({ value: r.typeCode, label: r.typeName }));
   const currencyOpts = useMemo(
     () => currencies.map((c) => ({ value: c.currencyId, label: `${c.currencyCode} — ${c.currencyName}` })),
     [currencies],
@@ -105,8 +104,7 @@ export function MarginAgreementsPage() {
   }
 
   const cpOpts = useMemo(
-    () => (counterparties as { counterpartyId: number; counterpartyCode: string; name: string }[])
-      .map((c) => ({ value: c.counterpartyId, label: `${c.counterpartyCode} — ${c.name}` })),
+    () => counterparties.map((c) => ({ value: c.counterpartyId, label: `${c.cpCode} — ${c.legalName}` })),
     [counterparties],
   );
 

@@ -45,7 +45,9 @@ export function FieldPermissionsPage() {
     enabled: selectedProfileId != null,
   });
 
-  // Populate localRules whenever the fetched profile detail changes
+  // Populate localRules whenever the fetched profile detail changes — a genuine
+  // sync-with-external-query-data effect, not derivable during render.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!profileDetail) return;
     const map: Record<number, AccessLevel> = {};
@@ -53,6 +55,7 @@ export function FieldPermissionsPage() {
     setLocalRules(map);
     setIsDirty(false);
   }, [profileDetail]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const saveMutation = useMutation({
     mutationFn: () => updateProfileRules(

@@ -13,7 +13,7 @@ export function BunkerRobLedgerPage() {
   const [vesselId, setVesselId] = useState<number | undefined>();
   const [fuelGradeId, setFuelGradeId] = useState<number | undefined>();
   const { data: vessels = [] } = useVessels();
-  const { data: fuelGrades = [] } = useTableRows('bunker_fuel_grade');
+  const { data: fuelGrades = [] } = useTableRows<{ fuelGradeId: number; gradeCode: string }>('bunker_fuel_grade');
   const { data = [], isLoading } = useBunkerRobLedger({ vesselId, fuelGradeId });
 
   return (
@@ -32,7 +32,7 @@ export function BunkerRobLedgerPage() {
         <Select
           allowClear placeholder="Filter by fuel grade" style={{ width: 200 }} showSearch optionFilterProp="label"
           value={fuelGradeId} onChange={setFuelGradeId}
-          options={(fuelGrades as { fuelGradeId: number; gradeCode: string }[]).map((f) => ({ value: f.fuelGradeId, label: f.gradeCode }))}
+          options={fuelGrades.map((f) => ({ value: f.fuelGradeId, label: f.gradeCode }))}
         />
       </Space>
       <Table

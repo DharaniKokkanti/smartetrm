@@ -21,9 +21,8 @@ export function EnvironmentalProductsPage() {
   const deactivate = useDeactivateEnvironmentalProduct();
   const { data: schemes = [] }   = useEmissionSchemes();
   const { data: registries = [] } = useCarbonRegistries();
-  const { data: productTypeRows = [] } = useTableRows('environmental_product_type');
-  type LR = { typeCode: string; typeName: string };
-  const productTypeOpts = (productTypeRows as LR[]).map((r) => ({ value: r.typeCode, label: r.typeName }));
+  const { data: productTypeRows = [] } = useTableRows<{ typeCode: string; typeName: string }>('environmental_product_type');
+  const productTypeOpts = productTypeRows.map((r) => ({ value: r.typeCode, label: r.typeName }));
 
   const schemeOpts = useMemo(
     () => (schemes as { schemeId: number; schemeCode: string; schemeName: string }[])

@@ -75,7 +75,6 @@ export function CreditLimitsPage() {
     [countries],
   );
   const countryById = useMemo(() => new Map(countries.map((c) => [c.countryId, c])), [countries]);
-  const countryIdByCode = useMemo(() => new Map(countries.map((c) => [c.countryCode, c.countryId])), [countries]);
 
   const [open, setOpen]       = useState(false);
   const [editing, setEditing] = useState<CreditLimit | null>(null);
@@ -86,11 +85,9 @@ export function CreditLimitsPage() {
   const watchedAlertCp   = Form.useWatch('alertCounterparty', form);
   const watchedCpId      = Form.useWatch('counterpartyId', form);
 
-  type CpRow = { counterpartyId: number; counterpartyCode: string; name: string; jurisdiction?: string };
-  const cpRows = counterparties as CpRow[];
   const cpOpts = useMemo(
-    () => cpRows.map((c) => ({ value: c.counterpartyId, label: `${c.counterpartyCode} — ${c.name}` })),
-    [cpRows],
+    () => counterparties.map((c) => ({ value: c.counterpartyId, label: `${c.cpCode} — ${c.legalName}` })),
+    [counterparties],
   );
   // Roles are denormalized from the real user_role_assignment table and a
   // user can hold more than one, so match on whether ANY of a user's roles
@@ -168,9 +165,8 @@ export function CreditLimitsPage() {
 
   // auto-fill country when counterparty changes
   function onCpChange(cpId: number) {
-    const cp = cpRows.find((c) => c.counterpartyId === cpId);
-    const countryId = cp?.jurisdiction ? countryIdByCode.get(cp.jurisdiction) : undefined;
-    if (countryId != null) form.setFieldValue('cpCountryId', countryId);
+    const cp = counterparties.find((c) => c.counterpartyId === cpId);
+    if (cp) form.setFieldValue('cpCountryId', cp.jurisdictionId);
   }
 
   const today = new Date().toISOString().slice(0, 10);

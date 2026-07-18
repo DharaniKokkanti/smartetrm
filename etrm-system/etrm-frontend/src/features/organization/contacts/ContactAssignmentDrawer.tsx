@@ -71,6 +71,7 @@ export function ContactAssignmentDrawer({ open, onClose, editing }: Props) {
 
   useEffect(() => {
     if (!open) return;
+    // eslint-disable-next-line react-hooks/immutability -- skipDraftReset is a useRef() from useDraftValues; the compiler cannot see refs through a custom hook boundary
     if (skipDraftReset.current) { skipDraftReset.current = false; return; }
     /* eslint-disable react-hooks/set-state-in-effect */
     if (editing) {

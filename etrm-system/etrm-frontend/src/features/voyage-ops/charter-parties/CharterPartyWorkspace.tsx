@@ -48,7 +48,7 @@ export function CharterPartyWorkspace() {
 function OffHireEventsTab({ charterPartyId }: { charterPartyId: number }) {
   const { data = [], isLoading } = useCharterOffHireEvents(charterPartyId);
   const save = useSaveCharterOffHireEvent();
-  const { data: reasonTypes = [] } = useTableRows('off_hire_reason_type');
+  const { data: reasonTypes = [] } = useTableRows<{ offHireReasonTypeId: number; reasonCode: string }>('off_hire_reason_type');
   const [open, setOpen] = useState(false);
   const [form] = Form.useForm<CharterOffHireEventInput>();
 
@@ -84,7 +84,7 @@ function OffHireEventsTab({ charterPartyId }: { charterPartyId: number }) {
       <Modal title="Log Off-Hire Event" open={open} onCancel={() => setOpen(false)} onOk={() => void submit()} confirmLoading={save.isPending}>
         <Form form={form} layout="vertical">
           <Form.Item name="offHireReasonTypeId" label="Reason" rules={[{ required: true }]}>
-            <Select showSearch optionFilterProp="label" options={(reasonTypes as { offHireReasonTypeId: number; reasonCode: string }[]).map((r) => ({ value: r.offHireReasonTypeId, label: r.reasonCode }))} />
+            <Select showSearch optionFilterProp="label" options={reasonTypes.map((r) => ({ value: r.offHireReasonTypeId, label: r.reasonCode }))} />
           </Form.Item>
           <Form.Item name="fromTs" label="From" rules={[{ required: true }]}><DatePicker showTime style={{ width: '100%' }} /></Form.Item>
           <Form.Item name="toTs" label="To (leave blank if ongoing)"><DatePicker showTime style={{ width: '100%' }} /></Form.Item>
