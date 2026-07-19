@@ -5,6 +5,8 @@
  * convention changes, this is the one file that needs updating.
  */
 
+import type { AddressAssignment, ContactAssignment, TaxRegistration } from '@features/tier1/counterparty/types';
+
 // V78: legal_entity.entity_type is now a numeric FK id (legal_entity_type
 // parent table) — resolve a label via useCustomConfigOptions('LEGAL_ENTITY_TYPE').
 export type EntityType = number;
@@ -53,4 +55,52 @@ export interface LegalEntityUploadRow extends LegalEntityInput {
   _errors: string[];
   _jurisdictionCode: string;
   _baseCurrencyCode: string;
+}
+
+/**
+ * Mirrors dbo.legal_entity_ownership (V125) — a joint venture's cap table.
+ * owner is one of three cases: LEGAL_ENTITY/COUNTERPARTY resolve via
+ * ownerRefId, EXTERNAL uses the free-text externalOwnerName fallback for a
+ * co-investor never otherwise modeled in this system.
+ */
+export type OwnerType = 'LEGAL_ENTITY' | 'COUNTERPARTY' | 'EXTERNAL';
+export type ConsolidationMethod = 'FULL' | 'PROPORTIONAL' | 'EQUITY' | 'COST';
+
+export interface LegalEntityOwnership {
+  ownershipId: number;
+  jvEntityId: number;
+  ownerType: OwnerType;
+  ownerRefId: number | null;
+  externalOwnerName: string | null;
+  ownerDisplayName: string;
+  ownershipPct: number;
+  isOperator: boolean;
+  consolidationMethod: ConsolidationMethod;
+  effectiveFrom: string; // ISO date
+  effectiveTo: string | null; // ISO date
+  isActive: boolean;
+  notes: string | null;
+}
+
+/** Shape sent on add — server assigns id/jvEntityId/ownerDisplayName/isActive. */
+export type LegalEntityOwnershipInput = Omit<
+  LegalEntityOwnership,
+  'ownershipId' | 'jvEntityId' | 'ownerDisplayName' | 'isActive'
+>;
+
+export interface LegalEntityOwnershipListView {
+  rows: LegalEntityOwnership[];
+  /** Server-computed advisory total of active rows' ownershipPct — display
+   *  guidance only (green/red "does this total 100%" indicator), never a
+   *  blocking validation. */
+  totalActiveOwnershipPct: number;
+}
+
+/** Everything needed to render + save the legal entity form in one place —
+ *  same shape/convention as CounterpartyDraft. */
+export interface LegalEntityDraft {
+  core: LegalEntityInput;
+  contacts: ContactAssignment[];
+  addresses: AddressAssignment[];
+  taxRegistrations: TaxRegistration[];
 }

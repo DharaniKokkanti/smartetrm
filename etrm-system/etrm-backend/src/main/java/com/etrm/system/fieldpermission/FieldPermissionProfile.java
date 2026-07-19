@@ -1,6 +1,7 @@
 package com.etrm.system.fieldpermission;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 
 @Entity
@@ -11,15 +12,18 @@ public class FieldPermissionProfile {
     @Column(name = "profile_id")
     private Integer profileId;
 
+    @NotBlank
     @Column(name = "profile_code", nullable = false, length = 100)
     private String profileCode;
 
+    @NotBlank
     @Column(name = "profile_name", nullable = false, length = 200)
     private String profileName;
 
     @Column(name = "description", length = 500)
     private String description;
 
+    @NotBlank
     @Column(name = "screen_code", nullable = false, length = 100)
     private String screenCode;
 

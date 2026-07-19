@@ -1,5 +1,9 @@
 import { apiClient } from '@services/api';
-import type { LegalEntity, LegalEntityInput } from './types';
+import type {
+  LegalEntity, LegalEntityInput,
+  LegalEntityOwnership, LegalEntityOwnershipInput, LegalEntityOwnershipListView,
+} from './types';
+import { fetchEntityAddresses, fetchEntityContacts, fetchEntityTaxRegistrations } from '@features/tier1/counterparty/api';
 
 /**
  * REST contract per the Master Data Entry Technical Design (Tier 1 pattern):
@@ -43,4 +47,31 @@ export const legalEntityApi = {
     const { data } = await apiClient.post(`${BASE}/bulk`, { entities: inputs });
     return data;
   },
+
+  // ── legal_entity_ownership sub-resource (V125) — a JV entity's cap table ──
+
+  listOwnership: async (jvEntityId: number): Promise<LegalEntityOwnershipListView> => {
+    const { data } = await apiClient.get<LegalEntityOwnershipListView>(`${BASE}/${jvEntityId}/ownership`);
+    return data;
+  },
+
+  addOwnership: async (jvEntityId: number, input: LegalEntityOwnershipInput): Promise<LegalEntityOwnership> => {
+    const { data } = await apiClient.post<LegalEntityOwnership>(`${BASE}/${jvEntityId}/ownership`, input);
+    return data;
+  },
+
+  removeOwnership: async (jvEntityId: number, ownershipId: number): Promise<void> => {
+    await apiClient.delete(`${BASE}/${jvEntityId}/ownership/${ownershipId}`);
+  },
 };
+
+/** Fetch a legal entity's full child record set in parallel — same shape as
+ *  fetchCounterpartyChildren, minus bank accounts (a Counterparty-only concept). */
+export async function fetchLegalEntityChildren(id: number) {
+  const [contacts, addresses, taxRegistrations] = await Promise.all([
+    fetchEntityContacts('LEGAL_ENTITY', id),
+    fetchEntityAddresses('LEGAL_ENTITY', id),
+    fetchEntityTaxRegistrations('LEGAL_ENTITY', id),
+  ]);
+  return { contacts, addresses, taxRegistrations };
+}

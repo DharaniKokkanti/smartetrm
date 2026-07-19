@@ -1,5 +1,7 @@
 package com.etrm.system.product;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +25,7 @@ public class ProductReportingGroupController {
     }
 
     @PostMapping
-    public ResponseEntity<ProductReportingGroup> assign(@PathVariable Integer productId, @RequestBody AssignRequest request) {
+    public ResponseEntity<ProductReportingGroup> assign(@PathVariable Integer productId, @Valid @RequestBody AssignRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.assign(productId, request.reportingGroupId()));
     }
 
@@ -33,5 +35,5 @@ public class ProductReportingGroupController {
         return ResponseEntity.noContent().build();
     }
 
-    public record AssignRequest(Integer reportingGroupId) {}
+    public record AssignRequest(@NotNull Integer reportingGroupId) {}
 }

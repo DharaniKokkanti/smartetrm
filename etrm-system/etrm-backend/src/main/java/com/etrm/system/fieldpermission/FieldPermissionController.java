@@ -2,6 +2,9 @@ package com.etrm.system.fieldpermission;
 
 import com.etrm.system.common.NotFoundException;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -84,7 +87,7 @@ public class FieldPermissionController {
     @PostMapping("/profiles")
     @ResponseStatus(HttpStatus.CREATED)
     public FieldPermissionProfile createProfile(
-            @RequestBody FieldPermissionProfile profile,
+            @Valid @RequestBody FieldPermissionProfile profile,
             Authentication auth) {
         profile.setProfileId(null);
         profile.setCreatedBy(auth.getName());
@@ -97,7 +100,7 @@ public class FieldPermissionController {
     @Transactional
     public ProfileDetailResponse updateProfileRules(
             @PathVariable Integer profileId,
-            @RequestBody List<RuleUpdateRequest> rules,
+            @Valid @RequestBody List<RuleUpdateRequest> rules,
             Authentication auth) {
 
         FieldPermissionProfile profile = profileRepo.findById(profileId)
@@ -121,5 +124,5 @@ public class FieldPermissionController {
         return service.getProfileDetail(profileId, profile.getScreenCode());
     }
 
-    public record RuleUpdateRequest(Integer fieldId, String fieldPermission) {}
+    public record RuleUpdateRequest(@NotNull Integer fieldId, @NotBlank String fieldPermission) {}
 }

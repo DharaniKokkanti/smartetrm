@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState, type ChangeEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button, Input, Space, Tag, Popconfirm, Typography, App as AntApp } from 'antd';
 import {
   PlusOutlined,
@@ -15,11 +16,9 @@ import { buildAgGridTheme } from '@theme/ag-grid-theme';
 import { useThemeStore } from '@store/themeStore';
 import { useDeactivateLegalEntity, useLegalEntities } from './hooks';
 import type { LegalEntity, LegalEntityUploadRow } from './types';
-import { LegalEntityFormDrawer } from './LegalEntityFormDrawer';
 import { LegalEntityUploadReviewModal } from './LegalEntityUploadReviewModal';
 import { downloadBlob, generateLegalEntityTemplate } from './excelTemplate';
 import { parseLegalEntityUpload, type EntityTypeLookupRow } from './excelUpload';
-import { useDraftState } from '@components/smart/formDraft';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@services/api';
 import type { ReferenceDataRow } from '@models/referenceData';
@@ -44,9 +43,9 @@ export function LegalEntityListPage() {
   // typeCode column into that id on upload.
   // Query key deliberately distinct from ['lookup', 'legal_entity_type'] —
   // that key belongs to useCustomConfigOptions('LEGAL_ENTITY_TYPE') (used by
-  // the always-mounted LegalEntityFormDrawer below), which returns a
-  // different shape ({label, value} ConfigOption[], not raw ReferenceData
-  // Row[] with typeCode/legalEntityTypeId/typeName). React Query dedupes
+  // LegalEntityFormPage), which returns a different shape ({label, value}
+  // ConfigOption[], not raw ReferenceData Row[] with
+  // typeCode/legalEntityTypeId/typeName). React Query dedupes
   // purely by key, so reusing that key silently fed this component the
   // wrong-shaped cached data — the grid's Type column showed "—" for every
   // row, and the Excel template/upload's typeCode lookup would have quietly
@@ -66,20 +65,9 @@ export function LegalEntityListPage() {
   const countryCodeById = (id: number) => countries.find((c) => c.countryId === id)?.countryCode ?? '—';
   const currencyCodeById = (id: number) => currencies.find((c) => c.currencyId === id)?.currencyCode ?? '—';
 
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [editing, setEditing] = useState<LegalEntity | null>(null);
-  useDraftState('tier1-legal-entity', { open: drawerOpen, setOpen: setDrawerOpen, editing, setEditing });
+  const navigate = useNavigate();
   const [uploadRows, setUploadRows] = useState<LegalEntityUploadRow[] | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  function openCreate() {
-    setEditing(null);
-    setDrawerOpen(true);
-  }
-  function openEdit(entity: LegalEntity) {
-    setEditing(entity);
-    setDrawerOpen(true);
-  }
 
   async function handleFileSelected(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -152,7 +140,7 @@ export function LegalEntityListPage() {
               type="text"
               size="small"
               icon={<EditOutlined />}
-              onClick={() => openEdit(p.data)}
+              onClick={() => navigate(`/tier1/legal-entity/${p.data.legalEntityId}`)}
               aria-label={`Edit ${p.data.entityCode}`}
             />
             {p.data.isActive && (
@@ -170,7 +158,7 @@ export function LegalEntityListPage() {
         ),
       },
     ],
-    [deactivateMutation, entityTypeRows, countries, currencies],
+    [deactivateMutation, entityTypeRows, countries, currencies, navigate],
   );
 
   return (
@@ -197,7 +185,7 @@ export function LegalEntityListPage() {
             <Button icon={<UploadOutlined />} onClick={() => fileInputRef.current?.click()}>
               Upload Excel
             </Button>
-            <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/tier1/legal-entity/new')}>
               New Legal Entity
             </Button>
             <input
@@ -229,8 +217,6 @@ export function LegalEntityListPage() {
           No legal entities yet — add one manually or upload a spreadsheet using the template above.
         </Typography.Text>
       )}
-
-      <LegalEntityFormDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} editing={editing} onSaved={(e) => setEditing(e)} />
 
       {uploadRows && (
         <LegalEntityUploadReviewModal

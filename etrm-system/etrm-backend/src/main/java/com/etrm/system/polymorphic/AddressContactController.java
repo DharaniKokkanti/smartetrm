@@ -85,7 +85,7 @@ public class AddressContactController {
     }
 
     @PutMapping("/entity-addresses/{id}")
-    public EntityAddress updateEntityAddress(@PathVariable Integer id, @RequestBody EntityAddress body) {
+    public EntityAddress updateEntityAddress(@PathVariable Integer id, @Valid @RequestBody EntityAddress body) {
         EntityAddress existing = entityAddressRepo.findById(Objects.requireNonNull(id))
                 .orElseThrow(() -> new NotFoundException("EntityAddress " + id + " not found"));
         body.setEntityAddressId(existing.getEntityAddressId());
@@ -150,7 +150,7 @@ public class AddressContactController {
     }
 
     @PutMapping("/entity-contacts/{id}")
-    public EntityContact updateEntityContact(@PathVariable Integer id, @RequestBody EntityContact body) {
+    public EntityContact updateEntityContact(@PathVariable Integer id, @Valid @RequestBody EntityContact body) {
         EntityContact existing = entityContactRepo.findById(Objects.requireNonNull(id))
                 .orElseThrow(() -> new NotFoundException("EntityContact " + id + " not found"));
         body.setEntityContactId(existing.getEntityContactId());

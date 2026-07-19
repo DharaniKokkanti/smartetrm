@@ -167,7 +167,7 @@ export function useFormDraft<T = unknown>(key: string, opts: UseFormDraftOptions
 
 /**
  * Child-drawer variant for form components that receive `open`/`editing` as
- * props (DeskFormDrawer, BookFormDrawer, LegalEntityFormDrawer): the parent
+ * props (BookFormDrawer, GuaranteeFormDrawer): the parent
  * page restores open/editing via `useDraftState`, while the child — which
  * owns the FormInstance — stashes and restores the values.
  *

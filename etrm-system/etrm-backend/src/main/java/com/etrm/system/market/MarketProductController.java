@@ -1,5 +1,6 @@
 package com.etrm.system.market;
 
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,13 +25,13 @@ public class MarketProductController {
     }
 
     @PostMapping("/api/v1/markets/{marketId}/products")
-    public MarketProduct create(@PathVariable Integer marketId, @RequestBody MarketProduct input) {
+    public MarketProduct create(@PathVariable Integer marketId, @Valid @RequestBody MarketProduct input) {
         return service.create(marketId, input);
     }
 
     @PutMapping("/api/v1/markets/{marketId}/products/{marketProductId}")
     public MarketProduct update(@PathVariable Integer marketId, @PathVariable Integer marketProductId,
-                                 @RequestBody MarketProduct input) {
+                                 @Valid @RequestBody MarketProduct input) {
         return service.update(marketId, marketProductId, input);
     }
 

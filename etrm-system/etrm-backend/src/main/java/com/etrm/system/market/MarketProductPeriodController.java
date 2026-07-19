@@ -1,5 +1,7 @@
 package com.etrm.system.market;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,10 +20,10 @@ public class MarketProductPeriodController {
         return service.list(marketProductId);
     }
 
-    public record AddPeriodRequest(Integer periodId) {}
+    public record AddPeriodRequest(@NotNull Integer periodId) {}
 
     @PostMapping("/api/v1/market-products/{marketProductId}/periods")
-    public MarketProductPeriod add(@PathVariable Integer marketProductId, @RequestBody AddPeriodRequest request) {
+    public MarketProductPeriod add(@PathVariable Integer marketProductId, @Valid @RequestBody AddPeriodRequest request) {
         return service.add(marketProductId, request.periodId());
     }
 

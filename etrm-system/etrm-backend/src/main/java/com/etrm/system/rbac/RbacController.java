@@ -5,6 +5,9 @@ import com.etrm.system.auth.AppUserRepository;
 import com.etrm.system.common.ConflictException;
 import com.etrm.system.common.NotFoundException;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -92,7 +95,7 @@ public class RbacController {
     @PostMapping("/roles")
     @ResponseStatus(HttpStatus.CREATED)
     @Transactional
-    public UserRole createRole(@RequestBody RoleRequest body) {
+    public UserRole createRole(@Valid @RequestBody RoleRequest body) {
         // role_code is a code-style field — conventionally uppercase
         // everywhere in this schema — so normalize regardless of entry case.
         String roleCode = body.roleCode() == null ? null : body.roleCode().toUpperCase();
@@ -114,7 +117,7 @@ public class RbacController {
 
     @PutMapping("/roles/{id}")
     @Transactional
-    public UserRole updateRole(@PathVariable Integer id, @RequestBody RoleRequest body) {
+    public UserRole updateRole(@PathVariable Integer id, @Valid @RequestBody RoleRequest body) {
         UserRole role = roleRepo.findById(Objects.requireNonNull(id))
                 .orElseThrow(() -> new NotFoundException("Role " + id + " not found"));
         if ("SYSTEM".equals(role.getRoleType())) {
@@ -175,8 +178,15 @@ public class RbacController {
     @PostMapping("/users/{userId}/role-assignments")
     @ResponseStatus(HttpStatus.CREATED)
     public AssignmentResponse assignRole(@PathVariable Integer userId, @RequestBody Map<String, Integer> body) {
+        // A raw Map body carries no Bean Validation annotations to enforce
+        // via @Valid, so this has to be an explicit check — Objects.requireNonNull
+        // here would throw a raw NullPointerException on a missing "roleId"
+        // key, caught only by the generic 500 handler instead of a clean 400.
         Integer roleId = body.get("roleId");
-        UserRole role = roleRepo.findById(Objects.requireNonNull(roleId))
+        if (roleId == null) {
+            throw new IllegalArgumentException("roleId is required.");
+        }
+        UserRole role = roleRepo.findById(roleId)
                 .orElseThrow(() -> new NotFoundException("Role " + roleId + " not found"));
         if (!"APPROVED".equals(role.getStatus())) {
             throw new ConflictException("Only APPROVED roles can be assigned.");
@@ -245,6 +255,7 @@ public class RbacController {
 
     // ── Request records ───────────────────────────────────────────────────────
 
-    record RoleRequest(String roleCode, String roleName, String description, List<FunctionGrant> functions) {}
-    record FunctionGrant(Integer functionId, String accessLevel) {}
+    record RoleRequest(@NotBlank String roleCode, @NotBlank String roleName, String description,
+                        @Valid List<FunctionGrant> functions) {}
+    record FunctionGrant(@NotNull Integer functionId, @NotBlank String accessLevel) {}
 }

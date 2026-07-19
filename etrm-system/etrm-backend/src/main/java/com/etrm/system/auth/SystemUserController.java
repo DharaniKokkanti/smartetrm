@@ -6,6 +6,8 @@ import com.etrm.system.rbac.UserRole;
 import com.etrm.system.rbac.UserRoleAssignment;
 import com.etrm.system.rbac.UserRoleAssignmentRepository;
 import com.etrm.system.rbac.UserRoleRepository;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -61,7 +63,7 @@ public class SystemUserController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public SystemUserResponse createUser(@RequestBody UserRequest body) {
+    public SystemUserResponse createUser(@Valid @RequestBody UserRequest body) {
         userRepo.findByUsernameIgnoreCase(body.username()).ifPresent(u -> {
             throw new ConflictException("Username '" + body.username() + "' already exists.");
         });
@@ -92,7 +94,7 @@ public class SystemUserController {
     }
 
     @PutMapping("/{id}")
-    public SystemUserResponse updateUser(@PathVariable Integer id, @RequestBody UserRequest body) {
+    public SystemUserResponse updateUser(@PathVariable Integer id, @Valid @RequestBody UserRequest body) {
         AppUser user = findUser(id);
         applyFields(user, body);
         if (body.password() != null && !body.password().isBlank()) {
@@ -143,9 +145,13 @@ public class SystemUserController {
      *  same pending-approval path as any other assignment. Ignored on update;
      *  additional roles are granted via RbacController's assignment endpoints. */
     record UserRequest(
-            String username,
-            String email,
-            String fullName,
+            @NotBlank String username,
+            @NotBlank String email,
+            @NotBlank String fullName,
+            // password is intentionally unannotated here — required on
+            // create, optional on update (unchanged if omitted/blank) — both
+            // already enforced explicitly in createUser()/updateUser() above,
+            // not expressible as a single static constraint shared by both.
             String password,
             Integer legalEntityId,
             Integer roleId,

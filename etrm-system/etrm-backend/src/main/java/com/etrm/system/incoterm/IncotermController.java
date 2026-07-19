@@ -29,7 +29,7 @@ public class IncotermController {
     }
 
     @PutMapping("/{id}")
-    public Incoterm update(@PathVariable Integer id, @RequestBody Incoterm input) {
+    public Incoterm update(@PathVariable Integer id, @Valid @RequestBody Incoterm input) {
         return service.update(id, input);
     }
 

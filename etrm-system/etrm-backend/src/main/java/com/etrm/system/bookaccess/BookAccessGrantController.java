@@ -6,6 +6,9 @@ import com.etrm.system.common.ConflictException;
 import com.etrm.system.common.NotFoundException;
 import com.etrm.system.legalentity.LegalEntityRepository;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -62,12 +65,12 @@ public class BookAccessGrantController {
     @PostMapping("/users/{userId}/book-access-grants")
     @ResponseStatus(HttpStatus.CREATED)
     @Transactional
-    public BookAccessGrant create(@PathVariable Integer userId, @RequestBody GrantRequest body) {
+    public BookAccessGrant create(@PathVariable Integer userId, @Valid @RequestBody GrantRequest body) {
         userRepo.findById(Objects.requireNonNull(userId))
                 .orElseThrow(() -> new NotFoundException("User " + userId + " not found"));
 
         String scopeType = body.scopeType();
-        Integer scopeId = Objects.requireNonNull(body.scopeId());
+        Integer scopeId = body.scopeId();
         validateScope(scopeType, scopeId);
 
         grantRepo.findByUserIdAndScopeTypeAndScopeIdAndIsActiveTrue(userId, scopeType, scopeId).ifPresent(g -> {
@@ -126,5 +129,5 @@ public class BookAccessGrantController {
         }
     }
 
-    record GrantRequest(String scopeType, Integer scopeId, String accessLevel) {}
+    record GrantRequest(@NotBlank String scopeType, @NotNull Integer scopeId, String accessLevel) {}
 }

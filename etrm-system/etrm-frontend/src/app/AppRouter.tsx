@@ -18,6 +18,7 @@ function lazy1<T extends Record<string, ComponentType>>(
 const Tier1Placeholder = lazy1(() => import('@features/tier1/Tier1Placeholder'), 'Tier1Placeholder');
 const Tier2HomePage = lazy1(() => import('@features/tier2/Tier2HomePage'), 'Tier2HomePage');
 const LegalEntityListPage = lazy1(() => import('@features/tier1/legal-entity/LegalEntityListPage'), 'LegalEntityListPage');
+const LegalEntityFormPage = lazy1(() => import('@features/tier1/legal-entity/LegalEntityFormPage'), 'LegalEntityFormPage');
 const CounterpartyListPage = lazy1(() => import('@features/tier1/counterparty/CounterpartyListPage'), 'CounterpartyListPage');
 const CounterpartyFormPage = lazy1(() => import('@features/tier1/counterparty/CounterpartyFormPage'), 'CounterpartyFormPage');
 const NettingAgreementsPage = lazy1(() => import('@features/counterparties/netting-agreements/NettingAgreementsPage'), 'NettingAgreementsPage');
@@ -164,6 +165,7 @@ export function AppRouter() {
 
         {/* Counterparties */}
         <Route path="/tier1/legal-entity" element={<S><LegalEntityListPage /></S>} />
+        <Route path="/tier1/legal-entity/:id" element={<S><LegalEntityFormPage /></S>} />
         <Route path="/tier1/counterparty" element={<S><CounterpartyListPage /></S>} />
         <Route path="/tier1/counterparty/:id" element={<S><CounterpartyFormPage /></S>} />
         <Route path="/counterparties/netting-agreements" element={<S><NettingAgreementsPage /></S>} />

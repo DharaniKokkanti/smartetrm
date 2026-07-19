@@ -28,7 +28,6 @@ export const DRAFT_META: Record<string, { route: string; label: string }> = {
   'env-schemes':                  { route: '/environmental/schemes',      label: 'Emission Scheme' },
   'env-products':                 { route: '/environmental/products',     label: 'Environmental Product' },
   'env-registries':               { route: '/environmental/registries',  label: 'Carbon Registry' },
-  'tier1-legal-entity':           { route: '/tier1/legal-entity',         label: 'Legal Entity' },
   'env-obligations':              { route: '/environmental/obligations', label: 'Emission Obligation' },
   'markets-price-indices':        { route: '/markets/price-indices',      label: 'Price Index' },
   'markets-products':             { route: '/markets/products',           label: 'Product' },

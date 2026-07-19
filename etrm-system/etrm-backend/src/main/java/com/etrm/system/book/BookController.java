@@ -1,10 +1,13 @@
 package com.etrm.system.book;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -82,7 +85,7 @@ public class BookController {
     }
 
     @PatchMapping("/{id}/move")
-    public Book move(@PathVariable Integer id, @RequestBody MoveRequest body) {
+    public Book move(@PathVariable Integer id, @Valid @RequestBody MoveRequest body) {
         return service.move(id, body.legalEntityId(), body.parentBookId());
     }
 
@@ -100,7 +103,7 @@ public class BookController {
 
     @PostMapping("/{bookId}/classifications")
     public ResponseEntity<BookClassification> addClassification(@PathVariable Integer bookId,
-                                                                  @RequestBody AddClassificationRequest body) {
+                                                                  @Valid @RequestBody AddClassificationRequest body) {
         return ResponseEntity.status(HttpStatus.CREATED).body(bookClassificationService.add(
                 bookId, body.dimensionCode(), body.valueCode(), body.valueLabel(), body.isPrimary()));
     }
@@ -120,7 +123,7 @@ public class BookController {
     }
 
     @PostMapping("/{bookId}/traders")
-    public ResponseEntity<BookTrader> addTrader(@PathVariable Integer bookId, @RequestBody AddTraderRequest body) {
+    public ResponseEntity<BookTrader> addTrader(@PathVariable Integer bookId, @Valid @RequestBody AddTraderRequest body) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(bookTraderService.add(bookId, body.traderId(), body.role()));
     }
@@ -139,19 +142,23 @@ public class BookController {
     }
 
     @PostMapping("/{bookId}/eod-status/lock")
-    public BookEodStatus lockEodStatus(@PathVariable Integer bookId, @RequestBody LockRequest body) {
+    public BookEodStatus lockEodStatus(@PathVariable Integer bookId, @Valid @RequestBody LockRequest body) {
         return bookEodStatusService.lock(bookId, body.businessDate());
     }
 
     @PostMapping("/{bookId}/eod-status/reopen")
-    public BookEodStatus reopenEodStatus(@PathVariable Integer bookId, @RequestBody ReopenRequest body) {
+    public BookEodStatus reopenEodStatus(@PathVariable Integer bookId, @Valid @RequestBody ReopenRequest body) {
         return bookEodStatusService.reopen(bookId, body.businessDate(), body.reason());
     }
 
+    // reason left unannotated: book.archived_reason is a genuinely nullable
+    // DB column (V119) — archiving without a stated reason is valid.
     record ArchiveRequest(String reason) {}
-    record MoveRequest(Integer legalEntityId, Integer parentBookId) {}
-    record AddTraderRequest(Integer traderId, String role) {}
-    record AddClassificationRequest(String dimensionCode, String valueCode, String valueLabel, Boolean isPrimary) {}
-    record LockRequest(java.time.LocalDate businessDate) {}
-    record ReopenRequest(java.time.LocalDate businessDate, String reason) {}
+    record MoveRequest(@NotNull Integer legalEntityId, Integer parentBookId) {}
+    record AddTraderRequest(@NotNull Integer traderId, @NotBlank String role) {}
+    record AddClassificationRequest(@NotBlank String dimensionCode, @NotBlank String valueCode, String valueLabel, Boolean isPrimary) {}
+    record LockRequest(@NotNull LocalDate businessDate) {}
+    // reason IS required to reopen — an EOD lock reversal needs an audit
+    // trail of why, unlike archiving (see ArchiveRequest above).
+    record ReopenRequest(@NotNull LocalDate businessDate, @NotBlank String reason) {}
 }

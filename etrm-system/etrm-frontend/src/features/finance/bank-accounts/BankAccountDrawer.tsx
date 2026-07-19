@@ -25,7 +25,7 @@ interface Props {
  *  wire shape and mock endpoints are unchanged.
  *
  *  Bank accounts are counterparty-owned only — the real
- *  `/counterparties/:id/bank-accounts` route (and LegalEntityFormDrawer,
+ *  `/counterparties/:id/bank-accounts` route (and LegalEntityFormPage,
  *  which has no BankAccountsSection tab at all) confirm legal entities don't
  *  hold bank accounts in this app, so unlike the Contact/Tax drawers there's
  *  no entity-type picker, just a counterparty picker. */
