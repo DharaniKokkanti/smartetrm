@@ -9,6 +9,8 @@ export type TankStatus = (typeof TANK_STATUSES)[number];
 
 export interface Tank {
   tankId: number;
+  /** V130 — optimistic-locking token, echoed back unchanged on update. See @components/smart/optimisticLock. */
+  rowVersion: number;
   facilityId: number;
   facilityName: string;
   tankNumber: string;

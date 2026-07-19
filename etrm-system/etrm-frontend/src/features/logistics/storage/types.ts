@@ -9,6 +9,8 @@ export type StorageStatusCode = (typeof STORAGE_STATUS_CODES)[number];
 
 export interface StorageFacility {
   storageId: number;
+  /** V130 — optimistic-locking token, echoed back unchanged on update. See @components/smart/optimisticLock. */
+  rowVersion: number;
   storageCode: string;
   storageName: string;
   storageType: StorageType;

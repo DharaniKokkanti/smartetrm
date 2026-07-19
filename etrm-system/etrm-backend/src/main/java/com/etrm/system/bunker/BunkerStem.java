@@ -9,6 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -24,6 +25,12 @@ public class BunkerStem extends AuditableEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "bunker_stem_id")
     private Integer bunkerStemId;
+
+    // V130 — optimistic locking (Batch C: Logistics). See LegalEntity.java for
+    // the canonical pattern this batch replicates.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
 
     @Column(name = "voyage_id")
     private Integer voyageId;
@@ -99,6 +106,14 @@ public class BunkerStem extends AuditableEntity {
 
     public void setBunkerStemId(Integer bunkerStemId) {
         this.bunkerStemId = bunkerStemId;
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
+    }
+
+    public void setRowVersion(Integer rowVersion) {
+        this.rowVersion = rowVersion;
     }
 
     public Integer getVoyageId() {

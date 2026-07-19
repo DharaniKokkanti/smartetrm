@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -27,6 +28,14 @@ public class TransportOperator extends AuditableEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "operator_id")
     private Integer operatorId;
+
+    // V130 — optimistic locking (Batch C: Logistics). No dedicated
+    // frontend page exists for this table yet (see class doc comment above),
+    // but the column/annotation is added for consistency with the rest of
+    // this batch.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
 
     @NotBlank
     @Size(max = 20)
@@ -65,6 +74,14 @@ public class TransportOperator extends AuditableEntity {
 
     public void setOperatorId(Integer operatorId) {
         this.operatorId = operatorId;
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
+    }
+
+    public void setRowVersion(Integer rowVersion) {
+        this.rowVersion = rowVersion;
     }
 
     public String getOperatorCode() {

@@ -3,6 +3,8 @@ export type ContainerType = (typeof CONTAINER_TYPES)[number];
 
 export interface Container {
   containerId: number;
+  /** V130 — optimistic-locking token, echoed back unchanged on update. See @components/smart/optimisticLock. */
+  rowVersion: number;
   containerNumber: string;
   containerType: ContainerType;
   operatorId: number;

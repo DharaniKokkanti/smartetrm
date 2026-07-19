@@ -8,6 +8,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -32,6 +33,12 @@ public class Location {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "location_id")
     private Integer locationId;
+
+    // V130 — optimistic locking (Batch C: Logistics). See LegalEntity.java for
+    // the canonical pattern this batch replicates.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
 
     // Not @NotNull: the frontend LocationTypeCode is a plain code string,
     // not the numeric location_type_id FK (see this class's own doc
@@ -134,6 +141,14 @@ public class Location {
 
     public void setLocationId(Integer locationId) {
         this.locationId = locationId;
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
+    }
+
+    public void setRowVersion(Integer rowVersion) {
+        this.rowVersion = rowVersion;
     }
 
     public Integer getLocationTypeId() {
