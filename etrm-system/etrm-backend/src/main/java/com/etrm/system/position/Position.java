@@ -6,6 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.persistence.Version;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -25,6 +26,13 @@ public class Position {
     @Id
     @Column(name = "position_id")
     private Integer positionId;
+
+    // V131 — optimistic locking, see LegalEntity.java's rowVersion doc comment.
+    // Read-only entity today (batch-computed, no user-facing update path),
+    // added for schema consistency.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
 
     @Column(name = "position_type", nullable = false, length = 20)
     private String positionType;
@@ -108,6 +116,14 @@ public class Position {
 
     public void setPositionId(Integer positionId) {
         this.positionId = positionId;
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
+    }
+
+    public void setRowVersion(Integer rowVersion) {
+        this.rowVersion = rowVersion;
     }
 
     public String getPositionType() {

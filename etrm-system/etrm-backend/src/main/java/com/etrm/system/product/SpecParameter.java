@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -19,6 +20,13 @@ public class SpecParameter {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "parameter_id")
     private Integer parameterId;
+
+    // V131 — optimistic locking, see LegalEntity.java's rowVersion doc comment.
+    // Read-only catalog today (no create/update endpoint), added for schema
+    // consistency and in case a write path is added later.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
 
     @Size(max = 20)
     @Column(name = "commodity_type", length = 20)
@@ -64,6 +72,14 @@ public class SpecParameter {
 
     public void setParameterId(Integer parameterId) {
         this.parameterId = parameterId;
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
+    }
+
+    public void setRowVersion(Integer rowVersion) {
+        this.rowVersion = rowVersion;
     }
 
     public String getCommodityType() {

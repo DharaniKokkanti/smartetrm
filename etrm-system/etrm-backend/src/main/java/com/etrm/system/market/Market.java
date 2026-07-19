@@ -9,6 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -25,6 +26,11 @@ public class Market extends AuditableEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "market_id")
     private Integer marketId;
+
+    // V131 — optimistic locking, see LegalEntity.java's rowVersion doc comment.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
 
     @Column(name = "exchange_id")
     private Integer exchangeId;
@@ -114,6 +120,14 @@ public class Market extends AuditableEntity {
 
     public void setMarketId(Integer marketId) {
         this.marketId = marketId;
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
+    }
+
+    public void setRowVersion(Integer rowVersion) {
+        this.rowVersion = rowVersion;
     }
 
     public Integer getExchangeId() {

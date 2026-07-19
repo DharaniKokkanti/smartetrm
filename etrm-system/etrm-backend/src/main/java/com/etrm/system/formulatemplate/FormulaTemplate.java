@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -35,6 +36,11 @@ public class FormulaTemplate {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "template_id")
     private Integer templateId;
+
+    // V131 — optimistic locking, see LegalEntity.java's rowVersion doc comment.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
 
     @Size(max = 20)
     @Column(name = "commodity_type", length = 20)
@@ -97,6 +103,14 @@ public class FormulaTemplate {
 
     public void setTemplateId(Integer templateId) {
         this.templateId = templateId;
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
+    }
+
+    public void setRowVersion(Integer rowVersion) {
+        this.rowVersion = rowVersion;
     }
 
     public String getCommodityType() {

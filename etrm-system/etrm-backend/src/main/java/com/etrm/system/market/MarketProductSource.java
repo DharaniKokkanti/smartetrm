@@ -6,6 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.persistence.Version;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -18,6 +19,13 @@ public class MarketProductSource {
     @Id
     @Column(name = "mps_id")
     private Integer mpsId;
+
+    // V131 — optimistic locking, see LegalEntity.java's rowVersion doc comment.
+    // Read-only entity today (no create/update endpoint), added for schema
+    // consistency and in case a write path is added later.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
 
     @Column(name = "market_product_id", nullable = false)
     private Integer marketProductId;
@@ -62,6 +70,10 @@ public class MarketProductSource {
 
     public Integer getMpsId() {
         return mpsId;
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
     }
 
     public Integer getMarketProductId() {
