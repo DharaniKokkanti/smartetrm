@@ -5,6 +5,7 @@ import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
@@ -21,6 +22,11 @@ public class BookTrader {
 
     @EmbeddedId
     private BookTraderId id;
+
+    // V129 — optimistic locking, see LegalEntity.rowVersion (V127) for the full explanation.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
 
     @NotNull
     @Column(name = "role", nullable = false, length = 20)
@@ -65,6 +71,14 @@ public class BookTrader {
     public void setTraderId(Integer traderId) {
         if (id == null) id = new BookTraderId();
         id.setTraderId(traderId);
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
+    }
+
+    public void setRowVersion(Integer rowVersion) {
+        this.rowVersion = rowVersion;
     }
 
     public String getRole() {
