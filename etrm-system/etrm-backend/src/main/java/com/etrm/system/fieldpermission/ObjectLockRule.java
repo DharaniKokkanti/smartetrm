@@ -10,6 +10,11 @@ public class ObjectLockRule {
     @Column(name = "lock_rule_id")
     private Integer lockRuleId;
 
+    // V129 — optimistic locking, see LegalEntity.rowVersion (V127) for the full explanation.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
+
     @Column(name = "screen_code", nullable = false, length = 100)
     private String screenCode;
 
@@ -40,6 +45,8 @@ public class ObjectLockRule {
 
     public Integer getLockRuleId() { return lockRuleId; }
     public void setLockRuleId(Integer lockRuleId) { this.lockRuleId = lockRuleId; }
+    public Integer getRowVersion() { return rowVersion; }
+    public void setRowVersion(Integer rowVersion) { this.rowVersion = rowVersion; }
     public String getScreenCode() { return screenCode; }
     public void setScreenCode(String screenCode) { this.screenCode = screenCode; }
     public String getFieldKey() { return fieldKey; }

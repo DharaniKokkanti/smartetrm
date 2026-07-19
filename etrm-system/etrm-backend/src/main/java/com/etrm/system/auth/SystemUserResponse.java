@@ -26,7 +26,8 @@ public record SystemUserResponse(
         String officeLocation,
         Boolean isActive,
         LocalDateTime lastLogin,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        Integer rowVersion
 ) {
     public record RoleSummary(Integer assignmentId, Integer roleId, String roleCode, String roleName, String status) {}
 
@@ -40,6 +41,6 @@ public record SystemUserResponse(
         return new SystemUserResponse(
                 u.getUserId(), u.getUsername(), u.getEmail(), u.getFullName(), u.getLegalEntityId(),
                 roles, u.getDepartment(), u.getPhone(), u.getTraderId(), u.getPreferredLocale(),
-                u.getOfficeLocation(), u.getIsActive(), u.getLastLogin(), u.getCreatedAt());
+                u.getOfficeLocation(), u.getIsActive(), u.getLastLogin(), u.getCreatedAt(), u.getRowVersion());
     }
 }

@@ -97,6 +97,10 @@ public class SystemUserController {
     public SystemUserResponse updateUser(@PathVariable Integer id, @Valid @RequestBody UserRequest body) {
         AppUser user = findUser(id);
         applyFields(user, body);
+        // V129 — must overwrite the just-fetched (current) version with the
+        // client's echoed-back one, or the optimistic-lock check below is a
+        // no-op (it would always match the row it just read).
+        user.setRowVersion(body.rowVersion());
         if (body.password() != null && !body.password().isBlank()) {
             user.setPasswordHash(passwordEncoder.encode(body.password()));
         }
@@ -160,6 +164,9 @@ public class SystemUserController {
             Long   traderId,
             String preferredLocale,
             String officeLocation,
-            Boolean isActive
+            Boolean isActive,
+            // V129 — echoed back from the last GET/PUT response by the client;
+            // ignored on create (new row starts at Hibernate's default 0).
+            Integer rowVersion
     ) {}
 }

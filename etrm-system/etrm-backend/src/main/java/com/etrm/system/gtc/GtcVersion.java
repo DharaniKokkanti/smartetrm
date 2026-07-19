@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -24,6 +25,11 @@ public class GtcVersion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "gtc_version_id")
     private Integer gtcVersionId;
+
+    // V129 — optimistic locking, see LegalEntity.rowVersion (V127) for the full explanation.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
 
     @Column(name = "gtc_id", nullable = false)
     private Integer gtcId;
@@ -58,6 +64,14 @@ public class GtcVersion {
 
     public void setGtcVersionId(Integer gtcVersionId) {
         this.gtcVersionId = gtcVersionId;
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
+    }
+
+    public void setRowVersion(Integer rowVersion) {
+        this.rowVersion = rowVersion;
     }
 
     public Integer getGtcId() {

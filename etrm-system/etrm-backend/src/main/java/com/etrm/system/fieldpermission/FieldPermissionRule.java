@@ -10,6 +10,11 @@ public class FieldPermissionRule {
     @Column(name = "rule_id")
     private Integer ruleId;
 
+    // V129 — optimistic locking, see LegalEntity.rowVersion (V127) for the full explanation.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "profile_id", nullable = false)
     private FieldPermissionProfile profile;
@@ -23,6 +28,8 @@ public class FieldPermissionRule {
 
     public Integer getRuleId() { return ruleId; }
     public void setRuleId(Integer ruleId) { this.ruleId = ruleId; }
+    public Integer getRowVersion() { return rowVersion; }
+    public void setRowVersion(Integer rowVersion) { this.rowVersion = rowVersion; }
     public FieldPermissionProfile getProfile() { return profile; }
     public void setProfile(FieldPermissionProfile profile) { this.profile = profile; }
     public ScreenFieldRegistry getField() { return field; }

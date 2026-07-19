@@ -12,6 +12,11 @@ public class FieldPermissionProfile {
     @Column(name = "profile_id")
     private Integer profileId;
 
+    // V129 — optimistic locking, see LegalEntity.rowVersion (V127) for the full explanation.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
+
     @NotBlank
     @Column(name = "profile_code", nullable = false, length = 100)
     private String profileCode;
@@ -53,6 +58,8 @@ public class FieldPermissionProfile {
 
     public Integer getProfileId() { return profileId; }
     public void setProfileId(Integer profileId) { this.profileId = profileId; }
+    public Integer getRowVersion() { return rowVersion; }
+    public void setRowVersion(Integer rowVersion) { this.rowVersion = rowVersion; }
     public String getProfileCode() { return profileCode; }
     public void setProfileCode(String profileCode) { this.profileCode = profileCode; }
     public String getProfileName() { return profileName; }

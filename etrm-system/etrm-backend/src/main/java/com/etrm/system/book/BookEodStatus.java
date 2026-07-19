@@ -7,6 +7,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -26,6 +27,11 @@ public class BookEodStatus {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "book_eod_status_id")
     private Integer bookEodStatusId;
+
+    // V129 — optimistic locking, see LegalEntity.rowVersion (V127) for the full explanation.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
 
     @Column(name = "book_id", nullable = false)
     private Integer bookId;
@@ -68,6 +74,14 @@ public class BookEodStatus {
 
     public void setBookEodStatusId(Integer bookEodStatusId) {
         this.bookEodStatusId = bookEodStatusId;
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
+    }
+
+    public void setRowVersion(Integer rowVersion) {
+        this.rowVersion = rowVersion;
     }
 
     public Integer getBookId() {

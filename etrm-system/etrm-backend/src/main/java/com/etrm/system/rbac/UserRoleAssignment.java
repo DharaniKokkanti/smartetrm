@@ -12,6 +12,11 @@ public class UserRoleAssignment {
     @Column(name = "assignment_id")
     private Integer assignmentId;
 
+    // V129 — optimistic locking, see LegalEntity.rowVersion (V127) for the full explanation.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
+
     @Column(name = "user_id", nullable = false)
     private Integer userId;
 
@@ -54,6 +59,8 @@ public class UserRoleAssignment {
 
     public Integer getAssignmentId() { return assignmentId; }
     public void setAssignmentId(Integer assignmentId) { this.assignmentId = assignmentId; }
+    public Integer getRowVersion() { return rowVersion; }
+    public void setRowVersion(Integer rowVersion) { this.rowVersion = rowVersion; }
     public Integer getUserId() { return userId; }
     public void setUserId(Integer userId) { this.userId = userId; }
     public UserRole getRole() { return role; }
