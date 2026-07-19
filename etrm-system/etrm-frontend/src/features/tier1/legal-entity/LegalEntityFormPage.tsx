@@ -100,6 +100,10 @@ export function LegalEntityFormPage() {
       // chk_le_parent_ind_consistency CHECK (V62).
       parentEntityId: values.parentInd ? values.parentEntityId : null,
       goLiveDate: values.goLiveDate ? values.goLiveDate.format('YYYY-MM-DD') : null,
+      // V127 — echo back the version this client last read (not a form
+      // field the user edits) so the backend can detect a concurrent edit;
+      // 0 for a brand-new record, ignored by Hibernate on insert anyway.
+      rowVersion: existing?.rowVersion ?? 0,
     };
     const result = await saveDraft.mutateAsync({ id: leId, draft: { core, addresses, contacts, taxRegistrations } });
     activeRef.current = false;

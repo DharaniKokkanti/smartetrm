@@ -141,6 +141,8 @@ export function CounterpartyFormPage() {
       kycApprovedDate: values.kycApprovedDate ? values.kycApprovedDate.format('YYYY-MM-DD') : null,
       kycExpiryDate: values.kycExpiryDate ? values.kycExpiryDate.format('YYYY-MM-DD') : null,
       onboardedDate: values.onboardedDate ? values.onboardedDate.format('YYYY-MM-DD') : null,
+      // V127 — echo back the version this client last read; 0 for a new record.
+      rowVersion: existing?.rowVersion ?? 0,
     };
     const result = await saveDraft.mutateAsync({ id: cpId, draft: { core, contacts, bankAccounts, addresses, taxRegistrations } });
     activeRef.current = false;

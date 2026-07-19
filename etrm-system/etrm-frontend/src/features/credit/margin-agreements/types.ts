@@ -11,6 +11,8 @@ export type GoverningLaw = (typeof GOVERNING_LAWS)[number];
 
 export interface MarginAgreement {
   marginAgreementId: number;
+  /** V127 — optimistic-locking token, echoed back unchanged on update. See @components/smart/optimisticLock. */
+  rowVersion: number;
   agreementCode: string;
   agreementType: MarginAgreementType;
   counterpartyId: number;

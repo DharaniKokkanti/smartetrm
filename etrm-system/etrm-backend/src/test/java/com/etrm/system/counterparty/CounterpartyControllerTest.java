@@ -78,8 +78,12 @@ class CounterpartyControllerTest extends ApiTestBase {
     void update_persists_but_cpCode_stays_immutable() throws Exception {
         String code = unique();
         int id = createCounterparty(code);
-        Map<String, Object> update = validPayload(code.toLowerCase() + "x"); // within cp_code VARCHAR(20)
+        String getBody = mockMvc.perform(auth(get("/api/v1/counterparties/" + id)))
+                .andReturn().getResponse().getContentAsString();
+        Map<String, Object> update = new java.util.HashMap<>(validPayload(code.toLowerCase() + "x")); // within cp_code VARCHAR(20)
         update.put("shortName", "updated-" + code);
+        // V127 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", objectMapper.readTree(getBody).get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/counterparties/" + id)).content(json(update)))
                 .andExpect(status().isOk())

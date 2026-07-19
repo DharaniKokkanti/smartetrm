@@ -15,6 +15,11 @@ export type EntityType = number;
 
 export interface LegalEntity {
   legalEntityId: number;
+  /** V127 — optimistic-locking token. Must be echoed back unchanged on
+   *  update (the value this client last read) — a stale value means
+   *  someone else saved a change first, and the update is rejected with a
+   *  409 rather than silently overwriting it. See @components/smart/optimisticLock. */
+  rowVersion: number;
   entityCode: string;
   entityName: string;
   shortName: string;

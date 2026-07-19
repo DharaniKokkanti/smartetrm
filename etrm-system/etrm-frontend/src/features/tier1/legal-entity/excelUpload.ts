@@ -142,6 +142,7 @@ export async function parseLegalEntityUpload(
       _errors: errors,
       _jurisdictionCode: jurisdiction,
       _baseCurrencyCode: baseCurrency,
+      rowVersion: 0, // new row via bulk create — no prior version to conflict with
       entityCode,
       entityName,
       shortName,

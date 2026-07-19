@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -21,6 +22,15 @@ public class LegalEntity extends AuditableEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "legal_entity_id")
     private Integer legalEntityId;
+
+    // V127 — optimistic locking. Hibernate increments this on every UPDATE
+    // and includes it in the WHERE clause; a stale write (row_version
+    // already bumped by someone else) matches zero rows and throws
+    // ObjectOptimisticLockingFailureException (-> 409, GlobalExceptionHandler)
+    // instead of silently overwriting a concurrent edit.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
 
     @NotBlank
     @Size(max = 20)
@@ -100,6 +110,14 @@ public class LegalEntity extends AuditableEntity {
 
     public void setLegalEntityId(Integer legalEntityId) {
         this.legalEntityId = legalEntityId;
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
+    }
+
+    public void setRowVersion(Integer rowVersion) {
+        this.rowVersion = rowVersion;
     }
 
     public String getEntityCode() {

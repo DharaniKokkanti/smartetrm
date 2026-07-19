@@ -314,6 +314,8 @@ export function BookFormDrawer({ open, editing, onClose, onSaved, defaultParentB
       // the level picked above rather than a separate form control.
       isLeafNode: values.bookLevelTypeId === TRADING_BOOK_LEVEL_TYPE_ID,
       goLiveDate: v.goLiveDate ? v.goLiveDate.format('YYYY-MM-DD') : null,
+      // V127 — echo back the version this client last read; 0 for a new book.
+      rowVersion: editing?.rowVersion ?? 0,
     };
     const saved = await save.mutateAsync({ id: editing?.bookId ?? null, input });
     if (closeAfter) onClose(); else onSaved?.(saved);

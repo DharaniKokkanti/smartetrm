@@ -4,6 +4,7 @@ import { legalEntityApi, fetchLegalEntityChildren } from './api';
 import type { LegalEntityDraft, LegalEntityInput, LegalEntityOwnershipInput } from './types';
 import type { ProblemDetail } from '@services/api';
 import { saveAddressAssignment, saveContactAssignment, saveTaxRegistrationAssignment } from '@features/tier1/counterparty/api';
+import { isOptimisticLockConflict, showOptimisticLockConflict } from '@components/smart/optimisticLock';
 
 const QUERY_KEY = ['legal-entities'] as const;
 const childrenKey = (id: number) => ['legal-entities', id, 'children'] as const;
@@ -89,7 +90,7 @@ export function useBulkCreateLegalEntities() {
  *  LegalEntityFormPage doesn't need its own per-section save orchestration. */
 export function useSaveLegalEntityDraft() {
   const queryClient = useQueryClient();
-  const { message } = AntApp.useApp();
+  const { message, notification } = AntApp.useApp();
 
   return useMutation({
     mutationFn: async ({ id, draft }: { id: number | null; draft: LegalEntityDraft }) => {
@@ -138,7 +139,11 @@ export function useSaveLegalEntityDraft() {
       }
     },
     onError: (err: ProblemDetail) => {
-      message.error(err.detail ?? err.title ?? 'Save failed.');
+      if (isOptimisticLockConflict(err)) {
+        showOptimisticLockConflict(notification);
+      } else {
+        message.error(err.detail ?? err.title ?? 'Save failed.');
+      }
     },
   });
 }

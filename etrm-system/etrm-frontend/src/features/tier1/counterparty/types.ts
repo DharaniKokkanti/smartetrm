@@ -11,6 +11,8 @@ export type KycStatus = number;
 
 export interface Counterparty {
   counterpartyId: number;
+  /** V127 — optimistic-locking token, echoed back unchanged on update. See @components/smart/optimisticLock. */
+  rowVersion: number;
   cpCode: string;
   legalName: string;
   shortName: string;

@@ -99,6 +99,8 @@ export function MarginAgreementsPage() {
       ...values,
       effectiveDate: v.effectiveDate ? v.effectiveDate.format('YYYY-MM-DD') : values.effectiveDate,
       expiryDate: v.expiryDate ? v.expiryDate.format('YYYY-MM-DD') : null,
+      // V127 — echo back the version this client last read; 0 for a new agreement.
+      rowVersion: editing?.rowVersion ?? 0,
     };
     const saved = await save.mutateAsync({ id: editing?.marginAgreementId ?? null, input });
     if (closeAfter) setOpen(false); else setEditing(saved);

@@ -9,6 +9,7 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -49,6 +50,27 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleConflict(ConflictException ex) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         pd.setTitle("Conflict");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(pd);
+    }
+
+    /**
+     * V127 — thrown by Hibernate when a @Version-annotated entity's UPDATE
+     * matches zero rows (someone else's save already bumped row_version
+     * since this client last read the record) — a genuine concurrent lost-
+     * update, not a business-rule conflict like ConflictException above.
+     * Also 409 (the correct HTTP status for "the request conflicts with the
+     * current state of the resource"), but carries a distinct `errorCode`
+     * property so the frontend can show a dedicated "someone else changed
+     * this, reload" prompt instead of a generic conflict toast — ConflictException's
+     * 409s and this one share a status code but need different UI treatment.
+     */
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<ProblemDetail> handleOptimisticLock(ObjectOptimisticLockingFailureException ex) {
+        log.warn("Optimistic lock conflict: {}", ex.getMessage());
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,
+                "This record was changed by someone else since you loaded it. Reload to see the latest version before saving again.");
+        pd.setTitle("Conflict");
+        pd.setProperty("errorCode", "OPTIMISTIC_LOCK_CONFLICT");
         return ResponseEntity.status(HttpStatus.CONFLICT).body(pd);
     }
 

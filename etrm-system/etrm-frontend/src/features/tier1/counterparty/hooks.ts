@@ -15,6 +15,7 @@ import {
 } from './api';
 import type { BankAccount, ContactAssignment, CounterpartyDraft, TaxRegistration } from './types';
 import type { ProblemDetail } from '@services/api';
+import { isOptimisticLockConflict, showOptimisticLockConflict } from '@components/smart/optimisticLock';
 
 const LIST_KEY = ['counterparties'] as const;
 const childrenKey = (id: number) => ['counterparties', id, 'children'] as const;
@@ -66,7 +67,7 @@ export function useContactPool() {
 
 export function useSaveCounterpartyDraft() {
   const queryClient = useQueryClient();
-  const { message } = AntApp.useApp();
+  const { message, notification } = AntApp.useApp();
 
   return useMutation({
     mutationFn: async ({ id, draft }: { id: number | null; draft: CounterpartyDraft }) => {
@@ -137,7 +138,11 @@ export function useSaveCounterpartyDraft() {
       }
     },
     onError: (err: ProblemDetail) => {
-      message.error(err.detail ?? err.title ?? 'Save failed.');
+      if (isOptimisticLockConflict(err)) {
+        showOptimisticLockConflict(notification);
+      } else {
+        message.error(err.detail ?? err.title ?? 'Save failed.');
+      }
     },
   });
 }

@@ -159,6 +159,8 @@ export function CreditLimitsPage() {
       lastReviewDate: v.lastReviewDate ? v.lastReviewDate.format('YYYY-MM-DD') : null,
       nextReviewDate: v.nextReviewDate ? v.nextReviewDate.format('YYYY-MM-DD') : null,
       tempUpliftExpiry: v.tempUpliftExpiry ? v.tempUpliftExpiry.format('YYYY-MM-DD') : null,
+      // V127 — echo back the version this client last read; 0 for a new limit.
+      rowVersion: editing?.rowVersion ?? 0,
     };
     const saved = await save.mutateAsync({ id: editing?.creditLimitId ?? null, input });
     if (closeAfter) setOpen(false); else setEditing(saved);

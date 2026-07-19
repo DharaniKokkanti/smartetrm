@@ -4,7 +4,7 @@ let nextId = 4;
 
 export const legalEntitySeed: LegalEntity[] = [
   {
-    legalEntityId: 1,
+    legalEntityId: 1, rowVersion: 0,
     entityCode: 'ACME-UK',
     entityName: 'Acme Trading UK Limited',
     shortName: 'Acme UK',
@@ -30,7 +30,7 @@ export const legalEntitySeed: LegalEntity[] = [
     updatedBy: 'SYSTEM',
   },
   {
-    legalEntityId: 2,
+    legalEntityId: 2, rowVersion: 0,
     entityCode: 'ACME-US',
     entityName: 'Acme Trading US Inc.',
     shortName: 'Acme US',
@@ -56,7 +56,7 @@ export const legalEntitySeed: LegalEntity[] = [
     updatedBy: 'SYSTEM',
   },
   {
-    legalEntityId: 3,
+    legalEntityId: 3, rowVersion: 0,
     entityCode: 'GLOBEX-SG',
     entityName: 'Globex Singapore Pte Ltd',
     shortName: 'Globex SG',

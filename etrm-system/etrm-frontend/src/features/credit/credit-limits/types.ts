@@ -85,6 +85,8 @@ export interface CreditLimitAlert {
 // ─── Credit limit ─────────────────────────────────────────────────────────────
 export interface CreditLimit {
   creditLimitId: number;
+  /** V127 — optimistic-locking token, echoed back unchanged on update. See @components/smart/optimisticLock. */
+  rowVersion: number;
   counterpartyId: number;
   counterpartyName: string;             // denormalized
   cpCountryId: number | null;           // FK -> dbo.country; denormalized from counterparty — country risk dimension

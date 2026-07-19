@@ -77,10 +77,15 @@ class LegalEntityControllerTest extends ApiTestBase {
         String createBody = mockMvc.perform(auth(post("/api/v1/legal-entities")).content(json(validPayload(code))))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        int id = objectMapper.readTree(createBody).get("legalEntityId").asInt();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("legalEntityId").asInt();
 
         var update = new java.util.HashMap<>(validPayload(code.toLowerCase() + "x")); // within entity_code VARCHAR(20)
         update.put("shortName", "updated-" + code);
+        // V127 — echo back the version just read from the create response,
+        // same as a real client would; a missing/stale value now correctly
+        // 409s instead of the update silently succeeding.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/legal-entities/" + id)).content(json(update)))
                 .andExpect(status().isOk())

@@ -85,6 +85,8 @@ export interface BookClassificationView {
 
 export interface Book {
   bookId: number;
+  /** V127 — optimistic-locking token, echoed back unchanged on update. See @components/smart/optimisticLock. */
+  rowVersion: number;
   bookCode: string;
   bookName: string;
   // FK to dbo.book_type(book_type_id) — see BOOK_TYPE_LOOKUP above.

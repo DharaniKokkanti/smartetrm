@@ -40,6 +40,12 @@ export interface ProblemDetail {
   detail?: string;
   instance?: string;
   errors?: Record<string, string[]>;
+  /** V127 — set to 'OPTIMISTIC_LOCK_CONFLICT' by GlobalExceptionHandler's
+   *  ObjectOptimisticLockingFailureException handler, distinguishing a
+   *  concurrent-edit lost-update 409 from an ordinary business-rule 409
+   *  (ConflictException) so the frontend can show a dedicated
+   *  "someone else changed this" prompt instead of a generic error toast. */
+  errorCode?: string;
 }
 
 apiClient.interceptors.response.use(
