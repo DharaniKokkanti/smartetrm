@@ -4,6 +4,7 @@ import com.etrm.system.common.FieldValidation;
 import com.etrm.system.common.NotFoundException;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Service;
@@ -106,6 +107,21 @@ public class ReferenceDataCrudService {
                 || camelCaseName.equals("updatedAt") || camelCaseName.equals("updatedBy");
     }
 
+    /**
+     * Optimistic locking for the generic Tier 2 engine — this service bypasses
+     * Hibernate entirely (raw JdbcTemplate SQL), so a table's @Version column
+     * (added per V127-V133 for dedicated-JPA entities) does nothing here; a
+     * table reachable ONLY through this generic engine needs its own check.
+     * Table-metadata-driven, same as everything else in this class: a table
+     * with a row_version column (introspected live from SQL Server, not a
+     * hardcoded list) gets the check automatically the moment the column
+     * exists — no per-table code. Tables without the column are completely
+     * unaffected (this returns false, callers skip the check entirely).
+     */
+    private boolean hasRowVersion(Map<String, ColumnMetadata> columnsByCamelName) {
+        return columnsByCamelName.containsKey("rowVersion");
+    }
+
     public List<Map<String, Object>> listRows(String tableName) {
         assertSafeIdentifier(tableName, "table name");
         List<Map<String, Object>> rows = jdbc.queryForList("SELECT * FROM dbo." + tableName);
@@ -128,7 +144,9 @@ public class ReferenceDataCrudService {
         List<Object> values = new ArrayList<>();
         for (Map.Entry<String, Object> entry : camelCaseRow.entrySet()) {
             ColumnMetadata col = columnsByCamelName.get(entry.getKey());
-            if (col == null || col.isPrimaryKey() || isAuditColumn(entry.getKey())) continue;
+            // rowVersion is never client-set on create — always start at the
+            // column's own DB DEFAULT (0), same as every JPA @Version entity.
+            if (col == null || col.isPrimaryKey() || isAuditColumn(entry.getKey()) || "rowVersion".equals(entry.getKey())) continue;
             validateValue(col, entry.getValue());
             String snakeCaseColumn = NameUtils.toSnakeCase(entry.getKey());
             sqlColumns.add(snakeCaseColumn);
@@ -181,12 +199,26 @@ public class ReferenceDataCrudService {
         assertSafeIdentifier(tableName, "table name");
         TableMetadata metadata = metadataService.getMetadata(tableName, displayName);
         Map<String, ColumnMetadata> columnsByCamelName = indexByCamelName(metadata);
+        boolean versioned = hasRowVersion(columnsByCamelName);
+
+        Integer clientRowVersion = null;
+        if (versioned) {
+            Object raw = camelCaseRow.get("rowVersion");
+            if (raw == null) {
+                // Same failure mode fixed on AppUser/UserRole (V133): a
+                // missing version must never be silently treated as "no
+                // conflict" — require it explicitly rather than skipping
+                // the check.
+                throw new ObjectOptimisticLockingFailureException(tableName, id);
+            }
+            clientRowVersion = raw instanceof Number n ? n.intValue() : Integer.parseInt(raw.toString());
+        }
 
         List<String> setClauses = new ArrayList<>();
         List<Object> values = new ArrayList<>();
         for (Map.Entry<String, Object> entry : camelCaseRow.entrySet()) {
             ColumnMetadata col = columnsByCamelName.get(entry.getKey());
-            if (col == null || col.isPrimaryKey() || isAuditColumn(entry.getKey())) continue;
+            if (col == null || col.isPrimaryKey() || isAuditColumn(entry.getKey()) || "rowVersion".equals(entry.getKey())) continue;
             validateValue(col, entry.getValue());
             String snakeCaseColumn = NameUtils.toSnakeCase(entry.getKey());
             setClauses.add(snakeCaseColumn + " = ?");
@@ -199,13 +231,32 @@ public class ReferenceDataCrudService {
         if (columnsByCamelName.containsKey("updatedAt")) {
             setClauses.add("updated_at = SYSUTCDATETIME()");
         }
+        if (versioned) {
+            setClauses.add("row_version = row_version + 1");
+        }
 
         values.add(id);
         String sql = "UPDATE dbo." + tableName + " SET " + String.join(", ", setClauses)
                 + " WHERE " + NameUtils.toSnakeCase(metadata.primaryKeyColumn()) + " = ?";
+        if (versioned) {
+            sql += " AND row_version = ?";
+            values.add(clientRowVersion);
+        }
 
         int updated = jdbc.update(sql, values.toArray());
         if (updated == 0) {
+            if (versioned) {
+                // Disambiguate stale-version from truly-missing — a plain
+                // NotFoundException here would mislabel a real conflict as a
+                // 404, which the frontend would (wrongly) not show as a
+                // reload-and-retry conflict.
+                Integer exists = jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM dbo." + tableName + " WHERE " + NameUtils.toSnakeCase(metadata.primaryKeyColumn()) + " = ?",
+                        Integer.class, id);
+                if (exists != null && exists > 0) {
+                    throw new ObjectOptimisticLockingFailureException(tableName, id);
+                }
+            }
             throw new NotFoundException("No row with id " + id + " in \"" + tableName + "\".");
         }
         return getRow(tableName, displayName, id);
