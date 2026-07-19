@@ -3,6 +3,8 @@ export type TankType = (typeof TANK_TYPES)[number];
 
 export interface VesselCargoTank {
   tankId: number;
+  /** V132 — optimistic-locking token, echoed back unchanged on update. See @components/smart/optimisticLock. */
+  rowVersion: number;
   vesselId: number;
   vesselName: string | null;
   tankCode: string;

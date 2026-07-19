@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 
 /**
  * dbo.laytime_term_template is served generically via the Tier2
@@ -19,6 +20,11 @@ public class LaytimeTermTemplate {
     @Column(name = "laytime_term_id")
     private Integer laytimeTermId;
 
+    // V132 — optimistic locking (Batch E, voyage-ops/maritime). See V127/LegalEntity for the pattern.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
+
     @Column(name = "term_code", nullable = false, length = 20)
     private String termCode;
 
@@ -27,6 +33,10 @@ public class LaytimeTermTemplate {
 
     public Integer getLaytimeTermId() {
         return laytimeTermId;
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
     }
 
     public String getTermCode() {

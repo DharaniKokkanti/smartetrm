@@ -101,6 +101,8 @@ export function CharterPartiesPage() {
       ...v,
       deliveryDate: v.deliveryDate ? dayjs(v.deliveryDate as unknown as dayjs.Dayjs).format('YYYY-MM-DD') : null,
       redeliveryDateEstimate: v.redeliveryDateEstimate ? dayjs(v.redeliveryDateEstimate as unknown as dayjs.Dayjs).format('YYYY-MM-DD') : null,
+      // V132 — echo back the version this client last read; 0 for a new charter party.
+      rowVersion: editing?.rowVersion ?? 0,
     };
     await save.mutateAsync({ id: editing?.charterPartyId ?? null, input });
     setOpen(false);

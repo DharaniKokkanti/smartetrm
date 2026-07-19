@@ -21,6 +21,8 @@ export type BolmoLegInput = Omit<BolmoLeg, 'legId' | 'orderReference' | 'created
 
 export interface BolmoAgreement {
   bolmoId: number;
+  /** V132 — optimistic-locking token, echoed back unchanged on update. See @components/smart/optimisticLock. */
+  rowVersion: number;
   bolmoReference: string;       // auto: BKO-2026-00001
   counterpartyId: number;
   counterpartyName: string;

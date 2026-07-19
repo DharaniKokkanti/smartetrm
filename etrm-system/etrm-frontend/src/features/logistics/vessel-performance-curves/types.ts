@@ -3,6 +3,8 @@ export type VesselCondition = (typeof VESSEL_CONDITIONS)[number];
 
 export interface VesselPerformanceCurve {
   curveId: number;
+  /** V132 — optimistic-locking token, echoed back unchanged on update. See @components/smart/optimisticLock. */
+  rowVersion: number;
   vesselId: number;
   vesselName: string | null;
   condition: VesselCondition;

@@ -50,6 +50,8 @@ export function VesselPerformanceCurvesPage() {
     const input: VesselPerformanceCurveInput = {
       ...v,
       effectiveFrom: v.effectiveFrom ? dayjs(v.effectiveFrom as unknown as dayjs.Dayjs).format('YYYY-MM-DD') : null,
+      // V132 — echo back the version this client last read; 0 for a new performance curve.
+      rowVersion: editing?.rowVersion ?? 0,
     };
     await save.mutateAsync({ id: editing?.curveId ?? null, input });
     setOpen(false);

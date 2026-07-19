@@ -9,6 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -24,6 +25,11 @@ public class VesselPerformanceCurve extends AuditableEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "curve_id")
     private Integer curveId;
+
+    // V132 — optimistic locking (Batch E, voyage-ops/maritime). See V127/LegalEntity for the pattern.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
 
     @NotNull
     @Column(name = "vessel_id", nullable = false)
@@ -72,6 +78,14 @@ public class VesselPerformanceCurve extends AuditableEntity {
 
     public void setCurveId(Integer curveId) {
         this.curveId = curveId;
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
+    }
+
+    public void setRowVersion(Integer rowVersion) {
+        this.rowVersion = rowVersion;
     }
 
     public Integer getVesselId() {

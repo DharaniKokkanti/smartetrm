@@ -3,6 +3,8 @@ export type VesselStatusCode = (typeof VESSEL_STATUS_CODES)[number];
 
 export interface Vessel {
   vesselId: number;
+  /** V132 — optimistic-locking token, echoed back unchanged on update. See @components/smart/optimisticLock. */
+  rowVersion: number;
   imoNumber: string;
   vesselName: string;
   vesselTypeId: number;

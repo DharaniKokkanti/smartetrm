@@ -72,6 +72,8 @@ export function VesselsPage() {
       ...v,
       vettingExpiry: v.vettingExpiry ? dayjs(v.vettingExpiry as unknown as dayjs.Dayjs).format('YYYY-MM-DD') : null,
       sireInspectionDate: v.sireInspectionDate ? dayjs(v.sireInspectionDate as unknown as dayjs.Dayjs).format('YYYY-MM-DD') : null,
+      // V132 — echo back the version this client last read; 0 for a new vessel.
+      rowVersion: editing?.rowVersion ?? 0,
     };
     const saved = await save.mutateAsync({ id: editing?.vesselId ?? null, input });
     if (closeAfter) setOpen(false); else setEditing(saved);

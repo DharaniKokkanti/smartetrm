@@ -9,6 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -23,6 +24,11 @@ public class CharterOffHireEvent extends AuditableEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "off_hire_event_id")
     private Integer offHireEventId;
+
+    // V132 — optimistic locking (Batch E, voyage-ops/maritime). See V127/LegalEntity for the pattern.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
 
     @NotNull
     @Column(name = "charter_party_id", nullable = false)
@@ -56,6 +62,14 @@ public class CharterOffHireEvent extends AuditableEntity {
 
     public void setOffHireEventId(Integer offHireEventId) {
         this.offHireEventId = offHireEventId;
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
+    }
+
+    public void setRowVersion(Integer rowVersion) {
+        this.rowVersion = rowVersion;
     }
 
     public Integer getCharterPartyId() {
