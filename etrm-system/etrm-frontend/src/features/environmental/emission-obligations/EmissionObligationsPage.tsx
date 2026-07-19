@@ -64,6 +64,7 @@ export function EmissionObligationsPage() {
     const input: EmissionObligationInput = {
       ...values,
       surrenderDeadline: v.surrenderDeadline ? v.surrenderDeadline.format('YYYY-MM-DD') : null,
+      rowVersion: editing?.rowVersion ?? 0,
     };
     const saved = await save.mutateAsync({ id: editing?.obligationId ?? null, input });
     if (closeAfter) setOpen(false); else setEditing(saved);

@@ -7,6 +7,8 @@ export interface UomConversion {
   factor: number;
   commodityType: CommodityType | null;
   notes: string | null;
+  /** V133 — optimistic locking; echo back on update or the save 409s. */
+  rowVersion: number;
 }
 
 export type UomConversionInput = Omit<UomConversion, 'conversionId'>;

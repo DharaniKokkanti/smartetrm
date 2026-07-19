@@ -12,6 +12,8 @@ export interface HolidayCalendar {
   isActive: boolean;
   holidayCount: number;
   createdAt: string;
+  /** V133 — optimistic locking; echo back on update or the save 409s. */
+  rowVersion: number;
 }
 
 export type HolidayCalendarInput = Omit<HolidayCalendar, 'calendarId' | 'holidayCount' | 'createdAt'>;

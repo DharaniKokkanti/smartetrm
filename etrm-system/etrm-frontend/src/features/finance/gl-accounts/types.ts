@@ -27,5 +27,7 @@ export interface GlAccount {
   isControlAccount: boolean;
   isActive: boolean;
   createdAt: string;
+  /** V133 — optimistic locking; echo back on update or the save 409s. */
+  rowVersion: number;
 }
 export type GlAccountInput = Omit<GlAccount, 'accountId' | 'createdAt' | 'legalEntityCode' | 'bookCode' | 'parentAccountCode'>;

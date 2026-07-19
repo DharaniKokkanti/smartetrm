@@ -83,6 +83,7 @@ export function GlAccountsPage() {
         parentAccountId: v.parentAccountId ?? null,
         currencyId: v.currencyId ?? null,
         externalGlCode: v.externalGlCode ?? null,
+        rowVersion: editing?.rowVersion ?? 0,
       },
     });
     if (closeAfter) setOpen(false); else setEditing(saved);

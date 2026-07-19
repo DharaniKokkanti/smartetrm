@@ -68,7 +68,7 @@ export function PeriodsPage() {
       endTimeUtc: v.commodityType === 'POWER' && v.endTimeUtc ? dayjs(v.endTimeUtc as unknown as dayjs.Dayjs).format('HH:mm') : null,
       cropYearOffsetMonths: v.commodityType === 'AGRICULTURAL' ? (v.cropYearOffsetMonths ?? null) : null,
     };
-    const saved = await save.mutateAsync({ id: editing?.periodId ?? null, input });
+    const saved = await save.mutateAsync({ id: editing?.periodId ?? null, input: { ...input, rowVersion: editing?.rowVersion ?? 0 } });
     if (closeAfter) setOpen(false); else setEditing(saved);
   }
 

@@ -163,7 +163,7 @@ export function useAllContactAssignments() {
 
 export function useSaveContactAssignment() {
   const queryClient = useQueryClient();
-  const { message } = AntApp.useApp();
+  const { message, notification } = AntApp.useApp();
   return useMutation({
     mutationFn: (assignment: ContactAssignment) => saveContactAssignment(assignment),
     onSuccess: () => {
@@ -171,7 +171,13 @@ export function useSaveContactAssignment() {
       queryClient.invalidateQueries({ queryKey: ['contact-pool'] });
       message.success('Contact saved.');
     },
-    onError: (err: ProblemDetail) => message.error(err.detail ?? err.title ?? 'Save failed.'),
+    onError: (err: ProblemDetail) => {
+      if (isOptimisticLockConflict(err)) {
+        showOptimisticLockConflict(notification);
+      } else {
+        message.error(err.detail ?? err.title ?? 'Save failed.');
+      }
+    },
   });
 }
 
@@ -194,14 +200,20 @@ export function useAllTaxRegistrations() {
 
 export function useSaveTaxRegistration() {
   const queryClient = useQueryClient();
-  const { message } = AntApp.useApp();
+  const { message, notification } = AntApp.useApp();
   return useMutation({
     mutationFn: (reg: TaxRegistration) => saveTaxRegistrationAssignment(reg),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ALL_TAX_REGISTRATIONS_KEY });
       message.success('Tax registration saved.');
     },
-    onError: (err: ProblemDetail) => message.error(err.detail ?? err.title ?? 'Save failed.'),
+    onError: (err: ProblemDetail) => {
+      if (isOptimisticLockConflict(err)) {
+        showOptimisticLockConflict(notification);
+      } else {
+        message.error(err.detail ?? err.title ?? 'Save failed.');
+      }
+    },
   });
 }
 
@@ -224,7 +236,7 @@ export function useAllBankAccounts() {
 
 export function useSaveBankAccount() {
   const queryClient = useQueryClient();
-  const { message } = AntApp.useApp();
+  const { message, notification } = AntApp.useApp();
   return useMutation({
     mutationFn: ({ entityId, account }: { entityId: number; account: BankAccount }) => {
       const { _localId: _l, bankAccountId, ...rest } = account;
@@ -236,6 +248,12 @@ export function useSaveBankAccount() {
       queryClient.invalidateQueries({ queryKey: ALL_BANK_ACCOUNTS_KEY });
       message.success('Bank account saved.');
     },
-    onError: (err: ProblemDetail) => message.error(err.detail ?? err.title ?? 'Save failed.'),
+    onError: (err: ProblemDetail) => {
+      if (isOptimisticLockConflict(err)) {
+        showOptimisticLockConflict(notification);
+      } else {
+        message.error(err.detail ?? err.title ?? 'Save failed.');
+      }
+    },
   });
 }

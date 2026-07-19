@@ -53,7 +53,7 @@ export function PaymentMethodsPage() {
 
   async function submit(closeAfter = true) {
     const v = await form.validateFields();
-    const saved = await save.mutateAsync({ id: editing?.paymentMethodId ?? null, input: v });
+    const saved = await save.mutateAsync({ id: editing?.paymentMethodId ?? null, input: { ...v, rowVersion: editing?.rowVersion ?? 0 } });
     if (closeAfter) setOpen(false); else setEditing(saved);
   }
 

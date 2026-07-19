@@ -9,6 +9,8 @@ export interface RinAccount {
   accountType: string;      // OBLIGATED_PARTY | RENEWABLE_FUEL_PRODUCER | TRADING | EXPORTER
   isActive: boolean;
   createdAt: string;
+  /** V133 — optimistic locking; echo back on update or the save 409s. */
+  rowVersion: number;
 }
 
 export type RinAccountInput = Omit<RinAccount, 'accountId' | 'entityName' | 'createdAt'>;

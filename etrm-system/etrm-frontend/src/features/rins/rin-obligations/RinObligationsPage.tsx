@@ -65,7 +65,7 @@ export function RinObligationsPage() {
     const deadline = (v as unknown as Record<string, Dayjs | undefined>).deadline;
     const saved = await save.mutateAsync({
       id: editing?.obligationId ?? null,
-      input: { ...v, deadline: deadline ? deadline.format('YYYY-MM-DD') : null, notes: v.notes ?? null },
+      input: { ...v, deadline: deadline ? deadline.format('YYYY-MM-DD') : null, notes: v.notes ?? null, rowVersion: editing?.rowVersion ?? 0 },
     });
     if (closeAfter) setOpen(false); else setEditing(saved);
   }

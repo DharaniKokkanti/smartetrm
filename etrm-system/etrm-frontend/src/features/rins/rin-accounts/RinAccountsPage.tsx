@@ -50,7 +50,7 @@ export function RinAccountsPage() {
   }
   async function submit(closeAfter = true) {
     const v = await form.validateFields();
-    const saved = await save.mutateAsync({ id: editing?.accountId ?? null, input: { ...v, epaFacilityId: v.epaFacilityId ?? null } });
+    const saved = await save.mutateAsync({ id: editing?.accountId ?? null, input: { ...v, epaFacilityId: v.epaFacilityId ?? null, rowVersion: editing?.rowVersion ?? 0 } });
     if (closeAfter) setOpen(false); else setEditing(saved);
   }
 

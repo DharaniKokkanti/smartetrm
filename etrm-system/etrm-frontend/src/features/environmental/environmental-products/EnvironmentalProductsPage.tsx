@@ -55,7 +55,7 @@ export function EnvironmentalProductsPage() {
   }
   async function submit(closeAfter = true) {
     const v = await form.validateFields();
-    const saved = await save.mutateAsync({ id: editing?.productId ?? null, input: { ...v, schemeId: v.schemeId ?? null, registryId: v.registryId ?? null } });
+    const saved = await save.mutateAsync({ id: editing?.productId ?? null, input: { ...v, schemeId: v.schemeId ?? null, registryId: v.registryId ?? null, rowVersion: editing?.rowVersion ?? 0 } });
     if (closeAfter) setOpen(false); else setEditing(saved);
   }
 

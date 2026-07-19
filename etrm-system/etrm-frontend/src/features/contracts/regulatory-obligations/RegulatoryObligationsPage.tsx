@@ -55,6 +55,7 @@ export function RegulatoryObligationsPage() {
       registeredDate: v.registeredDate ? v.registeredDate.format('YYYY-MM-DD') : null,
       effectiveFrom: v.effectiveFrom ? v.effectiveFrom.format('YYYY-MM-DD') : values.effectiveFrom,
       effectiveTo: v.effectiveTo ? v.effectiveTo.format('YYYY-MM-DD') : null,
+      rowVersion: editing?.rowVersion ?? 0,
     };
     const saved = await save.mutateAsync({ id: editing?.obligationId ?? null, input });
     if (closeAfter) setOpen(false); else setEditing(saved);

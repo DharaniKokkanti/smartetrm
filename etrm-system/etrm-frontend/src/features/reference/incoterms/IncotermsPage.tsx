@@ -25,7 +25,7 @@ export function IncotermsPage() {
   function openEdit(r: Incoterm) { setEditing(r); form.setFieldsValue({ ...r }); setOpen(true); }
   async function submit(closeAfter = true) {
     const v = await form.validateFields();
-    const saved = await save.mutateAsync({ id: editing?.incotermId ?? null, input: v });
+    const saved = await save.mutateAsync({ id: editing?.incotermId ?? null, input: { ...v, rowVersion: editing?.rowVersion ?? 0 } });
     if (closeAfter) setOpen(false); else setEditing(saved);
   }
 

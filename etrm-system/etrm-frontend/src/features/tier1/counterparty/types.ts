@@ -68,6 +68,9 @@ export interface Address {
   phoneNumber: string | null;
   isActive: boolean;
   notes: string | null;
+  /** V133 — optimistic locking on the address pool record; echo back on
+   *  update or the save 409s. Absent on a brand-new (addressId === null) row. */
+  rowVersion?: number;
 }
 
 // V78: address.address_type is now a numeric FK id (address_type parent table).
@@ -86,6 +89,10 @@ export interface AddressAssignment {
   isPrimary: boolean;
   isActive: boolean;
   isLinked: boolean;              // true = pool record already existed (reused)
+  /** V133 — optimistic locking on the entity_address link row itself
+   *  (distinct from address.rowVersion, the pool record's own version).
+   *  Absent on a brand-new (entityAddressId === null) row. */
+  rowVersion?: number;
 }
 
 // ── Contact pool record (no entity binding) ──────────────────────────────────
@@ -103,6 +110,9 @@ export interface Contact {
   phoneMain: string | null;
   isActive: boolean;
   notes: string | null;
+  /** V133 — optimistic locking on the contact pool record; echo back on
+   *  update or the save 409s. Absent on a brand-new (contactId === null) row. */
+  rowVersion?: number;
 }
 
 // V78: contact.contact_role is now a numeric FK id (contact_role parent table).
@@ -120,6 +130,10 @@ export interface ContactAssignment {
   isPrimary: boolean;
   isActive: boolean;
   isLinked: boolean;
+  /** V133 — optimistic locking on the entity_contact link row itself
+   *  (distinct from contact.rowVersion, the pool record's own version).
+   *  Absent on a brand-new (entityContactId === null) row. */
+  rowVersion?: number;
 }
 
 // V78: bank_account.account_type is now a numeric FK id (bank_account_type parent table).
@@ -143,6 +157,9 @@ export interface BankAccount {
   correspondentName: string | null;
   isActive: boolean;
   notes: string | null;
+  /** V133 — optimistic locking; echo back on update or the save 409s.
+   *  Absent on a brand-new (bankAccountId === null) row. */
+  rowVersion?: number;
 }
 
 // ── Tax registration (dbo.tax_registration) ────────────────────────────────────
@@ -170,6 +187,9 @@ export interface TaxRegistration {
   isPrimary: boolean;
   isActive: boolean;
   notes: string | null;
+  /** V133 — optimistic locking; echo back on update or the save 409s.
+   *  Absent on a brand-new (taxRegId === null) row. */
+  rowVersion?: number;
 }
 
 /** Everything needed to render + save the counterparty form in one place. */

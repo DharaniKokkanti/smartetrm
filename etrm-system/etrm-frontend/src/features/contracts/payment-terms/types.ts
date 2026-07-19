@@ -58,6 +58,8 @@ export interface PaymentTerm {
   description: string | null;
   isActive: boolean;
   createdAt: string;
+  /** V133 — optimistic locking; echo back on update or the save 409s. */
+  rowVersion: number;
 }
 
 export type PaymentTermInput = Omit<PaymentTerm, 'paymentTermId' | 'createdAt'>;

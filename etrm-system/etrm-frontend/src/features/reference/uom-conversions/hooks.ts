@@ -4,6 +4,7 @@ import { uomConversionApi } from './api';
 import type { UomConversionInput } from './types';
 import type { ProblemDetail } from '@services/api';
 import type { CommodityType } from '@features/reference/commodity-types/types';
+import { isOptimisticLockConflict, showOptimisticLockConflict } from '@components/smart/optimisticLock';
 
 export function useUomConversions(commodityType?: CommodityType | null) {
   return useQuery({
@@ -15,7 +16,7 @@ export function useUomConversions(commodityType?: CommodityType | null) {
 
 export function useSaveUomConversion() {
   const qc = useQueryClient();
-  const { message } = AntApp.useApp();
+  const { message, notification } = AntApp.useApp();
   return useMutation({
     mutationFn: ({ id, input }: { id: number | null; input: UomConversionInput }) =>
       id === null ? uomConversionApi.create(input) : uomConversionApi.update(id, input),
@@ -23,7 +24,13 @@ export function useSaveUomConversion() {
       qc.invalidateQueries({ queryKey: ['uom-conversions'] });
       message.success('Conversion rate saved.');
     },
-    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Save failed.'),
+    onError: (e: ProblemDetail) => {
+      if (isOptimisticLockConflict(e)) {
+        showOptimisticLockConflict(notification);
+      } else {
+        message.error(e.detail ?? e.title ?? 'Save failed.');
+      }
+    },
   });
 }
 

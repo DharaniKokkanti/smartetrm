@@ -3,6 +3,7 @@ import { App as AntApp } from 'antd';
 import { holidayCalendarsApi } from './api';
 import type { HolidayCalendarInput, HolidayInput } from './types';
 import type { ProblemDetail } from '@services/api';
+import { isOptimisticLockConflict, showOptimisticLockConflict } from '@components/smart/optimisticLock';
 
 const KEY = ['holiday-calendars'] as const;
 
@@ -21,12 +22,18 @@ export function useCalendarHolidays(calendarId: number | null) {
 
 export function useSaveHolidayCalendar() {
   const qc = useQueryClient();
-  const { message } = AntApp.useApp();
+  const { message, notification } = AntApp.useApp();
   return useMutation({
     mutationFn: ({ id, input }: { id: number | null; input: HolidayCalendarInput }) =>
       id === null ? holidayCalendarsApi.create(input) : holidayCalendarsApi.update(id, input),
     onSuccess: (d) => { qc.invalidateQueries({ queryKey: KEY }); message.success(`Calendar "${d.calendarCode}" saved.`); },
-    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Save failed.'),
+    onError: (e: ProblemDetail) => {
+      if (isOptimisticLockConflict(e)) {
+        showOptimisticLockConflict(notification);
+      } else {
+        message.error(e.detail ?? e.title ?? 'Save failed.');
+      }
+    },
   });
 }
 

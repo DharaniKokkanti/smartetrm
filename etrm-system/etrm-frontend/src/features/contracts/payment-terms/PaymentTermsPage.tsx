@@ -139,7 +139,7 @@ export function PaymentTermsPage() {
     if (values.discountPct != null) {
       values.discountPct = +(values.discountPct / 100).toFixed(6);
     }
-    const saved = await save.mutateAsync({ id: editing?.paymentTermId ?? null, input: values });
+    const saved = await save.mutateAsync({ id: editing?.paymentTermId ?? null, input: { ...values, rowVersion: editing?.rowVersion ?? 0 } });
     if (closeAfter) setOpen(false); else setEditing(saved);
   }
 

@@ -11,6 +11,8 @@ export interface PaymentMethod {
   description: string | null;
   isActive: boolean;
   createdAt: string;
+  /** V133 — optimistic locking; echo back on update or the save 409s. */
+  rowVersion: number;
 }
 
 export type PaymentMethodInput = Omit<PaymentMethod, 'paymentMethodId' | 'createdAt'>;

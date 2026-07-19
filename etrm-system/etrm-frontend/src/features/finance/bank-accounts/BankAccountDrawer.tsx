@@ -74,6 +74,7 @@ export function BankAccountDrawer({ open, onClose, editing }: Props) {
       correspondentName: values.correspondentName ?? null,
       isActive: true,
       notes: values.notes ?? null,
+      rowVersion: editing?.rowVersion ?? 0,
     };
     await saveAccount.mutateAsync({ entityId: values.entityId, account });
     onClose();

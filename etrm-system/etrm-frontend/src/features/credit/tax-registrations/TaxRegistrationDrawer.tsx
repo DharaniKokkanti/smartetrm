@@ -102,6 +102,7 @@ export function TaxRegistrationDrawer({ open, onClose, editing }: Props) {
       isPrimary: values.isPrimary,
       isActive: true,
       notes: values.notes ?? null,
+      rowVersion: editing?.rowVersion ?? 0,
     };
     await saveReg.mutateAsync(reg);
     onClose();

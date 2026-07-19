@@ -111,7 +111,7 @@ export function UomConversionPage() {
 
   async function submit(closeAfter = true) {
     const v = await form.validateFields();
-    const saved = await save.mutateAsync({ id: editing?.conversionId ?? null, input: { ...v, commodityType: v.commodityType ?? null, notes: v.notes ?? null } });
+    const saved = await save.mutateAsync({ id: editing?.conversionId ?? null, input: { ...v, commodityType: v.commodityType ?? null, notes: v.notes ?? null, rowVersion: editing?.rowVersion ?? 0 } });
     if (!editing && addReverse && v.factor && v.factor > 0) {
       const reverseNote = v.notes
         ? `Auto-generated reverse of: ${v.notes}`
@@ -124,6 +124,7 @@ export function UomConversionPage() {
           factor:        1 / v.factor,
           commodityType: v.commodityType ?? null,
           notes:         reverseNote,
+          rowVersion:    0,
         },
       });
     }

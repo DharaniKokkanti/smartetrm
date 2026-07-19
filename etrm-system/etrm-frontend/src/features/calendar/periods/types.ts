@@ -48,6 +48,8 @@ export interface Period {
   isActive: boolean;
   createdAt: string;
   createdBy: string;
+  /** V133 — optimistic locking; echo back on update or the save 409s. */
+  rowVersion: number;
 }
 
 export type PeriodInput = Omit<Period, 'periodId' | 'createdAt' | 'createdBy'>;

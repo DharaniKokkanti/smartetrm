@@ -131,6 +131,7 @@ export function ContactAssignmentDrawer({ open, onClose, editing }: Props) {
           isPrimary: values.isPrimary,
           isActive: true,
           isLinked: false,
+          rowVersion: editing?.rowVersion ?? 0,
         };
 
     await saveAssignment.mutateAsync(assignment);

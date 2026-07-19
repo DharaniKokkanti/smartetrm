@@ -161,7 +161,7 @@ export function HolidayCalendarsPage() {
   }
   async function submit(closeAfter = true) {
     const v = await form.validateFields();
-    const saved = await save.mutateAsync({ id: editing?.calendarId ?? null, input: v });
+    const saved = await save.mutateAsync({ id: editing?.calendarId ?? null, input: { ...v, rowVersion: editing?.rowVersion ?? 0 } });
     if (closeAfter) setOpen(false); else setEditing(saved);
   }
 

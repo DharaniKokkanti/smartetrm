@@ -38,7 +38,7 @@ export function EmissionSchemesPage() {
   }
   async function submit(closeAfter = true) {
     const v = await form.validateFields();
-    const saved = await save.mutateAsync({ id: editing?.schemeId ?? null, input: v });
+    const saved = await save.mutateAsync({ id: editing?.schemeId ?? null, input: { ...v, rowVersion: editing?.rowVersion ?? 0 } });
     if (closeAfter) setOpen(false); else setEditing(saved);
   }
 

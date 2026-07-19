@@ -12,5 +12,7 @@ export interface EmissionObligation {
   status: string;
   notes: string | null;
   createdAt: string;
+  /** V133 — optimistic locking; echo back on update or the save 409s. */
+  rowVersion: number;
 }
 export type EmissionObligationInput = Omit<EmissionObligation, 'obligationId' | 'entityName' | 'schemeName' | 'shortfallUnits' | 'createdAt'>;

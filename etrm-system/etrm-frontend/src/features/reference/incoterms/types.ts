@@ -12,5 +12,7 @@ export interface Incoterm {
   costResponsibility: string;
   titleTransfer: string | null;
   isActive: boolean;
+  /** V133 — optimistic locking; echo back on update or the save 409s. */
+  rowVersion: number;
 }
 export type IncotermInput = Omit<Incoterm, 'incotermId'>;
