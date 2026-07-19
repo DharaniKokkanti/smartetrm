@@ -1,5 +1,8 @@
 import { apiClient } from '@services/api';
-import type { Book, BookClassificationDimension, BookClassificationView, BookEodStatus, BookInput, BookTraderView } from './types';
+import type {
+  Book, BookClassificationDimension, BookClassificationView, BookEodStatus, BookInput, BookTraderView,
+  BookOwnership, BookOwnershipInput, BookOwnershipListView,
+} from './types';
 
 export const booksApi = {
   list: () => apiClient.get<Book[]>('/books').then((r) => r.data),
@@ -29,4 +32,14 @@ export const booksApi = {
     apiClient.delete(`/books/${bookId}/classifications/${bookClassificationId}`),
   listClassificationDimensions: () =>
     apiClient.get<BookClassificationDimension[]>('/book-classification-dimensions').then((r) => r.data),
+
+  // ── book_ownership sub-resource (V126) — independent of the book's parent
+  // legal_entity's own entity_type/ownership ──────────────────────────────
+
+  listOwnership: (bookId: number) =>
+    apiClient.get<BookOwnershipListView>(`/books/${bookId}/ownership`).then((r) => r.data),
+  addOwnership: (bookId: number, input: BookOwnershipInput) =>
+    apiClient.post<BookOwnership>(`/books/${bookId}/ownership`, input).then((r) => r.data),
+  removeOwnership: (bookId: number, bookOwnershipId: number) =>
+    apiClient.delete(`/books/${bookId}/ownership/${bookOwnershipId}`),
 };

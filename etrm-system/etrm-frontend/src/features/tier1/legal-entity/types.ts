@@ -6,6 +6,8 @@
  */
 
 import type { AddressAssignment, ContactAssignment, TaxRegistration } from '@features/tier1/counterparty/types';
+import type { OwnerType, ConsolidationMethod } from '@components/smart/OwnershipPanel';
+export type { OwnerType, ConsolidationMethod };
 
 // V78: legal_entity.entity_type is now a numeric FK id (legal_entity_type
 // parent table) — resolve a label via useCustomConfigOptions('LEGAL_ENTITY_TYPE').
@@ -61,10 +63,10 @@ export interface LegalEntityUploadRow extends LegalEntityInput {
  * Mirrors dbo.legal_entity_ownership (V125) — a joint venture's cap table.
  * owner is one of three cases: LEGAL_ENTITY/COUNTERPARTY resolve via
  * ownerRefId, EXTERNAL uses the free-text externalOwnerName fallback for a
- * co-investor never otherwise modeled in this system.
+ * co-investor never otherwise modeled in this system. OwnerType/
+ * ConsolidationMethod are shared with dbo.book_ownership (V126) — defined
+ * once on the common OwnershipPanel component, imported + re-exported above.
  */
-export type OwnerType = 'LEGAL_ENTITY' | 'COUNTERPARTY' | 'EXTERNAL';
-export type ConsolidationMethod = 'FULL' | 'PROPORTIONAL' | 'EQUITY' | 'COST';
 
 export interface LegalEntityOwnership {
   ownershipId: number;

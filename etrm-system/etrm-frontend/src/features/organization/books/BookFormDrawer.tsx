@@ -21,6 +21,7 @@ import { useLegalEntities } from '@features/tier1/legal-entity/hooks';
 import { useDraftValues } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import { hint } from '@components/smart/FieldHint';
+import { BookOwnershipPanel } from './BookOwnershipPanel';
 
 const { Text } = Typography;
 
@@ -414,6 +415,14 @@ export function BookFormDrawer({ open, editing, onClose, onSaved, defaultParentB
       {editing !== null && <BookTradersSection book={editing} />}
       {editing !== null && <BookClassificationsSection book={editing} />}
       {editing !== null && editing.isLeafNode && <BookEodStatusSection book={editing} />}
+      {editing !== null && (
+        <>
+          <Divider style={{ margin: '8px 0 12px' }}>
+            {hint('Ownership', 'Economic participation split for THIS book specifically — independent of the parent legal entity\'s own ownership. Use when a specific book is shared between two trading houses (e.g. a Musket/Circle K-style arrangement) even though neither company itself is restructured as a joint venture.')}
+          </Divider>
+          <BookOwnershipPanel bookId={editing.bookId} />
+        </>
+      )}
     </Drawer>
   );
 }

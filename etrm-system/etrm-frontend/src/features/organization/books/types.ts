@@ -1,3 +1,5 @@
+import type { ConsolidationMethod, OwnerType } from '@components/smart/OwnershipPanel';
+
 // FK to dbo.book_type(book_type_id) — a dedicated table (V17), NOT lookup_value.
 // V55 briefly redirected book.book_type at lookup_value; V85 redirected it
 // back onto dbo.book_type (see V85__lookup_category.sql's own comment:
@@ -118,3 +120,37 @@ export interface Book {
 export type BookInput = Omit<Book,
   'bookId' | 'legalEntityCode' | 'parentBookCode' | 'traders' | 'classifications'
   | 'archivedAt' | 'archivedReason' | 'createdAt' | 'updatedAt'>;
+
+/**
+ * Mirrors dbo.book_ownership (V126) — independent of the book's parent
+ * legal_entity's own entity_type/ownership; any book can carry a split
+ * (the Musket/Circle K-style case). Same shape as
+ * legal-entity/types.ts's LegalEntityOwnership, sharing OwnerType/
+ * ConsolidationMethod from the common OwnershipPanel component.
+ */
+export interface BookOwnership {
+  bookOwnershipId: number;
+  bookId: number;
+  ownerType: OwnerType;
+  ownerRefId: number | null;
+  externalOwnerName: string | null;
+  ownerDisplayName: string;
+  ownershipPct: number;
+  isOperator: boolean;
+  consolidationMethod: ConsolidationMethod;
+  effectiveFrom: string; // ISO date
+  effectiveTo: string | null; // ISO date
+  isActive: boolean;
+  notes: string | null;
+}
+
+/** Shape sent on add — server assigns id/bookId/ownerDisplayName/isActive. */
+export type BookOwnershipInput = Omit<
+  BookOwnership,
+  'bookOwnershipId' | 'bookId' | 'ownerDisplayName' | 'isActive'
+>;
+
+export interface BookOwnershipListView {
+  rows: BookOwnership[];
+  totalActiveOwnershipPct: number;
+}

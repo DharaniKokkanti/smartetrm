@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { App as AntApp } from 'antd';
 import { booksApi } from './api';
-import type { BookInput } from './types';
+import type { BookInput, BookOwnershipInput } from './types';
 import type { ProblemDetail } from '@services/api';
 
 const KEY = ['books'] as const;
@@ -106,6 +106,49 @@ export function useBookEodStatus(bookId: number | undefined) {
     queryKey: ['book-eod-status', bookId],
     queryFn: () => booksApi.listEodStatus(bookId as number),
     enabled: bookId != null,
+  });
+}
+
+// ── book_ownership (V126) — independent of the book's parent legal_entity's
+// own entity_type/ownership. Own hooks, own key — same "fetched
+// independently, tab-only sub-resource" shape as legal-entity's
+// useOwnershipForEntity, not denormalized onto Book itself.
+
+function bookOwnershipKey(bookId: number | undefined | null) {
+  return ['book-ownership', bookId] as const;
+}
+
+export function useOwnershipForBook(bookId: number | null) {
+  return useQuery({
+    queryKey: bookOwnershipKey(bookId),
+    queryFn: () => booksApi.listOwnership(bookId as number),
+    enabled: bookId !== null,
+  });
+}
+
+export function useAddBookOwnership(bookId: number | null) {
+  const qc = useQueryClient();
+  const { message } = AntApp.useApp();
+  return useMutation({
+    mutationFn: (input: BookOwnershipInput) => booksApi.addOwnership(bookId as number, input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: bookOwnershipKey(bookId) });
+      message.success('Ownership added.');
+    },
+    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Add ownership failed.'),
+  });
+}
+
+export function useRemoveBookOwnership(bookId: number | null) {
+  const qc = useQueryClient();
+  const { message } = AntApp.useApp();
+  return useMutation({
+    mutationFn: (bookOwnershipId: number) => booksApi.removeOwnership(bookId as number, bookOwnershipId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: bookOwnershipKey(bookId) });
+      message.success('Ownership removed.');
+    },
+    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Remove ownership failed.'),
   });
 }
 

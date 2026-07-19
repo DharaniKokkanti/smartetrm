@@ -1,12 +1,15 @@
 package com.etrm.system.book;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -34,6 +37,10 @@ import java.util.List;
  *  GET    /api/v1/books/{bookId}/eod-status               history, newest business date first
  *  POST   /api/v1/books/{bookId}/eod-status/lock           { businessDate }
  *  POST   /api/v1/books/{bookId}/eod-status/reopen         { businessDate, reason }
+ *
+ *  GET    /api/v1/books/{bookId}/ownership
+ *  POST   /api/v1/books/{bookId}/ownership
+ *  DELETE /api/v1/books/{bookId}/ownership/{bookOwnershipId}
  */
 @RestController
 @RequestMapping("/api/v1/books")
@@ -43,14 +50,17 @@ public class BookController {
     private final BookTraderService bookTraderService;
     private final BookClassificationService bookClassificationService;
     private final BookEodStatusService bookEodStatusService;
+    private final BookOwnershipService bookOwnershipService;
 
     public BookController(BookService service, BookTraderService bookTraderService,
                            BookClassificationService bookClassificationService,
-                           BookEodStatusService bookEodStatusService) {
+                           BookEodStatusService bookEodStatusService,
+                           BookOwnershipService bookOwnershipService) {
         this.service = service;
         this.bookTraderService = bookTraderService;
         this.bookClassificationService = bookClassificationService;
         this.bookEodStatusService = bookEodStatusService;
+        this.bookOwnershipService = bookOwnershipService;
     }
 
     @GetMapping
@@ -151,6 +161,37 @@ public class BookController {
         return bookEodStatusService.reopen(bookId, body.businessDate(), body.reason());
     }
 
+    // ── book_ownership sub-resource (V126) ────────────────────────────────────
+    // Independent of the book's parent legal_entity's own entity_type — any
+    // book can carry a split, not just ones under a Joint Venture entity.
+
+    @GetMapping("/{bookId}/ownership")
+    public BookOwnershipListView listOwnership(@PathVariable Integer bookId) {
+        return bookOwnershipService.list(bookId);
+    }
+
+    @PostMapping("/{bookId}/ownership")
+    public ResponseEntity<BookOwnership> addOwnership(@PathVariable Integer bookId,
+                                                        @Valid @RequestBody AddOwnershipRequest body) {
+        BookOwnership input = new BookOwnership();
+        input.setOwnerType(body.ownerType());
+        input.setOwnerRefId(body.ownerRefId());
+        input.setExternalOwnerName(body.externalOwnerName());
+        input.setOwnershipPct(body.ownershipPct());
+        input.setIsOperator(body.isOperator() != null && body.isOperator());
+        input.setConsolidationMethod(body.consolidationMethod());
+        input.setEffectiveFrom(body.effectiveFrom());
+        input.setNotes(body.notes());
+        return ResponseEntity.status(HttpStatus.CREATED).body(bookOwnershipService.add(bookId, input));
+    }
+
+    @DeleteMapping("/{bookId}/ownership/{bookOwnershipId}")
+    public ResponseEntity<Void> removeOwnership(@PathVariable Integer bookId,
+                                                 @PathVariable Integer bookOwnershipId) {
+        bookOwnershipService.remove(bookId, bookOwnershipId);
+        return ResponseEntity.noContent().build();
+    }
+
     // reason left unannotated: book.archived_reason is a genuinely nullable
     // DB column (V119) — archiving without a stated reason is valid.
     record ArchiveRequest(String reason) {}
@@ -161,4 +202,20 @@ public class BookController {
     // reason IS required to reopen — an EOD lock reversal needs an audit
     // trail of why, unlike archiving (see ArchiveRequest above).
     record ReopenRequest(@NotNull LocalDate businessDate, @NotBlank String reason) {}
+
+    // Deliberately separate from the BookOwnership entity itself (bookId is
+    // a path variable, not a request-body field) — same reasoning as
+    // LegalEntityController's own AddOwnershipRequest (V125): binding @Valid
+    // straight to the entity would validate its @NotNull bookId against the
+    // not-yet-populated field before the controller ever sets it from the path.
+    record AddOwnershipRequest(
+            @NotBlank String ownerType,
+            Integer ownerRefId,
+            String externalOwnerName,
+            @NotNull @DecimalMin("0.001") @DecimalMax("100") BigDecimal ownershipPct,
+            Boolean isOperator,
+            @NotBlank String consolidationMethod,
+            @NotNull LocalDate effectiveFrom,
+            String notes) {
+    }
 }
