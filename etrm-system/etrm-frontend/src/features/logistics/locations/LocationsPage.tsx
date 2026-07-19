@@ -35,7 +35,8 @@ export function LocationsPage() {
   function openEdit(l: Location) { setEditing(l); form.setFieldsValue({ locationCode: l.locationCode, locationName: l.locationName, locationTypeCode: l.locationTypeCode, commodityType: l.commodityType, countryId: l.countryId, portCode: l.portCode ?? undefined, unlocode: l.unlocode ?? undefined, operator: l.operator ?? undefined, capacity: l.capacity, capacityUomCode: l.capacityUomCode ?? undefined, latitude: l.latitude, longitude: l.longitude, officeLocInd: l.officeLocInd, tradingDeskInd: l.tradingDeskInd, isActive: l.isActive }); setOpen(true); }
   async function submit(closeAfter = true) {
     const v = await form.validateFields();
-    const saved = await save.mutateAsync({ id: editing?.locationId ?? null, input: v });
+    const input: LocationInput = { ...v, rowVersion: editing?.rowVersion ?? 0 };
+    const saved = await save.mutateAsync({ id: editing?.locationId ?? null, input });
     if (closeAfter) setOpen(false); else setEditing(saved);
   }
 

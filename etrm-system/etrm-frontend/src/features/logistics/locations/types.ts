@@ -5,6 +5,8 @@ export type LocationTypeCode = (typeof LOCATION_TYPE_CODES)[number];
 
 export interface Location {
   locationId: number;
+  /** V130 — optimistic-locking token, echoed back unchanged on update. See @components/smart/optimisticLock. */
+  rowVersion: number;
   locationCode: string;
   locationName: string;
   locationTypeCode: LocationTypeCode;

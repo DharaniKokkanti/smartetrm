@@ -8,6 +8,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -31,6 +32,14 @@ public class RailcarProductApproval {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "asset_approval_id")
     private Integer assetApprovalId;
+
+    // V130 — optimistic locking (Batch C: Logistics). No update endpoint
+    // exists for this table today (RailcarController only exposes
+    // create/list/delete for the product-approvals sub-resource), but the
+    // column/annotation is added for consistency with the rest of this batch.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
 
     // No @NotBlank — RailcarController.addProductApproval() always sets this
     // server-side (to "RAILCAR") AFTER @Valid already ran on the deserialized
@@ -110,6 +119,14 @@ public class RailcarProductApproval {
 
     public void setAssetApprovalId(Integer assetApprovalId) {
         this.assetApprovalId = assetApprovalId;
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
+    }
+
+    public void setRowVersion(Integer rowVersion) {
+        this.rowVersion = rowVersion;
     }
 
     public String getAssetType() {

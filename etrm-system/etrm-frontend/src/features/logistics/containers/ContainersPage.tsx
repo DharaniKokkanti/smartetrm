@@ -48,6 +48,7 @@ export function ContainersPage() {
     const v = values as unknown as Record<string, Dayjs | undefined>;
     const input: ContainerInput = {
       ...values,
+      rowVersion: editing?.rowVersion ?? 0,
       cscPlateExpiry: v.cscPlateExpiry ? v.cscPlateExpiry.format('YYYY-MM-DD') : null,
       lastInspectionDate: v.lastInspectionDate ? v.lastInspectionDate.format('YYYY-MM-DD') : null,
       nextInspectionDate: v.nextInspectionDate ? v.nextInspectionDate.format('YYYY-MM-DD') : null,

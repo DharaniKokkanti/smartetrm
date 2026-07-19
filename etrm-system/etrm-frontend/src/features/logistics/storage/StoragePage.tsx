@@ -79,6 +79,7 @@ export function StoragePage() {
     const v = await form.validateFields();
     const input: StorageFacilityInput = {
       ...v,
+      rowVersion: editing?.rowVersion ?? 0,
       locationId: v.locationId ?? null,
       locationCode: v.locationCode ?? null,
       commodityType: v.commodityType ?? null,

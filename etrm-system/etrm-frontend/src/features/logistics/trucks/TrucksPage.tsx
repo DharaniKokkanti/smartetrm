@@ -77,6 +77,7 @@ export function TrucksPage() {
     const v = await form.validateFields();
     const input: TruckInput = {
       ...v,
+      rowVersion: editing?.rowVersion ?? 0,
       vehicleName: v.vehicleName ?? null,
       gvwTonnes: v.gvwTonnes ?? null,
       commodityType: v.commodityType ?? null,

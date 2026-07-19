@@ -3,6 +3,7 @@ import { App as AntApp } from 'antd';
 import { locationsApi } from './api';
 import type { LocationInput } from './types';
 import type { ProblemDetail } from '@services/api';
+import { isOptimisticLockConflict, showOptimisticLockConflict } from '@components/smart/optimisticLock';
 
 const KEY = ['locations'] as const;
 
@@ -12,12 +13,15 @@ export function useLocations() {
 
 export function useSaveLocation() {
   const qc = useQueryClient();
-  const { message } = AntApp.useApp();
+  const { message, notification } = AntApp.useApp();
   return useMutation({
     mutationFn: ({ id, input }: { id: number | null; input: LocationInput }) =>
       id === null ? locationsApi.create(input) : locationsApi.update(id, input),
     onSuccess: (d) => { qc.invalidateQueries({ queryKey: KEY }); message.success(`Location "${d.locationCode}" saved.`); },
-    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Save failed.'),
+    onError: (e: ProblemDetail) => {
+      if (isOptimisticLockConflict(e)) showOptimisticLockConflict(notification);
+      else message.error(e.detail ?? e.title ?? 'Save failed.');
+    },
   });
 }
 

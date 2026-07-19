@@ -6,6 +6,8 @@ export type VehicleStatusCode = (typeof VEHICLE_STATUS_CODES)[number];
 
 export interface Truck {
   vehicleId: number;
+  /** V130 — optimistic-locking token, echoed back unchanged on update. See @components/smart/optimisticLock. */
+  rowVersion: number;
   vehicleCode: string;
   vehicleName: string | null;
   vehicleType: VehicleType;

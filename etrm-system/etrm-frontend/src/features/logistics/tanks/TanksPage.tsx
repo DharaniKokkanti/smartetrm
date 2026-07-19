@@ -44,7 +44,8 @@ export function TanksPage() {
 
   async function submit(closeAfter = true) {
     const values = await form.validateFields();
-    const saved = await save.mutateAsync({ id: editing?.tankId ?? null, input: values });
+    const input: TankInput = { ...values, rowVersion: editing?.rowVersion ?? 0 };
+    const saved = await save.mutateAsync({ id: editing?.tankId ?? null, input });
     if (closeAfter) setOpen(false); else setEditing(saved);
   }
 

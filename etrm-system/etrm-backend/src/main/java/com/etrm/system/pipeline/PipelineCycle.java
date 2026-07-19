@@ -8,6 +8,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -29,6 +30,12 @@ public class PipelineCycle {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "cycle_id")
     private Integer cycleId;
+
+    // V130 — optimistic locking (Batch C: Logistics). See LegalEntity.java for
+    // the canonical pattern this batch replicates.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
 
     @NotNull
     @Column(name = "pipeline_id", nullable = false)
@@ -121,6 +128,14 @@ public class PipelineCycle {
 
     public void setCycleId(Integer cycleId) {
         this.cycleId = cycleId;
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
+    }
+
+    public void setRowVersion(Integer rowVersion) {
+        this.rowVersion = rowVersion;
     }
 
     public Integer getPipelineId() {
