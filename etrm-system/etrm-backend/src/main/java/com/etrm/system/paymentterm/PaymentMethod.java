@@ -5,6 +5,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -33,6 +34,11 @@ public class PaymentMethod {
     @Id
     @Column(name = "payment_method_id")
     private Integer paymentMethodId;
+
+    // V133 — optimistic locking, see LegalEntity.rowVersion (V127) for the full explanation.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
 
     @NotBlank
     @Size(max = 30)
@@ -64,6 +70,14 @@ public class PaymentMethod {
 
     public Integer getPaymentMethodId() {
         return paymentMethodId;
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
+    }
+
+    public void setRowVersion(Integer rowVersion) {
+        this.rowVersion = rowVersion;
     }
 
     public void setPaymentMethodId(Integer paymentMethodId) {

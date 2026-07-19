@@ -88,10 +88,13 @@ class GlAccountControllerTest extends ApiTestBase {
         String createBody = mockMvc.perform(auth(post("/api/v1/gl-accounts")).content(json(validPayload(code))))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        int id = objectMapper.readTree(createBody).get("accountId").asInt();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("accountId").asInt();
 
         Map<String, Object> update = new HashMap<>(validPayload(code));
         update.put("description", "Updated description");
+        // V133 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/gl-accounts/" + id)).content(json(update)))
                 .andExpect(status().isOk())

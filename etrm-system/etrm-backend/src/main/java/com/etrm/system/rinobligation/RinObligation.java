@@ -7,6 +7,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -33,6 +34,11 @@ public class RinObligation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "obligation_id")
     private Integer obligationId;
+
+    // V133 — optimistic locking, see LegalEntity.rowVersion (V127) for the full explanation.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
 
     @NotNull
     @Column(name = "legal_entity_id", nullable = false)
@@ -92,6 +98,14 @@ public class RinObligation {
 
     public Integer getObligationId() {
         return obligationId;
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
+    }
+
+    public void setRowVersion(Integer rowVersion) {
+        this.rowVersion = rowVersion;
     }
 
     public void setObligationId(Integer obligationId) {

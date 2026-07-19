@@ -9,6 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotNull;
 
 /**
@@ -26,6 +27,11 @@ public class ProductReportingGroup extends AuditableEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "product_reporting_group_id")
     private Integer productReportingGroupId;
+
+    // V133 — optimistic locking, see LegalEntity.rowVersion (V127) for the full explanation.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
 
     @NotNull
     @Column(name = "product_id", nullable = false)
@@ -49,6 +55,14 @@ public class ProductReportingGroup extends AuditableEntity {
 
     public Integer getProductReportingGroupId() {
         return productReportingGroupId;
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
+    }
+
+    public void setRowVersion(Integer rowVersion) {
+        this.rowVersion = rowVersion;
     }
 
     public void setProductReportingGroupId(Integer productReportingGroupId) {

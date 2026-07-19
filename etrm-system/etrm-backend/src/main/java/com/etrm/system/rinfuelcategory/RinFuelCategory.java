@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -27,6 +28,11 @@ public class RinFuelCategory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "category_id")
     private Integer categoryId;
+
+    // V133 — optimistic locking, see LegalEntity.rowVersion (V127) for the full explanation.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
 
     // dbo.rin_fuel_category.d_code is NVARCHAR(5) — sys.columns.max_length
     // is in bytes for NVARCHAR (2 bytes/char), so the real char limit is 5,
@@ -70,6 +76,14 @@ public class RinFuelCategory {
 
     public Integer getCategoryId() {
         return categoryId;
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
+    }
+
+    public void setRowVersion(Integer rowVersion) {
+        this.rowVersion = rowVersion;
     }
 
     public void setCategoryId(Integer categoryId) {

@@ -82,6 +82,9 @@ class IncotermControllerTest extends ApiTestBase {
         update.put("transportMode", "ANY");
         update.put("riskTransferPoint", "Port of loading");
         update.put("versionYear", 2020);
+        // V133 — seedIncoterm() inserts directly via JDBC, bypassing Hibernate,
+        // so row_version starts at its DB DEFAULT of 0.
+        update.put("rowVersion", 0);
 
         mockMvc.perform(auth(put("/api/v1/incoterms-ref/" + id)).content(json(update)))
                 .andExpect(status().isOk())

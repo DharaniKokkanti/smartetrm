@@ -63,10 +63,13 @@ class RegulatoryObligationControllerTest extends ApiTestBase {
         String createBody = mockMvc.perform(auth(post("/api/v1/compliance/obligations")).content(json(validPayload())))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        int id = objectMapper.readTree(createBody).get("obligationId").asInt();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("obligationId").asInt();
 
         Map<String, Object> update = new HashMap<>(validPayload());
         update.put("obligationType", "PARTIAL");
+        // V133 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/compliance/obligations/" + id)).content(json(update)))
                 .andExpect(status().isOk())

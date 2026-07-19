@@ -18,6 +18,11 @@ public class EntityAddress extends AuditableEntity {
     @Column(name = "entity_address_id")
     private Integer entityAddressId;
 
+    // V133 — optimistic locking, see LegalEntity.rowVersion (V127) for the full explanation.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "entity_type", nullable = false, length = 20)
     private EntityType entityType;
@@ -43,6 +48,8 @@ public class EntityAddress extends AuditableEntity {
     private String notes;
 
     public Integer getEntityAddressId() { return entityAddressId; }
+    public Integer getRowVersion() { return rowVersion; }
+    public void setRowVersion(Integer rowVersion) { this.rowVersion = rowVersion; }
     public void setEntityAddressId(Integer entityAddressId) { this.entityAddressId = entityAddressId; }
 
     public EntityType getEntityType() { return entityType; }

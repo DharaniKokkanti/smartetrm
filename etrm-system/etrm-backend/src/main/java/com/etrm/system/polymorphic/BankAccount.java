@@ -9,6 +9,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 
 @Entity
@@ -19,6 +20,11 @@ public class BankAccount extends AuditableEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "bank_account_id")
     private Integer bankAccountId;
+
+    // V133 — optimistic locking, see LegalEntity.rowVersion (V127) for the full explanation.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "entity_type", nullable = false, length = 20)
@@ -74,6 +80,14 @@ public class BankAccount extends AuditableEntity {
 
     public Integer getBankAccountId() {
         return bankAccountId;
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
+    }
+
+    public void setRowVersion(Integer rowVersion) {
+        this.rowVersion = rowVersion;
     }
 
     public void setBankAccountId(Integer bankAccountId) {

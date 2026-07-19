@@ -57,10 +57,13 @@ class UnitOfMeasureControllerTest extends ApiTestBase {
         String createBody = mockMvc.perform(auth(post("/api/v1/uom")).content(json(validPayload(code))))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        int id = objectMapper.readTree(createBody).get("uomId").asInt();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("uomId").asInt();
 
         Map<String, Object> update = new HashMap<>(validPayload(code));
         update.put("uomName", "Updated UoM Name " + code);
+        // V133 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/uom/" + id)).content(json(update)))
                 .andExpect(status().isOk())

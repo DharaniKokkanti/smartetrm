@@ -113,7 +113,8 @@ class CounterpartyControllerTest extends ApiTestBase {
         String createBody = mockMvc.perform(auth(post("/api/v1/counterparties/" + cpId + "/contacts")).content(json(contact)))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        int contactId = objectMapper.readTree(createBody).get("contactId").asInt();
+        var createJson = objectMapper.readTree(createBody);
+        int contactId = createJson.get("contactId").asInt();
 
         mockMvc.perform(auth(get("/api/v1/counterparties/" + cpId + "/contacts")))
                 .andExpect(status().isOk())
@@ -121,6 +122,8 @@ class CounterpartyControllerTest extends ApiTestBase {
 
         Map<String, Object> updated = new HashMap<>(contact);
         updated.put("lastName", "Smith");
+        // V133 — echo back the version just read, same as a real client would.
+        updated.put("rowVersion", createJson.get("rowVersion").asInt());
         mockMvc.perform(auth(put("/api/v1/counterparties/" + cpId + "/contacts/" + contactId)).content(json(updated)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.lastName").value("Smith"));
@@ -139,7 +142,8 @@ class CounterpartyControllerTest extends ApiTestBase {
         String createBody = mockMvc.perform(auth(post("/api/v1/counterparties/" + cpId + "/bank-accounts")).content(json(account)))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        int bankAccountId = objectMapper.readTree(createBody).get("bankAccountId").asInt();
+        var createJson = objectMapper.readTree(createBody);
+        int bankAccountId = createJson.get("bankAccountId").asInt();
 
         mockMvc.perform(auth(get("/api/v1/counterparties/" + cpId + "/bank-accounts")))
                 .andExpect(status().isOk())
@@ -147,6 +151,8 @@ class CounterpartyControllerTest extends ApiTestBase {
 
         Map<String, Object> updated = new HashMap<>(account);
         updated.put("bankName", "Updated Bank");
+        // V133 — echo back the version just read, same as a real client would.
+        updated.put("rowVersion", createJson.get("rowVersion").asInt());
         mockMvc.perform(auth(put("/api/v1/counterparties/" + cpId + "/bank-accounts/" + bankAccountId)).content(json(updated)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.bankName").value("Updated Bank"));
@@ -164,7 +170,8 @@ class CounterpartyControllerTest extends ApiTestBase {
         String createBody = mockMvc.perform(auth(post("/api/v1/counterparties/" + cpId + "/addresses")).content(json(address)))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        int addressId = objectMapper.readTree(createBody).get("addressId").asInt();
+        var createJson = objectMapper.readTree(createBody);
+        int addressId = createJson.get("addressId").asInt();
 
         mockMvc.perform(auth(get("/api/v1/counterparties/" + cpId + "/addresses")))
                 .andExpect(status().isOk())
@@ -172,6 +179,8 @@ class CounterpartyControllerTest extends ApiTestBase {
 
         Map<String, Object> updated = new HashMap<>(address);
         updated.put("city", "Manchester");
+        // V133 — echo back the version just read, same as a real client would.
+        updated.put("rowVersion", createJson.get("rowVersion").asInt());
         mockMvc.perform(auth(put("/api/v1/counterparties/" + cpId + "/addresses/" + addressId)).content(json(updated)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.city").value("Manchester"));

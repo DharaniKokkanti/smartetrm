@@ -81,11 +81,14 @@ class RinFuelCategoryControllerTest extends ApiTestBase {
         String createBody = mockMvc.perform(auth(post("/api/v1/rin-fuel-categories")).content(json(validPayload(dCode))))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        int id = objectMapper.readTree(createBody).get("categoryId").asInt();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("categoryId").asInt();
 
         Map<String, Object> update = new HashMap<>(validPayload(dCode));
         update.put("fuelName", "Updated Name " + dCode);
         update.put("equivalenceValue", new BigDecimal("2.50"));
+        // V133 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/rin-fuel-categories/" + id)).content(json(update)))
                 .andExpect(status().isOk())

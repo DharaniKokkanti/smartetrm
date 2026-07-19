@@ -84,9 +84,12 @@ class CountryControllerTest extends ApiTestBase {
         String createBody = mockMvc.perform(auth(post("/api/v1/countries")).content(json(validPayload(code))))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
+        var createJson = objectMapper.readTree(createBody);
 
         Map<String, Object> update = new HashMap<>(validPayload(code));
         update.put("countryName", "Updated Country Name " + code);
+        // V133 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/countries/" + code)).content(json(update)))
                 .andExpect(status().isOk())

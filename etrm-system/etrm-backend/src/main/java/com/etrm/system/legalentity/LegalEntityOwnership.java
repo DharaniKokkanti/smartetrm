@@ -9,6 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -34,6 +35,11 @@ public class LegalEntityOwnership {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ownership_id")
     private Integer ownershipId;
+
+    // V133 — optimistic locking, see LegalEntity.rowVersion (V127) for the full explanation.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
 
     @NotNull
     @Column(name = "jv_entity_id", nullable = false)
@@ -95,6 +101,14 @@ public class LegalEntityOwnership {
 
     public Integer getOwnershipId() {
         return ownershipId;
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
+    }
+
+    public void setRowVersion(Integer rowVersion) {
+        this.rowVersion = rowVersion;
     }
 
     public void setOwnershipId(Integer ownershipId) {

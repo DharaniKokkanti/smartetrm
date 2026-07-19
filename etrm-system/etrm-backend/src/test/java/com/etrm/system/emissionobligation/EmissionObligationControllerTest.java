@@ -78,10 +78,13 @@ class EmissionObligationControllerTest extends ApiTestBase {
         String createBody = mockMvc.perform(auth(post("/api/v1/emission-obligations")).content(json(validPayload())))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        int id = objectMapper.readTree(createBody).get("obligationId").asInt();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("obligationId").asInt();
 
         Map<String, Object> update = new HashMap<>(validPayload());
         update.put("status", "SURRENDERED");
+        // V133 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/emission-obligations/" + id)).content(json(update)))
                 .andExpect(status().isOk())

@@ -73,11 +73,14 @@ class RinAccountControllerTest extends ApiTestBase {
         String createBody = mockMvc.perform(auth(post("/api/v1/rin-accounts")).content(json(validPayload(code, legalEntityId))))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        int id = objectMapper.readTree(createBody).get("accountId").asInt();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("accountId").asInt();
 
         Map<String, Object> update = new HashMap<>(validPayload(code, legalEntityId));
         update.put("accountName", "Updated Name " + code);
         update.put("accountType", "EXPORTER");
+        // V133 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/rin-accounts/" + id)).content(json(update)))
                 .andExpect(status().isOk())

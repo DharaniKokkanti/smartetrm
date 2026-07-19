@@ -59,10 +59,13 @@ class EnvironmentalProductControllerTest extends ApiTestBase {
         String createBody = mockMvc.perform(auth(post("/api/v1/environmental-products")).content(json(validPayload(code))))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        int id = objectMapper.readTree(createBody).get("productId").asInt();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("productId").asInt();
 
         Map<String, Object> update = new HashMap<>(validPayload(code));
         update.put("unitOfMeasure", "KILOWATT_HOUR");
+        // V133 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/environmental-products/" + id)).content(json(update)))
                 .andExpect(status().isOk())

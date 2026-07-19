@@ -94,11 +94,14 @@ class UomConversionControllerTest extends ApiTestBase {
         String createBody = mockMvc.perform(auth(post("/api/v1/uom-conversions")).content(json(validPayload(ct))))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        int id = objectMapper.readTree(createBody).get("conversionId").asInt();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("conversionId").asInt();
 
         Map<String, Object> update = new HashMap<>(validPayload(ct));
         update.put("factor", 3.75);
         update.put("notes", "Updated conversion");
+        // V133 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/uom-conversions/" + id)).content(json(update)))
                 .andExpect(status().isOk())

@@ -60,10 +60,13 @@ class EmissionSchemeControllerTest extends ApiTestBase {
         String createBody = mockMvc.perform(auth(post("/api/v1/emission-schemes")).content(json(validPayload(code))))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        int id = objectMapper.readTree(createBody).get("schemeId").asInt();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("schemeId").asInt();
 
         Map<String, Object> update = new HashMap<>(validPayload(code));
         update.put("regulator", "Updated Regulator");
+        // V133 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/emission-schemes/" + id)).content(json(update)))
                 .andExpect(status().isOk())

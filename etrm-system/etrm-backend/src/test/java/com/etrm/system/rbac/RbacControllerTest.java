@@ -102,10 +102,21 @@ class RbacControllerTest extends ApiTestBase {
 
     @Test
     void update_role_persists_name_change() throws Exception {
-        int roleId = createRole("ROLE-" + unique());
-        Map<String, Object> update = Map.of(
-                "roleCode", "IGNORED", "roleName", "Renamed", "description", "d", "functions", List.of()
-        );
+        String code = "ROLE-" + unique();
+        String createBody = mockMvc.perform(auth(post("/api/v1/roles")).content(json(Map.of(
+                        "roleCode", code, "roleName", "Test Role " + code,
+                        "description", "created by RbacControllerTest", "functions", List.of()))))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        var createJson = objectMapper.readTree(createBody);
+        int roleId = createJson.get("roleId").asInt();
+        createdRoleIds.add(roleId);
+
+        Map<String, Object> update = new java.util.HashMap<>(Map.of(
+                "roleCode", "IGNORED", "roleName", "Renamed", "description", "d", "functions", List.of()));
+        // V133 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
+
         mockMvc.perform(auth(put("/api/v1/roles/" + roleId)).content(json(update)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.roleName").value("Renamed"));

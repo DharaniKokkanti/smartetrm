@@ -34,7 +34,8 @@ class AddressContactControllerTest extends ApiTestBase {
         String createBody = mockMvc.perform(auth(post("/api/v1/addresses")).content(json(validAddress())))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        int id = objectMapper.readTree(createBody).get("addressId").asInt();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("addressId").asInt();
 
         mockMvc.perform(auth(get("/api/v1/addresses")))
                 .andExpect(status().isOk())
@@ -42,6 +43,8 @@ class AddressContactControllerTest extends ApiTestBase {
 
         Map<String, Object> update = new HashMap<>(validAddress());
         update.put("city", "Manchester");
+        // V133 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
         mockMvc.perform(auth(put("/api/v1/addresses/" + id)).content(json(update)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.city").value("Manchester"))
@@ -64,10 +67,13 @@ class AddressContactControllerTest extends ApiTestBase {
         String createBody = mockMvc.perform(auth(post("/api/v1/contacts")).content(json(validContact())))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        int id = objectMapper.readTree(createBody).get("contactId").asInt();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("contactId").asInt();
 
         Map<String, Object> update = new HashMap<>(validContact());
         update.put("lastName", "Smith");
+        // V133 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
         mockMvc.perform(auth(put("/api/v1/contacts/" + id)).content(json(update)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.lastName").value("Smith"));

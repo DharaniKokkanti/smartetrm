@@ -87,10 +87,16 @@ class TaxRegistrationControllerTest extends ApiTestBase {
     @Test
     void update_persists_changes_and_preserves_original_createdBy() throws Exception {
         int entityId = uniqueEntityId();
-        int id = createRegistration(entityId, 1);
+        String createBody = mockMvc.perform(auth(post("/api/v1/entity-tax-registrations")).content(json(validPayload(entityId, 1))))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("taxRegId").asInt();
 
         Map<String, Object> update = new HashMap<>(validPayload(entityId, 1));
         update.put("issuingAuthority", "HMRC");
+        // V133 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/entity-tax-registrations/" + id)).content(json(update)))
                 .andExpect(status().isOk())

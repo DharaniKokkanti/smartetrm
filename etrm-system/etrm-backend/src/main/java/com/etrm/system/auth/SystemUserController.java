@@ -95,6 +95,13 @@ public class SystemUserController {
 
     @PutMapping("/{id}")
     public SystemUserResponse updateUser(@PathVariable Integer id, @Valid @RequestBody UserRequest body) {
+        if (body.rowVersion() == null) {
+            // A null version would silently no-op the optimistic-lock check
+            // below (Hibernate treats a null @Version on a managed entity as
+            // "skip the check") — exactly the silent-overwrite bug this
+            // rollout exists to prevent. Reject explicitly instead.
+            throw new ConflictException("Missing rowVersion — reload the record before saving.");
+        }
         AppUser user = findUser(id);
         applyFields(user, body);
         // V129 — must overwrite the just-fetched (current) version with the

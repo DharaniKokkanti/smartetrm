@@ -90,6 +90,9 @@ class PaymentMethodControllerTest extends ApiTestBase {
         Map<String, Object> update = new HashMap<>();
         update.put("methodCode", code);
         update.put("methodName", "Updated Payment Method " + code);
+        // V133 — seedPaymentMethod() inserts directly via JDBC, bypassing
+        // Hibernate, so row_version starts at its DB DEFAULT of 0.
+        update.put("rowVersion", 0);
 
         mockMvc.perform(auth(put("/api/v1/payment-methods/" + id)).content(json(update)))
                 .andExpect(status().isOk())

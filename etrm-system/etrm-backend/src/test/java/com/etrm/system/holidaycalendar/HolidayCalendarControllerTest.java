@@ -81,11 +81,14 @@ class HolidayCalendarControllerTest extends ApiTestBase {
         String createBody = mockMvc.perform(auth(post("/api/v1/holiday-calendars")).content(json(validPayload(code))))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        int id = objectMapper.readTree(createBody).get("calendarId").asInt();
-        String originalCreatedAt = objectMapper.readTree(createBody).get("createdAt").asText();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("calendarId").asInt();
+        String originalCreatedAt = createJson.get("createdAt").asText();
 
         Map<String, Object> update = new HashMap<>(validPayload(code));
         update.put("calendarName", "Updated Calendar Name " + code);
+        // V133 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/holiday-calendars/" + id)).content(json(update)))
                 .andExpect(status().isOk())

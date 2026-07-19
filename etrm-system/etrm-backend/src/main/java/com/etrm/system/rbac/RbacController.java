@@ -118,6 +118,13 @@ public class RbacController {
     @PutMapping("/roles/{id}")
     @Transactional
     public UserRole updateRole(@PathVariable Integer id, @Valid @RequestBody RoleRequest body) {
+        if (body.rowVersion() == null) {
+            // A null version would silently no-op the optimistic-lock check
+            // below (Hibernate treats a null @Version on a managed entity as
+            // "skip the check") — exactly the silent-overwrite bug this
+            // rollout exists to prevent. Reject explicitly instead.
+            throw new ConflictException("Missing rowVersion — reload the record before saving.");
+        }
         UserRole role = roleRepo.findById(Objects.requireNonNull(id))
                 .orElseThrow(() -> new NotFoundException("Role " + id + " not found"));
         if ("SYSTEM".equals(role.getRoleType())) {
@@ -126,6 +133,10 @@ public class RbacController {
         role.setRoleName(body.roleName());
         role.setDescription(body.description());
         role.setUpdatedBy("system");
+        // V133 — must overwrite the just-fetched (current) version with the
+        // client's echoed-back one, or the optimistic-lock check below is a
+        // no-op (it would always match the row it just read).
+        role.setRowVersion(body.rowVersion());
         UserRole saved = roleRepo.save(role);
         roleFunctionRepo.deleteByRoleRoleId(id);
         saveGrantList(saved, body.functions());
@@ -256,6 +267,9 @@ public class RbacController {
     // ── Request records ───────────────────────────────────────────────────────
 
     record RoleRequest(@NotBlank String roleCode, @NotBlank String roleName, String description,
-                        @Valid List<FunctionGrant> functions) {}
+                        @Valid List<FunctionGrant> functions,
+                        // V133 — echoed back from the last GET/PUT response by the
+                        // client; ignored on create.
+                        Integer rowVersion) {}
     record FunctionGrant(@NotNull Integer functionId, @NotBlank String accessLevel) {}
 }
