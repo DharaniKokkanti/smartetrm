@@ -9,6 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.springframework.data.annotation.CreatedBy;
@@ -42,6 +43,11 @@ public class CpGtcAgreement {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "cp_gtc_id")
     private Integer cpGtcId;
+
+    // V128 — optimistic locking (see LegalEntity.rowVersion doc comment).
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
 
     @NotNull
     @Column(name = "counterparty_id", nullable = false)
@@ -116,6 +122,14 @@ public class CpGtcAgreement {
 
     public void setCpGtcId(Integer cpGtcId) {
         this.cpGtcId = cpGtcId;
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
+    }
+
+    public void setRowVersion(Integer rowVersion) {
+        this.rowVersion = rowVersion;
     }
 
     public Integer getCounterpartyId() {

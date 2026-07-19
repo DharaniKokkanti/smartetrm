@@ -55,6 +55,9 @@ export function GtcAgreementsPage() {
       signedDate: v.signedDate ? v.signedDate.format('YYYY-MM-DD') : null,
       effectiveDate: v.effectiveDate ? v.effectiveDate.format('YYYY-MM-DD') : values.effectiveDate,
       expiryDate: v.expiryDate ? v.expiryDate.format('YYYY-MM-DD') : null,
+      // V128 — echo back the version this client last read (not a form
+      // field the user edits) so the backend can detect a concurrent edit.
+      rowVersion: editing?.rowVersion ?? 0,
     };
     const saved = await save.mutateAsync({ id: editing?.cpGtcId ?? null, input });
     if (closeAfter) setOpen(false); else setEditing(saved);

@@ -9,6 +9,9 @@ export type CollateralStatus = (typeof COLLATERAL_STATUSES)[number];
 
 export interface Collateral {
   collateralId: number;
+  /** V128 — optimistic-locking token. Must be echoed back unchanged on
+   *  update — see @components/smart/optimisticLock. */
+  rowVersion: number;
   collateralTypeId: number;
   collateralTypeName: string;
   direction: CollateralDirection;

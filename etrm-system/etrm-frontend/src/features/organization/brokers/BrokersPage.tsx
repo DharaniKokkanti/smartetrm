@@ -71,7 +71,10 @@ export function BrokersPage() {
   }
   async function submit(closeAfter = true) {
     const v = await form.validateFields();
-    const saved = await save.mutateAsync({ id: editing?.brokerId ?? null, input: v });
+    // V128 — echo back the version this client last read (not a form field
+    // the user edits) so the backend can detect a concurrent edit.
+    const input = { ...v, rowVersion: editing?.rowVersion ?? 0 };
+    const saved = await save.mutateAsync({ id: editing?.brokerId ?? null, input });
     if (closeAfter) setOpen(false); else setEditing(saved);
   }
 

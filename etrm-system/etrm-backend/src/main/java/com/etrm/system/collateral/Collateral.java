@@ -9,6 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -29,6 +30,11 @@ public class Collateral extends AuditableEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "collateral_id")
     private Integer collateralId;
+
+    // V128 — optimistic locking (see LegalEntity.rowVersion doc comment).
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
 
     @NotNull
     @Column(name = "collateral_type_id", nullable = false)
@@ -125,6 +131,14 @@ public class Collateral extends AuditableEntity {
 
     public void setCollateralId(Integer collateralId) {
         this.collateralId = collateralId;
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
+    }
+
+    public void setRowVersion(Integer rowVersion) {
+        this.rowVersion = rowVersion;
     }
 
     public Integer getCollateralTypeId() {

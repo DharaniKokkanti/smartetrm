@@ -6,6 +6,9 @@ export type BgStatus = (typeof BG_STATUSES)[number];
 
 export interface BankGuarantee {
   bgId: number;
+  /** V128 — optimistic-locking token. Must be echoed back unchanged on
+   *  update — see @components/smart/optimisticLock. */
+  rowVersion: number;
   bgNumber: string;
   bgType: BgType;
   issuingBankId: number;

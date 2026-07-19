@@ -3,6 +3,7 @@ import { App as AntApp } from 'antd';
 import { marginAccountsApi } from './api';
 import type { MarginAccountInput } from './types';
 import type { ProblemDetail } from '@services/api';
+import { isOptimisticLockConflict, showOptimisticLockConflict } from '@components/smart/optimisticLock';
 
 const KEY = ['margin-accounts'] as const;
 
@@ -12,12 +13,15 @@ export function useMarginAccounts() {
 
 export function useSaveMarginAccount() {
   const qc = useQueryClient();
-  const { message } = AntApp.useApp();
+  const { message, notification } = AntApp.useApp();
   return useMutation({
     mutationFn: ({ id, input }: { id: number | null; input: MarginAccountInput }) =>
       id === null ? marginAccountsApi.create(input) : marginAccountsApi.update(id, input),
     onSuccess: () => { qc.invalidateQueries({ queryKey: KEY }); message.success('Margin account saved.'); },
-    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Save failed.'),
+    onError: (e: ProblemDetail) => {
+      if (isOptimisticLockConflict(e)) showOptimisticLockConflict(notification);
+      else message.error(e.detail ?? e.title ?? 'Save failed.');
+    },
   });
 }
 

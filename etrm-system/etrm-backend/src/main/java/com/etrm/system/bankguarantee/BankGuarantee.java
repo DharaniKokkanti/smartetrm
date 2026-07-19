@@ -9,6 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -24,6 +25,11 @@ public class BankGuarantee extends AuditableEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "bg_id")
     private Integer bgId;
+
+    // V128 — optimistic locking (see LegalEntity.rowVersion doc comment).
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
 
     @NotBlank
     @Size(max = 100)
@@ -105,6 +111,14 @@ public class BankGuarantee extends AuditableEntity {
 
     public void setBgId(Integer bgId) {
         this.bgId = bgId;
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
+    }
+
+    public void setRowVersion(Integer rowVersion) {
+        this.rowVersion = rowVersion;
     }
 
     public String getBgNumber() {

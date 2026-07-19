@@ -222,6 +222,9 @@ export function GuaranteeFormDrawer({ open, onClose, editing, prefill }: Props) 
       beneficiaryEntityType: beneficiaryType,
       issueDate: values.issueDate ? values.issueDate.format('YYYY-MM-DD') : '',
       expiryDate: values.expiryDate ? values.expiryDate.format('YYYY-MM-DD') : null,
+      // V128 — echo back the version this client last read (not a form
+      // field the user edits) so the backend can detect a concurrent edit.
+      rowVersion: editing?.rowVersion ?? 0,
     };
     await saveGuarantee.mutateAsync({ id: editing?.pcgId ?? null, input });
     onClose();

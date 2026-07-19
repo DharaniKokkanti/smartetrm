@@ -4,6 +4,7 @@ import { guaranteeApi } from './api';
 import type { ParentCompanyGuaranteeInput } from './types';
 import type { PolymorphicEntityType } from '@features/tier1/counterparty/types';
 import type { ProblemDetail } from '@services/api';
+import { isOptimisticLockConflict, showOptimisticLockConflict } from '@components/smart/optimisticLock';
 
 const LIST_KEY = ['guarantees'] as const;
 
@@ -21,7 +22,7 @@ export function useGuaranteesForEntity(entityType: PolymorphicEntityType, entity
 
 export function useSaveGuarantee() {
   const queryClient = useQueryClient();
-  const { message } = AntApp.useApp();
+  const { message, notification } = AntApp.useApp();
   return useMutation({
     mutationFn: ({ id, input }: { id: number | null; input: ParentCompanyGuaranteeInput }) =>
       id === null ? guaranteeApi.create(input) : guaranteeApi.update(id, input),
@@ -30,7 +31,10 @@ export function useSaveGuarantee() {
       queryClient.invalidateQueries({ queryKey: ['guarantees', 'for-entity'] });
       message.success('Guarantee saved.');
     },
-    onError: (err: ProblemDetail) => message.error(err.detail ?? err.title ?? 'Save failed.'),
+    onError: (err: ProblemDetail) => {
+      if (isOptimisticLockConflict(err)) showOptimisticLockConflict(notification);
+      else message.error(err.detail ?? err.title ?? 'Save failed.');
+    },
   });
 }
 

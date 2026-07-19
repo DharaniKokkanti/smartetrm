@@ -56,6 +56,9 @@ export function BankGuaranteesPage() {
       ...values,
       issueDate: v.issueDate ? v.issueDate.format('YYYY-MM-DD') : values.issueDate,
       expiryDate: v.expiryDate ? v.expiryDate.format('YYYY-MM-DD') : values.expiryDate,
+      // V128 — echo back the version this client last read (not a form
+      // field the user edits) so the backend can detect a concurrent edit.
+      rowVersion: editing?.rowVersion ?? 0,
     };
     const saved = await save.mutateAsync({ id: editing?.bgId ?? null, input });
     if (closeAfter) setOpen(false); else setEditing(saved);

@@ -3,6 +3,7 @@ import { App as AntApp } from 'antd';
 import { cpCommercialTermsApi } from './api';
 import type { CpCommercialTermsInput } from './types';
 import type { ProblemDetail } from '@services/api';
+import { isOptimisticLockConflict, showOptimisticLockConflict } from '@components/smart/optimisticLock';
 
 const KEY = ['cp-commercial-terms'] as const;
 
@@ -12,12 +13,15 @@ export function useCpCommercialTerms() {
 
 export function useSaveCpCommercialTerms() {
   const qc = useQueryClient();
-  const { message } = AntApp.useApp();
+  const { message, notification } = AntApp.useApp();
   return useMutation({
     mutationFn: ({ id, input }: { id: number | null; input: CpCommercialTermsInput }) =>
       id === null ? cpCommercialTermsApi.create(input) : cpCommercialTermsApi.update(id, input),
     onSuccess: () => { qc.invalidateQueries({ queryKey: KEY }); message.success('Commercial terms saved.'); },
-    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Save failed.'),
+    onError: (e: ProblemDetail) => {
+      if (isOptimisticLockConflict(e)) showOptimisticLockConflict(notification);
+      else message.error(e.detail ?? e.title ?? 'Save failed.');
+    },
   });
 }
 

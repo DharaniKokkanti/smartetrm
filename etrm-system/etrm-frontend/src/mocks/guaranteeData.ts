@@ -5,6 +5,7 @@ let nextPcgId = 3;
 export const guaranteeSeed: ParentCompanyGuarantee[] = [
   {
     pcgId: 1,
+    rowVersion: 0,
     pcgReference: 'PCG-2026-0001',
     direction: 'RECEIVED',
     guarantorEntityType: 'COUNTERPARTY',
@@ -29,6 +30,7 @@ export const guaranteeSeed: ParentCompanyGuarantee[] = [
   },
   {
     pcgId: 2,
+    rowVersion: 0,
     pcgReference: 'PCG-2026-0002',
     direction: 'ISSUED',
     guarantorEntityType: 'LEGAL_ENTITY',

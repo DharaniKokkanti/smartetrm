@@ -6,6 +6,9 @@
 // rather than reintroducing a version table the rest of the app doesn't have.
 export interface CpGtcAgreement {
   cpGtcId: number;
+  /** V128 — optimistic-locking token. Must be echoed back unchanged on
+   *  update — see @components/smart/optimisticLock. */
+  rowVersion: number;
   counterpartyId: number;
   counterpartyName: string;
   legalEntityId: number;

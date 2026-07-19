@@ -10,6 +10,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -24,6 +25,11 @@ public class ParentCompanyGuarantee extends AuditableEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "pcg_id")
     private Integer pcgId;
+
+    // V128 — optimistic locking (see LegalEntity.rowVersion doc comment).
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
 
     @NotBlank
     @Column(name = "pcg_reference", nullable = false, length = 50)
@@ -100,6 +106,14 @@ public class ParentCompanyGuarantee extends AuditableEntity {
 
     public void setPcgId(Integer pcgId) {
         this.pcgId = pcgId;
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
+    }
+
+    public void setRowVersion(Integer rowVersion) {
+        this.rowVersion = rowVersion;
     }
 
     public String getPcgReference() {

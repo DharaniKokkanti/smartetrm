@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
@@ -19,6 +20,15 @@ public class TraderCommodityLimit {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "trader_commodity_limit_id")
     private Integer traderCommodityLimitId;
+
+    // V128 — optimistic locking (see LegalEntity.rowVersion doc comment).
+    // TraderService.saveCommodityLimits deletes and recreates every limit
+    // row wholesale on each trader save (never an individual row update),
+    // so there's no real stale-write scenario to protect here; added purely
+    // for schema consistency with the rest of this batch.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
 
     @NotNull
     @Column(name = "trader_id", nullable = false)
@@ -44,6 +54,14 @@ public class TraderCommodityLimit {
 
     public void setTraderCommodityLimitId(Integer traderCommodityLimitId) {
         this.traderCommodityLimitId = traderCommodityLimitId;
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
+    }
+
+    public void setRowVersion(Integer rowVersion) {
+        this.rowVersion = rowVersion;
     }
 
     public Integer getTraderId() {

@@ -3,6 +3,9 @@ export type MarginAccountType = (typeof MARGIN_ACCOUNT_TYPES)[number];
 
 export interface MarginAccount {
   marginAccountId: number;
+  /** V128 — optimistic-locking token. Must be echoed back unchanged on
+   *  update — see @components/smart/optimisticLock. */
+  rowVersion: number;
   legalEntityId: number;
   legalEntityName: string;
   marketId: number;

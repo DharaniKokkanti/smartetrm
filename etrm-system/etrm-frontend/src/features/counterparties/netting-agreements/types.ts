@@ -5,6 +5,9 @@ export type NettingAgreementType = number;
 
 export interface NettingAgreement {
   nettingId: number;
+  /** V128 — optimistic-locking token. Must be echoed back unchanged on
+   *  update — see @components/smart/optimisticLock. */
+  rowVersion: number;
   legalEntityId: number;
   legalEntityName: string;
   counterpartyId: number;

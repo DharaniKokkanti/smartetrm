@@ -6,6 +6,9 @@ export type LcStatus = (typeof LC_STATUSES)[number];
 
 export interface LetterOfCredit {
   lcId: number;
+  /** V128 — optimistic-locking token. Must be echoed back unchanged on
+   *  update — see @components/smart/optimisticLock. */
+  rowVersion: number;
   lcReference: string;          // bank-issued LC number
   lcType: LcType;
   status: LcStatus;

@@ -3,6 +3,7 @@ import { App as AntApp } from 'antd';
 import { lettersOfCreditApi } from './api';
 import type { LetterOfCreditInput } from './types';
 import type { ProblemDetail } from '@services/api';
+import { isOptimisticLockConflict, showOptimisticLockConflict } from '@components/smart/optimisticLock';
 
 const KEY = ['letters-of-credit'] as const;
 
@@ -12,12 +13,15 @@ export function useLettersOfCredit() {
 
 export function useSaveLetterOfCredit() {
   const qc = useQueryClient();
-  const { message } = AntApp.useApp();
+  const { message, notification } = AntApp.useApp();
   return useMutation({
     mutationFn: ({ id, input }: { id: number | null; input: LetterOfCreditInput }) =>
       id === null ? lettersOfCreditApi.create(input) : lettersOfCreditApi.update(id, input),
     onSuccess: (d) => { qc.invalidateQueries({ queryKey: KEY }); message.success(`Letter of Credit "${d.lcReference}" saved.`); },
-    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Save failed.'),
+    onError: (e: ProblemDetail) => {
+      if (isOptimisticLockConflict(e)) showOptimisticLockConflict(notification);
+      else message.error(e.detail ?? e.title ?? 'Save failed.');
+    },
   });
 }
 

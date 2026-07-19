@@ -46,7 +46,10 @@ export function MarginAccountsPage() {
 
   async function submit(closeAfter = true) {
     const values = await form.validateFields();
-    const saved = await save.mutateAsync({ id: editing?.marginAccountId ?? null, input: values });
+    // V128 — echo back the version this client last read (not a form field
+    // the user edits) so the backend can detect a concurrent edit.
+    const input = { ...values, rowVersion: editing?.rowVersion ?? 0 };
+    const saved = await save.mutateAsync({ id: editing?.marginAccountId ?? null, input });
     if (closeAfter) setOpen(false); else setEditing(saved);
   }
 

@@ -2,6 +2,9 @@ import type { CommodityTypeTrade } from '@features/trade/types';
 
 export interface CpCommercialTerms {
   cpTermsId: number;
+  /** V128 — optimistic-locking token. Must be echoed back unchanged on
+   *  update — see @components/smart/optimisticLock. */
+  rowVersion: number;
   counterpartyId: number;
   counterpartyName: string;
   legalEntityId: number;

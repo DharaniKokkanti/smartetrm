@@ -12,6 +12,9 @@ export type PolicyStatus = (typeof POLICY_STATUSES)[number];
 
 export interface InsurancePolicy {
   policyId: number;
+  /** V128 — optimistic-locking token. Must be echoed back unchanged on
+   *  update — see @components/smart/optimisticLock. */
+  rowVersion: number;
   providerId: number;
   providerName: string;
   legalEntityId: number;

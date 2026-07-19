@@ -1,5 +1,8 @@
 export interface Broker {
   brokerId: number;
+  /** V128 — optimistic-locking token. Must be echoed back unchanged on
+   *  update — see @components/smart/optimisticLock. */
+  rowVersion: number;
   brokerCode: string;
   brokerName: string;
   brokerType: BrokerType;

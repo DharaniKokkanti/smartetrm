@@ -60,6 +60,9 @@ export function NettingAgreementsPage() {
       ...values,
       effectiveDate: v.effectiveDate ? v.effectiveDate.format('YYYY-MM-DD') : values.effectiveDate,
       terminationDate: v.terminationDate ? v.terminationDate.format('YYYY-MM-DD') : null,
+      // V128 — echo back the version this client last read (not a form
+      // field the user edits) so the backend can detect a concurrent edit.
+      rowVersion: editing?.rowVersion ?? 0,
     };
     const saved = await save.mutateAsync({ id: editing?.nettingId ?? null, input });
     if (closeAfter) setOpen(false); else setEditing(saved);

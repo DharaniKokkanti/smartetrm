@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -25,6 +26,15 @@ public class CreditLimitAlert {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "alert_id")
     private Integer alertId;
+
+    // V128 — optimistic locking (see LegalEntity.rowVersion doc comment).
+    // This row is never individually updated (system-generated, read-only
+    // history — see class doc comment above), so there's no real stale-write
+    // scenario to protect here; added purely for schema consistency with the
+    // rest of this batch.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
 
     @NotNull
     @Column(name = "credit_limit_id", nullable = false)
@@ -60,6 +70,14 @@ public class CreditLimitAlert {
 
     public void setAlertId(Integer alertId) {
         this.alertId = alertId;
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
+    }
+
+    public void setRowVersion(Integer rowVersion) {
+        this.rowVersion = rowVersion;
     }
 
     public Integer getCreditLimitId() {
