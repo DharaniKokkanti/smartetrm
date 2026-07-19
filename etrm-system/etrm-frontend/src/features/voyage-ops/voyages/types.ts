@@ -6,6 +6,8 @@ export type LadenBallastStatus = (typeof LADEN_BALLAST_STATUSES)[number];
 
 export interface Voyage {
   voyageId: number;
+  /** V132 — optimistic-locking token, echoed back unchanged on update. See @components/smart/optimisticLock. */
+  rowVersion: number;
   voyageNumber: string;
   vesselId: number;
   vesselName: string | null;

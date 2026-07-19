@@ -60,6 +60,8 @@ export function VoyagesPage() {
       charterPartyId: v.charterPartyId ?? null,
       eta: null,
       etd: null,
+      // V132 — echo back the version this client last read; 0 for a new voyage.
+      rowVersion: editing?.rowVersion ?? 0,
     };
     await save.mutateAsync({ id: editing?.voyageId ?? null, input });
     setOpen(false);

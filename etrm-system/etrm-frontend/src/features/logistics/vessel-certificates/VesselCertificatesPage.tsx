@@ -47,6 +47,8 @@ export function VesselCertificatesPage() {
       ...values,
       issueDate: v.issueDate ? v.issueDate.format('YYYY-MM-DD') : null,
       expiryDate: v.expiryDate ? v.expiryDate.format('YYYY-MM-DD') : null,
+      // V132 — echo back the version this client last read; 0 for a new certificate.
+      rowVersion: editing?.rowVersion ?? 0,
     };
     const saved = await save.mutateAsync({ id: editing?.certId ?? null, input });
     if (closeAfter) setOpen(false); else setEditing(saved);

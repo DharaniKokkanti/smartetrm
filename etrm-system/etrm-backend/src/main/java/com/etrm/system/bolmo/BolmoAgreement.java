@@ -8,6 +8,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -26,6 +27,11 @@ public class BolmoAgreement {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "bolmo_id")
     private Integer bolmoId;
+
+    // V132 — optimistic locking (Batch E, voyage-ops/maritime). See V127/LegalEntity for the pattern.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
 
     @NotBlank
     @Size(max = 25)
@@ -123,6 +129,14 @@ public class BolmoAgreement {
 
     public void setBolmoId(Integer bolmoId) {
         this.bolmoId = bolmoId;
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
+    }
+
+    public void setRowVersion(Integer rowVersion) {
+        this.rowVersion = rowVersion;
     }
 
     public String getBolmoReference() {

@@ -113,6 +113,8 @@ export function BolmoAgreementsPage() {
       ...values,
       agreementDate: v.agreementDate ? v.agreementDate.format('YYYY-MM-DD') : values.agreementDate,
       settlementDate: v.settlementDate ? v.settlementDate.format('YYYY-MM-DD') : null,
+      // V132 — echo back the version this client last read; 0 for a new agreement.
+      rowVersion: editing?.rowVersion ?? 0,
     };
     const saved = await saveAgreement.mutateAsync({ id: editing?.bolmoId ?? null, input });
     if (closeAfter) setDrawerOpen(false); else setEditing(saved);

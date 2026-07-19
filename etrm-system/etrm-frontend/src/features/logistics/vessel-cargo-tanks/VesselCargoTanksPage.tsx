@@ -40,7 +40,9 @@ export function VesselCargoTanksPage() {
 
   async function submit() {
     const v = await form.validateFields();
-    await save.mutateAsync({ id: editing?.tankId ?? null, input: v });
+    // V132 — echo back the version this client last read; 0 for a new cargo tank.
+    const input: VesselCargoTankInput = { ...v, rowVersion: editing?.rowVersion ?? 0 };
+    await save.mutateAsync({ id: editing?.tankId ?? null, input });
     setOpen(false);
   }
 

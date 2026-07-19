@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 
 /**
  * dbo.charter_party_template is served generically via the Tier2
@@ -19,6 +20,11 @@ public class CharterPartyTemplate {
     @Column(name = "template_id")
     private Integer templateId;
 
+    // V132 — optimistic locking (Batch E, voyage-ops/maritime). See V127/LegalEntity for the pattern.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
+
     @Column(name = "template_code", nullable = false, length = 30)
     private String templateCode;
 
@@ -27,6 +33,10 @@ public class CharterPartyTemplate {
 
     public Integer getTemplateId() {
         return templateId;
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
     }
 
     public String getTemplateCode() {

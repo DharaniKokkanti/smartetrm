@@ -6,6 +6,8 @@ export type CertType = (typeof CERT_TYPES)[number];
 
 export interface VesselCertificate {
   certId: number;
+  /** V132 — optimistic-locking token, echoed back unchanged on update. See @components/smart/optimisticLock. */
+  rowVersion: number;
   vesselId: number;
   vesselName: string;
   certType: CertType;

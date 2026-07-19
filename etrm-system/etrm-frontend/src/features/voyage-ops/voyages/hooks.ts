@@ -3,6 +3,7 @@ import { App as AntApp } from 'antd';
 import { voyagesApi } from './api';
 import type { VoyageInput } from './types';
 import type { ProblemDetail } from '@services/api';
+import { isOptimisticLockConflict, showOptimisticLockConflict } from '@components/smart/optimisticLock';
 
 const KEY = ['voyages'] as const;
 
@@ -16,12 +17,15 @@ export function useVoyage(id: number | null) {
 
 export function useSaveVoyage() {
   const qc = useQueryClient();
-  const { message } = AntApp.useApp();
+  const { message, notification } = AntApp.useApp();
   return useMutation({
     mutationFn: ({ id, input }: { id: number | null; input: VoyageInput }) =>
       id === null ? voyagesApi.create(input) : voyagesApi.update(id, input),
     onSuccess: (d) => { qc.invalidateQueries({ queryKey: KEY }); message.success(`Voyage "${d.voyageNumber}" saved.`); },
-    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Save failed.'),
+    onError: (e: ProblemDetail) => {
+      if (isOptimisticLockConflict(e)) showOptimisticLockConflict(notification);
+      else message.error(e.detail ?? e.title ?? 'Save failed.');
+    },
   });
 }
 

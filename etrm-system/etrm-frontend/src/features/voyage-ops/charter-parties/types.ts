@@ -15,6 +15,8 @@ export type BunkerClauseBasis = (typeof BUNKER_CLAUSE_BASES)[number];
 
 export interface CharterParty {
   charterPartyId: number;
+  /** V132 — optimistic-locking token, echoed back unchanged on update. See @components/smart/optimisticLock. */
+  rowVersion: number;
   cpReference: string;
   charterPartyTypeId: number;
   charterPartyTypeCode: string | null;

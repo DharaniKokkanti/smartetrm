@@ -3,6 +3,7 @@ import { App as AntApp } from 'antd';
 import { bolmoApi, bolmoLegsApi } from './api';
 import type { BolmoAgreementInput, BolmoLegInput } from './types';
 import type { ProblemDetail } from '@services/api';
+import { isOptimisticLockConflict, showOptimisticLockConflict } from '@components/smart/optimisticLock';
 
 const KEY = ['bolmo-agreements'] as const;
 const legsKey = (id: number) => ['bolmo-legs', id] as const;
@@ -22,7 +23,7 @@ export function useBolmoLegs(bolmoId: number | null) {
 
 export function useSaveBolmoAgreement() {
   const qc = useQueryClient();
-  const { message } = AntApp.useApp();
+  const { message, notification } = AntApp.useApp();
   return useMutation({
     mutationFn: ({ id, input }: { id: number | null; input: BolmoAgreementInput }) =>
       id === null ? bolmoApi.create(input) : bolmoApi.update(id, input),
@@ -30,7 +31,10 @@ export function useSaveBolmoAgreement() {
       qc.invalidateQueries({ queryKey: KEY });
       message.success(`BOLMO agreement ${d.bolmoReference} saved.`);
     },
-    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Save failed.'),
+    onError: (e: ProblemDetail) => {
+      if (isOptimisticLockConflict(e)) showOptimisticLockConflict(notification);
+      else message.error(e.detail ?? e.title ?? 'Save failed.');
+    },
   });
 }
 
