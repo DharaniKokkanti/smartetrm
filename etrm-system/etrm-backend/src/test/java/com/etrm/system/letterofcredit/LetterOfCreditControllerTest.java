@@ -66,10 +66,16 @@ class LetterOfCreditControllerTest extends ApiTestBase {
     @Test
     void update_persists_changes() throws Exception {
         String ref = "LC-" + unique();
-        int id = createLc(ref);
+        String createBody = mockMvc.perform(auth(post("/api/v1/credit/letters-of-credit")).content(json(validPayload(ref))))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("lcId").asInt();
 
         Map<String, Object> update = new HashMap<>(validPayload(ref));
         update.put("issuingBankName", "Updated Bank Name");
+        // V128 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/credit/letters-of-credit/" + id)).content(json(update)))
                 .andExpect(status().isOk())

@@ -86,10 +86,16 @@ class InsurancePolicyControllerTest extends ApiTestBase {
     void update_persists_changes_and_preserves_original_createdBy() throws Exception {
         int providerId = createProvider();
         String policyNumber = "POL-" + unique();
-        int id = createPolicy(providerId, policyNumber);
+        String createBody = mockMvc.perform(auth(post("/api/v1/credit/insurance-policies")).content(json(validPayload(providerId, policyNumber))))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("policyId").asInt();
 
         Map<String, Object> update = new HashMap<>(validPayload(providerId, policyNumber));
         update.put("policyStatus", "SUSPENDED");
+        // V128 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/credit/insurance-policies/" + id)).content(json(update)))
                 .andExpect(status().isOk())

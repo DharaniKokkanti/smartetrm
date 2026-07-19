@@ -122,10 +122,13 @@ class TraderControllerTest extends ApiTestBase {
         String createBody = mockMvc.perform(auth(post("/api/v1/traders")).content(json(validPayload(code, userId))))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        int id = objectMapper.readTree(createBody).get("traderId").asInt();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("traderId").asInt();
 
         Map<String, Object> update = new HashMap<>(validPayload(code, userId));
         update.put("dailyTradeLimit", 500000);
+        // V129 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/traders/" + id)).content(json(update)))
                 .andExpect(status().isOk())

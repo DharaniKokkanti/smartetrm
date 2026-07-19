@@ -58,11 +58,14 @@ class GtcControllerTest extends ApiTestBase {
         String createBody = mockMvc.perform(auth(post("/api/v1/gtcs")).content(json(validPayload(code))))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        int id = objectMapper.readTree(createBody).get("gtcId").asInt();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("gtcId").asInt();
 
         Map<String, Object> update = new HashMap<>(validPayload(code));
         update.put("gtcName", "Updated GTC " + code);
         update.put("version", "2");
+        // V129 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/gtcs/" + id)).content(json(update)))
                 .andExpect(status().isOk())

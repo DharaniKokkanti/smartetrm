@@ -76,10 +76,13 @@ class PipelineControllerTest extends ApiTestBase {
         String createBody = mockMvc.perform(auth(post("/api/v1/pipelines")).content(json(validPayload(code))))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        int id = objectMapper.readTree(createBody).get("pipelineId").asInt();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("pipelineId").asInt();
 
         Map<String, Object> update = new HashMap<>(validPayload(code));
         update.put("pipelineName", "Updated Pipeline Name " + code);
+        // V130 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/pipelines/" + id)).content(json(update)))
                 .andExpect(status().isOk())

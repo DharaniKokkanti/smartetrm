@@ -91,10 +91,13 @@ class PipelineTariffControllerTest extends ApiTestBase {
         String createBody = mockMvc.perform(auth(post("/api/v1/logistics/pipeline-tariffs")).content(json(validPayload(from, to, "2026-03-01"))))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        int id = objectMapper.readTree(createBody).get("tariffId").asInt();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("tariffId").asInt();
 
         Map<String, Object> update = new HashMap<>(validPayload(from, to, "2026-03-01"));
         update.put("rate", 9.8765);
+        // V130 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/logistics/pipeline-tariffs/" + id)).content(json(update)))
                 .andExpect(status().isOk())

@@ -62,10 +62,13 @@ class TransportRouteControllerTest extends ApiTestBase {
         String createBody = mockMvc.perform(auth(post("/api/v1/freight/routes")).content(json(validPayload(code))))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        int id = objectMapper.readTree(createBody).get("routeId").asInt();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("routeId").asInt();
 
         Map<String, Object> update = new HashMap<>(validPayload(code));
         update.put("routeName", "Updated Name " + code);
+        // V130 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/freight/routes/" + id)).content(json(update)))
                 .andExpect(status().isOk())

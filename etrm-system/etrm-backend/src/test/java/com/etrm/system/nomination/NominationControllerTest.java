@@ -114,10 +114,13 @@ class NominationControllerTest extends ApiTestBase {
         String createBody = mockMvc.perform(auth(post("/api/v1/operations/nominations")).content(json(validPayload(ref))))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        int id = objectMapper.readTree(createBody).get("nominationId").asInt();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("nominationId").asInt();
 
         Map<String, Object> update = new HashMap<>(validPayload(ref));
         update.put("status", "SUBMITTED");
+        // V130 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/operations/nominations/" + id)).content(json(update)))
                 .andExpect(status().isOk())

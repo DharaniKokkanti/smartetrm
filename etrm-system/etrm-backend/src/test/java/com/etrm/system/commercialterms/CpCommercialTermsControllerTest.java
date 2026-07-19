@@ -81,10 +81,16 @@ class CpCommercialTermsControllerTest extends ApiTestBase {
     @Test
     void update_persists_changes_and_preserves_original_createdBy() throws Exception {
         int counterpartyId = createCounterparty(unique());
-        int id = createTerms(counterpartyId);
+        String createBody = mockMvc.perform(auth(post("/api/v1/counterparties/commercial-terms")).content(json(validPayload(counterpartyId))))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("cpTermsId").asInt();
 
         Map<String, Object> update = new HashMap<>(validPayload(counterpartyId));
         update.put("notes", "Renegotiated terms");
+        // V128 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/counterparties/commercial-terms/" + id)).content(json(update)))
                 .andExpect(status().isOk())

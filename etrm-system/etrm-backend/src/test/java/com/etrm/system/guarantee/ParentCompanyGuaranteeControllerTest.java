@@ -68,10 +68,16 @@ class ParentCompanyGuaranteeControllerTest extends ApiTestBase {
     @Test
     void update_persists_changes() throws Exception {
         String ref = "PCG-" + unique();
-        int id = createGuarantee(ref);
+        String createBody = mockMvc.perform(auth(post("/api/v1/parent-company-guarantees")).content(json(validPayload(ref))))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("pcgId").asInt();
 
         Map<String, Object> update = validPayload(ref);
         update.put("pcgStatus", "ISSUED");
+        // V128 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/parent-company-guarantees/" + id)).content(json(update)))
                 .andExpect(status().isOk())

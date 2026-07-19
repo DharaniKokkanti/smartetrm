@@ -79,10 +79,16 @@ class BrokerFeeAgreementControllerTest extends ApiTestBase {
     void update_persists_changes() throws Exception {
         int brokerId = createBroker(unique());
         String agreementCode = "BFA-" + unique();
-        int id = createAgreement(brokerId, agreementCode);
+        String createBody = mockMvc.perform(auth(post("/api/v1/broker-fee-agreements")).content(json(validPayload(brokerId, agreementCode))))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("agreementId").asInt();
 
         Map<String, Object> update = new HashMap<>(validPayload(brokerId, agreementCode));
         update.put("feeRate", 15);
+        // V128 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/broker-fee-agreements/" + id)).content(json(update)))
                 .andExpect(status().isOk())

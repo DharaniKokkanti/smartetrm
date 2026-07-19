@@ -66,11 +66,14 @@ class BolmoAgreementControllerTest extends ApiTestBase {
         String createBody = mockMvc.perform(auth(post("/api/v1/bolmo-agreements")).content(json(validPayload())))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        int id = objectMapper.readTree(createBody).get("bolmoId").asInt();
-        String originalReference = objectMapper.readTree(createBody).get("bolmoReference").asText();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("bolmoId").asInt();
+        String originalReference = createJson.get("bolmoReference").asText();
 
         Map<String, Object> update = new HashMap<>(validPayload());
         update.put("commodityType", "GASOLINE");
+        // V132 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/bolmo-agreements/" + id)).content(json(update)))
                 .andExpect(status().isOk())

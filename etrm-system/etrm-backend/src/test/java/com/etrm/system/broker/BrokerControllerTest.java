@@ -57,11 +57,19 @@ class BrokerControllerTest extends ApiTestBase {
 
     @Test
     void update_persists_changes() throws Exception {
+        // No GET /{id} endpoint exists on this controller (list + update
+        // only) — read the version from the create response instead.
         String code = unique();
-        int id = createBroker(code);
+        String createBody = mockMvc.perform(auth(post("/api/v1/brokers")).content(json(validPayload(code))))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("brokerId").asInt();
 
         Map<String, Object> update = new HashMap<>(validPayload(code));
         update.put("brokerName", "Updated Broker Name " + code);
+        // V128 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/brokers/" + id)).content(json(update)))
                 .andExpect(status().isOk())

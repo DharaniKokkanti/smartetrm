@@ -71,10 +71,13 @@ class StorageFacilityControllerTest extends ApiTestBase {
         String createBody = mockMvc.perform(auth(post("/api/v1/storage")).content(json(validPayload(code))))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        int id = objectMapper.readTree(createBody).get("storageId").asInt();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("storageId").asInt();
 
         Map<String, Object> update = new HashMap<>(validPayload(code));
         update.put("storageName", "Updated Storage Name " + code);
+        // V130 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/storage/" + id)).content(json(update)))
                 .andExpect(status().isOk())

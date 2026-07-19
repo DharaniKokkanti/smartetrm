@@ -96,9 +96,13 @@ class SystemUserControllerTest extends ApiTestBase {
     void update_persists_changes() throws Exception {
         String username = "t" + unique();
         int id = createUser(username);
+        String getBody = mockMvc.perform(auth(get("/api/v1/admin/users/" + id)))
+                .andReturn().getResponse().getContentAsString();
         Map<String, Object> update = validPayload(username);
         update.put("fullName", "Renamed User");
         update.remove("password");
+        // V129 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", objectMapper.readTree(getBody).get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/admin/users/" + id)).content(json(update)))
                 .andExpect(status().isOk())

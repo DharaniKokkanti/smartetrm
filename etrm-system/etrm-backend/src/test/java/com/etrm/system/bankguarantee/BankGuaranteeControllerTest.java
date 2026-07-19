@@ -64,11 +64,19 @@ class BankGuaranteeControllerTest extends ApiTestBase {
 
     @Test
     void update_persists_changes_and_preserves_original_createdBy() throws Exception {
+        // No GET /{id} endpoint exists on this controller (list + update
+        // only) — read the version from the create response instead.
         String bgNumber = "BG-" + unique();
-        int id = createBankGuarantee(bgNumber);
+        String createBody = mockMvc.perform(auth(post("/api/v1/credit/bank-guarantees")).content(json(validPayload(bgNumber))))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("bgId").asInt();
 
         Map<String, Object> update = new HashMap<>(validPayload(bgNumber));
         update.put("bgStatus", "ISSUED");
+        // V128 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/credit/bank-guarantees/" + id)).content(json(update)))
                 .andExpect(status().isOk())

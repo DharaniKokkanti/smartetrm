@@ -68,10 +68,13 @@ class RailcarControllerTest extends ApiTestBase {
         String createBody = mockMvc.perform(auth(post("/api/v1/logistics/railcars")).content(json(validPayload(carNumber))))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        int id = objectMapper.readTree(createBody).get("railcarId").asInt();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("railcarId").asInt();
 
         Map<String, Object> update = new HashMap<>(validPayload(carNumber));
         update.put("carType", "HOPPER_CAR");
+        // V130 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/logistics/railcars/" + id)).content(json(update)))
                 .andExpect(status().isOk())

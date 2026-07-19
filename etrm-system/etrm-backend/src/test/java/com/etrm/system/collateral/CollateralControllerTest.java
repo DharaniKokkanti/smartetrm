@@ -62,10 +62,16 @@ class CollateralControllerTest extends ApiTestBase {
 
     @Test
     void update_persists_changes_and_preserves_original_createdBy() throws Exception {
-        int id = createCollateral();
+        String createBody = mockMvc.perform(auth(post("/api/v1/credit/collateral")).content(json(validPayload())))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("collateralId").asInt();
 
         Map<String, Object> update = new HashMap<>(validPayload());
         update.put("status", "RETURNED");
+        // V128 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/credit/collateral/" + id)).content(json(update)))
                 .andExpect(status().isOk())

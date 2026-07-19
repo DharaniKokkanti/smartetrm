@@ -70,10 +70,13 @@ class ContainerControllerTest extends ApiTestBase {
         String createBody = mockMvc.perform(auth(post("/api/v1/logistics/containers")).content(json(validPayload(number))))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        int id = objectMapper.readTree(createBody).get("containerId").asInt();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("containerId").asInt();
 
         Map<String, Object> update = new HashMap<>(validPayload(number));
         update.put("notes", "Updated by ContainerControllerTest " + number);
+        // V130 — echo back the version just read, same as a real client would.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/logistics/containers/" + id)).content(json(update)))
                 .andExpect(status().isOk())
