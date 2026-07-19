@@ -62,6 +62,7 @@ export const rbacHandlers = [
       submittedAt: null,
       approvedBy: null,
       approvedAt: null,
+      rowVersion: 0,
     };
     roles.push(role);
     // save function grants
@@ -77,7 +78,7 @@ export const rbacHandlers = [
     if (idx === -1) return problem(404, 'Not Found', `Role ${params.id} not found.`);
     if (roles[idx].roleType === 'SYSTEM') return problem(403, 'Forbidden', 'System roles cannot be edited.');
     const body = (await request.json()) as UserRoleInput;
-    roles[idx] = { ...roles[idx], roleName: body.roleName, description: body.description ?? null };
+    roles[idx] = { ...roles[idx], roleName: body.roleName, description: body.description ?? null, rowVersion: roles[idx].rowVersion + 1 };
     // replace function grants
     const roleId = Number(params.id);
     const kept = roleFunctions.filter((rf) => rf.roleId !== roleId);

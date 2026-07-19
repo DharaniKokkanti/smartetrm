@@ -89,7 +89,23 @@ public class RbacController {
         UserRole role = roleRepo.findById(Objects.requireNonNull(id))
                 .orElseThrow(() -> new NotFoundException("Role " + id + " not found"));
         List<RoleFunction> functions = roleFunctionRepo.findByRoleRoleId(id);
-        return Map.of("role", role, "functions", functions);
+        // Flattened, not the raw entity — RoleFunction.getRole()/getFunction()
+        // are full @ManyToOne entities (no @JsonIgnore/DTO view), so
+        // returning them as-is nests the whole parent role back into every
+        // grant row plus the full AppFunction/AppModule tree. The frontend
+        // has only ever consumed the flat {roleFunctionId, functionId,
+        // functionCode, accessLevel} shape (see RoleFunction in types.ts) —
+        // this was a real, silent mismatch (frontend's grant-matrix
+        // pre-population never actually worked against this live endpoint).
+        List<RoleFunctionView> flatFunctions = functions.stream().map(RoleFunctionView::of).toList();
+        return Map.of("role", role, "functions", flatFunctions);
+    }
+
+    record RoleFunctionView(Integer roleFunctionId, Integer roleId, Integer functionId, String functionCode, String accessLevel) {
+        static RoleFunctionView of(RoleFunction rf) {
+            return new RoleFunctionView(rf.getRoleFunctionId(), rf.getRole().getRoleId(),
+                    rf.getFunction().getFunctionId(), rf.getFunction().getFunctionCode(), rf.getAccessLevel());
+        }
     }
 
     @PostMapping("/roles")

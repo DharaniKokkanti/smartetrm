@@ -8,6 +8,7 @@ import {
 } from './api';
 import type { UserRoleInput } from './types';
 import type { ProblemDetail } from '@services/api';
+import { isOptimisticLockConflict, showOptimisticLockConflict } from '@components/smart/optimisticLock';
 
 // ── Static reference ──────────────────────────────────────────────────────────
 export function useModules() {
@@ -45,11 +46,17 @@ export function useCreateRole() {
 
 export function useUpdateRole() {
   const qc = useQueryClient();
-  const { message } = AntApp.useApp();
+  const { message, notification } = AntApp.useApp();
   return useMutation({
     mutationFn: ({ id, input }: { id: number; input: UserRoleInput }) => updateRole(id, input),
     onSuccess: () => qc.invalidateQueries(rolesKey()),
-    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Update role failed.'),
+    onError: (e: ProblemDetail) => {
+      if (isOptimisticLockConflict(e)) {
+        showOptimisticLockConflict(notification);
+      } else {
+        message.error(e.detail ?? e.title ?? 'Update role failed.');
+      }
+    },
   });
 }
 

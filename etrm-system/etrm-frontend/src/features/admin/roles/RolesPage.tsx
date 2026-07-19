@@ -2,18 +2,20 @@ import { useState, useEffect, useMemo } from 'react';
 import {
   Table, Button, Tag, Badge, Space, Modal, Form, Input, Checkbox, Tooltip,
   Typography, Divider, Popconfirm, Tabs, Alert, Spin, Row, Col, Select,
+  App as AntApp,
 } from 'antd';
 import {
   PlusOutlined, EditOutlined, CheckOutlined, CloseOutlined,
   SendOutlined, LockOutlined, UnlockOutlined, UserAddOutlined, SearchOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
-import type { AppFunction, AppModule, RoleFunction, RoleStatus, RoleType, AssignmentStatus, UserRole, UserRoleAssignment } from './types';
+import type { AppFunction, AppModule, RoleStatus, RoleType, AssignmentStatus, UserRole, UserRoleAssignment } from './types';
 import {
   useRoles, useRoleDetail, useModules, useFunctions,
   useCreateRole, useUpdateRole, useSubmitRole, useApproveRole, useRejectRole,
   useAssignments, useAssignRole, useApproveAssignment, useRejectAssignment, useRevokeAssignment,
 } from './hooks';
+import { fetchRole } from './api';
 import { useSystemUsers } from '@features/admin/system-users/hooks';
 import { useDraftState, useDraftValues } from '@components/smart/formDraft';
 import { hint } from '@components/smart/FieldHint';
@@ -163,6 +165,7 @@ interface RoleFormModalProps {
 
 function RoleFormModal({ open, editing, modules, functions, onClose }: RoleFormModalProps) {
   const [form] = Form.useForm();
+  const { message } = AntApp.useApp();
   const skipDraftReset = useDraftValues('admin-roles-v', form, open, editing);
   const { data: detail } = useRoleDetail(editing?.roleId ?? null);
   const createRole = useCreateRole();
@@ -176,7 +179,7 @@ function RoleFormModal({ open, editing, modules, functions, onClose }: RoleFormM
   useEffect(() => {
     if (detail?.functions) {
       const m = new Map<number, 'READ' | 'READ_WRITE'>();
-      detail.functions.forEach((rf: RoleFunction) => m.set(rf.functionId, rf.accessLevel));
+      detail.functions.forEach((rf) => m.set(rf.functionId, rf.accessLevel));
       setGrantMap(m);
     }
   }, [detail]);
@@ -199,13 +202,38 @@ function RoleFormModal({ open, editing, modules, functions, onClose }: RoleFormM
     const fnList = [...grantMap.entries()].map(([functionId, accessLevel]) => ({ functionId, accessLevel }));
     const input = { roleCode: vals.roleCode, roleName: vals.roleName, description: vals.description ?? null, functions: fnList };
     if (editing) {
-      await updateRole.mutateAsync({ id: editing.roleId, input });
+      // V133 — echo back the version last read (from the roles list, which
+      // already carries it), or the save 409s as a stale-version conflict.
+      await updateRole.mutateAsync({ id: editing.roleId, input: { ...input, rowVersion: editing.rowVersion } });
     } else {
       await createRole.mutateAsync(input);
     }
     form.resetFields();
     setGrantMap(new Map());
     onClose();
+  }
+
+  const [mirrorSourceId, setMirrorSourceId] = useState<number | null>(null);
+  const [mirrorLoading, setMirrorLoading] = useState(false);
+  const { data: allRoles = [] } = useRoles();
+  const mirrorOptions = allRoles
+    .filter((r) => r.roleId !== editing?.roleId)
+    .map((r) => ({ value: r.roleId, label: `${r.roleCode} — ${r.roleName}` }));
+
+  async function handleMirror() {
+    if (mirrorSourceId === null) return;
+    setMirrorLoading(true);
+    try {
+      const source = await fetchRole(mirrorSourceId);
+      const m = new Map<number, 'READ' | 'READ_WRITE'>();
+      source.functions.forEach((rf) => m.set(rf.functionId, rf.accessLevel));
+      setGrantMap(m);
+      message.success(`Copied ${source.functions.length} permission(s) from ${mirrorOptions.find((o) => o.value === mirrorSourceId)?.label ?? 'the selected role'}. Review below, then save.`);
+    } catch {
+      message.error('Failed to load permissions from the selected role.');
+    } finally {
+      setMirrorLoading(false);
+    }
   }
 
   const isSystem = editing?.roleType === 'SYSTEM';
@@ -249,6 +277,22 @@ function RoleFormModal({ open, editing, modules, functions, onClose }: RoleFormM
       </Form>
 
       <Divider style={{ margin: '8px 0 12px' }}>Function Permissions</Divider>
+      {!isSystem && (
+        <Space.Compact style={{ width: '100%', marginBottom: 12 }}>
+          <Select
+            showSearch
+            placeholder="Mirror permissions from another role…"
+            style={{ width: '100%' }}
+            options={mirrorOptions}
+            optionFilterProp="label"
+            value={mirrorSourceId}
+            onChange={setMirrorSourceId}
+          />
+          <Button onClick={handleMirror} loading={mirrorLoading} disabled={mirrorSourceId === null}>
+            Copy Permissions
+          </Button>
+        </Space.Compact>
+      )}
       {detail === undefined && editing ? (
         <Spin />
       ) : (

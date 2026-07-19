@@ -46,12 +46,16 @@ export interface UserRole {
   submittedAt: string | null;
   approvedBy: string | null;
   approvedAt: string | null;
+  /** V133 — optimistic locking; echo back on update or the save 409s. */
+  rowVersion: number;
   /** Populated on detail fetch */
   functions?: RoleFunction[];
 }
 
 export type UserRoleInput = Pick<UserRole, 'roleCode' | 'roleName' | 'description'> & {
   functions: { functionId: number; accessLevel: AccessLevel }[];
+  /** Omitted (undefined) on create — required on update, see useUpdateRole. */
+  rowVersion?: number;
 };
 
 export interface UserRoleAssignment {

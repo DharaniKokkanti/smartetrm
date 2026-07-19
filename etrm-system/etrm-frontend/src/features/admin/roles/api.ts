@@ -1,95 +1,69 @@
-import type { AppModule, AppFunction, UserRole, UserRoleInput, UserRoleAssignment } from './types';
-
-const BASE = '/api/v1';
-
-async function json<T>(res: Response): Promise<T> {
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(text || res.statusText);
-  }
-  return res.json() as Promise<T>;
-}
+import { apiClient } from '@services/api';
+import type { AppModule, AppFunction, UserRole, UserRoleInput, UserRoleAssignment, RoleFunction } from './types';
 
 // ── Modules ───────────────────────────────────────────────────────────────────
 export async function fetchModules(): Promise<AppModule[]> {
-  return json(await fetch(`${BASE}/app-modules`));
+  return apiClient.get<AppModule[]>('/app-modules').then((r) => r.data);
 }
 
 // ── Functions ─────────────────────────────────────────────────────────────────
 export async function fetchFunctions(): Promise<AppFunction[]> {
-  return json(await fetch(`${BASE}/app-functions`));
+  return apiClient.get<AppFunction[]>('/app-functions').then((r) => r.data);
 }
 
 // ── Roles ─────────────────────────────────────────────────────────────────────
 export async function fetchRoles(): Promise<UserRole[]> {
-  return json(await fetch(`${BASE}/roles`));
+  return apiClient.get<UserRole[]>('/roles').then((r) => r.data);
 }
 
-export async function fetchRole(id: number): Promise<UserRole> {
-  return json(await fetch(`${BASE}/roles/${id}`));
+/** Backend returns { role, functions }, not a flat UserRole — callers only
+ *  ever read .functions off this (see RoleFormModal), so the return type
+ *  here is deliberately loose rather than a misleading UserRole promise. */
+export async function fetchRole(id: number): Promise<{ role: UserRole; functions: RoleFunction[] }> {
+  return apiClient.get(`/roles/${id}`).then((r) => r.data);
 }
 
 export async function createRole(input: UserRoleInput): Promise<UserRole> {
-  return json(await fetch(`${BASE}/roles`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(input),
-  }));
+  return apiClient.post<UserRole>('/roles', input).then((r) => r.data);
 }
 
 export async function updateRole(id: number, input: UserRoleInput): Promise<UserRole> {
-  return json(await fetch(`${BASE}/roles/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(input),
-  }));
+  return apiClient.put<UserRole>(`/roles/${id}`, input).then((r) => r.data);
 }
 
 export async function submitRole(id: number): Promise<UserRole> {
-  return json(await fetch(`${BASE}/roles/${id}/submit`, { method: 'PATCH' }));
+  return apiClient.patch<UserRole>(`/roles/${id}/submit`).then((r) => r.data);
 }
 
 export async function approveRole(id: number): Promise<UserRole> {
-  return json(await fetch(`${BASE}/roles/${id}/approve`, { method: 'PATCH' }));
+  return apiClient.patch<UserRole>(`/roles/${id}/approve`).then((r) => r.data);
 }
 
 export async function rejectRole(id: number, reason: string): Promise<UserRole> {
-  return json(await fetch(`${BASE}/roles/${id}/reject`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ reason }),
-  }));
+  return apiClient.patch<UserRole>(`/roles/${id}/reject`, { reason }).then((r) => r.data);
 }
 
 // ── Assignments ───────────────────────────────────────────────────────────────
 export async function fetchAllAssignments(): Promise<UserRoleAssignment[]> {
-  return json(await fetch(`${BASE}/role-assignments`));
+  return apiClient.get<UserRoleAssignment[]>('/role-assignments').then((r) => r.data);
 }
 
 export async function fetchUserAssignments(userId: number): Promise<UserRoleAssignment[]> {
-  return json(await fetch(`${BASE}/users/${userId}/role-assignments`));
+  return apiClient.get<UserRoleAssignment[]>(`/users/${userId}/role-assignments`).then((r) => r.data);
 }
 
 export async function assignRole(userId: number, roleId: number): Promise<UserRoleAssignment> {
-  return json(await fetch(`${BASE}/users/${userId}/role-assignments`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ roleId }),
-  }));
+  return apiClient.post<UserRoleAssignment>(`/users/${userId}/role-assignments`, { roleId }).then((r) => r.data);
 }
 
 export async function approveAssignment(assignmentId: number): Promise<UserRoleAssignment> {
-  return json(await fetch(`${BASE}/role-assignments/${assignmentId}/approve`, { method: 'PATCH' }));
+  return apiClient.patch<UserRoleAssignment>(`/role-assignments/${assignmentId}/approve`).then((r) => r.data);
 }
 
 export async function rejectAssignment(assignmentId: number, reason: string): Promise<UserRoleAssignment> {
-  return json(await fetch(`${BASE}/role-assignments/${assignmentId}/reject`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ reason }),
-  }));
+  return apiClient.patch<UserRoleAssignment>(`/role-assignments/${assignmentId}/reject`, { reason }).then((r) => r.data);
 }
 
 export async function revokeAssignment(userId: number, assignmentId: number): Promise<void> {
-  await fetch(`${BASE}/users/${userId}/role-assignments/${assignmentId}`, { method: 'DELETE' });
+  await apiClient.delete(`/users/${userId}/role-assignments/${assignmentId}`);
 }
