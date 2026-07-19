@@ -94,11 +94,15 @@ class PriceIndexSourceControllerTest extends ApiTestBase {
         String createBody = mockMvc.perform(auth(post("/api/v1/price-index-sources")).content(json(validPayload("SETTLEMENT"))))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        int id = objectMapper.readTree(createBody).get("pisId").asInt();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("pisId").asInt();
 
         Map<String, Object> update = new HashMap<>(validPayload("SETTLEMENT"));
         update.put("priceMultiplier", new BigDecimal("1.5"));
         update.put("notes", "Updated link");
+        // V131 — echo back the version just read from the create response,
+        // same as a real client would; see LegalEntityControllerTest's V127 comment.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/price-index-sources/" + id)).content(json(update)))
                 .andExpect(status().isOk())

@@ -8,6 +8,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -28,6 +29,11 @@ public class PriceIndex {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "price_index_id")
     private Integer priceIndexId;
+
+    // V131 — optimistic locking, see LegalEntity.java's rowVersion doc comment.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
 
     @Column(name = "commodity_id")
     private Integer commodityId;
@@ -89,6 +95,14 @@ public class PriceIndex {
 
     public void setPriceIndexId(Integer priceIndexId) {
         this.priceIndexId = priceIndexId;
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
+    }
+
+    public void setRowVersion(Integer rowVersion) {
+        this.rowVersion = rowVersion;
     }
 
     public Integer getCommodityId() {

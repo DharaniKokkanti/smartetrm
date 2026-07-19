@@ -67,11 +67,15 @@ class SettlementPriceControllerTest extends ApiTestBase {
         String createBody = mockMvc.perform(auth(post("/api/v1/settlement-prices")).content(json(validPayload(ticker, settleDate))))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        int id = objectMapper.readTree(createBody).get("settlementPriceId").asInt();
+        var createJson = objectMapper.readTree(createBody);
+        int id = createJson.get("settlementPriceId").asInt();
 
         Map<String, Object> update = new HashMap<>(validPayload(ticker, settleDate));
         update.put("settlePrice", 80.5);
         update.put("notes", "Updated settlement price");
+        // V131 — echo back the version just read from the create response,
+        // same as a real client would; see LegalEntityControllerTest's V127 comment.
+        update.put("rowVersion", createJson.get("rowVersion").asInt());
 
         mockMvc.perform(auth(put("/api/v1/settlement-prices/" + id)).content(json(update)))
                 .andExpect(status().isOk())

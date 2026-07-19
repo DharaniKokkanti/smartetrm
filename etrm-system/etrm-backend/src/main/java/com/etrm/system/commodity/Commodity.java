@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 
 /**
  * dbo.commodity is NOT registered in master_data_table_registry — no
@@ -21,11 +22,22 @@ public class Commodity {
     @Column(name = "commodity_id")
     private Integer commodityId;
 
+    // V131 — optimistic locking, see LegalEntity.java's rowVersion doc comment.
+    // Read-only entity today (no create/update endpoint), added for schema
+    // consistency.
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
+
     @Column(name = "commodity_code", nullable = false, length = 20)
     private String commodityCode;
 
     public Integer getCommodityId() {
         return commodityId;
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
     }
 
     public String getCommodityCode() {
