@@ -14,23 +14,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Covers /api/v1/incoterms-ref.
  *
- * REAL BUG found while writing this test, and it is UNCONDITIONAL (no
- * workaround possible without touching main/ source): Incoterm.incotermId
- * has no @GeneratedValue even though dbo.incoterm.incoterm_id IS a real
- * IDENTITY column (verified live via sys.columns.is_identity=1) — Hibernate
- * therefore requires the id to be manually assigned before persist(). That
- * alone would be workable by supplying an id in the payload, EXCEPT
- * IncotermService.create() unconditionally does `input.setIncotermId(null)`
- * before saving, discarding whatever id the caller sent. The result: every
- * single POST /api/v1/incoterms-ref throws IdentifierGenerationException
- * and returns 500, with no payload shape that can avoid it (verified live
- * via curl and via the create_* test below). Same unconditional bug exists
- * in PaymentMethod (see PaymentMethodControllerTest).
- *
- * Since create is completely blocked, list/update/deactivate below seed
- * their row directly via JdbcTemplate (bypassing the broken JPA insert
- * path) — IncotermService.update()/deactivate() themselves work fine, they
- * just never mint the id null the way create() does.
+ * create() previously threw IdentifierGenerationException unconditionally —
+ * Incoterm.incotermId had no @GeneratedValue even though dbo.incoterm.
+ * incoterm_id IS a real IDENTITY column, and IncotermService.create()
+ * unconditionally nulled out any id the caller sent. Fixed by adding
+ * @GeneratedValue(strategy = GenerationType.IDENTITY). Same class of bug
+ * existed in PaymentMethod (see PaymentMethodControllerTest) — fixed
+ * identically. While fixing it, also found created_by/updated_at/updated_by
+ * were never mapped on the entity at all — every row silently fell back to
+ * the DB's own 'SYSTEM' default regardless of who actually created it
+ * (confirmed live via curl before the fix). Added @CreatedBy/@CreatedDate/
+ * @LastModifiedBy/@LastModifiedDate, matching Period.java's precedent.
  */
 class IncotermControllerTest extends ApiTestBase {
 
@@ -52,16 +46,19 @@ class IncotermControllerTest extends ApiTestBase {
     }
 
     @Test
-    void create_currently_fails_500_unconditionally() throws Exception {
+    void create_persists_and_populates_createdBy() throws Exception {
         Map<String, Object> payload = new HashMap<>();
         payload.put("incotermCode", ("IC" + System.nanoTime() % 100000).toUpperCase());
-        payload.put("incotermName", "Should never persist");
-        payload.put("transportMode", "SEA");
+        payload.put("incotermName", "New Incoterm");
+        payload.put("transportMode", "ANY");
         payload.put("riskTransferPoint", "Port of loading");
         payload.put("versionYear", 2020);
 
         mockMvc.perform(auth(post("/api/v1/incoterms-ref")).content(json(payload)))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.incotermId").isNumber())
+                .andExpect(jsonPath("$.createdBy").value("j.smith"))
+                .andExpect(jsonPath("$.updatedBy").value("j.smith"));
     }
 
     @Test

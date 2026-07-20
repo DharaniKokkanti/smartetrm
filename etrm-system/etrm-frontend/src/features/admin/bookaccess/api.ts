@@ -1,43 +1,26 @@
+import { apiClient } from '@services/api';
 import type { BookAccessGrant, BookAccessGrantRequest } from './types';
 
-const BASE = '/api/v1';
-
-async function json<T>(res: Response): Promise<T> {
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(text || res.statusText);
-  }
-  return res.json() as Promise<T>;
-}
-
 export async function fetchAllBookAccessGrants(): Promise<BookAccessGrant[]> {
-  return json(await fetch(`${BASE}/book-access-grants`));
+  return apiClient.get<BookAccessGrant[]>('/book-access-grants').then((r) => r.data);
 }
 
 export async function fetchUserBookAccessGrants(userId: number): Promise<BookAccessGrant[]> {
-  return json(await fetch(`${BASE}/users/${userId}/book-access-grants`));
+  return apiClient.get<BookAccessGrant[]>(`/users/${userId}/book-access-grants`).then((r) => r.data);
 }
 
 export async function requestBookAccessGrant(userId: number, input: BookAccessGrantRequest): Promise<BookAccessGrant> {
-  return json(await fetch(`${BASE}/users/${userId}/book-access-grants`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(input),
-  }));
+  return apiClient.post<BookAccessGrant>(`/users/${userId}/book-access-grants`, input).then((r) => r.data);
 }
 
 export async function approveBookAccessGrant(grantId: number): Promise<BookAccessGrant> {
-  return json(await fetch(`${BASE}/book-access-grants/${grantId}/approve`, { method: 'PATCH' }));
+  return apiClient.patch<BookAccessGrant>(`/book-access-grants/${grantId}/approve`).then((r) => r.data);
 }
 
 export async function rejectBookAccessGrant(grantId: number, reason: string): Promise<BookAccessGrant> {
-  return json(await fetch(`${BASE}/book-access-grants/${grantId}/reject`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ reason }),
-  }));
+  return apiClient.patch<BookAccessGrant>(`/book-access-grants/${grantId}/reject`, { reason }).then((r) => r.data);
 }
 
 export async function revokeBookAccessGrant(userId: number, grantId: number): Promise<void> {
-  await fetch(`${BASE}/users/${userId}/book-access-grants/${grantId}`, { method: 'DELETE' });
+  await apiClient.delete(`/users/${userId}/book-access-grants/${grantId}`);
 }

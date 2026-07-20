@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -58,10 +59,22 @@ public class ReferenceDataController {
         return metadataService.getMetadata(entry.getTableName(), entry.getDisplayName());
     }
 
+    // page/size are opt-in — omitting both keeps the exact pre-existing
+    // unpaginated response shape (a bare array), so no existing caller is
+    // affected. Passing either returns a paginated envelope instead.
     @GetMapping("/{table}")
-    public List<Map<String, Object>> listRows(@PathVariable String table) {
+    public Object listRows(
+            @PathVariable String table,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
+    ) {
         MasterDataTableRegistry entry = requireRegistered(table);
-        return crudService.listRows(entry.getTableName());
+        if (page == null && size == null) {
+            return crudService.listRows(entry.getTableName());
+        }
+        return crudService.listRowsPaged(
+                entry.getTableName(), entry.getDisplayName(),
+                page == null ? 0 : page, size == null ? 50 : size);
     }
 
     @PostMapping("/{table}")

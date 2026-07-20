@@ -15,34 +15,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Covers /api/v1/payment-methods.
  *
- * TWO REAL BUGS found while writing this test, both UNCONDITIONAL (no
- * workaround possible without touching main/ source), stacked on the same
- * create() path:
- *
- *  1. PaymentMethod.paymentMethodId has no @GeneratedValue even though
- *     dbo.payment_method.payment_method_id IS a real IDENTITY column
- *     (verified live via sys.columns.is_identity=1). PaymentMethodService
- *     .create() unconditionally does `input.setPaymentMethodId(null)`
- *     before saving, so even supplying an explicit id in the payload
- *     doesn't help — Hibernate always throws IdentifierGenerationException
- *     and every POST returns 500 (verified live via curl and via the
- *     create_* test below). Same unconditional bug exists in Incoterm — see
- *     IncotermControllerTest for the fuller writeup.
- *  2. Even setting bug #1 aside, PaymentMethod never maps
- *     created_by/updated_at/updated_by at all (only created_at), yet all
- *     three are real NOT NULL columns on dbo.payment_method (verified live
- *     via sys.columns.is_nullable=0) — an INSERT driven purely by the
- *     entity's mapped fields would additionally fail on
- *     "Cannot insert the value NULL into column 'created_by'". Confirmed by
- *     reproducing it directly: seedPaymentMethod() below has to supply
- *     created_by/updated_at/updated_by explicitly via raw SQL to get past
- *     this, something the entity itself has no way to do.
- *
- * Since create is completely blocked, list/update/deactivate below seed
- * their row directly via JdbcTemplate (bypassing the broken JPA insert
- * path) — PaymentMethodService.update()/deactivate() themselves work fine
- * against an already-valid row, they just never mint one the way create()
- * is supposed to.
+ * create() previously threw IdentifierGenerationException unconditionally —
+ * PaymentMethod.paymentMethodId had no @GeneratedValue even though
+ * dbo.payment_method.payment_method_id IS a real IDENTITY column, and
+ * PaymentMethodService.create() unconditionally nulled out any id the
+ * caller sent. Fixed by adding @GeneratedValue(strategy =
+ * GenerationType.IDENTITY). Same class of bug existed in Incoterm — see
+ * IncotermControllerTest — fixed identically. While fixing it, also found
+ * created_by/updated_at/updated_by were never mapped on the entity at all,
+ * yet all three are real NOT NULL columns with no DB default — every create
+ * would have additionally failed on a NULL constraint violation even after
+ * the id fix (confirmed live via curl before this fix). Added
+ * @CreatedBy/@CreatedDate/@LastModifiedBy/@LastModifiedDate, matching
+ * Period.java's precedent.
  */
 class PaymentMethodControllerTest extends ApiTestBase {
 
@@ -66,13 +51,16 @@ class PaymentMethodControllerTest extends ApiTestBase {
     }
 
     @Test
-    void create_currently_fails_500_unconditionally() throws Exception {
+    void create_persists_and_populates_createdBy() throws Exception {
         Map<String, Object> payload = new HashMap<>();
         payload.put("methodCode", ("PM" + System.nanoTime() % 100000).toUpperCase());
-        payload.put("methodName", "Should never persist");
+        payload.put("methodName", "New Payment Method");
 
         mockMvc.perform(auth(post("/api/v1/payment-methods")).content(json(payload)))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.paymentMethodId").isNumber())
+                .andExpect(jsonPath("$.createdBy").value("j.smith"))
+                .andExpect(jsonPath("$.updatedBy").value("j.smith"));
     }
 
     @Test

@@ -7,8 +7,9 @@ import {
 import dayjs from 'dayjs';
 import { PageHeader } from '@components/layout/PageHeader';
 import type { AddressAssignment, BankAccount, ContactAssignment, CounterpartyInput, TaxRegistration } from './types';
-import { CREDIT_RATING_LOOKUP } from './staticLookups';
 import { useCounterparty, useCounterparties, useCounterpartyChildren, useSaveCounterpartyDraft } from './hooks';
+import { useTableRows } from '@features/tier2/hooks';
+import type { ReferenceDataRow } from '@models/referenceData';
 import { useCustomConfigOptions } from './configLookups';
 import { useLegalEntities } from '@features/tier1/legal-entity/hooks';
 import { useCountries } from '@features/reference/countries/hooks';
@@ -21,8 +22,6 @@ import { EntityGuaranteesPanel } from '@features/tier1/guarantee/EntityGuarantee
 import { usePageFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import { hint } from '@components/smart/FieldHint';
-
-const RATING_OPTIONS = CREDIT_RATING_LOOKUP.map((r) => ({ label: `${r.agency} ${r.rating}`, value: r.creditRatingId }));
 
 type CoreFormValues = Omit<CounterpartyInput, 'creditReviewDate' | 'kycApprovedDate' | 'kycExpiryDate' | 'onboardedDate'> & {
   creditReviewDate?: dayjs.Dayjs;
@@ -47,6 +46,7 @@ export function CounterpartyFormPage() {
   const { data: kycStatusOptions = [], isLoading: loadingKycStatus } = useCustomConfigOptions('KYC_STATUS');
   const { data: countries = [], isLoading: loadingCountries } = useCountries();
   const { data: currencies = [], isLoading: loadingCurrencies } = useCurrencies();
+  const { data: creditRatings = [] } = useTableRows<ReferenceDataRow>('credit_rating');
   const countryOptions = countries
     .filter((c) => c.isActive)
     .map((c) => ({ label: `${c.countryCode} — ${c.countryName}`, value: c.countryId }));
@@ -118,6 +118,13 @@ export function CounterpartyFormPage() {
     }
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [existingChildren, skipExtraSyncRef]);
+
+  const RATING_OPTIONS = useMemo(
+    () => creditRatings
+      .filter((r) => r['isActive'] !== false)
+      .map((r) => ({ label: `${r['agency']} ${r['rating']}`, value: r['creditRatingId'] as number })),
+    [creditRatings],
+  );
 
   const legalEntityOptions = useMemo(
     () => (legalEntities ?? []).map((e) => ({ label: `${e.entityCode} — ${e.entityName}`, value: e.legalEntityId })),

@@ -128,6 +128,44 @@ public class ReferenceDataCrudService {
         return rows.stream().map(NameUtils::rowToCamelCase).toList();
     }
 
+    /**
+     * Opt-in server-side pagination, additive to {@link #listRows}: existing
+     * callers (the Tier2 grid's default fetch, any other caller not passing
+     * page/size) are completely unaffected — this is a separate method, not
+     * a behavior change to the unpaginated path. Added as part of closing
+     * the "zero backend pagination anywhere" gap flagged in an earlier
+     * audit; the ~82 dedicated Tier1 controllers' own findAll() call sites
+     * are a separate, much larger follow-up (each has its own bespoke
+     * frontend consumption pattern to convert) — this covers the ~150
+     * Tier2-registered tables in one place, the same "fix once in the
+     * generic engine" approach already used for row_version/audit columns.
+     * Ordered by the table's own primary key for stable paging.
+     */
+    public PagedResult listRowsPaged(String tableName, String displayName, int page, int size) {
+        assertSafeIdentifier(tableName, "table name");
+        int safeSize = Math.min(Math.max(size, 1), 500);
+        int safePage = Math.max(page, 0);
+        String pkColumn = NameUtils.toSnakeCase(metadataService.getMetadata(tableName, displayName).primaryKeyColumn());
+
+        long totalElements = jdbc.queryForObject("SELECT COUNT(*) FROM dbo." + tableName, Long.class);
+        List<Map<String, Object>> rows = jdbc.queryForList(
+                "SELECT * FROM dbo." + tableName + " ORDER BY " + pkColumn
+                        + " OFFSET ? ROWS FETCH NEXT ? ROWS ONLY",
+                safePage * safeSize, safeSize);
+        List<Map<String, Object>> content = rows.stream().map(NameUtils::rowToCamelCase).toList();
+
+        int totalPages = (int) Math.ceil(totalElements / (double) safeSize);
+        return new PagedResult(content, safePage, safeSize, totalElements, totalPages);
+    }
+
+    public record PagedResult(
+            List<Map<String, Object>> content,
+            int page,
+            int size,
+            long totalElements,
+            int totalPages
+    ) {}
+
     // @Transactional matters here beyond the usual atomicity reasons: the
     // INSERT and the SCOPE_IDENTITY() read that follows it MUST run on the
     // same physical connection (SCOPE_IDENTITY() is connection-scoped) —

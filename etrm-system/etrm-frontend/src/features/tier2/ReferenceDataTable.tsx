@@ -18,7 +18,7 @@ import {
   Spin,
   Alert,
 } from 'antd';
-import { PlusOutlined, EditOutlined, StopOutlined, MinusOutlined, ExpandOutlined, CompressOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, StopOutlined, MinusOutlined, ExpandOutlined, CompressOutlined, UploadOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 import type { RegistryEntry, ColumnMetadata, ReferenceDataRow } from '@models/referenceData';
@@ -36,6 +36,7 @@ import { useLegalEntities } from '@features/tier1/legal-entity/hooks';
 import { useProducts } from '@features/markets/products/hooks';
 import { useStorageFacilities } from '@features/logistics/storage/hooks';
 import { useVessels } from '@features/logistics/vessels/hooks';
+import { ExcelUploadModal } from './ExcelUploadModal';
 
 /** Column-name fragments that count as a "code/short-name" field — always
  *  stored uppercase, even if the user types lowercase. Codes with a stricter
@@ -303,6 +304,7 @@ export function ReferenceDataTable({ table }: Props) {
   const [form] = Form.useForm();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
   // rowVersion isn't a form field (no Form.Item renders it), so it's tracked
   // alongside editingId and merged into the save payload separately — see
   // handleSave. Tables without a row_version column simply never set this.
@@ -661,12 +663,28 @@ export function ReferenceDataTable({ table }: Props) {
               style={{ maxWidth: 360 }}
             />
           ) : <span />}
-          {table.allowCreate && (
-            <Button type="primary" icon={<PlusOutlined />} onClick={openAdd}>
-              Add {table.displayName.replace(/s$/, '')}
-            </Button>
-          )}
+          <Space>
+            {table.allowExcelUpload && table.allowCreate && (
+              <Button icon={<UploadOutlined />} onClick={() => setUploadModalOpen(true)}>
+                Bulk Upload
+              </Button>
+            )}
+            {table.allowCreate && (
+              <Button type="primary" icon={<PlusOutlined />} onClick={openAdd}>
+                Add {table.displayName.replace(/s$/, '')}
+              </Button>
+            )}
+          </Space>
         </div>
+      )}
+      {table.allowExcelUpload && (
+        <ExcelUploadModal
+          open={uploadModalOpen}
+          onClose={() => setUploadModalOpen(false)}
+          tableName={table.tableName}
+          displayName={table.displayName}
+          columns={editableColumns}
+        />
       )}
       <AntTable<ReferenceDataRow>
         size="small"

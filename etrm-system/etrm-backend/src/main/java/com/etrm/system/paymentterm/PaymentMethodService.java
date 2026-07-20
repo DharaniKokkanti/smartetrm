@@ -4,7 +4,6 @@ import com.etrm.system.common.NotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -24,7 +23,6 @@ public class PaymentMethodService {
 
     public PaymentMethod create(PaymentMethod input) {
         input.setPaymentMethodId(null);
-        input.setCreatedAt(LocalDateTime.now());
         return repository.save(input);
     }
 
@@ -32,7 +30,12 @@ public class PaymentMethodService {
         PaymentMethod existing = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("No payment method with id " + id + "."));
         input.setPaymentMethodId(id);
+        // created_at/created_by are @CreatedDate/@CreatedBy — JPA auditing only
+        // populates those on insert, so the request body never carries them;
+        // without copying them from the existing row, the DB value is untouched
+        // (updatable = false) but the response would show them as null.
         input.setCreatedAt(existing.getCreatedAt());
+        input.setCreatedBy(existing.getCreatedBy());
         return repository.save(input);
     }
 
