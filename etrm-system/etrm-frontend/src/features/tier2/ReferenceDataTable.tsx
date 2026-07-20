@@ -303,6 +303,10 @@ export function ReferenceDataTable({ table }: Props) {
   const [form] = Form.useForm();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  // rowVersion isn't a form field (no Form.Item renders it), so it's tracked
+  // alongside editingId and merged into the save payload separately — see
+  // handleSave. Tables without a row_version column simply never set this.
+  const editingRowVersionRef = useRef<number | undefined>(undefined);
   const [searchText, setSearchText] = useState('');
   const isLargeTable = (rows?.length ?? 0) > SEARCH_AND_FILTER_ROW_THRESHOLD;
   useFormDraft(`tier2-${table.tableName}`, {
@@ -353,7 +357,10 @@ export function ReferenceDataTable({ table }: Props) {
       (metadata?.columns ?? []).filter(
         (c) =>
           !c.isPrimaryKey &&
-          !['createdAt', 'createdBy', 'updatedAt', 'updatedBy'].includes(c.name),
+          // rowVersion is server-managed optimistic-locking state (see
+          // editingRowVersionRef/handleSave below) — never a user-editable
+          // field, same treatment as the other audit columns.
+          !['createdAt', 'createdBy', 'updatedAt', 'updatedBy', 'rowVersion'].includes(c.name),
       ),
     [metadata],
   );
@@ -557,6 +564,7 @@ export function ReferenceDataTable({ table }: Props) {
 
   function openAdd() {
     setEditingId(null);
+    editingRowVersionRef.current = undefined;
     form.resetFields();
     resetWindowState();
     setModalOpen(true);
@@ -564,6 +572,7 @@ export function ReferenceDataTable({ table }: Props) {
 
   function openEdit(row: ReferenceDataRow) {
     setEditingId(row[pk] as number);
+    editingRowVersionRef.current = row['rowVersion'] as number | undefined;
     const values: Record<string, unknown> = { ...row };
     // Dates arrive as ISO strings from the API but DatePicker needs dayjs objects
     for (const col of editableColumns) {
@@ -579,6 +588,9 @@ export function ReferenceDataTable({ table }: Props) {
   async function handleSave(closeAfter = true) {
     const values = await form.validateFields();
     const payload: ReferenceDataRow = { ...values };
+    if (editingRowVersionRef.current !== undefined) {
+      payload.rowVersion = editingRowVersionRef.current;
+    }
     for (const col of editableColumns) {
       const v = payload[col.name];
       if (col.kind === 'date' && v && typeof v === 'object' && 'format' in v) {

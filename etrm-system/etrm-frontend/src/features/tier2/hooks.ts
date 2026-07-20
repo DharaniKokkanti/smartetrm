@@ -3,6 +3,7 @@ import { App as AntApp } from 'antd';
 import { referenceDataApi } from './api';
 import type { ReferenceDataRow } from '@models/referenceData';
 import type { ProblemDetail } from '@services/api';
+import { isOptimisticLockConflict, showOptimisticLockConflict } from '@components/smart/optimisticLock';
 
 export function useRegisteredTables() {
   return useQuery({
@@ -32,7 +33,7 @@ export function useTableRows<T = ReferenceDataRow>(tableName: string | null) {
 
 export function useSaveRow(tableName: string) {
   const queryClient = useQueryClient();
-  const { message } = AntApp.useApp();
+  const { message, notification } = AntApp.useApp();
   return useMutation({
     mutationFn: ({ id, row }: { id: number | null; row: ReferenceDataRow }) =>
       id === null
@@ -42,7 +43,13 @@ export function useSaveRow(tableName: string) {
       queryClient.invalidateQueries({ queryKey: ['reference-data', tableName, 'rows'] });
       message.success('Saved.');
     },
-    onError: (err: ProblemDetail) => message.error(err.detail ?? err.title ?? 'Save failed.'),
+    onError: (err: ProblemDetail) => {
+      if (isOptimisticLockConflict(err)) {
+        showOptimisticLockConflict(notification);
+      } else {
+        message.error(err.detail ?? err.title ?? 'Save failed.');
+      }
+    },
   });
 }
 
