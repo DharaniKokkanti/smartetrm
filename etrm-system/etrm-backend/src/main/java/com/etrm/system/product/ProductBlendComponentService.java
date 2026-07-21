@@ -4,7 +4,6 @@ import com.etrm.system.common.NotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -35,7 +34,6 @@ public class ProductBlendComponentService {
     public ProductBlendComponent create(Integer parentProductId, ProductBlendComponent input) {
         input.setBlendComponentId(null);
         input.setParentProductId(parentProductId);
-        input.setCreatedAt(LocalDateTime.now());
         return hydrate(repository.save(input));
     }
 

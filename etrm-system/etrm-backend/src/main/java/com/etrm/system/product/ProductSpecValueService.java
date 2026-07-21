@@ -46,11 +46,17 @@ public class ProductSpecValueService {
     }
 
     public ProductSpecValue update(Integer templateId, Integer specValueId, ProductSpecValue input) {
-        if (!repository.existsById(specValueId)) {
-            throw new NotFoundException("No spec value with id " + specValueId + ".");
-        }
+        ProductSpecValue existing = repository.findById(specValueId)
+                .orElseThrow(() -> new NotFoundException("No spec value with id " + specValueId + "."));
         input.setSpecValueId(specValueId);
         input.setTemplateId(templateId);
+        // created_at/created_by are @CreatedDate/@CreatedBy — JPA auditing
+        // only populates those on insert, so the request body never carries
+        // them; without copying them from the existing row here, updatable=
+        // false keeps the DB value untouched but the response would show
+        // them as null.
+        input.setCreatedAt(existing.getCreatedAt());
+        input.setCreatedBy(existing.getCreatedBy());
         return hydrate(repository.save(input));
     }
 

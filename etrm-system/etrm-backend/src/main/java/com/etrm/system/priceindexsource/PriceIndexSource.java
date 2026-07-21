@@ -14,6 +14,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
 import jakarta.persistence.EntityListeners;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -24,9 +26,10 @@ import java.time.LocalDateTime;
 /**
  * dbo.price_index_source is a link table between dbo.price_index and
  * dbo.price_source (price_index_id/price_source_id both NOT NULL FKs).
- * Only created_at/created_by exist live (no updated_at/updated_by), so
- * mapped manually with @CreatedDate/@CreatedBy like Period.java, not via
- * AuditableEntity. priceIndexCode/priceIndexName hydrated from PriceIndex,
+ * created_at/created_by/updated_at/updated_by are mapped manually with
+ * @CreatedDate/@CreatedBy/@LastModifiedDate/@LastModifiedBy like Period.java,
+ * not via AuditableEntity (updated_at/updated_by added by V149).
+ * priceIndexCode/priceIndexName hydrated from PriceIndex,
  * sourceCode/sourceName hydrated from PriceSource — see
  * PriceIndexSourceService.hydrate(). source_role is a plain
  * CHECK-constrained string, not an FK.
@@ -117,6 +120,14 @@ public class PriceIndexSource {
     @CreatedBy
     @Column(name = "created_by", nullable = false, updatable = false, length = 100)
     private String createdBy;
+
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @LastModifiedBy
+    @Column(name = "updated_by", nullable = false, length = 100)
+    private String updatedBy;
 
     public Integer getPisId() {
         return pisId;
@@ -276,5 +287,21 @@ public class PriceIndexSource {
 
     public void setCreatedBy(String createdBy) {
         this.createdBy = createdBy;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
     }
 }
