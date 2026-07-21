@@ -15,18 +15,22 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * dbo.margin_account only ever got created_at/created_by, no updated_at/
- * updated_by. created_by is NOT NULL on the live schema but was previously
- * left completely unmapped despite the comment above claiming otherwise —
- * that made every POST here 100% fail with a NOT NULL constraint violation
- * (same bug shape documented on Period.java). Fixed with the same
- * @CreatedDate/@CreatedBy field-level JPA-auditing annotations.
+ * dbo.margin_account — created_by is NOT NULL on the live schema but was
+ * previously left completely unmapped despite an earlier version of this
+ * comment claiming otherwise — that made every POST here 100% fail with a
+ * NOT NULL constraint violation (same bug shape documented on Period.java).
+ * Fixed with @CreatedDate/@CreatedBy field-level JPA-auditing annotations.
+ *
+ * V147 — added updated_at/updated_by with matching @LastModifiedDate/
+ * @LastModifiedBy annotations.
  */
 @Entity
 @Table(name = "margin_account")
@@ -114,6 +118,14 @@ public class MarginAccount {
     @CreatedBy
     @Column(name = "created_by", nullable = false, updatable = false, length = 100)
     private String createdBy;
+
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @LastModifiedBy
+    @Column(name = "updated_by", nullable = false, length = 100)
+    private String updatedBy;
 
     public Integer getMarginAccountId() {
         return marginAccountId;
@@ -273,5 +285,21 @@ public class MarginAccount {
 
     public void setCreatedBy(String createdBy) {
         this.createdBy = createdBy;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
     }
 }

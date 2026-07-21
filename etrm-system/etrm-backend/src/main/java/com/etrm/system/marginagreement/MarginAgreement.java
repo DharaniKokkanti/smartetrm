@@ -3,6 +3,7 @@ package com.etrm.system.marginagreement;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -12,19 +13,28 @@ import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * dbo.margin_agreement only ever got created_at/updated_at, no created_by/
- * updated_by. agreement_type/valuation_frequency/gov_law FK dedicated
- * tables — frontend sends/receives their string type_code, translated by
- * MarginAgreementService (same pattern as LetterOfCredit.lcType/status).
+ * dbo.margin_agreement — agreement_type/valuation_frequency/gov_law FK
+ * dedicated tables — frontend sends/receives their string type_code,
+ * translated by MarginAgreementService (same pattern as
+ * LetterOfCredit.lcType/status).
+ *
+ * V147 — added created_by/updated_by and upgraded created_at/updated_at to
+ * real @CreatedDate/@LastModifiedDate JPA auditing.
  */
 @Entity
 @Table(name = "margin_agreement")
+@EntityListeners(AuditingEntityListener.class)
 public class MarginAgreement {
 
     @Id
@@ -127,11 +137,21 @@ public class MarginAgreement {
     @Column(name = "notes", length = 1000)
     private String notes;
 
+    @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @CreatedBy
+    @Column(name = "created_by", nullable = false, updatable = false, length = 100)
+    private String createdBy;
+
+    @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    @LastModifiedBy
+    @Column(name = "updated_by", nullable = false, length = 100)
+    private String updatedBy;
 
     public Integer getMarginAgreementId() {
         return marginAgreementId;
@@ -361,5 +381,21 @@ public class MarginAgreement {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
     }
 }

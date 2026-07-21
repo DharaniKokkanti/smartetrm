@@ -4,11 +4,9 @@ import com.etrm.system.common.NotFoundException;
 import com.etrm.system.currency.CurrencyRepository;
 import com.etrm.system.product.ProductRepository;
 import com.etrm.system.uom.UnitOfMeasureRepository;
-import org.springframework.data.domain.AuditorAware;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -19,16 +17,13 @@ public class MarketProductService {
     private final ProductRepository productRepository;
     private final CurrencyRepository currencyRepository;
     private final UnitOfMeasureRepository uomRepository;
-    private final AuditorAware<String> auditorAware;
 
     public MarketProductService(MarketProductRepository repository, ProductRepository productRepository,
-                                 CurrencyRepository currencyRepository, UnitOfMeasureRepository uomRepository,
-                                 AuditorAware<String> auditorAware) {
+                                 CurrencyRepository currencyRepository, UnitOfMeasureRepository uomRepository) {
         this.repository = repository;
         this.productRepository = productRepository;
         this.currencyRepository = currencyRepository;
         this.uomRepository = uomRepository;
-        this.auditorAware = auditorAware;
     }
 
     private MarketProduct hydrate(MarketProduct mp) {
@@ -58,8 +53,6 @@ public class MarketProductService {
     public MarketProduct create(Integer marketId, MarketProduct input) {
         input.setMarketProductId(null);
         input.setMarketId(marketId);
-        input.setCreatedAt(LocalDateTime.now());
-        input.setCreatedBy(auditorAware.getCurrentAuditor().orElse("SYSTEM"));
         return hydrate(repository.save(input));
     }
 
@@ -68,6 +61,11 @@ public class MarketProductService {
                 .orElseThrow(() -> new NotFoundException("No market product with id " + marketProductId + "."));
         input.setMarketProductId(marketProductId);
         input.setMarketId(marketId);
+        // created_at/created_by are @CreatedDate/@CreatedBy — JPA auditing
+        // only populates those on insert, so the request body never carries
+        // them; without copying them from the existing row here, updatable=
+        // false keeps the DB value untouched but the response would show
+        // them as null.
         input.setCreatedAt(existing.getCreatedAt());
         input.setCreatedBy(existing.getCreatedBy());
         return hydrate(repository.save(input));

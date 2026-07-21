@@ -3,6 +3,7 @@ package com.etrm.system.legalentity;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -13,6 +14,11 @@ import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -23,12 +29,15 @@ import java.time.LocalDateTime;
  * ownership cap table: 2+ owner rows, each an ownership percentage plus an
  * operator flag and a per-owner consolidation method. Owner is one of three
  * cases (ownerType): LEGAL_ENTITY / COUNTERPARTY resolve via ownerRefId,
- * EXTERNAL uses the free-text externalOwnerName fallback. Only
- * created_at/created_by (no updated columns) — same shape as
- * BookClassification/BookTrader, does not extend AuditableEntity.
+ * EXTERNAL uses the free-text externalOwnerName fallback.
+ *
+ * V147 — added updated_at/updated_by and upgraded created_at/created_by from
+ * a manual @PrePersist-only shape to real @CreatedDate/@CreatedBy JPA
+ * auditing (see GlAccount.java for the canonical pattern this replicates).
  */
 @Entity
 @Table(name = "legal_entity_ownership")
+@EntityListeners(AuditingEntityListener.class)
 public class LegalEntityOwnership {
 
     @Id
@@ -87,15 +96,24 @@ public class LegalEntityOwnership {
     @Column(name = "notes", length = 500)
     private String notes;
 
+    @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @CreatedBy
     @Column(name = "created_by", nullable = false, updatable = false, length = 100)
     private String createdBy;
 
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @LastModifiedBy
+    @Column(name = "updated_by", nullable = false, length = 100)
+    private String updatedBy;
+
     @PrePersist
     void onCreate() {
-        if (createdAt == null) createdAt = LocalDateTime.now();
         if (effectiveFrom == null) effectiveFrom = LocalDate.now();
     }
 
@@ -225,5 +243,21 @@ public class LegalEntityOwnership {
 
     public void setCreatedBy(String createdBy) {
         this.createdBy = createdBy;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
     }
 }

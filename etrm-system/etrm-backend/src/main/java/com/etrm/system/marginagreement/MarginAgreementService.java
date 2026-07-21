@@ -8,7 +8,6 @@ import com.etrm.system.lookup.ValuationFrequencyTypeRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -76,8 +75,6 @@ public class MarginAgreementService {
     public MarginAgreement create(MarginAgreement input) {
         resolveForeignKeys(input);
         input.setMarginAgreementId(null);
-        input.setCreatedAt(LocalDateTime.now());
-        input.setUpdatedAt(LocalDateTime.now());
         return hydrate(repository.save(input));
     }
 
@@ -86,8 +83,13 @@ public class MarginAgreementService {
                 .orElseThrow(() -> new NotFoundException("No margin agreement with id " + id + "."));
         resolveForeignKeys(input);
         input.setMarginAgreementId(id);
+        // created_at/created_by are @CreatedDate/@CreatedBy — JPA auditing
+        // only populates those on insert, so the request body never carries
+        // them; without copying them from the existing row here, updatable=
+        // false keeps the DB value untouched but the response would show
+        // them as null.
         input.setCreatedAt(existing.getCreatedAt());
-        input.setUpdatedAt(LocalDateTime.now());
+        input.setCreatedBy(existing.getCreatedBy());
         return hydrate(repository.save(input));
     }
 
@@ -95,7 +97,6 @@ public class MarginAgreementService {
         MarginAgreement existing = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("No margin agreement with id " + id + "."));
         existing.setIsActive(false);
-        existing.setUpdatedAt(LocalDateTime.now());
         repository.save(existing);
     }
 }

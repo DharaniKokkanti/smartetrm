@@ -68,6 +68,16 @@ public class MarketProductSource {
     @Column(name = "created_by", nullable = false, length = 100)
     private String createdBy;
 
+    // V147 — added for schema consistency (read-only entity today, same
+    // rationale as row_version above; no create/update endpoint writes
+    // these, so plain @Column with no JPA-auditing annotation, matching
+    // created_at/created_by's existing shape in this class).
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @Column(name = "updated_by", nullable = false, length = 100)
+    private String updatedBy;
+
     public Integer getMpsId() {
         return mpsId;
     }
@@ -134,5 +144,13 @@ public class MarketProductSource {
 
     public String getCreatedBy() {
         return createdBy;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
     }
 }
