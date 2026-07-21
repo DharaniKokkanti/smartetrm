@@ -100,7 +100,6 @@ public class BookOwnershipService {
         } else {
             input.setExternalOwnerName(null);
         }
-        input.setCreatedBy("system");
         return repository.save(input);
         // ux_bo_operator_per_book (DB filtered unique index) is the backstop
         // if a race slips past the pre-check above.

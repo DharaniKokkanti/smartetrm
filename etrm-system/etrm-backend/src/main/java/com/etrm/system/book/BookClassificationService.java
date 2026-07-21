@@ -71,7 +71,6 @@ public class BookClassificationService {
         bc.setValueCode(valueCode);
         bc.setValueLabel(valueLabel);
         bc.setIsPrimary(primary);
-        bc.setCreatedBy("system");
         return repository.save(bc);
     }
 

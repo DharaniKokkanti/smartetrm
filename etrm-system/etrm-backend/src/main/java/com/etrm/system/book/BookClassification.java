@@ -3,16 +3,21 @@ package com.etrm.system.book;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
@@ -20,12 +25,15 @@ import java.time.LocalDateTime;
  * dbo.book_classification (V122) — the decoupled dimension-value map that
  * replaced book.commodity_type. A book carries zero or more rows here, one
  * per (dimension, value) pair, instead of the core dbo.book table growing a
- * new column for every classification axis. Only created_at/created_by (no
- * updated columns) — same shape as BookTrader, does not extend
- * AuditableEntity.
+ * new column for every classification axis.
+ *
+ * V144 — created_at/created_by upgraded from manually-set plain @Column
+ * fields (@PrePersist) to real @CreatedDate/@CreatedBy JPA-auditing fields,
+ * and updated_at/updated_by added, matching GlAccount's shape.
  */
 @Entity
 @Table(name = "book_classification")
+@EntityListeners(AuditingEntityListener.class)
 public class BookClassification {
 
     @Id
@@ -63,16 +71,21 @@ public class BookClassification {
     @Column(name = "is_primary", nullable = false)
     private Boolean isPrimary = true;
 
+    @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @CreatedBy
     @Column(name = "created_by", nullable = false, updatable = false, length = 100)
     private String createdBy;
 
-    @PrePersist
-    void onCreate() {
-        if (createdAt == null) createdAt = LocalDateTime.now();
-    }
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @LastModifiedBy
+    @Column(name = "updated_by", nullable = false, length = 100)
+    private String updatedBy;
 
     public Integer getBookClassificationId() {
         return bookClassificationId;
@@ -152,5 +165,21 @@ public class BookClassification {
 
     public void setCreatedBy(String createdBy) {
         this.createdBy = createdBy;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
     }
 }

@@ -52,7 +52,6 @@ public class BookTraderService {
         bt.setTraderId(traderId);
         bt.setRole(resolvedRole);
         bt.setIsActive(true);
-        bt.setCreatedBy("system");
         return repository.save(bt);
     }
 

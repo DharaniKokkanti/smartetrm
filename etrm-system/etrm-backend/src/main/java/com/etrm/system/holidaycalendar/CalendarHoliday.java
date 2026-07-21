@@ -2,25 +2,47 @@ package com.etrm.system.holidaycalendar;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
-/** V100. The actual holiday dates for a dbo.holiday_calendar row. */
+/**
+ * V100. The actual holiday dates for a dbo.holiday_calendar row.
+ *
+ * V144 — row_version (optimistic locking, see LegalEntity.rowVersion for the
+ * full explanation) and created_at/created_by/updated_at/updated_by all
+ * added fresh; this entity had none of the standard governance columns.
+ * There is no update endpoint for CalendarHoliday (only create/bulk-create/
+ * delete via HolidayCalendarService), so no null-rowVersion guard is needed
+ * here — see HolidayCalendarService.createHoliday/deleteHoliday.
+ */
 @Entity
 @Table(name = "calendar_holiday")
+@EntityListeners(AuditingEntityListener.class)
 public class CalendarHoliday {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "holiday_id")
     private Integer holidayId;
+
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Integer rowVersion;
 
     // Not @NotNull: calendarId is always resolved from the {calendarId} path
     // variable by HolidayCalendarController/Service, never sent in the
@@ -50,12 +72,36 @@ public class CalendarHoliday {
     @Column(name = "is_trading_holiday", nullable = false)
     private Boolean isTradingHoliday = true;
 
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @CreatedBy
+    @Column(name = "created_by", nullable = false, updatable = false, length = 100)
+    private String createdBy;
+
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @LastModifiedBy
+    @Column(name = "updated_by", nullable = false, length = 100)
+    private String updatedBy;
+
     public Integer getHolidayId() {
         return holidayId;
     }
 
     public void setHolidayId(Integer holidayId) {
         this.holidayId = holidayId;
+    }
+
+    public Integer getRowVersion() {
+        return rowVersion;
+    }
+
+    public void setRowVersion(Integer rowVersion) {
+        this.rowVersion = rowVersion;
     }
 
     public Integer getCalendarId() {
@@ -96,5 +142,37 @@ public class CalendarHoliday {
 
     public void setIsTradingHoliday(Boolean isTradingHoliday) {
         this.isTradingHoliday = isTradingHoliday;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
     }
 }
