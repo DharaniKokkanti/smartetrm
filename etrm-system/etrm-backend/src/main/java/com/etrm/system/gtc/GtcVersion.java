@@ -2,11 +2,17 @@ package com.etrm.system.gtc;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -16,9 +22,13 @@ import java.time.LocalDateTime;
  * can create/update the "current version" row backing the frontend's
  * flattened version/effectiveDate/expiryDate/documentRef fields — see
  * Gtc.java's doc comment for the flattening rationale.
+ *
+ * V146 — added updated_at/updated_by (previously missing) and upgraded
+ * created_at/created_by to real @CreatedDate/@CreatedBy JPA auditing fields.
  */
 @Entity
 @Table(name = "gtc_version")
+@EntityListeners(AuditingEntityListener.class)
 public class GtcVersion {
 
     @Id
@@ -52,11 +62,21 @@ public class GtcVersion {
     @Column(name = "is_current", nullable = false)
     private Boolean isCurrent;
 
-    @Column(name = "created_at", nullable = false)
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "created_by", nullable = false, length = 100)
+    @CreatedBy
+    @Column(name = "created_by", nullable = false, updatable = false, length = 100)
     private String createdBy;
+
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @LastModifiedBy
+    @Column(name = "updated_by", nullable = false, length = 100)
+    private String updatedBy;
 
     public Integer getGtcVersionId() {
         return gtcVersionId;
@@ -144,5 +164,21 @@ public class GtcVersion {
 
     public void setCreatedBy(String createdBy) {
         this.createdBy = createdBy;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
     }
 }

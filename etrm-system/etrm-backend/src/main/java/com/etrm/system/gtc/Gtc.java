@@ -3,6 +3,7 @@ package com.etrm.system.gtc;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -12,6 +13,11 @@ import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -33,9 +39,13 @@ import java.time.LocalDateTime;
  * gtc_type column — commodity_type is the closest real column and is
  * surfaced under the frontend's `gtcType` JSON name. gtc has no
  * updated_at/updated_by (verified live via sys.columns).
+ *
+ * V146 — added updated_at/updated_by (previously missing) and upgraded
+ * created_at/created_by to real @CreatedDate/@CreatedBy JPA auditing fields.
  */
 @Entity
 @Table(name = "gtc")
+@EntityListeners(AuditingEntityListener.class)
 public class Gtc {
 
     @Id
@@ -98,13 +108,21 @@ public class Gtc {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
-    @Column(name = "created_at", nullable = false)
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @NotBlank
-    @Size(max = 100)
-    @Column(name = "created_by", nullable = false, length = 100)
+    @CreatedBy
+    @Column(name = "created_by", nullable = false, updatable = false, length = 100)
     private String createdBy;
+
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @LastModifiedBy
+    @Column(name = "updated_by", nullable = false, length = 100)
+    private String updatedBy;
 
     public Integer getGtcId() {
         return gtcId;
@@ -232,5 +250,21 @@ public class Gtc {
 
     public void setCreatedBy(String createdBy) {
         this.createdBy = createdBy;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
     }
 }
