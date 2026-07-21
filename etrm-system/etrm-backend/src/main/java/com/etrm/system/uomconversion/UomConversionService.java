@@ -58,9 +58,16 @@ public class UomConversionService {
     }
 
     public UomConversion update(Integer id, UomConversion input) {
-        repository.findById(id)
+        UomConversion existing = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("No UOM conversion with id " + id + "."));
         input.setConversionId(id);
+        // V151 — created_at/created_by are @CreatedDate/@CreatedBy — JPA
+        // auditing only populates those on insert, so the request body never
+        // carries them; without copying them from the existing row here,
+        // updatable=false keeps the DB value untouched but the response
+        // would show them as null.
+        input.setCreatedAt(existing.getCreatedAt());
+        input.setCreatedBy(existing.getCreatedBy());
         resolveUomIds(input);
         return hydrate(repository.save(input));
     }

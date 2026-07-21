@@ -3,6 +3,7 @@ package com.etrm.system.storagefacility;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -12,27 +13,34 @@ import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 /**
- * dbo.storage_facility has NO audit columns at all (no created_at/created_by
- * either) — the frontend's createdAt field has no backing column and is
- * left unmapped/unpopulated. regulatoryRef/injectionRate/withdrawalRate/
- * statusCode likewise have no backing columns — genuinely absent concepts,
- * not naming differences, so left unmapped per this session's standing rule
- * (documented here rather than schema-extended). countryCode is resolved
- * transitively through the Location this facility belongs to (location
- * .country_id -> country.country_code) since storage_facility itself has no
- * country_id. storageType is the frontend's historical name for the real
- * facility_type numeric FK id itself (not a resolved code string — the
- * frontend resolves the label client-side via useCustomConfigOptions).
- * operator is genuinely free text on this table (unlike vessel/truck/
- * pipeline/container/railcar, where the equivalent column is an FK) —
- * mapped directly to the frontend's operatorName.
+ * V151 — added created_at/created_by/updated_at/updated_by; dbo
+ * .storage_facility previously had NO audit columns at all. The frontend's
+ * createdAt field now has a real backing column. regulatoryRef/
+ * injectionRate/withdrawalRate/statusCode still have no backing columns —
+ * genuinely absent concepts, not naming differences, so left unmapped per
+ * this session's standing rule (documented here rather than schema-
+ * extended). countryCode is resolved transitively through the Location this
+ * facility belongs to (location.country_id -> country.country_code) since
+ * storage_facility itself has no country_id. storageType is the frontend's
+ * historical name for the real facility_type numeric FK id itself (not a
+ * resolved code string — the frontend resolves the label client-side via
+ * useCustomConfigOptions). operator is genuinely free text on this table
+ * (unlike vessel/truck/pipeline/container/railcar, where the equivalent
+ * column is an FK) — mapped directly to the frontend's operatorName.
  */
 @Entity
 @Table(name = "storage_facility")
+@EntityListeners(AuditingEntityListener.class)
 public class StorageFacility {
 
     @Id
@@ -98,6 +106,22 @@ public class StorageFacility {
     @Transient
     @JsonProperty
     private String countryCode;
+
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @CreatedBy
+    @Column(name = "created_by", nullable = false, updatable = false, length = 100)
+    private String createdBy;
+
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @LastModifiedBy
+    @Column(name = "updated_by", nullable = false, length = 100)
+    private String updatedBy;
 
     public Integer getStorageId() {
         return storageId;
@@ -217,5 +241,37 @@ public class StorageFacility {
 
     public void setCountryCode(String countryCode) {
         this.countryCode = countryCode;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
     }
 }

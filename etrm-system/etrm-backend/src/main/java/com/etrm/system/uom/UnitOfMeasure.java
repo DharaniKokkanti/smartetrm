@@ -3,6 +3,7 @@ package com.etrm.system.uom;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -12,6 +13,11 @@ import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -23,12 +29,13 @@ import java.time.LocalDateTime;
  * a full entity in place" convention (same as the Market upgrade in batch 5)
  * — every existing UnitOfMeasureRepository.findById().getUomCode() call site
  * keeps working unchanged. dbo.unit_of_measure had no audit columns at all
- * until V111 added created_at (matching the currency precedent from V98) —
- * still no created_by/updated_at/updated_by, so this does not extend
- * AuditableEntity.
+ * until V111 added created_at (matching the currency precedent from V98).
+ * V151 — created_at upgraded to real @CreatedDate (was set manually by
+ * UnitOfMeasureService), created_by/updated_at/updated_by added fresh.
  */
 @Entity
 @Table(name = "unit_of_measure")
+@EntityListeners(AuditingEntityListener.class)
 public class UnitOfMeasure {
 
     @Id
@@ -77,8 +84,21 @@ public class UnitOfMeasure {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
+    @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @CreatedBy
+    @Column(name = "created_by", nullable = false, updatable = false, length = 100)
+    private String createdBy;
+
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @LastModifiedBy
+    @Column(name = "updated_by", nullable = false, length = 100)
+    private String updatedBy;
 
     public Integer getUomId() {
         return uomId;
@@ -174,5 +194,29 @@ public class UnitOfMeasure {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
     }
 }

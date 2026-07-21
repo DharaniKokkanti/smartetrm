@@ -1,11 +1,9 @@
 package com.etrm.system.vessel;
 
 import com.etrm.system.common.NotFoundException;
-import org.springframework.data.domain.AuditorAware;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -14,13 +12,10 @@ public class VesselCertificateService {
 
     private final VesselCertificateRepository repository;
     private final VesselRepository vesselRepository;
-    private final AuditorAware<String> auditorAware;
 
-    public VesselCertificateService(VesselCertificateRepository repository, VesselRepository vesselRepository,
-                                     AuditorAware<String> auditorAware) {
+    public VesselCertificateService(VesselCertificateRepository repository, VesselRepository vesselRepository) {
         this.repository = repository;
         this.vesselRepository = vesselRepository;
-        this.auditorAware = auditorAware;
     }
 
     private VesselCertificate hydrate(VesselCertificate cert) {
@@ -36,8 +31,6 @@ public class VesselCertificateService {
 
     public VesselCertificate create(VesselCertificate input) {
         input.setCertId(null);
-        input.setCreatedAt(LocalDateTime.now());
-        input.setCreatedBy(auditorAware.getCurrentAuditor().orElse("SYSTEM"));
         return hydrate(repository.save(input));
     }
 
@@ -45,6 +38,11 @@ public class VesselCertificateService {
         VesselCertificate existing = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("No vessel certificate with id " + id + "."));
         input.setCertId(id);
+        // V151 — created_at/created_by are @CreatedDate/@CreatedBy — JPA
+        // auditing only populates those on insert, so the request body never
+        // carries them; without copying them from the existing row here,
+        // updatable=false keeps the DB value untouched but the response
+        // would show them as null.
         input.setCreatedAt(existing.getCreatedAt());
         input.setCreatedBy(existing.getCreatedBy());
         return hydrate(repository.save(input));

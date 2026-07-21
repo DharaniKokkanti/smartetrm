@@ -3,6 +3,7 @@ package com.etrm.system.vessel;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -12,18 +13,25 @@ import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * dbo.vessel_certificate has only created_at/created_by — does not extend
- * AuditableEntity; createdBy is set manually by VesselCertificateService.
+ * V151 — created_at/created_by upgraded from plain @Column to real
+ * @CreatedDate/@CreatedBy (previously set manually by
+ * VesselCertificateService); updated_at/updated_by added fresh.
  * document_store_id is a plain nullable int with no corresponding entity to
  * resolve (per brief).
  */
 @Entity
 @Table(name = "vessel_certificate")
+@EntityListeners(AuditingEntityListener.class)
 public class VesselCertificate {
 
     @Id
@@ -74,11 +82,21 @@ public class VesselCertificate {
     @Column(name = "notes", length = 500)
     private String notes;
 
+    @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @CreatedBy
     @Column(name = "created_by", nullable = false, updatable = false, length = 100)
     private String createdBy;
+
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @LastModifiedBy
+    @Column(name = "updated_by", nullable = false, length = 100)
+    private String updatedBy;
 
     public Integer getCertId() {
         return certId;
@@ -190,5 +208,21 @@ public class VesselCertificate {
 
     public void setCreatedBy(String createdBy) {
         this.createdBy = createdBy;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
     }
 }
