@@ -1,6 +1,14 @@
 # Pending Project — Dedicated (non-Tier2) master-data governance gap
 
-**Status: classification done (V143), fixes not yet applied.**
+**Status: RESOLVED (2026-07-21, V144-V151).** All 80 tables fixed — see the
+handoff doc's §0 "2026-07-21 — Dedicated-entity governance-column sweep"
+entry for the full record (8 parallel batches, migrations V144-V151, live
+JUnit + curl verification). Kept below for historical reference on how the
+gap was found and classified. Two corrections vs. the original writeup:
+the row_version count was **17**, not 15 (`balmo_product` and
+`pipeline_operator_agreement` were missed in the original tally); 11 of the
+80 tables turned out to have no backing Java entity at all (schema-only
+fixes) — full list in the handoff doc entry.
 
 ## What this is
 

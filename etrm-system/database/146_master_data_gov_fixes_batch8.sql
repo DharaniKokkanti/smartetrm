@@ -27,8 +27,11 @@
 --   - insurance_policy_coverage: has NONE of the 5 (also needs row_version
 --     added fresh). No Java entity exists for this table — orphan.
 --     Schema-only.
---   - interest_rate: has row_version missing too, plus all 4 audit columns
---     missing. No Java entity exists for this table — orphan. Schema-only.
+--   - interest_rate: has created_at already; created_by/updated_at/
+--     updated_by/row_version all missing. No Java entity exists for this
+--     table — orphan. Schema-only. (Corrected post-batch: the original
+--     draft mistakenly re-added created_at, which 2705'd on a duplicate
+--     column name against the real DB.)
 --
 -- Same shape as V137/V127-V136: created_at/updated_at DATETIME2 NOT NULL
 -- DEFAULT SYSUTCDATETIME(), created_by/updated_by VARCHAR(100) NOT NULL
@@ -72,6 +75,6 @@ GO
 ALTER TABLE dbo.insurance_policy_coverage ADD created_at DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(), created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM', updated_at DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(), updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM', row_version INT NOT NULL DEFAULT 0;
 GO
 
--- interest_rate: add all 4 audit columns + row_version fresh.
-ALTER TABLE dbo.interest_rate ADD created_at DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(), created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM', updated_at DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(), updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM', row_version INT NOT NULL DEFAULT 0;
+-- interest_rate: created_at already exists; add created_by/updated_at/updated_by + row_version fresh.
+ALTER TABLE dbo.interest_rate ADD created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM', updated_at DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(), updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM', row_version INT NOT NULL DEFAULT 0;
 GO

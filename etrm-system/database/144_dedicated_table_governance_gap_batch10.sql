@@ -15,8 +15,11 @@
 --     created_by/row_version already present; updated_at/updated_by missing.
 --   - broker, broker_fee_agreement: created_at/row_version already present;
 --     created_by/updated_at/updated_by missing.
---   - calendar_holiday: nothing present — all 4 audit columns AND
---     row_version added fresh.
+--   - calendar_holiday: row_version already present (confirmed live,
+--     COL_LENGTH('calendar_holiday','row_version') = 4); only the 4 audit
+--     columns were actually missing. (Corrected post-batch: the original
+--     draft of this migration mistakenly tried to add row_version again,
+--     which 2705'd on a duplicate column name against the real DB.)
 -- =============================================================================
 
 -- ── Group A: row_version present, all 4 audit columns missing (3 tables) ───
@@ -45,8 +48,8 @@ GO
 ALTER TABLE dbo.broker_fee_agreement ADD created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM', updated_at DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(), updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM';
 GO
 
--- ── Group E: nothing present — all 4 audit columns + row_version added fresh (1 table) ──
-ALTER TABLE dbo.calendar_holiday ADD created_at DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(), created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM', updated_at DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(), updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM', row_version INT NOT NULL DEFAULT 0;
+-- ── Group E: row_version already present, all 4 audit columns missing (1 table) ──
+ALTER TABLE dbo.calendar_holiday ADD created_at DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(), created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM', updated_at DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(), updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM';
 GO
 
 PRINT '============================================================';
