@@ -3,6 +3,7 @@ package com.etrm.system.railcar;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -12,18 +13,26 @@ import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * dbo.railcar has only created_at/created_by — does not extend
- * AuditableEntity; createdBy is set manually by RailcarService. Note
- * build_year is INT here (unlike Vessel.buildYear which is SMALLINT).
+ * dbo.railcar — created_at/created_by/updated_at/updated_by are now real
+ * @CreatedDate/@CreatedBy/@LastModifiedDate/@LastModifiedBy fields (V149;
+ * updated_at/updated_by are new columns, created_at/created_by were
+ * previously set manually by RailcarService). Note build_year is INT here
+ * (unlike Vessel.buildYear which is SMALLINT).
  */
 @Entity
 @Table(name = "railcar")
+@EntityListeners(AuditingEntityListener.class)
 public class Railcar {
 
     @Id
@@ -90,11 +99,21 @@ public class Railcar {
     @Column(name = "notes", length = 300)
     private String notes;
 
+    @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @CreatedBy
     @Column(name = "created_by", nullable = false, updatable = false, length = 100)
     private String createdBy;
+
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @LastModifiedBy
+    @Column(name = "updated_by", nullable = false, length = 100)
+    private String updatedBy;
 
     @Column(name = "build_year")
     private Integer buildYear;
@@ -252,6 +271,22 @@ public class Railcar {
 
     public void setCreatedBy(String createdBy) {
         this.createdBy = createdBy;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
     }
 
     public Integer getBuildYear() {

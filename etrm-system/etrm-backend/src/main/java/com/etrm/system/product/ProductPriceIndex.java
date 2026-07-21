@@ -3,6 +3,7 @@ package com.etrm.system.product;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -11,10 +12,21 @@ import jakarta.persistence.Transient;
 import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-/** V102 added `role` — see that migration's doc comment. */
+import java.time.LocalDateTime;
+
+/** V102 added `role` — see that migration's doc comment. created_at/
+ * created_by/updated_at/updated_by governance columns added by V149 (link
+ * table only ever gets create()/delete(), never update() — see
+ * ProductPriceIndexService). */
 @Entity
 @Table(name = "product_price_index")
+@EntityListeners(AuditingEntityListener.class)
 public class ProductPriceIndex {
 
     @Id
@@ -66,6 +78,22 @@ public class ProductPriceIndex {
     @NotNull
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
+
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @CreatedBy
+    @Column(name = "created_by", nullable = false, updatable = false, length = 100)
+    private String createdBy;
+
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @LastModifiedBy
+    @Column(name = "updated_by", nullable = false, length = 100)
+    private String updatedBy;
 
     public Integer getProductIndexId() {
         return productIndexId;
@@ -161,5 +189,37 @@ public class ProductPriceIndex {
 
     public void setIsActive(Boolean isActive) {
         this.isActive = isActive;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
     }
 }

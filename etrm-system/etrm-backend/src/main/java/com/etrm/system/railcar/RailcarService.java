@@ -4,11 +4,9 @@ import com.etrm.system.common.ConflictException;
 import com.etrm.system.common.NotFoundException;
 import com.etrm.system.country.CountryRepository;
 import com.etrm.system.transportoperator.TransportOperatorRepository;
-import org.springframework.data.domain.AuditorAware;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -18,14 +16,12 @@ public class RailcarService {
     private final RailcarRepository repository;
     private final TransportOperatorRepository operatorRepository;
     private final CountryRepository countryRepository;
-    private final AuditorAware<String> auditorAware;
 
     public RailcarService(RailcarRepository repository, TransportOperatorRepository operatorRepository,
-                           CountryRepository countryRepository, AuditorAware<String> auditorAware) {
+                           CountryRepository countryRepository) {
         this.repository = repository;
         this.operatorRepository = operatorRepository;
         this.countryRepository = countryRepository;
-        this.auditorAware = auditorAware;
     }
 
     private Railcar hydrate(Railcar railcar) {
@@ -50,8 +46,6 @@ public class RailcarService {
             throw new ConflictException("Car Number \"" + input.getCarNumber() + "\" already exists.");
         }
         input.setRailcarId(null);
-        input.setCreatedAt(LocalDateTime.now());
-        input.setCreatedBy(auditorAware.getCurrentAuditor().orElse("SYSTEM"));
         return hydrate(repository.save(input));
     }
 
@@ -59,6 +53,11 @@ public class RailcarService {
         Railcar existing = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("No railcar with id " + id + "."));
         input.setRailcarId(id);
+        // created_at/created_by are @CreatedDate/@CreatedBy — JPA auditing
+        // only populates those on insert, so the request body never carries
+        // them; without copying them from the existing row here, updatable=
+        // false keeps the DB value untouched but the response would show
+        // them as null.
         input.setCreatedAt(existing.getCreatedAt());
         input.setCreatedBy(existing.getCreatedBy());
         return hydrate(repository.save(input));
