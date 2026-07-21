@@ -91,7 +91,9 @@ public class LegalEntityOwnershipService {
         } else {
             input.setExternalOwnerName(null);
         }
-        input.setCreatedBy("system");
+        // createdBy/createdAt are now @CreatedBy/@CreatedDate (V147) —
+        // JPA auditing populates them at flush time; the manual "system"
+        // set here is redundant now and would just be overwritten.
         return repository.save(input);
         // ux_leo_operator_per_jv (DB filtered unique index) is the backstop if a
         // race slips past the pre-check above — same two-layer pattern as

@@ -8,7 +8,6 @@ import com.etrm.system.lookup.LcTypeRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -65,8 +64,6 @@ public class LetterOfCreditService {
     public LetterOfCredit create(LetterOfCredit input) {
         resolveForeignKeys(input);
         input.setLcId(null);
-        input.setCreatedAt(LocalDateTime.now());
-        input.setUpdatedAt(LocalDateTime.now());
         return hydrate(repository.save(input));
     }
 
@@ -75,8 +72,13 @@ public class LetterOfCreditService {
                 .orElseThrow(() -> new NotFoundException("No letter of credit with id " + id + "."));
         resolveForeignKeys(input);
         input.setLcId(id);
+        // created_at/created_by are @CreatedDate/@CreatedBy — JPA auditing
+        // only populates those on insert, so the request body never carries
+        // them; without copying them from the existing row here, updatable=
+        // false keeps the DB value untouched but the response would show
+        // them as null.
         input.setCreatedAt(existing.getCreatedAt());
-        input.setUpdatedAt(LocalDateTime.now());
+        input.setCreatedBy(existing.getCreatedBy());
         return hydrate(repository.save(input));
     }
 
@@ -86,7 +88,6 @@ public class LetterOfCreditService {
         existing.setStatusId(lcStatusTypeRepository.findByTypeCodeIgnoreCase("CANCELLED")
                 .orElseThrow(() -> new NotFoundException("No LC status \"CANCELLED\"."))
                 .getLcStatusTypeId());
-        existing.setUpdatedAt(LocalDateTime.now());
         repository.save(existing);
     }
 }

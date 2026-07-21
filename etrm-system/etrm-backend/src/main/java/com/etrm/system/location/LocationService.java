@@ -3,11 +3,9 @@ package com.etrm.system.location;
 import com.etrm.system.common.ConflictException;
 import com.etrm.system.common.NotFoundException;
 import com.etrm.system.uom.UnitOfMeasureRepository;
-import org.springframework.data.domain.AuditorAware;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -17,14 +15,12 @@ public class LocationService {
     private final LocationRepository repository;
     private final LocationTypeRepository locationTypeRepository;
     private final UnitOfMeasureRepository uomRepository;
-    private final AuditorAware<String> auditorAware;
 
     public LocationService(LocationRepository repository, LocationTypeRepository locationTypeRepository,
-                            UnitOfMeasureRepository uomRepository, AuditorAware<String> auditorAware) {
+                            UnitOfMeasureRepository uomRepository) {
         this.repository = repository;
         this.locationTypeRepository = locationTypeRepository;
         this.uomRepository = uomRepository;
-        this.auditorAware = auditorAware;
     }
 
     private Location hydrate(Location location) {
@@ -67,8 +63,6 @@ public class LocationService {
         }
         resolveForeignKeys(input);
         input.setLocationId(null);
-        input.setCreatedAt(LocalDateTime.now());
-        input.setCreatedBy(auditorAware.getCurrentAuditor().orElse("SYSTEM"));
         return hydrate(repository.save(input));
     }
 

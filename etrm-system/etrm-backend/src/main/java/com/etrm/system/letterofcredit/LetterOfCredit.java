@@ -3,6 +3,7 @@ package com.etrm.system.letterofcredit;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -12,19 +13,27 @@ import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * dbo.letter_of_credit only ever got created_at/updated_at, no created_by/
- * updated_by. lc_type/status FK dedicated tables (dbo.lc_type/
+ * dbo.letter_of_credit — lc_type/status FK dedicated tables (dbo.lc_type/
  * dbo.lc_status_type) — frontend sends/receives their string type_code,
  * translated by LetterOfCreditService (same pattern as Book.bookType).
+ *
+ * V147 — added created_by/updated_by and upgraded created_at/updated_at to
+ * real @CreatedDate/@LastModifiedDate JPA auditing.
  */
 @Entity
 @Table(name = "letter_of_credit")
+@EntityListeners(AuditingEntityListener.class)
 public class LetterOfCredit {
 
     @Id
@@ -140,11 +149,21 @@ public class LetterOfCredit {
     @Column(name = "notes", length = 1000)
     private String notes;
 
+    @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @CreatedBy
+    @Column(name = "created_by", nullable = false, updatable = false, length = 100)
+    private String createdBy;
+
+    @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    @LastModifiedBy
+    @Column(name = "updated_by", nullable = false, length = 100)
+    private String updatedBy;
 
     public Integer getLcId() {
         return lcId;
@@ -380,5 +399,21 @@ public class LetterOfCredit {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
     }
 }
