@@ -2,6 +2,7 @@ package com.etrm.system.environmentalproduct;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -13,6 +14,11 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
@@ -21,9 +27,14 @@ import java.time.LocalDateTime;
  * environmental_product_type, denormalized to/from the frontend's string
  * "productType" (type_code). scheme_id/registry_id are nullable FKs whose
  * display names (schemeName/registryName) are hydrated separately.
+ *
+ * V146 — added created_by/updated_by; upgraded createdAt/updatedAt from
+ * plain manually-set columns to real @CreatedDate/@LastModifiedDate JPA
+ * auditing fields, matching GlAccount.java's shape.
  */
 @Entity
 @Table(name = "environmental_product")
+@EntityListeners(AuditingEntityListener.class)
 public class EnvironmentalProduct {
 
     @Id
@@ -81,11 +92,21 @@ public class EnvironmentalProduct {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
-    @Column(name = "created_at", nullable = false)
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @CreatedBy
+    @Column(name = "created_by", nullable = false, updatable = false, length = 100)
+    private String createdBy;
+
+    @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    @LastModifiedBy
+    @Column(name = "updated_by", nullable = false, length = 100)
+    private String updatedBy;
 
     public Integer getProductId() {
         return productId;
@@ -203,11 +224,27 @@ public class EnvironmentalProduct {
         this.createdAt = createdAt;
     }
 
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
     }
 }

@@ -6,7 +6,6 @@ import com.etrm.system.emissionscheme.EmissionSchemeRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -58,9 +57,6 @@ public class EnvironmentalProductService {
     public EnvironmentalProduct create(EnvironmentalProduct input) {
         resolveForeignKeys(input);
         input.setProductId(null);
-        LocalDateTime now = LocalDateTime.now();
-        input.setCreatedAt(now);
-        input.setUpdatedAt(now);
         return hydrate(repository.save(input));
     }
 
@@ -69,8 +65,13 @@ public class EnvironmentalProductService {
                 .orElseThrow(() -> new NotFoundException("No environmental product with id " + id + "."));
         resolveForeignKeys(input);
         input.setProductId(id);
+        // created_at/created_by are @CreatedDate/@CreatedBy — JPA auditing
+        // only populates those on insert, so the request body never carries
+        // them; without copying them from the existing row here, updatable=
+        // false keeps the DB value untouched but the response would show
+        // them as null.
         input.setCreatedAt(existing.getCreatedAt());
-        input.setUpdatedAt(LocalDateTime.now());
+        input.setCreatedBy(existing.getCreatedBy());
         return hydrate(repository.save(input));
     }
 

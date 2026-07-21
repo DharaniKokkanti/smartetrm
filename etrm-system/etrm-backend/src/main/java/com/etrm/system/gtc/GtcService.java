@@ -4,7 +4,6 @@ import com.etrm.system.common.NotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -54,7 +53,6 @@ public class GtcService {
 
     public Gtc create(Gtc input) {
         input.setGtcId(null);
-        input.setCreatedAt(LocalDateTime.now());
         Gtc saved = repository.save(input);
 
         GtcVersion version = new GtcVersion();
@@ -64,8 +62,6 @@ public class GtcService {
         version.setSupersededDate(input.getExpiryDate());
         version.setDocumentStoreId(parseDocumentStoreId(input.getDocumentRef()));
         version.setIsCurrent(true);
-        version.setCreatedAt(LocalDateTime.now());
-        version.setCreatedBy(input.getCreatedBy());
         versionRepository.save(version);
 
         return hydrate(saved);
@@ -75,6 +71,11 @@ public class GtcService {
         Gtc existing = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("No GTC with id " + id + "."));
         input.setGtcId(id);
+        // created_at/created_by are @CreatedDate/@CreatedBy — JPA auditing
+        // only populates those on insert, so the request body never carries
+        // them; without copying them from the existing row here, updatable=
+        // false keeps the DB value untouched but the response would show
+        // them as null.
         input.setCreatedAt(existing.getCreatedAt());
         input.setCreatedBy(existing.getCreatedBy());
         Gtc saved = repository.save(input);
@@ -83,8 +84,6 @@ public class GtcService {
             GtcVersion v = new GtcVersion();
             v.setGtcId(id);
             v.setIsCurrent(true);
-            v.setCreatedAt(LocalDateTime.now());
-            v.setCreatedBy(existing.getCreatedBy());
             return v;
         });
         version.setVersionNumber(input.getVersion() != null ? input.getVersion() : version.getVersionNumber());

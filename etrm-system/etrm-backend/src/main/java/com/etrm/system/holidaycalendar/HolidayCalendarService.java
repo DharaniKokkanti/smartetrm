@@ -6,7 +6,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,7 +47,6 @@ public class HolidayCalendarService {
             throw new ConflictException("Calendar Code \"" + input.getCalendarCode() + "\" already exists.");
         }
         input.setCalendarId(null);
-        input.setCreatedAt(LocalDateTime.now());
         return withHolidayCount(repository.save(input));
     }
 
@@ -57,7 +55,13 @@ public class HolidayCalendarService {
                 .orElseThrow(() -> new NotFoundException("No holiday calendar with id " + id + "."));
         normalizeCodeField(input);
         input.setCalendarId(id);
+        // created_at/created_by are @CreatedDate/@CreatedBy — JPA auditing
+        // only populates those on insert, so the request body never carries
+        // them; without copying them from the existing row here, updatable=
+        // false keeps the DB value untouched but the response would show
+        // them as null.
         input.setCreatedAt(existing.getCreatedAt());
+        input.setCreatedBy(existing.getCreatedBy());
         return withHolidayCount(repository.save(input));
     }
 

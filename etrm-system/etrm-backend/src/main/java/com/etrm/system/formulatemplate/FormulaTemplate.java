@@ -13,14 +13,17 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
 /**
- * dbo.formula_template — only created_at/created_by exist live (no
- * updated_at/updated_by), mapped manually with @CreatedDate/@CreatedBy like
- * Period.java, not via AuditableEntity. commodity_type, formula_type,
+ * dbo.formula_template — V146 added updated_at/updated_by (previously only
+ * created_at/created_by existed live), mapped with @CreatedDate/@CreatedBy/
+ * @LastModifiedDate/@LastModifiedBy like Period.java, not via
+ * AuditableEntity. commodity_type, formula_type,
  * averaging_type, averaging_period_type and fx_fixing_type are all plain
  * CHECK-constrained strings, not FKs, matching the frontend's string-union
  * types. Referenced by dbo.pricing_rule.formula_template_id — see
@@ -96,6 +99,14 @@ public class FormulaTemplate {
     @CreatedBy
     @Column(name = "created_by", nullable = false, updatable = false, length = 100)
     private String createdBy;
+
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @LastModifiedBy
+    @Column(name = "updated_by", nullable = false, length = 100)
+    private String updatedBy;
 
     public Integer getTemplateId() {
         return templateId;
@@ -215,5 +226,21 @@ public class FormulaTemplate {
 
     public void setCreatedBy(String createdBy) {
         this.createdBy = createdBy;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
     }
 }
