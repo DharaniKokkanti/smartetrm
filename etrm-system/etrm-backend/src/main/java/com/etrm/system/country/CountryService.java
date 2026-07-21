@@ -45,9 +45,16 @@ public class CountryService {
     }
 
     public Country update(Integer id, Country input) {
-        get(id);
+        Country existing = get(id);
         normalizeCodeField(input);
         input.setCountryId(id);
+        // created_at/created_by are @CreatedDate/@CreatedBy — JPA auditing
+        // only populates those on insert, so the request body never carries
+        // them; without copying them from the existing row here, updatable=
+        // false keeps the DB value untouched but the response would show
+        // them as null.
+        input.setCreatedAt(existing.getCreatedAt());
+        input.setCreatedBy(existing.getCreatedBy());
         return repository.save(input);
     }
 

@@ -3,6 +3,7 @@ package com.etrm.system.creditlimit;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -12,6 +13,11 @@ import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -19,21 +25,25 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * dbo.credit_limit only ever got created_at/updated_at, no created_by/
- * updated_by. limit_type/status FK dedicated tables (dbo.credit_limit_type/
- * dbo.credit_limit_status_type) — same string-code translation pattern as
- * LetterOfCredit/MarginAgreement. commodity_type/limit_basis/
- * country_risk_rating/last_review_outcome/internal_rating/external_rating/
- * breach_action are all plain VARCHAR (never converted to FKs) — map
- * directly as String, matching the frontend's plain string-union types.
- * credit_analyst_name is a real, separately-stored column (not computed) —
- * left unmapped and always re-derived from credit_analyst_user_id in
- * CreditLimitService.hydrate() instead, consistent with every other
- * denormalized display field in this codebase (avoids two sources of
- * truth silently drifting).
+ * dbo.credit_limit. limit_type/status FK dedicated tables
+ * (dbo.credit_limit_type/dbo.credit_limit_status_type) — same string-code
+ * translation pattern as LetterOfCredit/MarginAgreement. commodity_type/
+ * limit_basis/country_risk_rating/last_review_outcome/internal_rating/
+ * external_rating/breach_action are all plain VARCHAR (never converted to
+ * FKs) — map directly as String, matching the frontend's plain string-union
+ * types. credit_analyst_name is a real, separately-stored column (not
+ * computed) — left unmapped and always re-derived from
+ * credit_analyst_user_id in CreditLimitService.hydrate() instead, consistent
+ * with every other denormalized display field in this codebase (avoids two
+ * sources of truth silently drifting).
+ *
+ * V145 — added created_by/updated_by (this entity previously only had
+ * created_at/updated_at); upgraded all 4 audit fields to @CreatedDate/
+ * @CreatedBy/@LastModifiedDate/@LastModifiedBy, matching GlAccount's shape.
  */
 @Entity
 @Table(name = "credit_limit")
+@EntityListeners(AuditingEntityListener.class)
 public class CreditLimit {
 
     @Id
@@ -215,11 +225,21 @@ public class CreditLimit {
     @Column(name = "notes", length = 1000)
     private String notes;
 
+    @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @CreatedBy
+    @Column(name = "created_by", nullable = false, updatable = false, length = 100)
+    private String createdBy;
+
+    @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    @LastModifiedBy
+    @Column(name = "updated_by", nullable = false, length = 100)
+    private String updatedBy;
 
     public Integer getCreditLimitId() {
         return creditLimitId;
@@ -609,11 +629,27 @@ public class CreditLimit {
         this.createdAt = createdAt;
     }
 
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
     }
 }

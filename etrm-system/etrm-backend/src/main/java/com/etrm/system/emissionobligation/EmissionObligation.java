@@ -2,6 +2,7 @@ package com.etrm.system.emissionobligation;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -11,6 +12,11 @@ import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -21,9 +27,14 @@ import java.time.LocalDateTime;
  * list/create/update). shortfall_units is DB-computed/persisted; never
  * accepted from the client, just round-tripped from whatever's already
  * persisted (matches the shape after a save/reload).
+ *
+ * V145 — added created_by/updated_by (this entity previously only had
+ * created_at/updated_at); upgraded all 4 audit fields to @CreatedDate/
+ * @CreatedBy/@LastModifiedDate/@LastModifiedBy, matching GlAccount's shape.
  */
 @Entity
 @Table(name = "emission_obligation")
+@EntityListeners(AuditingEntityListener.class)
 public class EmissionObligation {
 
     @Id
@@ -81,11 +92,21 @@ public class EmissionObligation {
     @Column(name = "notes", columnDefinition = "nvarchar(max)")
     private String notes;
 
-    @Column(name = "created_at", nullable = false)
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @CreatedBy
+    @Column(name = "created_by", nullable = false, updatable = false, length = 100)
+    private String createdBy;
+
+    @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    @LastModifiedBy
+    @Column(name = "updated_by", nullable = false, length = 100)
+    private String updatedBy;
 
     public Integer getObligationId() {
         return obligationId;
@@ -211,11 +232,27 @@ public class EmissionObligation {
         this.createdAt = createdAt;
     }
 
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
     }
 }

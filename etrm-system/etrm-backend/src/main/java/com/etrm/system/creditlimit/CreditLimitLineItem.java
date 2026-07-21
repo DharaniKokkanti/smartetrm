@@ -2,6 +2,7 @@ package com.etrm.system.creditlimit;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -10,13 +11,28 @@ import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/** Instrument-class sub-limit carve-out under a credit_limit header row. */
+/**
+ * Instrument-class sub-limit carve-out under a credit_limit header row.
+ *
+ * V145 — added created_by/updated_by (previously only had created_at/
+ * updated_at); upgraded all 4 audit fields to real JPA-auditing annotations.
+ * CreditLimitService.saveLineItems deletes and recreates every line item
+ * wholesale on each credit_limit save (never an individual row update), so
+ * every save is a fresh INSERT and @CreatedDate/@CreatedBy/
+ * @LastModifiedDate/@LastModifiedBy all populate correctly on that insert.
+ */
 @Entity
 @Table(name = "credit_limit_line_item")
+@EntityListeners(AuditingEntityListener.class)
 public class CreditLimitLineItem {
 
     @Id
@@ -56,11 +72,21 @@ public class CreditLimitLineItem {
     @Column(name = "notes", length = 500)
     private String notes;
 
+    @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @CreatedBy
+    @Column(name = "created_by", nullable = false, updatable = false, length = 100)
+    private String createdBy;
+
+    @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    @LastModifiedBy
+    @Column(name = "updated_by", nullable = false, length = 100)
+    private String updatedBy;
 
     public Integer getLineItemId() {
         return lineItemId;
@@ -134,11 +160,27 @@ public class CreditLimitLineItem {
         this.createdAt = createdAt;
     }
 
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
     }
 }
