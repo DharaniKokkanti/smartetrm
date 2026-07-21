@@ -32,6 +32,11 @@ export function GlAccountsPage() {
   const { data: accountTypeRows = [] } = useTableRows<{ typeCode: string; typeName: string }>('gl_account_type');
   const accountTypeOpts = accountTypeRows.map((r) => ({ value: r.typeCode, label: r.typeName }));
 
+  const { data: costCenterRows = [] } = useTableRows<{ costCenterId: number; costCenterCode: string; costCenterName: string }>('cost_center');
+  const costCenterOpts = costCenterRows.map((c) => ({ value: c.costCenterId, label: `${c.costCenterCode} — ${c.costCenterName}` }));
+  const { data: taxCodeRows = [] } = useTableRows<{ taxCodeId: number; taxCode: string; description: string }>('tax_code');
+  const taxCodeOpts = taxCodeRows.map((t) => ({ value: t.taxCodeId, label: `${t.taxCode} — ${t.description}` }));
+
   const { data: legalEntities = [] } = useLegalEntities();
   const legalEntityOpts = legalEntities.map((e) => ({ value: e.legalEntityId, label: `${e.entityCode} — ${e.entityName}` }));
   const { data: books = [] } = useBooks();
@@ -59,7 +64,8 @@ export function GlAccountsPage() {
     form.setFieldsValue({
       ...r,
       commodityType: r.commodityType ?? undefined,
-      costCenter: r.costCenter ?? undefined,
+      costCenterId: r.costCenterId ?? undefined,
+      defaultTaxCodeId: r.defaultTaxCodeId ?? undefined,
       description: r.description ?? undefined,
       legalEntityId: r.legalEntityId ?? undefined,
       bookId: r.bookId ?? undefined,
@@ -76,7 +82,8 @@ export function GlAccountsPage() {
       input: {
         ...v,
         commodityType: v.commodityType ?? null,
-        costCenter: v.costCenter ?? null,
+        costCenterId: v.costCenterId ?? null,
+        defaultTaxCodeId: v.defaultTaxCodeId ?? null,
         description: v.description ?? null,
         legalEntityId: v.legalEntityId ?? null,
         bookId: v.bookId ?? null,
@@ -101,7 +108,8 @@ export function GlAccountsPage() {
     { field: 'parentAccountCode', headerName: 'Parent Account', width: 130, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },
     { field: 'commodityType', headerName: 'Commodity', width: 110, valueFormatter: (p) => p.value != null ? commodityLabel(p.value) : 'All' },
     { field: 'currencyId', headerName: 'Currency', width: 130, valueFormatter: (p) => (p.value != null ? currencyLabelById.get(p.value) ?? String(p.value) : '—') },
-    { field: 'costCenter',    headerName: 'Cost Centre', width: 120, valueFormatter: (p) => p.value ?? '—' },
+    { field: 'costCenterCode', headerName: 'Cost Centre', width: 120, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },
+    { field: 'defaultTaxCode', headerName: 'Tax Code', width: 110, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },
     { field: 'externalGlCode', headerName: 'External GL Code', width: 130, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },
     { field: 'isControlAccount', headerName: 'Control', width: 85,
       cellRenderer: (p: { value: boolean }) => (p.value ? <Tag color="purple" style={{ fontSize: 10 }}>Control</Tag> : null) },
@@ -122,7 +130,7 @@ export function GlAccountsPage() {
 
   return (
     <>
-      <PageHeader title="GL Accounts" description="Chart of accounts for trade P&L, fee, and settlement postings. Each account has a type (Revenue, Cost, Asset, Liability, Equity, P&L), a normal balance, an optional booking company and book scope for P&L attribution, hierarchy via parent account, currency, and cost centre." moduleGroup="finance" />
+      <PageHeader title="GL Accounts" description="Chart of accounts for trade P&L, fee, and settlement postings. Each account has a type (Revenue, Cost, Asset, Liability, Equity, P&L), a normal balance, an optional booking company and book scope for P&L attribution, hierarchy via parent account, currency, a cost centre (which rolls up to a profit centre), and a default tax code." moduleGroup="finance" />
       <SmartGrid columnDefs={colDefs} rowData={data} loading={isLoading} onAdd={openNew} addLabel="New GL Account" onRefresh={() => { void refetch(); }} getRowId={(p) => String(p.data.accountId)} />
       <Drawer mask={false} forceRender title={editing ? `Edit — ${editing.accountCode} ${editing.accountName}` : 'New GL Account'} open={open} onClose={() => setOpen(false)} width={520}
         footer={<Space style={{ justifyContent: 'flex-end', display: 'flex' }}><Button onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button><Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button></Space>}>
@@ -166,19 +174,24 @@ export function GlAccountsPage() {
             <Form.Item name="commodityType" label={hint('Commodity Scope', 'Leave blank if this account applies to all commodities.')} style={{ flex: 1 }}>
               <Select allowClear placeholder="All commodities" options={COMMODITY_TYPE_LOOKUP.map((l) => ({ value: l.lookupId, label: l.label }))} />
             </Form.Item>
-            <Form.Item name="costCenter" label={hint('Cost Centre', 'Internal cost centre code — TRADING, OPERATIONS, RISK.')} style={{ flex: 1 }}>
-              <Input placeholder="TRADING" style={{ fontFamily: 'monospace' }} />
+            <Form.Item name="costCenterId" label={hint('Cost Centre', 'Internal cost centre this account posts against — drives profit-centre attribution via the cost centre\'s own profit centre link. Leave blank if not cost-centre-specific.')} style={{ flex: 1 }}>
+              <Select allowClear placeholder="Not cost-centre-specific" options={costCenterOpts} showSearch optionFilterProp="label" />
             </Form.Item>
           </Space>
-          <Form.Item name="externalGlCode" label={hint('External GL Code', 'Mapping code to the external ERP / GL system of record (SAP, Oracle, etc).')}>
-            <Input placeholder="SAP-410010" style={{ fontFamily: 'monospace' }} />
-          </Form.Item>
+          <Space style={{ width: '100%' }} size={12}>
+            <Form.Item name="defaultTaxCodeId" label={hint('Default Tax Code', 'Tax code applied by default when posting to this account. Leave blank if not tax-relevant.')} style={{ flex: 1 }}>
+              <Select allowClear placeholder="No default tax code" options={taxCodeOpts} showSearch optionFilterProp="label" />
+            </Form.Item>
+            <Form.Item name="externalGlCode" label={hint('External GL Code', 'Mapping code to the external ERP / GL system of record (SAP, Oracle, etc).')} style={{ flex: 1 }}>
+              <Input placeholder="SAP-410010" style={{ fontFamily: 'monospace' }} />
+            </Form.Item>
+          </Space>
           <Form.Item name="description" label="Description">
             <Input.TextArea rows={2} placeholder="Brief description of what posts to this account." />
           </Form.Item>
           <Form.Item name="isActive" label="Active" valuePropName="checked"><Switch /></Form.Item>
         </Form>
-        <AuditInfo createdAt={editing?.createdAt} />
+        <AuditInfo createdAt={editing?.createdAt} createdBy={editing?.createdBy} updatedAt={editing?.updatedAt} updatedBy={editing?.updatedBy} />
       </Drawer>
     </>
   );

@@ -329,7 +329,22 @@ export function usePageFormDraft(key: string, opts: {
   }, [key, restoreRequestId, isMine]);
 
   useEffect(() => {
+    // `activeRef` defaults to active (unlike the drawer variants' `open`,
+    // which defaults closed), so the very first render is already
+    // "active" before the user has touched anything. That makes this
+    // effect's cleanup vulnerable to React StrictMode's dev-only
+    // mount→cleanup→mount double-invoke: the phantom cleanup fires
+    // synchronously, in the same tick as the initial mount, well before any
+    // real navigation could happen. Gate on a timer so only a cleanup that
+    // fires *after* the component has genuinely been alive for a tick — a
+    // real unmount, always well after 0ms since it requires a user action —
+    // stashes a draft; the synchronous StrictMode phantom cleanup is a
+    // no-op here.
+    let settled = false;
+    const timer = setTimeout(() => { settled = true; }, 0);
     return () => {
+      clearTimeout(timer);
+      if (!settled) return;
       const cur = live.current;
       if (cur.activeRef?.current === false) return;
       const meta = cur.meta();

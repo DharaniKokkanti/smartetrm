@@ -1558,6 +1558,44 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('notes',                                           'Notes',                  'string',      true,  false, 500),
     ],
   },
+  // V142 — chart of accounts: profit_center -> cost_center -> gl_account,
+  // matching SAP's model ("the profit center is assigned in the cost center
+  // master data"). Deliberately flat (no parent_*_id hierarchy yet) and no
+  // direct profit_center_id on gl_account — reached by joining through
+  // cost_center instead, per the "don't duplicate a derivable segment"
+  // chart-of-accounts convention.
+  profit_center: {
+    tableName: 'profit_center', displayName: 'Profit Centers', primaryKeyColumn: 'profitCenterId', isTemporal: false,
+    columns: [
+      col('profitCenterId',   'ID',            'number',      false, true,  null),
+      col('profitCenterCode', 'Code',          'string',      false, false, 30),
+      col('profitCenterName', 'Name',          'string',      false, false, 200),
+      col('legalEntityId',    'Booking Company','foreign_key', false, false, null, null, 'legal_entity'),
+      col('isActive',         'Active',        'boolean',     false, false, null),
+    ],
+  },
+  cost_center: {
+    tableName: 'cost_center', displayName: 'Cost Centers', primaryKeyColumn: 'costCenterId', isTemporal: false,
+    columns: [
+      col('costCenterId',   'ID',            'number',      false, true,  null),
+      col('costCenterCode', 'Code',          'string',      false, false, 30),
+      col('costCenterName', 'Name',          'string',      false, false, 200),
+      col('profitCenterId', 'Profit Center', 'foreign_key', false, false, null, null, 'profit_center'),
+      col('isActive',       'Active',        'boolean',     false, false, null),
+    ],
+  },
+  tax_code: {
+    tableName: 'tax_code', displayName: 'Tax Codes', primaryKeyColumn: 'taxCodeId', isTemporal: false,
+    columns: [
+      col('taxCodeId',    'ID',          'number',      false, true,  null),
+      col('taxCode',      'Code',        'string',      false, false, 20),
+      col('description',  'Description', 'string',      false, false, 200),
+      col('ratePercent',  'Rate %',      'number',      false, false, null, null, null, null, true),
+      col('taxTypeId',    'Tax Type',    'foreign_key', true,  false, null, null, 'tax_type'),
+      col('countryId',    'Jurisdiction','foreign_key', true,  false, null, null, 'country'),
+      col('isActive',     'Active',      'boolean',     false, false, null),
+    ],
+  },
 };
 
 // ─── Exports ──────────────────────────────────────────────────────────────────
@@ -1651,6 +1689,10 @@ export const registrySeed: RegistryEntry[] = [
   { registryId: 239, tableName: 'agri_crop_year_lifecycle', displayName: 'Agri Crop Year Lifecycle', moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Hard time boundaries for old-crop vs. new-crop futures and physical cash market spreads, per commodity and country.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 23 },
   { registryId: 240, tableName: 'intercompany_transfer_rule', displayName: 'Intercompany Transfer Rules', moduleGroup: 'Counterparties & Agreements', subGroup: 'Terms', description: 'Automates the matching back-to-back internal transfer deal and its transfer-pricing markup whenever the central desk passes position/risk to a country business unit.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
   { registryId: 241, tableName: 'payment_calendar_assignment', displayName: 'Payment Calendar Assignments', moduleGroup: 'Calendar & Periods', subGroup: 'Calendars', description: 'Junction matrix mapping multi-currency cash obligations to the right holiday-calendar pair, preventing settlement date miscalculations across payment term, currency, and location.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 5 },
+  // V142 — chart of accounts: profit_center -> cost_center -> gl_account, plus tax_code
+  { registryId: 267, tableName: 'profit_center', displayName: 'Profit Centers', moduleGroup: 'Finance & Settlement', subGroup: 'Chart of Accounts', description: 'Scoped to one booking company (legal entity) — the top of the profit-attribution chain that cost centers roll up into. Matches SAP\'s company-code-scoped profit center model.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
+  { registryId: 268, tableName: 'cost_center', displayName: 'Cost Centers', moduleGroup: 'Finance & Settlement', subGroup: 'Chart of Accounts', description: 'Every cost center rolls up to exactly one profit center — matches SAP\'s standard "the profit center is assigned in the cost center master data" model. Linked from gl_account.cost_center_id.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
+  { registryId: 269, tableName: 'tax_code', displayName: 'Tax Codes', moduleGroup: 'Finance & Settlement', subGroup: 'Chart of Accounts', description: 'Structured tax rate + jurisdiction reference (rate %, tax type, country) — not a free-text label. Linked from gl_account.default_tax_code_id.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
   // V17 parent lookup tables — generated from the simple list above
   ...PARENT_LOOKUP_TABLES.map((t, i) => ({
     registryId:       10 + i,
@@ -2257,6 +2299,23 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
   payment_calendar_assignment: [
     { assignmentId: 1, paymentTermId: 1,  currencyId: 1, locationId: null, primaryHolidayCalendarId: 2, secondaryHolidayCalendarId: null, isActive: true, notes: 'USD default — US Federal calendar only.' },
     { assignmentId: 2, paymentTermId: 1,  currencyId: 1, locationId: 1,    primaryHolidayCalendarId: 2, secondaryHolidayCalendarId: 1,    isActive: true, notes: 'USD payment against a UK delivery location — cross-reference US Federal with UK Bank holidays.' },
+  ],
+  // V142 — chart of accounts: profit_center -> cost_center -> gl_account, plus tax_code
+  profit_center: [
+    { profitCenterId: 1, profitCenterCode: 'PC-UK-TRADE', profitCenterName: 'UK Trading',   legalEntityId: 1, isActive: true },
+    { profitCenterId: 2, profitCenterCode: 'PC-US-TRADE', profitCenterName: 'US Trading',   legalEntityId: 2, isActive: true },
+    { profitCenterId: 3, profitCenterCode: 'PC-CORP',     profitCenterName: 'Corporate',    legalEntityId: 1, isActive: true },
+  ],
+  cost_center: [
+    { costCenterId: 1, costCenterCode: 'CC-TRADING',    costCenterName: 'Trading Desk',      profitCenterId: 1, isActive: true },
+    { costCenterId: 2, costCenterCode: 'CC-US-TRADING', costCenterName: 'US Trading Desk',    profitCenterId: 2, isActive: true },
+    { costCenterId: 3, costCenterCode: 'CC-RISK',       costCenterName: 'Risk & Compliance',  profitCenterId: 3, isActive: true },
+    { costCenterId: 4, costCenterCode: 'CC-OPS',        costCenterName: 'Back-Office Operations', profitCenterId: 3, isActive: true },
+  ],
+  tax_code: [
+    { taxCodeId: 1, taxCode: 'VAT-GB-STD', description: 'UK standard-rate VAT',           ratePercent: 20.0, taxTypeId: 1, countryId: 1, isActive: true },
+    { taxCodeId: 2, taxCode: 'VAT-NL-STD', description: 'Netherlands standard-rate VAT',  ratePercent: 21.0, taxTypeId: 1, countryId: 3, isActive: true },
+    { taxCodeId: 3, taxCode: 'ZERO-RATED', description: 'Zero-rated / exempt',            ratePercent: 0.0,  taxTypeId: 1, countryId: null, isActive: true },
   ],
   // V17 parent lookup tables — rows come from the simple list above
   ...Object.fromEntries(PARENT_LOOKUP_TABLES.map((t) => [t.name, t.rows])),

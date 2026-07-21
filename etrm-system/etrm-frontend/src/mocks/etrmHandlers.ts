@@ -986,29 +986,45 @@ function computeGlAccount(input: Record<string, unknown>): Record<string, unknow
   const leId = input['legalEntityId'] as number | null;
   const bookId = input['bookId'] as number | null;
   const parentId = input['parentAccountId'] as number | null;
+  const costCenterId = input['costCenterId'] as number | null;
+  const taxCodeId = input['defaultTaxCodeId'] as number | null;
   const le = leId != null ? legalEntityStore.find((e) => e.legalEntityId === leId) : null;
   const book = bookId != null ? (booksStore as Array<Record<string, unknown>>).find((b) => b['bookId'] === bookId) : null;
   const parent = parentId != null
     ? (glAccountsStore as Array<Record<string, unknown>>).find((a) => a['accountId'] === parentId)
+    : null;
+  const costCenter = costCenterId != null
+    ? referenceRowSeed['cost_center']?.find((c) => c['costCenterId'] === costCenterId)
+    : null;
+  const taxCode = taxCodeId != null
+    ? referenceRowSeed['tax_code']?.find((t) => t['taxCodeId'] === taxCodeId)
     : null;
   return {
     ...input,
     legalEntityCode: le?.entityCode ?? null,
     bookCode: (book?.['bookCode'] as string | undefined) ?? null,
     parentAccountCode: (parent?.['accountCode'] as string | undefined) ?? null,
+    costCenterCode: (costCenter?.['costCenterCode'] as string | undefined) ?? null,
+    defaultTaxCode: (taxCode?.['taxCode'] as string | undefined) ?? null,
   };
 }
 
 // commodityType is now the numeric FK id into COMMODITY_TYPE_LOOKUP (V55) — see desksStore comment above.
+// V142 — costCenter (free text) replaced with costCenterId/costCenterCode (FK
+// into the new cost_center table, which itself FKs to profit_center) +
+// defaultTaxCodeId/defaultTaxCode (FK into the new tax_code table). See
+// mocks/referenceData.ts's cost_center/profit_center/tax_code rowSeed —
+// costCenterId 1/2 = CC-TRADING/CC-US-TRADING (UK/US trading desks, each
+// under their own legal entity's profit center), 3 = CC-RISK, 4 = CC-OPS.
 const glAccountsStore: unknown[] = [
-  { accountId: 1, accountCode: '4100', accountName: 'Trade Revenue — Physical Oil',         accountType: 'REVENUE',   commodityType: 1,             costCenter: 'TRADING',     description: 'Revenue from physical oil sale contracts — crude and products.', legalEntityId: 1, legalEntityCode: 'ACME-UK', bookId: 1, bookCode: 'CRUDE-PROP',  parentAccountId: null, parentAccountCode: null, normalBalance: 'CREDIT', currencyId: 1, externalGlCode: 'SAP-410010', isControlAccount: false, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { accountId: 2, accountCode: '4200', accountName: 'Trade Revenue — Physical Gas',         accountType: 'REVENUE',   commodityType: 2,             costCenter: 'TRADING',     description: 'Revenue from physical natural gas and LNG sale contracts.', legalEntityId: 2, legalEntityCode: 'ACME-US',  bookId: 3, bookCode: 'GAS-EU-TRADE', parentAccountId: null, parentAccountCode: null, normalBalance: 'CREDIT', currencyId: 2, externalGlCode: 'SAP-420010', isControlAccount: false, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { accountId: 3, accountCode: '4300', accountName: 'Trade Revenue — Power',               accountType: 'REVENUE',   commodityType: 3,             costCenter: 'TRADING',     description: 'Revenue from power sale contracts and ancillary services.', legalEntityId: 2, legalEntityCode: 'ACME-US',  bookId: 5, bookCode: 'POWER-CLIENT', parentAccountId: null, parentAccountCode: null, normalBalance: 'CREDIT', currencyId: 2, externalGlCode: 'SAP-430010', isControlAccount: false, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { accountId: 4, accountCode: '5100', accountName: 'Cost of Goods Sold — Physical Oil',   accountType: 'COST',      commodityType: 1,             costCenter: 'TRADING',     description: 'Purchase cost of physical oil — crude and products.', legalEntityId: 1, legalEntityCode: 'ACME-UK', bookId: 1, bookCode: 'CRUDE-PROP',  parentAccountId: null, parentAccountCode: null, normalBalance: 'DEBIT',  currencyId: 1, externalGlCode: 'SAP-510010', isControlAccount: false, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { accountId: 5, accountCode: '6100', accountName: 'Unrealised MTM — Open Positions',     accountType: 'PNL',       commodityType: null,          costCenter: 'RISK',        description: 'Mark-to-market fair value of all open physical and financial positions.', legalEntityId: null, legalEntityCode: null, bookId: null, bookCode: null, parentAccountId: null, parentAccountCode: null, normalBalance: 'DEBIT', currencyId: null, externalGlCode: 'SAP-610010', isControlAccount: true, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { accountId: 6, accountCode: '1200', accountName: 'Trade Receivables',                   accountType: 'ASSET',     commodityType: null,          costCenter: 'OPERATIONS',  description: 'Amounts owed by counterparties for settled trades.', legalEntityId: null, legalEntityCode: null, bookId: null, bookCode: null, parentAccountId: null, parentAccountCode: null, normalBalance: 'DEBIT', currencyId: null, externalGlCode: 'SAP-120000', isControlAccount: true, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { accountId: 7, accountCode: '2100', accountName: 'Trade Payables',                      accountType: 'LIABILITY', commodityType: null,          costCenter: 'OPERATIONS',  description: 'Amounts owed to counterparties for settled purchases.', legalEntityId: null, legalEntityCode: null, bookId: null, bookCode: null, parentAccountId: null, parentAccountCode: null, normalBalance: 'CREDIT', currencyId: null, externalGlCode: 'SAP-210000', isControlAccount: true, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { accountId: 8, accountCode: '4110', accountName: 'Trade Revenue — Crude Proprietary Book', accountType: 'REVENUE', commodityType: 1,           costCenter: 'TRADING',     description: 'Sub-account of Trade Revenue — Physical Oil, scoped to the crude proprietary book.', legalEntityId: 1, legalEntityCode: 'ACME-UK', bookId: 1, bookCode: 'CRUDE-PROP', parentAccountId: 1, parentAccountCode: '4100', normalBalance: 'CREDIT', currencyId: 1, externalGlCode: 'SAP-410011', isControlAccount: false, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { accountId: 1, accountCode: '4100', accountName: 'Trade Revenue — Physical Oil',         accountType: 'REVENUE',   commodityType: 1,             costCenterId: 1, costCenterCode: 'CC-TRADING',    defaultTaxCodeId: 1, defaultTaxCode: 'VAT-GB-STD', description: 'Revenue from physical oil sale contracts — crude and products.', legalEntityId: 1, legalEntityCode: 'ACME-UK', bookId: 1, bookCode: 'CRUDE-PROP',  parentAccountId: null, parentAccountCode: null, normalBalance: 'CREDIT', currencyId: 1, externalGlCode: 'SAP-410010', isControlAccount: false, isActive: true, createdAt: '2024-01-01T00:00:00Z', createdBy: 'SYSTEM', updatedAt: '2024-01-01T00:00:00Z', updatedBy: 'SYSTEM' },
+  { accountId: 2, accountCode: '4200', accountName: 'Trade Revenue — Physical Gas',         accountType: 'REVENUE',   commodityType: 2,             costCenterId: 2, costCenterCode: 'CC-US-TRADING', defaultTaxCodeId: null, defaultTaxCode: null,        description: 'Revenue from physical natural gas and LNG sale contracts.', legalEntityId: 2, legalEntityCode: 'ACME-US',  bookId: 3, bookCode: 'GAS-EU-TRADE', parentAccountId: null, parentAccountCode: null, normalBalance: 'CREDIT', currencyId: 2, externalGlCode: 'SAP-420010', isControlAccount: false, isActive: true, createdAt: '2024-01-01T00:00:00Z', createdBy: 'SYSTEM', updatedAt: '2024-01-01T00:00:00Z', updatedBy: 'SYSTEM' },
+  { accountId: 3, accountCode: '4300', accountName: 'Trade Revenue — Power',               accountType: 'REVENUE',   commodityType: 3,             costCenterId: 2, costCenterCode: 'CC-US-TRADING', defaultTaxCodeId: null, defaultTaxCode: null,        description: 'Revenue from power sale contracts and ancillary services.', legalEntityId: 2, legalEntityCode: 'ACME-US',  bookId: 5, bookCode: 'POWER-CLIENT', parentAccountId: null, parentAccountCode: null, normalBalance: 'CREDIT', currencyId: 2, externalGlCode: 'SAP-430010', isControlAccount: false, isActive: true, createdAt: '2024-01-01T00:00:00Z', createdBy: 'SYSTEM', updatedAt: '2024-01-01T00:00:00Z', updatedBy: 'SYSTEM' },
+  { accountId: 4, accountCode: '5100', accountName: 'Cost of Goods Sold — Physical Oil',   accountType: 'COST',      commodityType: 1,             costCenterId: 1, costCenterCode: 'CC-TRADING',    defaultTaxCodeId: 1, defaultTaxCode: 'VAT-GB-STD', description: 'Purchase cost of physical oil — crude and products.', legalEntityId: 1, legalEntityCode: 'ACME-UK', bookId: 1, bookCode: 'CRUDE-PROP',  parentAccountId: null, parentAccountCode: null, normalBalance: 'DEBIT',  currencyId: 1, externalGlCode: 'SAP-510010', isControlAccount: false, isActive: true, createdAt: '2024-01-01T00:00:00Z', createdBy: 'SYSTEM', updatedAt: '2024-01-01T00:00:00Z', updatedBy: 'SYSTEM' },
+  { accountId: 5, accountCode: '6100', accountName: 'Unrealised MTM — Open Positions',     accountType: 'PNL',       commodityType: null,          costCenterId: 3, costCenterCode: 'CC-RISK',       defaultTaxCodeId: null, defaultTaxCode: null,        description: 'Mark-to-market fair value of all open physical and financial positions.', legalEntityId: null, legalEntityCode: null, bookId: null, bookCode: null, parentAccountId: null, parentAccountCode: null, normalBalance: 'DEBIT', currencyId: null, externalGlCode: 'SAP-610010', isControlAccount: true, isActive: true, createdAt: '2024-01-01T00:00:00Z', createdBy: 'SYSTEM', updatedAt: '2024-01-01T00:00:00Z', updatedBy: 'SYSTEM' },
+  { accountId: 6, accountCode: '1200', accountName: 'Trade Receivables',                   accountType: 'ASSET',     commodityType: null,          costCenterId: 4, costCenterCode: 'CC-OPS',        defaultTaxCodeId: 3, defaultTaxCode: 'ZERO-RATED', description: 'Amounts owed by counterparties for settled trades.', legalEntityId: null, legalEntityCode: null, bookId: null, bookCode: null, parentAccountId: null, parentAccountCode: null, normalBalance: 'DEBIT', currencyId: null, externalGlCode: 'SAP-120000', isControlAccount: true, isActive: true, createdAt: '2024-01-01T00:00:00Z', createdBy: 'SYSTEM', updatedAt: '2024-01-01T00:00:00Z', updatedBy: 'SYSTEM' },
+  { accountId: 7, accountCode: '2100', accountName: 'Trade Payables',                      accountType: 'LIABILITY', commodityType: null,          costCenterId: 4, costCenterCode: 'CC-OPS',        defaultTaxCodeId: 3, defaultTaxCode: 'ZERO-RATED', description: 'Amounts owed to counterparties for settled purchases.', legalEntityId: null, legalEntityCode: null, bookId: null, bookCode: null, parentAccountId: null, parentAccountCode: null, normalBalance: 'CREDIT', currencyId: null, externalGlCode: 'SAP-210000', isControlAccount: true, isActive: true, createdAt: '2024-01-01T00:00:00Z', createdBy: 'SYSTEM', updatedAt: '2024-01-01T00:00:00Z', updatedBy: 'SYSTEM' },
+  { accountId: 8, accountCode: '4110', accountName: 'Trade Revenue — Crude Proprietary Book', accountType: 'REVENUE', commodityType: 1,           costCenterId: 1, costCenterCode: 'CC-TRADING',    defaultTaxCodeId: 1, defaultTaxCode: 'VAT-GB-STD', description: 'Sub-account of Trade Revenue — Physical Oil, scoped to the crude proprietary book.', legalEntityId: 1, legalEntityCode: 'ACME-UK', bookId: 1, bookCode: 'CRUDE-PROP', parentAccountId: 1, parentAccountCode: '4100', normalBalance: 'CREDIT', currencyId: 1, externalGlCode: 'SAP-410011', isControlAccount: false, isActive: true, createdAt: '2024-01-01T00:00:00Z', createdBy: 'SYSTEM', updatedAt: '2024-01-01T00:00:00Z', updatedBy: 'SYSTEM' },
 ];
 
 // ─── RINS — RENEWABLE FUEL STANDARD ──────────────────────────────────────────
@@ -3716,7 +3732,7 @@ export const etrmHandlers = [
   http.post(`${API}/gl-accounts`, async ({ request }) => {
     const input = (await request.json()) as Record<string, unknown>;
     const maxId = (glAccountsStore as Array<Record<string, unknown>>).reduce((m, r) => Math.max(m, Number(r['accountId'])), 0);
-    const row = { ...computeGlAccount(input), accountId: maxId + 1, createdAt: now() };
+    const row = { ...computeGlAccount(input), accountId: maxId + 1, createdAt: now(), createdBy: 'mock-user', updatedAt: now(), updatedBy: 'mock-user' };
     glAccountsStore.push(row);
     return HttpResponse.json(row, { status: 201 });
   }),
@@ -3725,7 +3741,7 @@ export const etrmHandlers = [
     const idx = s.findIndex((r) => r['accountId'] === Number(params.id));
     if (idx === -1) return problem(404, 'Not Found', `GL account ${String(params.id)} not found.`);
     const input = (await request.json()) as Record<string, unknown>;
-    s[idx] = { ...s[idx], ...computeGlAccount({ ...s[idx], ...input }) };
+    s[idx] = { ...s[idx], ...computeGlAccount({ ...s[idx], ...input }), updatedAt: now(), updatedBy: 'mock-user' };
     return HttpResponse.json(s[idx]);
   }),
   ...crudHandlers('gl-accounts', glAccountsStore as Array<Record<string, unknown>>, 'accountId'),

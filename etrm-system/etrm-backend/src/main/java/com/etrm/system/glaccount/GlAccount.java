@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -13,6 +14,11 @@ import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
@@ -26,9 +32,18 @@ import java.time.LocalDateTime;
  * `commodityType: number | null` type. parent_account_id is self-referencing
  * (gl_account -> gl_account); only the parent's own account_code is resolved
  * for display, no recursion.
+ *
+ * V142 — cost_center (free text) replaced with cost_center_id, an FK into the
+ * new dbo.cost_center table (which itself FKs to dbo.profit_center); the
+ * profit center is deliberately NOT duplicated here — reached by joining
+ * through cost_center, per the "don't duplicate a derivable segment"
+ * chart-of-accounts convention. Also added default_tax_code_id (FK to the new
+ * dbo.tax_code) and created_by/updated_by (this dedicated entity had fallen
+ * outside V137's registry-only governance-column audit).
  */
 @Entity
 @Table(name = "gl_account")
+@EntityListeners(AuditingEntityListener.class)
 public class GlAccount {
 
     @Id
@@ -65,9 +80,19 @@ public class GlAccount {
     @Column(name = "commodity_type")
     private Integer commodityType;
 
-    @Size(max = 100)
-    @Column(name = "cost_center", length = 100)
-    private String costCenter;
+    @Column(name = "cost_center_id")
+    private Integer costCenterId;
+
+    @Transient
+    @JsonProperty
+    private String costCenterCode;
+
+    @Column(name = "default_tax_code_id")
+    private Integer defaultTaxCodeId;
+
+    @Transient
+    @JsonProperty
+    private String defaultTaxCode;
 
     @Column(name = "description", columnDefinition = "nvarchar(max)")
     private String description;
@@ -113,11 +138,21 @@ public class GlAccount {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
-    @Column(name = "created_at", nullable = false)
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @CreatedBy
+    @Column(name = "created_by", nullable = false, updatable = false, length = 100)
+    private String createdBy;
+
+    @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    @LastModifiedBy
+    @Column(name = "updated_by", nullable = false, length = 100)
+    private String updatedBy;
 
     public Integer getAccountId() {
         return accountId;
@@ -181,12 +216,36 @@ public class GlAccount {
         this.commodityType = commodityType;
     }
 
-    public String getCostCenter() {
-        return costCenter;
+    public Integer getCostCenterId() {
+        return costCenterId;
     }
 
-    public void setCostCenter(String costCenter) {
-        this.costCenter = costCenter;
+    public void setCostCenterId(Integer costCenterId) {
+        this.costCenterId = costCenterId;
+    }
+
+    public String getCostCenterCode() {
+        return costCenterCode;
+    }
+
+    public void setCostCenterCode(String costCenterCode) {
+        this.costCenterCode = costCenterCode;
+    }
+
+    public Integer getDefaultTaxCodeId() {
+        return defaultTaxCodeId;
+    }
+
+    public void setDefaultTaxCodeId(Integer defaultTaxCodeId) {
+        this.defaultTaxCodeId = defaultTaxCodeId;
+    }
+
+    public String getDefaultTaxCode() {
+        return defaultTaxCode;
+    }
+
+    public void setDefaultTaxCode(String defaultTaxCode) {
+        this.defaultTaxCode = defaultTaxCode;
     }
 
     public String getDescription() {
@@ -293,11 +352,27 @@ public class GlAccount {
         this.createdAt = createdAt;
     }
 
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
     }
 }

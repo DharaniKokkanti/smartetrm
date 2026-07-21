@@ -7,7 +7,12 @@ export interface GlAccount {
   accountType: string;
   // FK to lookup_value(lookup_id), category='commodity_type' — see reference/commodity-types/types.ts COMMODITY_TYPE_LOOKUP.
   commodityType: number | null;
-  costCenter: string | null;
+  /** FK to dbo.cost_center, which itself FKs to dbo.profit_center — the profit center is reached by joining through this, not stored directly here. */
+  costCenterId: number | null;
+  costCenterCode: string | null;
+  /** FK to dbo.tax_code — the default tax code applied when posting to this account. */
+  defaultTaxCodeId: number | null;
+  defaultTaxCode: string | null;
   description: string | null;
   /** Booking company this account belongs to — null = shared/corporate account applying across all entities. */
   legalEntityId: number | null;
@@ -27,7 +32,10 @@ export interface GlAccount {
   isControlAccount: boolean;
   isActive: boolean;
   createdAt: string;
+  createdBy: string;
+  updatedAt: string;
+  updatedBy: string;
   /** V133 — optimistic locking; echo back on update or the save 409s. */
   rowVersion: number;
 }
-export type GlAccountInput = Omit<GlAccount, 'accountId' | 'createdAt' | 'legalEntityCode' | 'bookCode' | 'parentAccountCode'>;
+export type GlAccountInput = Omit<GlAccount, 'accountId' | 'createdAt' | 'createdBy' | 'updatedAt' | 'updatedBy' | 'legalEntityCode' | 'bookCode' | 'parentAccountCode' | 'costCenterCode' | 'defaultTaxCode'>;

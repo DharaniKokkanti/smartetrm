@@ -2,12 +2,13 @@ package com.etrm.system.glaccount;
 
 import com.etrm.system.book.BookRepository;
 import com.etrm.system.common.NotFoundException;
+import com.etrm.system.costcenter.CostCenterRepository;
 import com.etrm.system.legalentity.LegalEntityRepository;
 import com.etrm.system.lookup.LookupResolutionService;
+import com.etrm.system.taxcode.TaxCodeRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -19,13 +20,18 @@ public class GlAccountService {
     private final GlAccountRepository repository;
     private final LegalEntityRepository legalEntityRepository;
     private final BookRepository bookRepository;
+    private final CostCenterRepository costCenterRepository;
+    private final TaxCodeRepository taxCodeRepository;
     private final LookupResolutionService lookupResolutionService;
 
     public GlAccountService(GlAccountRepository repository, LegalEntityRepository legalEntityRepository,
-                             BookRepository bookRepository, LookupResolutionService lookupResolutionService) {
+                             BookRepository bookRepository, CostCenterRepository costCenterRepository,
+                             TaxCodeRepository taxCodeRepository, LookupResolutionService lookupResolutionService) {
         this.repository = repository;
         this.legalEntityRepository = legalEntityRepository;
         this.bookRepository = bookRepository;
+        this.costCenterRepository = costCenterRepository;
+        this.taxCodeRepository = taxCodeRepository;
         this.lookupResolutionService = lookupResolutionService;
     }
 
@@ -52,6 +58,14 @@ public class GlAccountService {
             repository.findById(account.getParentAccountId())
                     .ifPresent(p -> account.setParentAccountCode(p.getAccountCode()));
         }
+        if (account.getCostCenterId() != null) {
+            costCenterRepository.findById(account.getCostCenterId())
+                    .ifPresent(c -> account.setCostCenterCode(c.getCostCenterCode()));
+        }
+        if (account.getDefaultTaxCodeId() != null) {
+            taxCodeRepository.findById(account.getDefaultTaxCodeId())
+                    .ifPresent(t -> account.setDefaultTaxCode(t.getTaxCode()));
+        }
         return account;
     }
 
@@ -63,9 +77,6 @@ public class GlAccountService {
     public GlAccount create(GlAccount input) {
         resolveForeignKeys(input);
         input.setAccountId(null);
-        LocalDateTime now = LocalDateTime.now();
-        input.setCreatedAt(now);
-        input.setUpdatedAt(now);
         return hydrate(repository.save(input));
     }
 
@@ -74,8 +85,13 @@ public class GlAccountService {
                 .orElseThrow(() -> new NotFoundException("No GL account with id " + id + "."));
         resolveForeignKeys(input);
         input.setAccountId(id);
+        // created_at/created_by are @CreatedDate/@CreatedBy — JPA auditing
+        // only populates those on insert, so the request body never carries
+        // them; without copying them from the existing row here, updatable=
+        // false keeps the DB value untouched but the response would show
+        // them as null.
         input.setCreatedAt(existing.getCreatedAt());
-        input.setUpdatedAt(LocalDateTime.now());
+        input.setCreatedBy(existing.getCreatedBy());
         return hydrate(repository.save(input));
     }
 
@@ -83,7 +99,6 @@ public class GlAccountService {
         GlAccount existing = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("No GL account with id " + id + "."));
         existing.setIsActive(false);
-        existing.setUpdatedAt(LocalDateTime.now());
         repository.save(existing);
     }
 }
