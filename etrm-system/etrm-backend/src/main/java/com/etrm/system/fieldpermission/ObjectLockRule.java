@@ -1,9 +1,22 @@
 package com.etrm.system.fieldpermission;
 
 import jakarta.persistence.*;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDateTime;
+
+// V148 — added created_at/created_by/updated_at/updated_by (governance-column
+// sweep); this table had none of the 4 before. Read-only from
+// FieldPermissionService's perspective (no create/update endpoint exists for
+// it today), so JPA auditing populating these at insert/flush time is the
+// only wiring needed.
 @Entity
 @Table(name = "object_lock_rule")
+@EntityListeners(AuditingEntityListener.class)
 public class ObjectLockRule {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,6 +56,22 @@ public class ObjectLockRule {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @CreatedBy
+    @Column(name = "created_by", nullable = false, updatable = false, length = 100)
+    private String createdBy;
+
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @LastModifiedBy
+    @Column(name = "updated_by", nullable = false, length = 100)
+    private String updatedBy;
+
     public Integer getLockRuleId() { return lockRuleId; }
     public void setLockRuleId(Integer lockRuleId) { this.lockRuleId = lockRuleId; }
     public Integer getRowVersion() { return rowVersion; }
@@ -63,4 +92,12 @@ public class ObjectLockRule {
     public void setSortOrder(Short sortOrder) { this.sortOrder = sortOrder; }
     public Boolean getIsActive() { return isActive; }
     public void setIsActive(Boolean isActive) { this.isActive = isActive; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public String getCreatedBy() { return createdBy; }
+    public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public String getUpdatedBy() { return updatedBy; }
+    public void setUpdatedBy(String updatedBy) { this.updatedBy = updatedBy; }
 }

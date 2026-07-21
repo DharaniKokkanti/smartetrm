@@ -4,11 +4,9 @@ import com.etrm.system.common.NotFoundException;
 import com.etrm.system.currency.CurrencyRepository;
 import com.etrm.system.product.ProductRepository;
 import com.etrm.system.uom.UnitOfMeasureRepository;
-import org.springframework.data.domain.AuditorAware;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -21,19 +19,16 @@ public class PipelineTariffService {
     private final ProductRepository productRepository;
     private final CurrencyRepository currencyRepository;
     private final UnitOfMeasureRepository uomRepository;
-    private final AuditorAware<String> auditorAware;
 
     public PipelineTariffService(PipelineTariffRepository repository, PipelineRepository pipelineRepository,
                                   PipelinePointRepository pointRepository, ProductRepository productRepository,
-                                  CurrencyRepository currencyRepository, UnitOfMeasureRepository uomRepository,
-                                  AuditorAware<String> auditorAware) {
+                                  CurrencyRepository currencyRepository, UnitOfMeasureRepository uomRepository) {
         this.repository = repository;
         this.pipelineRepository = pipelineRepository;
         this.pointRepository = pointRepository;
         this.productRepository = productRepository;
         this.currencyRepository = currencyRepository;
         this.uomRepository = uomRepository;
-        this.auditorAware = auditorAware;
     }
 
     private PipelinePoint resolvePoint(String pointCode) {
@@ -70,8 +65,6 @@ public class PipelineTariffService {
     public PipelineTariff create(PipelineTariff input) {
         resolveForeignKeys(input);
         input.setTariffId(null);
-        input.setCreatedAt(LocalDateTime.now());
-        input.setCreatedBy(auditorAware.getCurrentAuditor().orElse("SYSTEM"));
         return hydrate(repository.save(input));
     }
 
@@ -80,6 +73,11 @@ public class PipelineTariffService {
                 .orElseThrow(() -> new NotFoundException("No pipeline tariff with id " + id + "."));
         resolveForeignKeys(input);
         input.setTariffId(id);
+        // created_at/created_by are @CreatedDate/@CreatedBy (V148) — JPA
+        // auditing only populates those on insert, so the request body never
+        // carries them; without copying them from the existing row here,
+        // updatable=false keeps the DB value untouched but the response
+        // would show them as null.
         input.setCreatedAt(existing.getCreatedAt());
         input.setCreatedBy(existing.getCreatedBy());
         return hydrate(repository.save(input));

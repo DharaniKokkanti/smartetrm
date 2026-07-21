@@ -3,11 +3,9 @@ package com.etrm.system.pipeline;
 import com.etrm.system.common.NotFoundException;
 import com.etrm.system.holidaycalendar.HolidayCalendarRepository;
 import com.etrm.system.product.ProductRepository;
-import org.springframework.data.domain.AuditorAware;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -18,16 +16,13 @@ public class PipelineCycleService {
     private final PipelineRepository pipelineRepository;
     private final ProductRepository productRepository;
     private final HolidayCalendarRepository calendarRepository;
-    private final AuditorAware<String> auditorAware;
 
     public PipelineCycleService(PipelineCycleRepository repository, PipelineRepository pipelineRepository,
-                                 ProductRepository productRepository, HolidayCalendarRepository calendarRepository,
-                                 AuditorAware<String> auditorAware) {
+                                 ProductRepository productRepository, HolidayCalendarRepository calendarRepository) {
         this.repository = repository;
         this.pipelineRepository = pipelineRepository;
         this.productRepository = productRepository;
         this.calendarRepository = calendarRepository;
-        this.auditorAware = auditorAware;
     }
 
     private PipelineCycle hydrate(PipelineCycle cycle) {
@@ -48,8 +43,6 @@ public class PipelineCycleService {
 
     public PipelineCycle create(PipelineCycle input) {
         input.setCycleId(null);
-        input.setCreatedAt(LocalDateTime.now());
-        input.setCreatedBy(auditorAware.getCurrentAuditor().orElse("SYSTEM"));
         return hydrate(repository.save(input));
     }
 
@@ -57,6 +50,11 @@ public class PipelineCycleService {
         PipelineCycle existing = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("No pipeline cycle with id " + id + "."));
         input.setCycleId(id);
+        // created_at/created_by are @CreatedDate/@CreatedBy (V148) — JPA
+        // auditing only populates those on insert, so the request body never
+        // carries them; without copying them from the existing row here,
+        // updatable=false keeps the DB value untouched but the response
+        // would show them as null.
         input.setCreatedAt(existing.getCreatedAt());
         input.setCreatedBy(existing.getCreatedBy());
         return hydrate(repository.save(input));

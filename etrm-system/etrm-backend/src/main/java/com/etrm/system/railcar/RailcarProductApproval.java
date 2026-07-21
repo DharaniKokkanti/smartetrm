@@ -3,6 +3,7 @@ package com.etrm.system.railcar;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -12,6 +13,11 @@ import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -23,9 +29,15 @@ import java.time.LocalDateTime;
  * ...). This entity/controller is the first backend built against it, scoped
  * only to asset_type='RAILCAR' via RailcarController's product-approvals
  * sub-resource — other asset types are not wired up yet.
+ *
+ * V148 — added updated_at/updated_by (governance-column sweep) and upgraded
+ * created_at/created_by from plain fields to real @CreatedDate/@CreatedBy
+ * JPA-auditing annotations; RailcarController.addProductApproval() no longer
+ * needs to set them manually.
  */
 @Entity
 @Table(name = "mot_asset_product_approval")
+@EntityListeners(AuditingEntityListener.class)
 public class RailcarProductApproval {
 
     @Id
@@ -107,11 +119,21 @@ public class RailcarProductApproval {
     @Column(name = "notes", length = 300)
     private String notes;
 
+    @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @CreatedBy
     @Column(name = "created_by", nullable = false, updatable = false, length = 100)
     private String createdBy;
+
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @LastModifiedBy
+    @Column(name = "updated_by", nullable = false, length = 100)
+    private String updatedBy;
 
     public Integer getAssetApprovalId() {
         return assetApprovalId;
@@ -271,5 +293,21 @@ public class RailcarProductApproval {
 
     public void setCreatedBy(String createdBy) {
         this.createdBy = createdBy;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
     }
 }
