@@ -14,20 +14,23 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * dbo.netting_agreement only ever got created_at/created_by, no
- * updated_at/updated_by — matches the frontend NettingAgreement type,
- * which only has createdAt. Does not extend AuditableEntity, but created_by
- * is still NOT NULL on the live schema, so it's mapped here with the same
- * @CreatedDate/@CreatedBy field-level JPA-auditing annotations PeriodField
- * uses (see Period.java's doc comment) — an earlier version of this entity
- * left created_by completely unmapped, which made every POST here 100% fail
- * with a NOT NULL constraint violation.
+ * dbo.netting_agreement originally only had created_at/created_by — V148
+ * added updated_at/updated_by (governance-column sweep), now mapped with the
+ * same @LastModifiedDate/@LastModifiedBy field-level JPA-auditing
+ * annotations as the rest of this batch. Does not extend AuditableEntity,
+ * but created_by is still NOT NULL on the live schema, so it's mapped here
+ * with the same @CreatedDate/@CreatedBy field-level JPA-auditing annotations
+ * PeriodField uses (see Period.java's doc comment) — an earlier version of
+ * this entity left created_by completely unmapped, which made every POST
+ * here 100% fail with a NOT NULL constraint violation.
  */
 @Entity
 @Table(name = "netting_agreement")
@@ -93,6 +96,14 @@ public class NettingAgreement {
     @CreatedBy
     @Column(name = "created_by", nullable = false, updatable = false, length = 100)
     private String createdBy;
+
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @LastModifiedBy
+    @Column(name = "updated_by", nullable = false, length = 100)
+    private String updatedBy;
 
     public Integer getNettingId() {
         return nettingId;
@@ -204,5 +215,21 @@ public class NettingAgreement {
 
     public void setCreatedBy(String createdBy) {
         this.createdBy = createdBy;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
     }
 }

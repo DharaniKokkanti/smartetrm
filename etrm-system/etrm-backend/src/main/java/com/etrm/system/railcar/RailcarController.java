@@ -4,12 +4,10 @@ import com.etrm.system.common.NotFoundException;
 import com.etrm.system.product.ProductRepository;
 import com.etrm.system.uom.UnitOfMeasureRepository;
 import jakarta.validation.Valid;
-import org.springframework.data.domain.AuditorAware;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -26,20 +24,17 @@ public class RailcarController {
     private final RailcarProductApprovalRepository productApprovalRepository;
     private final ProductRepository productRepository;
     private final UnitOfMeasureRepository uomRepository;
-    private final AuditorAware<String> auditorAware;
 
     public RailcarController(
             RailcarService service,
             RailcarProductApprovalRepository productApprovalRepository,
             ProductRepository productRepository,
-            UnitOfMeasureRepository uomRepository,
-            AuditorAware<String> auditorAware
+            UnitOfMeasureRepository uomRepository
     ) {
         this.service = service;
         this.productApprovalRepository = productApprovalRepository;
         this.productRepository = productRepository;
         this.uomRepository = uomRepository;
-        this.auditorAware = auditorAware;
     }
 
     // ── Core ──────────────────────────────────────────────────────────────
@@ -89,8 +84,9 @@ public class RailcarController {
         input.setAssetApprovalId(null);
         input.setAssetType(RAILCAR_ASSET_TYPE);
         input.setAssetId(railcarId);
-        input.setCreatedAt(LocalDateTime.now());
-        input.setCreatedBy(auditorAware.getCurrentAuditor().orElse("SYSTEM"));
+        // created_at/created_by/updated_at/updated_by are @CreatedDate/
+        // @CreatedBy/@LastModifiedDate/@LastModifiedBy (V148) — JPA auditing
+        // populates them automatically at flush time.
         return ResponseEntity.status(HttpStatus.CREATED).body(hydrate(productApprovalRepository.save(input)));
     }
 

@@ -54,9 +54,17 @@ public class PipelineSegmentService {
     }
 
     public PipelineSegment update(Integer id, PipelineSegment input) {
-        repository.findById(id).orElseThrow(() -> new NotFoundException("No pipeline segment with id " + id + "."));
+        PipelineSegment existing = repository.findById(id)
+                .orElseThrow(() -> new NotFoundException("No pipeline segment with id " + id + "."));
         resolveForeignKeys(input);
         input.setSegmentId(id);
+        // created_at/created_by are @CreatedDate/@CreatedBy (V148) — JPA
+        // auditing only populates those on insert, so the request body never
+        // carries them; without copying them from the existing row here,
+        // updatable=false keeps the DB value untouched but the response
+        // would show them as null.
+        input.setCreatedAt(existing.getCreatedAt());
+        input.setCreatedBy(existing.getCreatedBy());
         return hydrate(repository.save(input));
     }
 
