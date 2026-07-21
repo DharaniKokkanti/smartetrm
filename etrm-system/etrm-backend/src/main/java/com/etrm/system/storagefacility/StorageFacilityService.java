@@ -59,9 +59,17 @@ public class StorageFacilityService {
     }
 
     public StorageFacility update(Integer id, StorageFacility input) {
-        repository.findById(id).orElseThrow(() -> new NotFoundException("No storage facility with id " + id + "."));
+        StorageFacility existing = repository.findById(id)
+                .orElseThrow(() -> new NotFoundException("No storage facility with id " + id + "."));
         normalizeCodeField(input);
         input.setStorageId(id);
+        // V151 — created_at/created_by are @CreatedDate/@CreatedBy — JPA
+        // auditing only populates those on insert, so the request body never
+        // carries them; without copying them from the existing row here,
+        // updatable=false keeps the DB value untouched but the response
+        // would show them as null.
+        input.setCreatedAt(existing.getCreatedAt());
+        input.setCreatedBy(existing.getCreatedBy());
         return hydrate(repository.save(input));
     }
 
