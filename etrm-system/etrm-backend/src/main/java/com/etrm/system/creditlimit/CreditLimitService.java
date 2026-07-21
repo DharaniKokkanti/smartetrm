@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -97,8 +96,6 @@ public class CreditLimitService {
         for (CreditLimitLineItem item : lineItems) {
             item.setLineItemId(null);
             item.setCreditLimitId(creditLimitId);
-            item.setCreatedAt(LocalDateTime.now());
-            item.setUpdatedAt(LocalDateTime.now());
             lineItemRepository.save(item);
         }
     }
@@ -112,8 +109,6 @@ public class CreditLimitService {
         resolveForeignKeys(input);
         List<CreditLimitLineItem> lineItems = input.getLineItems();
         input.setCreditLimitId(null);
-        input.setCreatedAt(LocalDateTime.now());
-        input.setUpdatedAt(LocalDateTime.now());
         CreditLimit saved = repository.save(input);
         saveLineItems(saved.getCreditLimitId(), lineItems);
         return hydrate(saved);
@@ -125,8 +120,13 @@ public class CreditLimitService {
         resolveForeignKeys(input);
         List<CreditLimitLineItem> lineItems = input.getLineItems();
         input.setCreditLimitId(id);
+        // created_at/created_by are @CreatedDate/@CreatedBy — JPA auditing
+        // only populates those on insert, so the request body never carries
+        // them; without copying them from the existing row here, updatable=
+        // false keeps the DB value untouched but the response would show
+        // them as null.
         input.setCreatedAt(existing.getCreatedAt());
-        input.setUpdatedAt(LocalDateTime.now());
+        input.setCreatedBy(existing.getCreatedBy());
         CreditLimit saved = repository.save(input);
         saveLineItems(id, lineItems);
         return hydrate(saved);
@@ -136,7 +136,6 @@ public class CreditLimitService {
         cl.setStatusId(statusTypeRepository.findByTypeCodeIgnoreCase(code)
                 .orElseThrow(() -> new NotFoundException("No credit limit status \"" + code + "\"."))
                 .getCreditLimitStatusTypeId());
-        cl.setUpdatedAt(LocalDateTime.now());
         repository.save(cl);
     }
 

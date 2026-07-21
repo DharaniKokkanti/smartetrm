@@ -3,11 +3,9 @@ package com.etrm.system.container;
 import com.etrm.system.common.ConflictException;
 import com.etrm.system.common.NotFoundException;
 import com.etrm.system.transportoperator.TransportOperatorRepository;
-import org.springframework.data.domain.AuditorAware;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -16,13 +14,10 @@ public class ContainerService {
 
     private final ContainerRepository repository;
     private final TransportOperatorRepository operatorRepository;
-    private final AuditorAware<String> auditorAware;
 
-    public ContainerService(ContainerRepository repository, TransportOperatorRepository operatorRepository,
-                             AuditorAware<String> auditorAware) {
+    public ContainerService(ContainerRepository repository, TransportOperatorRepository operatorRepository) {
         this.repository = repository;
         this.operatorRepository = operatorRepository;
-        this.auditorAware = auditorAware;
     }
 
     private Container hydrate(Container container) {
@@ -40,8 +35,6 @@ public class ContainerService {
             throw new ConflictException("Container Number \"" + input.getContainerNumber() + "\" already exists.");
         }
         input.setContainerId(null);
-        input.setCreatedAt(LocalDateTime.now());
-        input.setCreatedBy(auditorAware.getCurrentAuditor().orElse("SYSTEM"));
         return hydrate(repository.save(input));
     }
 
@@ -49,6 +42,11 @@ public class ContainerService {
         Container existing = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("No container with id " + id + "."));
         input.setContainerId(id);
+        // created_at/created_by are @CreatedDate/@CreatedBy — JPA auditing
+        // only populates those on insert, so the request body never carries
+        // them; without copying them from the existing row here, updatable=
+        // false keeps the DB value untouched but the response would show
+        // them as null.
         input.setCreatedAt(existing.getCreatedAt());
         input.setCreatedBy(existing.getCreatedBy());
         return hydrate(repository.save(input));
