@@ -4,7 +4,6 @@ import com.etrm.system.common.NotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -24,9 +23,6 @@ public class RinFuelCategoryService {
 
     public RinFuelCategory create(RinFuelCategory input) {
         input.setCategoryId(null);
-        LocalDateTime now = LocalDateTime.now();
-        input.setCreatedAt(now);
-        input.setUpdatedAt(now);
         return repository.save(input);
     }
 
@@ -34,8 +30,13 @@ public class RinFuelCategoryService {
         RinFuelCategory existing = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("No RIN fuel category with id " + id + "."));
         input.setCategoryId(id);
+        // created_at/created_by are @CreatedDate/@CreatedBy — JPA auditing
+        // only populates those on insert, so the request body never carries
+        // them; without copying them from the existing row here, updatable=
+        // false keeps the DB value untouched but the response would show
+        // them as null.
         input.setCreatedAt(existing.getCreatedAt());
-        input.setUpdatedAt(LocalDateTime.now());
+        input.setCreatedBy(existing.getCreatedBy());
         return repository.save(input);
     }
 
