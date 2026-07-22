@@ -6,6 +6,7 @@ import {
 } from 'antd';
 import dayjs from 'dayjs';
 import { PageHeader } from '@components/layout/PageHeader';
+import { StickyFormFooter } from '@components/layout/StickyFormFooter';
 import type { LegalEntityInput } from './types';
 import { useCustomConfigOptions } from '@features/tier1/counterparty/configLookups';
 import { useLegalEntity, useLegalEntities, useLegalEntityChildren, useSaveLegalEntityDraft } from './hooks';
@@ -118,12 +119,6 @@ export function LegalEntityFormPage() {
         title={isNew ? 'New Legal Entity' : existing ? existing.entityCode : 'Legal Entity'}
         description="Internal trading company, subsidiary, or branch — with contacts, addresses, guarantees, and (for joint ventures) ownership added inline."
         moduleGroup="trade"
-        extra={
-          <Space>
-            <Button onClick={() => { activeRef.current = false; navigate('/tier1/legal-entity'); }}>Cancel</Button>
-            <Button type="primary" loading={saveDraft.isPending} onClick={handleSave}>Save Legal Entity</Button>
-          </Space>
-        }
       />
 
       {loading ? <Spin /> : (
@@ -280,6 +275,15 @@ export function LegalEntityFormPage() {
             },
           ]} />
         </Form>
+      )}
+
+      {!loading && (
+        <StickyFormFooter>
+          <Space>
+            <Button onClick={() => { activeRef.current = false; navigate('/tier1/legal-entity'); }}>Cancel</Button>
+            <Button type="primary" loading={saveDraft.isPending} onClick={handleSave}>Save Legal Entity</Button>
+          </Space>
+        </StickyFormFooter>
       )}
     </>
   );

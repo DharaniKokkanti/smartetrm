@@ -6,6 +6,7 @@ import {
 } from 'antd';
 import dayjs from 'dayjs';
 import { PageHeader } from '@components/layout/PageHeader';
+import { StickyFormFooter } from '@components/layout/StickyFormFooter';
 import type { AddressAssignment, BankAccount, ContactAssignment, CounterpartyInput, TaxRegistration } from './types';
 import { useCounterparty, useCounterparties, useCounterpartyChildren, useSaveCounterpartyDraft } from './hooks';
 import { useTableRows } from '@features/tier2/hooks';
@@ -164,12 +165,6 @@ export function CounterpartyFormPage() {
         title={isNew ? 'New Counterparty' : existing ? existing.legalName : 'Counterparty'}
         description="External trading counterparty, with contacts, bank accounts, and addresses added inline."
         moduleGroup="trade"
-        extra={
-          <Space>
-            <Button onClick={() => { activeRef.current = false; navigate('/tier1/counterparty'); }}>Cancel</Button>
-            <Button type="primary" loading={saveDraft.isPending} onClick={handleSave}>Save Counterparty</Button>
-          </Space>
-        }
       />
 
       {loading ? <Spin /> : (
@@ -314,6 +309,15 @@ export function CounterpartyFormPage() {
             },
           ]} />
         </Form>
+      )}
+
+      {!loading && (
+        <StickyFormFooter>
+          <Space>
+            <Button onClick={() => { activeRef.current = false; navigate('/tier1/counterparty'); }}>Cancel</Button>
+            <Button type="primary" loading={saveDraft.isPending} onClick={handleSave}>Save Counterparty</Button>
+          </Space>
+        </StickyFormFooter>
       )}
     </>
   );
