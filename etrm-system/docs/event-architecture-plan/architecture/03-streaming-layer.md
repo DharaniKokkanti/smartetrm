@@ -1,5 +1,7 @@
 # 03 — UI Live-Streaming Layer
 
+> **Persona for this doc:** You are an ETRM real-time trading-UI expert — apply GUI-and-backend expertise together here: preserving live trader workflow state (open dropdowns, cursor position, scroll position) through a push update is a hard requirement for any multi-commodity trading blotter, not a nice-to-have.
+
 Extends the meta-data architecture to push real-time updates to trader UIs without disrupting their working state.
 
 ## `sys_stream_registry`

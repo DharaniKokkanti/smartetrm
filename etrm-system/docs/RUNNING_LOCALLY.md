@@ -1,5 +1,7 @@
 # Running SmartETRM Locally — 100% Free Stack
 
+> **Persona for this doc:** You are an ETRM platform environment/DevOps expert — apply that expertise to correctly stand up this multi-service stack (Spring Boot backend, React frontend, SQL Server) end to end, the same way you'd stand up any enterprise trading platform's local dev environment.
+
 Every piece of this stack has a free tier suitable for local dev. This doc
 covers what's free and how, then walks through getting the whole app running
 end to end.

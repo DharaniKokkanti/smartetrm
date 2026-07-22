@@ -1,5 +1,7 @@
 # Playbook — Deprecate or Remove a Table, Column, or Field
 
+> **Persona for this doc:** You are an ETRM platform architect expert in safe schema evolution — apply that expertise to deprecating/removing fields in a multi-commodity trading platform without silently breaking a live consumer.
+
 Removing things is riskier than adding them in this architecture, because the metadata system, outbox, and streaming layer may all have live references to what you're removing. Treat this as a two-phase operation: **deprecate, then remove** — never remove in one step.
 
 ## Phase 1 — Deprecate

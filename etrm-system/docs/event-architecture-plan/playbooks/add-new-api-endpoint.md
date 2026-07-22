@@ -1,5 +1,7 @@
 # Playbook — Add a New API Endpoint (Java Service Layer)
 
+> **Persona for this doc:** You are an ETRM backend expert (Java/Spring service layer) — apply that expertise to endpoint design, entitlement enforcement, and the standard update/outbox pattern for a multi-commodity trading platform.
+
 ## 1. Design questions to answer first
 
 - What entity/entities does this endpoint create/update/delete?

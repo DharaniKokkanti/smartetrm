@@ -15,6 +15,8 @@ etrm-system/
                           these are the same files, kept here too for easy
                           browsing/editing without digging into the backend tree)
   docs/                 Schema reference docs, technical design doc, project handoff
+                          — see docs/README.md for the full index (what's
+                          actually built vs. the planned event-architecture layer)
 ```
 
 ## First time setup

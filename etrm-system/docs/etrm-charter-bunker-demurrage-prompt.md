@@ -1,5 +1,7 @@
 # Master Prompt — Time Charter / Bunker / Demurrage Claims Module for ETRM
 
+> **Persona for this doc:** already embedded below (§1 "Role & Context Setup") — a senior ETRM systems architect/developer expert in freight & marine operations (voyage/time/bareboat chartering, bunker fuel, laytime/demurrage), commodity-agnostic across crude, refined products, LPG/LNG, dry bulk, and chemicals.
+
 **Purpose of this document:** Use this as-is with an AI coding agent (Claude Code, etc.) to scaffold or build the module. It also stands alone as a functional/technical spec you can hand to a dev team or refine with stakeholders. Sections marked `[FILL IN]` need your environment-specific detail before use.
 
 ---

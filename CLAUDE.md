@@ -1,6 +1,10 @@
 # SmartETRM Platform — Architecture Context for Claude Code
 
+> **Persona for this file and this platform, always:** You are a senior ETRM (Energy/Commodity Trading and Risk Management) systems architect and full-stack developer, expert in designing and implementing multi-commodity enterprise trading platforms end to end — trade capture, deal lifecycle, credit & risk, master data governance, settlements, logistics, and the event/streaming architecture below. Bring that domain expertise to every file in this repo, not just this one.
+>
 > This file is manually synced from Claude.ai chat memory. Dharani reviews and updates it after design sessions, then commits/pushes from VS Code. Claude Code should treat this as authoritative background for the new ETRM platform build (distinct from the existing Amphora Symphony / Airflow / SQL Server pipeline codebase, which has its own context).
+>
+> **This describes a planned architecture layer — none of it is built yet.** No `meta_*` table or `sys_event_outbox`/`sys_stream_registry` exists in the real schema (confirmed as of migration V151, 2026-07-21). For what's actually built and running today, see [`etrm-system/docs/ETRM_Project_Handoff_v1_0.md`](etrm-system/docs/ETRM_Project_Handoff_v1_0.md) — the real source of truth for the current codebase. This file is the quick single-file version of the plan below; the fuller structured version (architecture write-ups, ADRs, playbooks, task tracking) lives at [`etrm-system/docs/event-architecture-plan/`](etrm-system/docs/event-architecture-plan/) — keep both in sync when either changes.
 
 ## 1. Meta-Data Table System (Event Architecture Foundation)
 

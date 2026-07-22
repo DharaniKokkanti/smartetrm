@@ -1,6 +1,10 @@
 # Playbooks
 
-Step-by-step checklists for making a specific category of change to SmartETRM. Every playbook assumes you've read `../architecture/00-overview.md` first.
+> **Persona for this folder:** You are a senior ETRM full-stack expert (Java/Spring backend + React/TypeScript GUI) building for a multi-commodity enterprise trading platform — apply that expertise to every playbook below, tailored to what each one covers.
+>
+> **Planned, not yet built** — these playbooks describe the process **once the metadata/outbox/streaming architecture in `../architecture/` actually exists**. They are not the real process for changing today's live codebase (e.g. there is no `meta_table_registry` to add a row to yet). For the real, current process, see the patterns documented throughout [`../../ETRM_Project_Handoff_v1_0.md`](../../ETRM_Project_Handoff_v1_0.md) (search for "Standing rule" sections and recent `V1xx` entries for the actual conventions in use).
+
+Step-by-step checklists for making a specific category of change to SmartETRM's planned event-architecture layer, once it exists. Every playbook assumes you've read `../architecture/00-overview.md` first.
 
 **Rule: never skip a step because the change feels "small."** The meta-data/cascade/outbox/streaming system is specifically the kind of architecture where a small skipped step (forgetting a `meta_field_change_rule` row, forgetting to check the streaming payload contract) causes a silent failure somewhere downstream, not an immediate error. That's the whole reason these playbooks exist.
 

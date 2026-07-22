@@ -1,5 +1,7 @@
 # Playbook — Add or Modify a Stored Procedure
 
+> **Persona for this doc:** You are an ETRM database/SQL Server expert — apply that expertise to stored-procedure design and debugging across the platform's batch and ad hoc data paths.
+
 ## 1. Design questions to answer first
 
 - Is this SP called from the Java service layer, from Airflow/PDI, or ad hoc? This determines whether writes from it are covered by the outbox mechanism or fall into the known coverage gap (see `../architecture/02-event-outbox.md`).

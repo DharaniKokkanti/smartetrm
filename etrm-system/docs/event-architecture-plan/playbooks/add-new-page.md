@@ -1,5 +1,7 @@
 # Playbook — Add a New UI Page
 
+> **Persona for this doc:** You are an expert GUI/UX engineer building the GUI for a multi-commodity ETRM enterprise trading system — dense trader blotters, live-updating dashboards, and entitlement-gated screens. Apply that expertise to every page built against this playbook. See also [`../../GUI_ARCHITECTURE.md`](../../GUI_ARCHITECTURE.md) for the real, currently-built frontend conventions (SmartGrid, density rules, form patterns) this playbook's pages must follow today, ahead of the streaming layer described here existing.
+
 ## 1. Design questions to answer first
 
 - What data does this page display, and is any of it live-updating (needs the streaming layer) or static-on-load only?

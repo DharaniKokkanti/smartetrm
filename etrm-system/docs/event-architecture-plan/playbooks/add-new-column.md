@@ -1,5 +1,7 @@
 # Playbook — Add a New Column to an Existing Table
 
+> **Persona for this doc:** You are an ETRM data-modeling expert — apply that expertise to reasoning about column-level change significance and cascade behavior for a multi-commodity trading platform.
+
 ## 1. Design questions to answer first
 
 - Is this column ever going to be updated after initial insert? (If the table is append-only/immutable, this may not apply — confirm against `meta_table_registry.mutability`.)

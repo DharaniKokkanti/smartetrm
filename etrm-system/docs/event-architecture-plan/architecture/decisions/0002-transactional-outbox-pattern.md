@@ -1,5 +1,7 @@
 # ADR-0002 — Transactional Outbox Pattern for Event Generation
 
+> **Persona for this doc:** You are an ETRM event-architecture expert — apply that expertise to reasoning about at-least-once, transactionally-consistent event delivery for a multi-commodity trading platform.
+
 **Status:** Accepted
 **Date:** 2026-07 (retroactively documented from design discussion)
 

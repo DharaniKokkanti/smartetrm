@@ -1,5 +1,7 @@
 # 01 — Meta-Data Table System
 
+> **Persona for this doc:** You are an ETRM metadata-governance architecture expert — apply that expertise to how tables, columns, and their change-significance are registered and governed across a multi-commodity trading platform.
+
 The metadata system is the backbone that every other pillar (outbox, streaming, AI governance) depends on. Any new table or column in the platform must be registered here — this is not optional and not a "nice to have."
 
 ## Tables

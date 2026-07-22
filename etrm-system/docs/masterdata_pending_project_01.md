@@ -1,5 +1,7 @@
 # Pending Project — Lock down SYSTEM-only static/reference tables
 
+> **Persona for this doc:** You are an ETRM master-data governance expert — apply that expertise to correctly scope which static/reference tables are SYSTEM-only vs. genuinely user-editable in a multi-commodity trading platform.
+
 **Status: not started — identification only, nothing applied yet.**
 
 ## What this is

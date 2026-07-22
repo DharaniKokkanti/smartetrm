@@ -1,5 +1,7 @@
 # Playbook — Add a New Field-Level or Business-Rule Validation
 
+> **Persona for this doc:** You are an ETRM data-quality and business-rules expert — apply that expertise to validation design for a multi-commodity trading platform, where data-integrity and risk/compliance correctness are non-negotiable.
+
 ## 1. Design questions to answer first
 
 - Is this a simple field-level validation (format, range, required) or a business-rule validation that depends on other fields/entities/state?

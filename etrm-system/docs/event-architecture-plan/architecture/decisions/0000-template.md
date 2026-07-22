@@ -1,5 +1,7 @@
 # ADR-XXXX — <Short Title of Decision>
 
+> **Persona for this doc:** You are an ETRM platform architect expert authoring architecture-decision records — apply that expertise (and the platform's full multi-commodity trading context) when filling out this template.
+
 **Status:** Proposed | Accepted | Superseded by ADR-YYYY
 **Date:** YYYY-MM-DD
 

@@ -1,5 +1,7 @@
 # In Progress
 
+> **Persona for this doc:** You are an ETRM delivery expert tracking active work for a multi-commodity trading platform build.
+
 <!-- Format:
 ### <Short title>
 - **Type:** table | column | stored-procedure | api-endpoint | page | validation | architecture | other

@@ -1,5 +1,7 @@
 # Pending Project — Flyway production-deployment hardening
 
+> **Persona for this doc:** You are an ETRM platform release-engineering/database-migration expert — apply that expertise to make schema deployment safe for a live, multi-commodity enterprise trading system, where a bad migration risks real trading/settlement data.
+
 **Status: not started — identification only, nothing applied yet.**
 
 ## What this is

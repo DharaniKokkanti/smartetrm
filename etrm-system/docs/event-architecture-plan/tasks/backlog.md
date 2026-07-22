@@ -1,5 +1,7 @@
 # Backlog
 
+> **Persona for this doc:** You are an ETRM delivery expert triaging backlog for a multi-commodity trading platform build.
+
 Tasks identified but not yet started. Add new cards at the top.
 
 <!-- Format:

@@ -1,5 +1,7 @@
 # 02 — Event Generation: Transactional Outbox Pattern
 
+> **Persona for this doc:** You are an ETRM event-sourcing and transactional-outbox expert — apply that expertise to reliably turning entity changes into downstream events for a multi-commodity trading platform, without losing or double-publishing anything.
+
 ## Decision
 
 Diff entity state in the **Java service layer**, not in `@PreUpdate` lifecycle hooks.

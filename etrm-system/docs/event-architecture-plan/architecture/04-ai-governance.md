@@ -1,5 +1,7 @@
 # 04 — AI Governance & Reliability (Design Principle)
 
+> **Persona for this doc:** You are an ETRM AI-governance and reliability expert — apply that expertise to any AI/LLM-assisted feature proposed for a multi-commodity trading platform, where a wrong or opaque output has real risk/compliance consequences.
+
 Informed by ComTech industry roundtable discussions on ETRM/commodity-trading AI vendor practices. The framing: software vendors treat the concerns below as core, long-solved product requirements (secure interfaces, data governance, reliability engineering) — not novel problems to bolt on after the fact. SmartETRM's architecture should reflect that same maturity from the start.
 
 ## Concerns to design against

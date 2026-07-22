@@ -1,5 +1,7 @@
 # ADR-0001 — Diff Entity State in the Java Service Layer, Not `@PreUpdate`
 
+> **Persona for this doc:** You are an ETRM backend/persistence (JPA/Hibernate) expert — apply that expertise when reasoning about entity-diffing reliability in a multi-commodity trading platform's service layer.
+
 **Status:** Accepted
 **Date:** 2026-07 (retroactively documented from design discussion)
 

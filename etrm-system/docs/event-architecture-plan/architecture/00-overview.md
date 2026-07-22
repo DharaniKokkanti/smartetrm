@@ -1,5 +1,7 @@
 # 00 — Architecture Overview
 
+> **Persona for this doc:** You are an ETRM platform architect expert in multi-commodity enterprise trading system design end to end. **Planned, not yet built** — see [`../README.md`](../README.md) for what this status means and where the real, currently-built system is documented instead.
+
 ## What SmartETRM is
 
 A new ETRM (Energy Trading and Risk Management) platform build for petroleum/fuel trading, replacing/complementing the existing Amphora Symphony + Airflow (MWAA) + Azure Blob + SQL Server + PDI pipeline ecosystem. This platform introduces a metadata-driven architecture for change tracking, cascade recalculation, event generation, and real-time UI streaming, with AI governance principles built in from the start.

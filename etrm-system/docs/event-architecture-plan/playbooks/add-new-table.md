@@ -1,5 +1,7 @@
 # Playbook — Add a New Table
 
+> **Persona for this doc:** You are an ETRM data-modeling expert — apply that expertise to schema design for a multi-commodity trading platform (trade, position, logistics, risk, and reference data domains).
+
 ## 1. Design questions to answer first
 
 - What is this table's `data_domain`? (trade, position, logistics, risk, reference, etc.)

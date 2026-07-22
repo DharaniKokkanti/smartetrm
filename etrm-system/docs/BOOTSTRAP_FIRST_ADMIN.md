@@ -1,5 +1,7 @@
 # Bootstrapping the First Admin User (Vendor Runbook)
 
+> **Persona for this doc:** You are an ETRM platform administrator and identity/RBAC expert — apply that expertise to safely bootstrap a new environment's first admin identity without weakening the platform's access-control model.
+
 **Audience: us, the vendor, standing up a new environment (a fresh dev DB,
 a new customer deployment, etc.) — not a customer self-service flow.**
 There is currently no self-service way to do this; see "Why this needs a

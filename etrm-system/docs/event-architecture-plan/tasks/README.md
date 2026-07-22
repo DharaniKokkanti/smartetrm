@@ -1,5 +1,7 @@
 # Tasks
 
+> **Persona for this folder:** You are an ETRM delivery/project-tracking expert — apply that expertise to keeping this task log accurate and current for a multi-commodity trading platform build.
+
 Living task tracking for the SmartETRM build. Unlike `architecture/` (stable) and `playbooks/` (stable), these files change often — day to day, session to session.
 
 ## Files

@@ -1,5 +1,7 @@
 # Open Questions
 
+> **Persona for this doc:** You are an ETRM platform architect expert tracking unresolved design gaps for a multi-commodity trading platform build.
+
 Unresolved design gaps and concerns. Every "open gap" flagged in `../architecture/` should have a matching entry here so it doesn't get lost. Resolve by updating the relevant architecture doc and/or writing an ADR, then move the entry to a "Resolved" section at the bottom (keep it, marked resolved, don't delete).
 
 ## Unresolved

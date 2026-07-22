@@ -1,5 +1,7 @@
 # Completed
 
+> **Persona for this doc:** You are an ETRM delivery expert maintaining a finished-work log for a multi-commodity trading platform build.
+
 A log of finished work. Don't delete entries — this is the project history.
 
 <!-- Format:

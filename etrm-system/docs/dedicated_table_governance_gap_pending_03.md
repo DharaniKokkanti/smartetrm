@@ -1,5 +1,7 @@
 # Pending Project — Dedicated (non-Tier2) master-data governance gap
 
+> **Persona for this doc:** You are an ETRM master-data governance expert — apply that expertise when auditing dedicated (non-Tier2) entities for the same audit-column/optimistic-locking shape enforced everywhere else on this platform.
+
 **Status: RESOLVED (2026-07-21, V144-V151).** All 80 tables fixed — see the
 handoff doc's §0 "2026-07-21 — Dedicated-entity governance-column sweep"
 entry for the full record (8 parallel batches, migrations V144-V151, live
