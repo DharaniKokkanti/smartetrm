@@ -22,7 +22,7 @@ Use a transactional outbox: write business data **and** an event row to a `sys_e
 
 - Guarantees at-least-once delivery of events, transactionally consistent with the business data.
 - Adds a polling worker as new infrastructure to build, monitor, and scale.
-- **Open gap (inherited from ADR-0001):** this pattern only captures changes that flow through the Java service layer. Writes from PDI/Airflow/direct SQL bypass both the diffing and the outbox insert entirely.
+- **Open gap (inherited from ADR-0001):** this pattern only captures changes that flow through the Java service layer. Writes from direct SQL, or any future external batch process, bypass both the diffing and the outbox insert entirely.
 - **Candidate mitigation, not yet decided:** SQL Server Change Tracking (CT) or CDC as an outbox alternative or hybrid safety net for non-Java write paths. Tracked in `tasks/open-questions.md`.
 
 ## Notes

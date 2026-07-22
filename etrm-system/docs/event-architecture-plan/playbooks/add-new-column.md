@@ -22,7 +22,7 @@
 ## 4. Event/outbox implications
 
 - [ ] If significant: confirm the Java service layer's diff logic will pick up this column (it should, if using the standard entity-diff mechanism — but verify for hand-rolled update paths).
-- [ ] If this column can also be written by PDI/Airflow/direct SQL, note the outbox coverage gap explicitly (see `../architecture/02-event-outbox.md`).
+- [ ] If this column can also be written by direct SQL or any future external batch/ETL process, note the outbox coverage gap explicitly (see `../architecture/02-event-outbox.md`).
 
 ## 5. Streaming implications
 

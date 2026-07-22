@@ -10,7 +10,7 @@ The metadata system is the backbone that every other pillar (outbox, streaming, 
 Registers every business table in the platform.
 - `table_category` — e.g. transactional, reference, derived/calculated
 - `data_domain` — e.g. trade, position, logistics, risk
-- `source_type` — where data originates (Java service, Airflow/PDI batch load, direct SQL, CDC-captured)
+- `source_type` — where data originates (Java service, external batch load, direct SQL, CDC-captured)
 - `mutability` — mutable / append-only / immutable-after-post
 
 ### `meta_table_dependency`

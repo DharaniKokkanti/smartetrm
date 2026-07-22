@@ -6,7 +6,7 @@
 
 - What is this table's `data_domain`? (trade, position, logistics, risk, reference, etc.)
 - What is its `mutability`? (mutable / append-only / immutable-after-post)
-- What is its `source_type`? (Java service layer, PDI/Airflow batch load, direct SQL, CDC-captured)
+- What is its `source_type`? (Java service layer, external batch load, direct SQL, CDC-captured)
 - Does this table **depend on** other tables (derived/calculated from them)? Does anything **depend on it**?
 
 If you can't answer these, stop and clarify before writing DDL — these answers determine registry entries below and get harder to retrofit later.
@@ -25,7 +25,7 @@ If you can't answer these, stop and clarify before writing DDL — these answers
 ## 4. Event/outbox implications
 
 - [ ] Is this table mutable and Java-service-written? If yes, confirm the service layer's snapshot/diff logic will cover it (see `../architecture/02-event-outbox.md`).
-- [ ] Is this table written by PDI/Airflow/direct SQL? If yes, flag explicitly that it falls into the known outbox coverage gap — note it in `../tasks/open-questions.md` if not already covered by the CDC safety-net discussion.
+- [ ] Is this table written by direct SQL or any future external batch process? If yes, flag explicitly that it falls into the known outbox coverage gap — note it in `../tasks/open-questions.md` if not already covered by the CDC safety-net discussion.
 
 ## 5. Streaming implications
 

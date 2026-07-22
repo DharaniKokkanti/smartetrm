@@ -4,7 +4,7 @@
 
 ## What SmartETRM is
 
-A new ETRM (Energy Trading and Risk Management) platform build for petroleum/fuel trading, replacing/complementing the existing Amphora Symphony + Airflow (MWAA) + Azure Blob + SQL Server + PDI pipeline ecosystem. This platform introduces a metadata-driven architecture for change tracking, cascade recalculation, event generation, and real-time UI streaming, with AI governance principles built in from the start.
+A new ETRM (Energy Trading and Risk Management) platform build for petroleum/fuel trading. This platform introduces a metadata-driven architecture for change tracking, cascade recalculation, event generation, and real-time UI streaming, with AI governance principles built in from the start.
 
 ## Stack (as currently designed)
 
@@ -12,7 +12,6 @@ A new ETRM (Energy Trading and Risk Management) platform build for petroleum/fue
 - **Database:** SQL Server (with CT/CDC as a candidate safety-net mechanism)
 - **Event backbone:** Transactional outbox → polling worker → Kafka / message broker
 - **Real-time UI:** WebSocket-based targeted streaming to React front end
-- **Existing adjacent systems (not part of this platform, but integrated with):** Apache Airflow (AWS MWAA), Azure Blob Storage, PDI, Amphora Symphony ETRM
 
 ## Core architectural pillars
 

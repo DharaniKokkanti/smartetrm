@@ -20,7 +20,7 @@ Diffing happens explicitly in the **Java service layer** — the code that perfo
 ## Consequences
 
 - The service layer takes on explicit responsibility for snapshotting and diffing — more code in the service layer, but predictable and testable.
-- **Open gap this creates:** service-layer diffing only sees writes that go through the Java service layer. Writes from PDI, Airflow, or direct SQL bypass it entirely. See `0002-transactional-outbox-pattern.md` and `tasks/open-questions.md` for the CDC-based safety-net discussion.
+- **Open gap this creates:** service-layer diffing only sees writes that go through the Java service layer. Writes from direct SQL, or any future external batch process, bypass it entirely. See `0002-transactional-outbox-pattern.md` and `tasks/open-questions.md` for the CDC-based safety-net discussion.
 
 ## Notes
 

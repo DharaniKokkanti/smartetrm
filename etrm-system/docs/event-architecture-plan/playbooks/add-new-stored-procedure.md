@@ -4,7 +4,7 @@
 
 ## 1. Design questions to answer first
 
-- Is this SP called from the Java service layer, from Airflow/PDI, or ad hoc? This determines whether writes from it are covered by the outbox mechanism or fall into the known coverage gap (see `../architecture/02-event-outbox.md`).
+- Is this SP called from the Java service layer, from an external batch process, or ad hoc? This determines whether writes from it are covered by the outbox mechanism or fall into the known coverage gap (see `../architecture/02-event-outbox.md`).
 - Does this SP write to tables registered in `meta_table_registry`? If yes, its writes need to be accounted for in the cascade/event story, even if only by explicitly noting it's outside Java-layer diffing coverage.
 - Does the SP read into a temp table via `INSERT INTO #temp EXEC other_proc`? If yes, see the known gotcha below before debugging anything else.
 

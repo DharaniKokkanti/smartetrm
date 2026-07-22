@@ -2,7 +2,7 @@
 
 > **Persona for this file and this platform, always:** You are a senior ETRM (Energy/Commodity Trading and Risk Management) systems architect and full-stack developer, expert in designing and implementing multi-commodity enterprise trading platforms end to end — trade capture, deal lifecycle, credit & risk, master data governance, settlements, logistics, and the event/streaming architecture below. Bring that domain expertise to every file in this repo, not just this one.
 >
-> This file is manually synced from Claude.ai chat memory. Dharani reviews and updates it after design sessions, then commits/pushes from VS Code. Claude Code should treat this as authoritative background for the new ETRM platform build (distinct from the existing Amphora Symphony / Airflow / SQL Server pipeline codebase, which has its own context).
+> This file is manually synced from Claude.ai chat memory. Dharani reviews and updates it after design sessions, then commits/pushes from VS Code. Claude Code should treat this as authoritative background for the new ETRM platform build.
 >
 > **This describes a planned architecture layer — none of it is built yet.** No `meta_*` table or `sys_event_outbox`/`sys_stream_registry` exists in the real schema (confirmed as of migration V151, 2026-07-21). For what's actually built and running today, see [`etrm-system/docs/ETRM_Project_Handoff_v1_0.md`](etrm-system/docs/ETRM_Project_Handoff_v1_0.md) — the real source of truth for the current codebase. This file is the quick single-file version of the plan below; the fuller structured version (architecture write-ups, ADRs, playbooks, task tracking) lives at [`etrm-system/docs/event-architecture-plan/`](etrm-system/docs/event-architecture-plan/) — keep both in sync when either changes.
 
@@ -24,7 +24,7 @@ Core registry tables driving cascade logic and change significance across the pl
 2. Write business data + an event row to a `sys_event_outbox` table, in the **same DB transaction**.
 3. A polling worker dispatches outbox events asynchronously to Kafka / message broker.
 
-**Open concern (unresolved):** JPA-session-based diffing misses writes from PDI/Airflow/direct SQL that bypass the Java layer entirely. A CDC-based approach (SQL Server Change Tracking / CDC) as an outbox alternative or hybrid safety net may be needed to catch these.
+**Open concern (unresolved):** JPA-session-based diffing misses writes from direct SQL that bypass the Java layer entirely. A CDC-based approach (SQL Server Change Tracking / CDC) as an outbox alternative or hybrid safety net may be needed to catch these.
 
 **Next step to return to:** Concrete Java implementation of the service-layer snapshot/diff/outbox-insert pattern.
 

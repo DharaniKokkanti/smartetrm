@@ -18,8 +18,7 @@ Diff entity state in the **Java service layer**, not in `@PreUpdate` lifecycle h
 ## Known open gap — not yet resolved
 
 JPA-session-based diffing only sees writes that go through the Java service layer. It **misses** writes from:
-- PDI batch loads
-- Airflow DAGs
+- Any future external batch/ETL process
 - Direct SQL (manual fixes, migrations, ad hoc updates)
 
 **Candidate safety net:** SQL Server Change Tracking (CT) or CDC as an outbox alternative or hybrid, to catch changes that bypass the Java layer. This is unresolved — do not assume the outbox has full coverage of all write paths until this is addressed.

@@ -7,7 +7,7 @@ Unresolved design gaps and concerns. Every "open gap" flagged in `../architectur
 ## Unresolved
 
 ### 1. Outbox coverage gap for non-Java write paths
-JPA-session-based diffing (ADR-0001) only sees writes through the Java service layer. PDI, Airflow, and direct SQL writes bypass diffing and the outbox insert entirely. Candidate mitigation: SQL Server CT/CDC as an outbox alternative or hybrid safety net. **Not yet decided.**
+JPA-session-based diffing (ADR-0001) only sees writes through the Java service layer. Direct SQL writes (and any future external batch/ETL process) bypass diffing and the outbox insert entirely. Candidate mitigation: SQL Server CT/CDC as an outbox alternative or hybrid safety net. **Not yet decided.**
 Related: `../architecture/02-event-outbox.md`
 
 ### 2. Streaming: field-level vs. whole-table triggering
