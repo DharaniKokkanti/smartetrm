@@ -182,8 +182,8 @@ export function GlAccountsPage() {
             <Form.Item name="defaultTaxCodeId" label={hint('Default Tax Code', 'Tax code applied by default when posting to this account. Leave blank if not tax-relevant.')} style={{ flex: 1 }}>
               <Select allowClear placeholder="No default tax code" options={taxCodeOpts} showSearch optionFilterProp="label" />
             </Form.Item>
-            <Form.Item name="externalGlCode" label={hint('External GL Code', 'Mapping code to the external ERP / GL system of record (SAP, Oracle, etc).')} style={{ flex: 1 }}>
-              <Input placeholder="SAP-410010" style={{ fontFamily: 'monospace' }} />
+            <Form.Item name="externalGlCode" label={hint('External GL Code', 'Mapping code to the external ERP / GL system of record.')} style={{ flex: 1 }}>
+              <Input placeholder="ERP-410010" style={{ fontFamily: 'monospace' }} />
             </Form.Item>
           </Space>
           <Form.Item name="description" label="Description">
