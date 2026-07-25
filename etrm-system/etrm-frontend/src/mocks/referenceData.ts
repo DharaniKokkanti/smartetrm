@@ -532,6 +532,33 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
   // their lookup_value rows seeded in real SQL (V44/V46), just never wired
   // to the consuming column until V81; rows now live in the lookup_value
   // seed above, not here.
+  // V116 — Supply & Distribution simple lookups (real backend: master_data_
+  // table_registry rows added directly by the V116 migration itself, same
+  // as every other table in this array — these two just never got their
+  // matching mock entry, unlike movement_type/inventory_ownership_type's
+  // 35 siblings from the same review which are all already above).
+  {
+    name: 'movement_type', label: 'Movement Types', pk: 'movementTypeId', group: 'Supply & Distribution', order: 2,
+    description: 'Inventory movement classification — Receipt, Delivery, Internal Transfer, Blend, Loss/Gain.',
+    rows: [
+      { movementTypeId: 1, typeCode: 'RECEIPT',           typeName: 'Receipt',           description: 'Product received into a tank/facility from an inbound vessel, pipeline, truck, or rail movement.', sortOrder: 10, isActive: true },
+      { movementTypeId: 2, typeCode: 'DELIVERY',          typeName: 'Delivery',          description: 'Product delivered out of a tank/facility to an outbound vessel, pipeline, truck, or rail movement.', sortOrder: 20, isActive: true },
+      { movementTypeId: 3, typeCode: 'INTERNAL_TRANSFER', typeName: 'Internal Transfer', description: 'Product moved between tanks within the same facility — no title change.', sortOrder: 30, isActive: true },
+      { movementTypeId: 4, typeCode: 'BLEND',              typeName: 'Blend',            description: 'Component products combined per a blend recipe to produce a finished blended product.', sortOrder: 40, isActive: true },
+      { movementTypeId: 5, typeCode: 'LOSS_GAIN',          typeName: 'Loss / Gain',      description: 'Inventory reconciliation adjustment — measured variance between book and physical/gauged volume.', sortOrder: 50, isActive: true },
+    ],
+  },
+  {
+    name: 'inventory_ownership_type', label: 'Inventory Ownership Types', pk: 'ownershipTypeId', group: 'Supply & Distribution', order: 3,
+    description: 'Company-owned vs. consignment vs. exchange borrow/loan vs. third-party-held stock — affects physical and title reconciliation.',
+    rows: [
+      { ownershipTypeId: 1, typeCode: 'COMPANY_OWNED',   typeName: 'Company-Owned',    description: 'Stock owned outright by the trading entity — both physical and title reconciliation apply normally.', sortOrder: 10, isActive: true },
+      { ownershipTypeId: 2, typeCode: 'CONSIGNMENT',     typeName: 'Consignment',      description: 'Stock physically held on our books but title remains with the supplying counterparty until drawn/sold.', sortOrder: 20, isActive: true },
+      { ownershipTypeId: 3, typeCode: 'EXCHANGE_BORROW', typeName: 'Exchange Borrow',  description: 'Stock borrowed from a counterparty under an exchange agreement — a repayment-in-kind obligation exists.', sortOrder: 30, isActive: true },
+      { ownershipTypeId: 4, typeCode: 'EXCHANGE_LOAN',   typeName: 'Exchange Loan',    description: 'Stock loaned to a counterparty under an exchange agreement — a receivable-in-kind exists.', sortOrder: 40, isActive: true },
+      { ownershipTypeId: 5, typeCode: 'THIRD_PARTY_HELD',typeName: 'Third-Party Held', description: 'Stock owned by us but physically held at a facility we do not operate, under a throughput/storage agreement.', sortOrder: 50, isActive: true },
+    ],
+  },
 ];
 
 // ─── Complex table metadata (tables with unique column shapes) ────────────────
@@ -1596,6 +1623,122 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',     'Active',      'boolean',     false, false, null),
     ],
   },
+  // V116/V117/V123/V124 — Supply & Distribution + book hierarchy tables that
+  // were fully registered (master_data_table_registry row + real column
+  // shape) on the real backend by their own migrations, but never got a
+  // matching mock entry — the gap a MasterDataHub review surfaced as
+  // "not allowed to add" cards. Column shapes below mirror each table's real
+  // CREATE TABLE exactly (same source migration cited per table).
+  book_level_type: {
+    // V123/V124 — sort_order is TINYINT not SMALLINT elsewhere, and the code/
+    // name columns are level_type_code/level_type_name, not the standard
+    // typeCode/typeName pair — hence its own entry rather than the makeLookupMeta factory.
+    tableName: 'book_level_type', displayName: 'Book Level Types', primaryKeyColumn: 'levelTypeId', isTemporal: false,
+    columns: [
+      col('levelTypeId',   'ID',         'number',  false, true,  null),
+      col('levelTypeCode', 'Code',       'string',  false, false, 30),
+      col('levelTypeName', 'Name',       'string',  false, false, 100),
+      col('sortOrder',     'Sort Order', 'number',  false, false, null),
+      col('isActive',      'Active',     'boolean', false, false, null),
+    ],
+  },
+  loading_rack: {
+    // V116, extended by V117 (motTypeId)
+    tableName: 'loading_rack', displayName: 'Loading Racks', primaryKeyColumn: 'rackId', isTemporal: false,
+    columns: [
+      col('rackId',               'ID',                  'number',      false, true,  null),
+      col('facilityId',           'Storage Facility',    'foreign_key', false, false, null, null, 'storage_facility'),
+      col('rackNumber',           'Rack Number',         'string',      false, false, 30),
+      col('meterType',            'Meter Type',          'enum',        false, false, null, ['POSITIVE_DISPLACEMENT', 'TURBINE', 'CORIOLIS', 'ULTRASONIC', 'OTHER']),
+      col('proverType',           'Prover Type',         'enum',        true,  false, null, ['SMALL_VOLUME_PROVER', 'PIPE_PROVER', 'MASTER_METER', 'TANK_PROVER']),
+      col('proverCertNumber',     'Prover Cert Number',  'string',      true,  false, 50),
+      col('lastCalibrationDate',  'Last Calibration',    'date',        true,  false, null),
+      col('nextCalibrationDate',  'Next Calibration',    'date',        true,  false, null),
+      col('maxFlowRateM3h',       'Max Flow Rate (m³/h)','number',      true,  false, null, null, null, null, true),
+      col('productId',            'Product',             'foreign_key', true,  false, null, null, 'product'),
+      col('motTypeId',            'Mode of Transport',   'foreign_key', true,  false, null, null, 'mot_type'),
+      col('isActive',             'Active',              'boolean',     false, false, null),
+      col('notes',                'Notes',               'string',      true,  false, 500),
+    ],
+  },
+  blend_recipe: {
+    tableName: 'blend_recipe', displayName: 'Blend Recipes', primaryKeyColumn: 'blendRecipeId', isTemporal: false,
+    columns: [
+      col('blendRecipeId',  'ID',              'number',      false, true,  null),
+      col('recipeCode',     'Recipe Code',     'string',      false, false, 30),
+      col('recipeName',     'Recipe Name',     'string',      false, false, 200),
+      col('targetProductId','Target Product',  'foreign_key', false, false, null, null, 'product'),
+      col('commodityType',  'Commodity Type',  'string',      true,  false, 20),
+      col('tolerancePct',   'Tolerance %',     'number',      true,  false, null, null, null, null, true),
+      col('description',    'Description',     'string',      true,  false, 500),
+      col('isActive',       'Active',          'boolean',     false, false, null),
+    ],
+  },
+  blend_recipe_component: {
+    tableName: 'blend_recipe_component', displayName: 'Blend Recipe Components', primaryKeyColumn: 'componentId', isTemporal: false,
+    columns: [
+      col('componentId',        'ID',               'number',      false, true,  null),
+      col('blendRecipeId',      'Blend Recipe',     'foreign_key', false, false, null, null, 'blend_recipe'),
+      col('componentProductId', 'Component Product','foreign_key', false, false, null, null, 'product'),
+      col('targetPct',          'Target %',         'number',      false, false, null, null, null, null, true),
+      col('minPct',             'Min %',            'number',      true,  false, null, null, null, null, true),
+      col('maxPct',             'Max %',            'number',      true,  false, null, null, null, null, true),
+      col('sortOrder',          'Sort Order',       'number',      false, false, null),
+    ],
+  },
+  throughput_agreement: {
+    // V116, extended by V117 (motTypeId)
+    tableName: 'throughput_agreement', displayName: 'Throughput Agreements', primaryKeyColumn: 'agreementId', isTemporal: false,
+    columns: [
+      col('agreementId',      'ID',                 'number',      false, true,  null),
+      col('agreementCode',    'Agreement Code',     'string',      false, false, 30),
+      col('counterpartyId',   'Counterparty',       'foreign_key', false, false, null, null, 'counterparty'),
+      col('facilityId',       'Storage Facility',   'foreign_key', false, false, null, null, 'storage_facility'),
+      col('agreementType',    'Agreement Type',     'enum',        false, false, null, ['STORAGE', 'THROUGHPUT', 'BOTH']),
+      col('contractedCapacity','Contracted Capacity','number',     false, false, null, null, null, null, true),
+      col('capacityUomId',    'Capacity UoM',       'foreign_key', false, false, null, null, 'unit_of_measure'),
+      col('tariffRate',       'Tariff Rate',        'number',      true,  false, null, null, null, null, true),
+      col('tariffCurrencyId', 'Tariff Currency',    'foreign_key', true,  false, null, null, 'currency'),
+      col('tariffUomId',      'Tariff UoM',         'foreign_key', true,  false, null, null, 'unit_of_measure'),
+      col('motTypeId',        'Mode of Transport',  'foreign_key', true,  false, null, null, 'mot_type'),
+      col('effectiveFrom',    'Effective From',     'date',        false, false, null),
+      col('effectiveTo',      'Effective To',       'date',        true,  false, null),
+      col('isActive',         'Active',             'boolean',     false, false, null),
+      col('notes',            'Notes',              'string',      true,  false, 500),
+    ],
+  },
+  product_interface_rule: {
+    tableName: 'product_interface_rule', displayName: 'Product Interface Rules', primaryKeyColumn: 'ruleId', isTemporal: false,
+    columns: [
+      col('ruleId',              'ID',                  'number',      false, true,  null),
+      col('fromProductId',       'From Product',        'foreign_key', false, false, null, null, 'product'),
+      col('toProductId',         'To Product',          'foreign_key', false, false, null, null, 'product'),
+      col('minFlushVolumeM3',    'Min Flush Volume (m³)','number',     true,  false, null, null, null, null, true),
+      col('isCompatible',        'Compatible',          'boolean',     false, false, null),
+      col('downgradeProductId',  'Downgrade Product',   'foreign_key', true,  false, null, null, 'product'),
+      col('notes',               'Notes',               'string',      true,  false, 500),
+      col('isActive',            'Active',              'boolean',     false, false, null),
+    ],
+  },
+  road_tariff: {
+    tableName: 'road_tariff', displayName: 'Road (Truck) Tariffs', primaryKeyColumn: 'tariffId', isTemporal: false,
+    columns: [
+      col('tariffId',         'ID',              'number',      false, true,  null),
+      col('routeId',          'Transport Route', 'foreign_key', false, false, null, null, 'transport_route'),
+      col('operatorId',       'Operator',        'foreign_key', true,  false, null, null, 'transport_operator'),
+      col('productId',        'Product',         'foreign_key', true,  false, null, null, 'product'),
+      col('tariffType',       'Tariff Type',     'enum',        false, false, null, ['FLAT_PER_LOAD', 'PER_KM', 'PER_MT', 'PER_BBL', 'PER_HOUR']),
+      col('rate',             'Rate',            'number',      false, false, null, null, null, null, true),
+      col('currencyId',       'Currency',        'foreign_key', false, false, null, null, 'currency'),
+      col('rateUomId',        'Rate UoM',        'foreign_key', true,  false, null, null, 'unit_of_measure'),
+      col('minCharge',        'Min Charge',      'number',      true,  false, null, null, null, null, true),
+      col('fuelSurchargePct', 'Fuel Surcharge %','number',      true,  false, null, null, null, null, true),
+      col('effectiveFrom',    'Effective From',  'date',        false, false, null),
+      col('effectiveTo',      'Effective To',    'date',        true,  false, null),
+      col('isActive',         'Active',          'boolean',     false, false, null),
+      col('notes',            'Notes',           'string',      true,  false, 500),
+    ],
+  },
 };
 
 // ─── Exports ──────────────────────────────────────────────────────────────────
@@ -1693,6 +1836,17 @@ export const registrySeed: RegistryEntry[] = [
   { registryId: 267, tableName: 'profit_center', displayName: 'Profit Centers', moduleGroup: 'Finance & Settlement', subGroup: 'Chart of Accounts', description: 'Scoped to one booking company (legal entity) — the top of the profit-attribution chain that cost centers roll up into, following standard company-code-scoped profit center conventions.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
   { registryId: 268, tableName: 'cost_center', displayName: 'Cost Centers', moduleGroup: 'Finance & Settlement', subGroup: 'Chart of Accounts', description: 'Every cost center rolls up to exactly one profit center — the profit center is assigned in the cost center master data. Linked from gl_account.cost_center_id.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
   { registryId: 269, tableName: 'tax_code', displayName: 'Tax Codes', moduleGroup: 'Finance & Settlement', subGroup: 'Chart of Accounts', description: 'Structured tax rate + jurisdiction reference (rate %, tax type, country) — not a free-text label. Linked from gl_account.default_tax_code_id.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
+  // V116/V117/V123/V124 — real-backend registry rows these migrations already
+  // insert into master_data_table_registry (mirrored exactly: allowCreate/
+  // allowEdit/allowDelete/displayOrder/moduleGroup all copied from the SQL),
+  // just never mirrored into this mock file until now.
+  { registryId: 270, tableName: 'loading_rack',             displayName: 'Loading Racks',             moduleGroup: 'Supply & Distribution', description: 'Custody-transfer measurement points at a terminal — rack number, meter type, prover certification and calibration dates.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
+  { registryId: 271, tableName: 'blend_recipe',             displayName: 'Blend Recipes',             moduleGroup: 'Supply & Distribution', description: 'Terminal splash-blending recipes — target product, tolerance, and component products (see Blend Recipe Components).', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 4 },
+  { registryId: 272, tableName: 'blend_recipe_component',   displayName: 'Blend Recipe Components',   moduleGroup: 'Supply & Distribution', description: 'Component products and target/min/max percentages within a blend recipe.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 5 },
+  { registryId: 273, tableName: 'throughput_agreement',     displayName: 'Throughput Agreements',     moduleGroup: 'Supply & Distribution', description: 'Contracted third-party storage or throughput rights at a terminal the company does not own — the storage-side analogue of pipeline_tariff.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 6 },
+  { registryId: 274, tableName: 'product_interface_rule',   displayName: 'Product Interface Rules',   moduleGroup: 'Supply & Distribution', description: 'Minimum flush volume and downgrade rules when switching incompatible products through a shared line or rack.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 7 },
+  { registryId: 275, tableName: 'road_tariff',               displayName: 'Road (Truck) Tariffs',      moduleGroup: 'Supply & Distribution', description: 'Truck freight rates by route — flat per load, per km, per MT/BBL — with fuel surcharge and minimum charge. The road-transport analogue of pipeline_tariff.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 8 },
+  { registryId: 276, tableName: 'book_level_type',           displayName: 'Book Level Types',          moduleGroup: 'Organization & Users',  description: 'Admin-definable hierarchy levels for the Book tree (Desk, Strategy, Trading Book, or a custom level such as Location/Region). Parent table for book.book_level_type_id FK.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 14 },
   // V17 parent lookup tables — generated from the simple list above
   ...PARENT_LOOKUP_TABLES.map((t, i) => ({
     registryId:       10 + i,
@@ -2331,6 +2485,35 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { taxCodeId: 1, taxCode: 'VAT-GB-STD', description: 'UK standard-rate VAT',           ratePercent: 20.0, taxTypeId: 1, countryId: 1, isActive: true },
     { taxCodeId: 2, taxCode: 'VAT-NL-STD', description: 'Netherlands standard-rate VAT',  ratePercent: 21.0, taxTypeId: 1, countryId: 3, isActive: true },
     { taxCodeId: 3, taxCode: 'ZERO-RATED', description: 'Zero-rated / exempt',            ratePercent: 0.0,  taxTypeId: 1, countryId: null, isActive: true },
+  ],
+  // V123/V124 — DESK/STRATEGY/TRADING_BOOK, exact rows the migration itself seeds
+  book_level_type: [
+    { levelTypeId: 1, levelTypeCode: 'DESK',         levelTypeName: 'Desk',         sortOrder: 1, isActive: true },
+    { levelTypeId: 2, levelTypeCode: 'STRATEGY',     levelTypeName: 'Strategy',     sortOrder: 2, isActive: true },
+    { levelTypeId: 3, levelTypeCode: 'TRADING_BOOK', levelTypeName: 'Trading Book', sortOrder: 3, isActive: true },
+  ],
+  // V116/V117 — Supply & Distribution complex tables (facilityId 1=Cushing
+  // Tank Farm, 4=Gate LNG Rotterdam; productId 1=Brent Crude, 13=ULSD,
+  // 14=Ethanol, 15=Gas97 Blend, per the product/storage_facility rowSeed above)
+  loading_rack: [
+    { rackId: 1, facilityId: 1, rackNumber: 'RACK-01', meterType: 'POSITIVE_DISPLACEMENT', proverType: 'SMALL_VOLUME_PROVER', proverCertNumber: 'PVC-CUSH-01', lastCalibrationDate: '2026-01-15', nextCalibrationDate: '2026-07-15', maxFlowRateM3h: 450.0, productId: 1, motTypeId: 3, isActive: true, notes: 'Truck loading rack, crude/refined products.' },
+    { rackId: 2, facilityId: 4, rackNumber: 'RACK-LNG-1', meterType: 'CORIOLIS', proverType: null, proverCertNumber: null, lastCalibrationDate: '2026-02-01', nextCalibrationDate: '2026-08-01', maxFlowRateM3h: 1200.0, productId: null, motTypeId: 1, isActive: true, notes: 'LNG loading arm metering, marine transfer.' },
+  ],
+  blend_recipe: [
+    { blendRecipeId: 1, recipeCode: 'GAS97-E3', recipeName: 'Gasoline 97 E3 Splash Blend', targetProductId: 15, commodityType: 'OIL', tolerancePct: 0.5, description: 'ULSD/ethanol splash blend to produce Gasoline 97 E3 at the rack.', isActive: true },
+  ],
+  blend_recipe_component: [
+    { componentId: 1, blendRecipeId: 1, componentProductId: 13, targetPct: 97.0, minPct: 96.5, maxPct: 97.5, sortOrder: 1 },
+    { componentId: 2, blendRecipeId: 1, componentProductId: 14, targetPct: 3.0,  minPct: 2.5,  maxPct: 3.5,  sortOrder: 2 },
+  ],
+  throughput_agreement: [
+    { agreementId: 1, agreementCode: 'TA-CUSH-001', counterpartyId: 1, facilityId: 1, agreementType: 'THROUGHPUT', contractedCapacity: 50000, capacityUomId: 1, tariffRate: 0.35, tariffCurrencyId: 1, tariffUomId: 1, motTypeId: null, effectiveFrom: '2026-01-01', effectiveTo: '2026-12-31', isActive: true, notes: 'Third-party throughput rights at Cushing Tank Farm T-1.' },
+  ],
+  product_interface_rule: [
+    { ruleId: 1, fromProductId: 1, toProductId: 13, minFlushVolumeM3: 15.0, isCompatible: false, downgradeProductId: 13, notes: 'Crude-to-diesel changeover requires a full flush; off-spec interface material downgraded to ULSD.', isActive: true },
+  ],
+  road_tariff: [
+    { tariffId: 1, routeId: 1, operatorId: 1, productId: 1, tariffType: 'PER_MT', rate: 4.25, currencyId: 1, rateUomId: 3, minCharge: 500.0, fuelSurchargePct: 8.5, effectiveFrom: '2026-01-01', effectiveTo: null, isActive: true, notes: 'Standard tanker truck rate.' },
   ],
   // V17 parent lookup tables — rows come from the simple list above
   ...Object.fromEntries(PARENT_LOOKUP_TABLES.map((t) => [t.name, t.rows])),
