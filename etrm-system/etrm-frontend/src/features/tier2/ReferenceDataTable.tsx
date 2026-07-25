@@ -517,7 +517,10 @@ export function ReferenceDataTable({ table }: Props) {
     return String(value);
   };
 
-  const visibleColumns = editableColumns.slice(0, 6);
+  // Previously truncated to the first 6 editable columns with no indication
+  // more existed, silently hiding real data on any table with >6 columns.
+  // Show every column and let the grid scroll horizontally instead.
+  const visibleColumns = editableColumns;
 
   const displayedRows = useMemo(() => {
     const base = rows ?? [];
@@ -625,6 +628,7 @@ export function ReferenceDataTable({ table }: Props) {
       title: '',
       key: '_actions',
       width: 90,
+      fixed: 'right' as const,
       render: (_, row) => (
         <Space size={4}>
           {table.allowEdit && (
@@ -693,6 +697,7 @@ export function ReferenceDataTable({ table }: Props) {
         columns={columns}
         loading={loadingRows}
         pagination={{ pageSize: 20 }}
+        scroll={{ x: 'max-content' }}
         locale={{ emptyText: <Empty description="No rows yet" /> }}
       />
       <Modal mask={false} forceRender

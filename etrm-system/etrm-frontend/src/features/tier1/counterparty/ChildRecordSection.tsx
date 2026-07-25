@@ -2,6 +2,9 @@ import { useState, type ReactNode } from 'react';
 import { Button, Table, Modal, Form, Space, Tag, Popconfirm, Empty } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { useDraggableModal } from '@components/smart/useDraggableModal';
+import { DraggableModalTitle } from '@components/smart/DraggableModalTitle';
+import { MinimizedModalBar } from '@components/smart/MinimizedModalBar';
 
 interface ChildRecordSectionProps<T extends { _localId: string; isPrimary: boolean; isActive: boolean }> {
   title: string;
@@ -41,6 +44,10 @@ export function ChildRecordSection<
   const [form] = Form.useForm<T>();
   const [editing, setEditing] = useState<T | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const {
+    maximized, setMaximized, minimized, setMinimized,
+    onTitleBarMouseDown, resetWindowState, modalProps,
+  } = useDraggableModal();
 
   const visibleItems = items.filter((i) => i.isActive);
 
@@ -72,7 +79,10 @@ export function ChildRecordSection<
     const exists = items.some((i) => i._localId === merged._localId);
     onChange(exists ? items.map((i) => (i._localId === merged._localId ? merged : i)) : [...items, merged]);
     setModalOpen(false);
+    resetWindowState();
   }
+
+  const isEditing = editing !== null && items.some((i) => i._localId === editing._localId);
 
   const columns: ColumnsType<T> = [
     ...displayColumns,
@@ -109,17 +119,33 @@ export function ChildRecordSection<
       />
 
       <Modal mask={false} forceRender
-        title={editing && items.some((i) => i._localId === editing._localId) ? `Edit ${title}` : `Add ${title}`}
+        title={
+          <DraggableModalTitle
+            maximized={maximized}
+            onMouseDown={onTitleBarMouseDown}
+            onMinimize={() => setMinimized(true)}
+            onToggleMaximize={() => setMaximized((m) => !m)}
+          >
+            {isEditing ? `Edit ${title}` : `Add ${title}`}
+          </DraggableModalTitle>
+        }
         open={modalOpen}
-        onCancel={() => setModalOpen(false)}
+        onCancel={() => { setModalOpen(false); resetWindowState(); }}
         onOk={handleModalSave}
         okText="Done"
         destroyOnHidden
+        {...modalProps}
       >
         <Form form={form} layout="vertical">
           {renderFormFields()}
         </Form>
       </Modal>
+
+      <MinimizedModalBar
+        visible={minimized && modalOpen}
+        label={isEditing ? `Edit ${title}` : `Add ${title}`}
+        onRestore={() => setMinimized(false)}
+      />
     </div>
   );
 }

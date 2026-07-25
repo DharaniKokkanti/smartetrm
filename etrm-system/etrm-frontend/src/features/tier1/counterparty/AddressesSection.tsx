@@ -12,6 +12,9 @@ import { useCustomConfigOptions } from './configLookups';
 import { useCountries } from '@features/reference/countries/hooks';
 import { useAddressPool } from './hooks';
 import { hint } from '@components/smart/FieldHint';
+import { useDraggableModal } from '@components/smart/useDraggableModal';
+import { DraggableModalTitle } from '@components/smart/DraggableModalTitle';
+import { MinimizedModalBar } from '@components/smart/MinimizedModalBar';
 
 interface Props {
   items: AddressAssignment[];
@@ -33,6 +36,10 @@ export function AddressesSection({ items, onChange, entityType = 'COUNTERPARTY' 
   const [editing, setEditing] = useState<AddressAssignment | null>(null);
   const [form] = Form.useForm();
   const [selectedPoolId, setSelectedPoolId] = useState<number | null>(null);
+  const {
+    maximized, setMaximized, minimized, setMinimized,
+    onTitleBarMouseDown, resetWindowState, modalProps,
+  } = useDraggableModal();
 
   const visible = items.filter((a) => a.isActive);
 
@@ -156,6 +163,7 @@ export function AddressesSection({ items, onChange, entityType = 'COUNTERPARTY' 
       );
     }
     setModalOpen(false);
+    resetWindowState();
   }
 
   // pool options excluding addresses already assigned
@@ -184,13 +192,23 @@ export function AddressesSection({ items, onChange, entityType = 'COUNTERPARTY' 
       />
 
       <Modal mask={false} forceRender
-        title={editing ? 'Edit Address' : 'Add Address'}
+        title={
+          <DraggableModalTitle
+            maximized={maximized}
+            onMouseDown={onTitleBarMouseDown}
+            onMinimize={() => setMinimized(true)}
+            onToggleMaximize={() => setMaximized((m) => !m)}
+          >
+            {editing ? 'Edit Address' : 'Add Address'}
+          </DraggableModalTitle>
+        }
         open={modalOpen}
-        onCancel={() => setModalOpen(false)}
+        onCancel={() => { setModalOpen(false); resetWindowState(); }}
         onOk={handleOk}
         okText="Done"
         destroyOnHidden
-        width={520}
+        {...modalProps}
+        width={maximized ? modalProps.width : 520}
       >
         {!editing && (
           <Segmented
@@ -272,6 +290,12 @@ export function AddressesSection({ items, onChange, entityType = 'COUNTERPARTY' 
           </Form.Item>
         </Form>
       </Modal>
+
+      <MinimizedModalBar
+        visible={minimized && modalOpen}
+        label={editing ? 'Edit Address' : 'Add Address'}
+        onRestore={() => setMinimized(false)}
+      />
     </div>
   );
 }

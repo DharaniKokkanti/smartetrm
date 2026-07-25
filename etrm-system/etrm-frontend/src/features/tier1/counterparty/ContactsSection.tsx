@@ -11,6 +11,9 @@ import { localId } from '@utils/localId';
 import { useCustomConfigOptions } from './configLookups';
 import { useContactPool } from './hooks';
 import { hint } from '@components/smart/FieldHint';
+import { useDraggableModal } from '@components/smart/useDraggableModal';
+import { DraggableModalTitle } from '@components/smart/DraggableModalTitle';
+import { MinimizedModalBar } from '@components/smart/MinimizedModalBar';
 
 interface Props {
   items: ContactAssignment[];
@@ -27,6 +30,10 @@ export function ContactsSection({ items, onChange, entityType = 'COUNTERPARTY' }
   const [editing, setEditing] = useState<ContactAssignment | null>(null);
   const [form] = Form.useForm();
   const [selectedPoolId, setSelectedPoolId] = useState<number | null>(null);
+  const {
+    maximized, setMaximized, minimized, setMinimized,
+    onTitleBarMouseDown, resetWindowState, modalProps,
+  } = useDraggableModal();
 
   const visible = items.filter((c) => c.isActive);
 
@@ -150,6 +157,7 @@ export function ContactsSection({ items, onChange, entityType = 'COUNTERPARTY' }
       );
     }
     setModalOpen(false);
+    resetWindowState();
   }
 
   const assignedIds = new Set(items.filter((c) => c.isActive && c.contactId).map((c) => c.contactId));
@@ -177,13 +185,23 @@ export function ContactsSection({ items, onChange, entityType = 'COUNTERPARTY' }
       />
 
       <Modal mask={false} forceRender
-        title={editing ? 'Edit Contact' : 'Add Contact'}
+        title={
+          <DraggableModalTitle
+            maximized={maximized}
+            onMouseDown={onTitleBarMouseDown}
+            onMinimize={() => setMinimized(true)}
+            onToggleMaximize={() => setMaximized((m) => !m)}
+          >
+            {editing ? 'Edit Contact' : 'Add Contact'}
+          </DraggableModalTitle>
+        }
         open={modalOpen}
-        onCancel={() => setModalOpen(false)}
+        onCancel={() => { setModalOpen(false); resetWindowState(); }}
         onOk={handleOk}
         okText="Done"
         destroyOnHidden
-        width={520}
+        {...modalProps}
+        width={maximized ? modalProps.width : 520}
       >
         {!editing && (
           <Segmented
@@ -268,6 +286,12 @@ export function ContactsSection({ items, onChange, entityType = 'COUNTERPARTY' }
           </Form.Item>
         </Form>
       </Modal>
+
+      <MinimizedModalBar
+        visible={minimized && modalOpen}
+        label={editing ? 'Edit Contact' : 'Add Contact'}
+        onRestore={() => setMinimized(false)}
+      />
     </div>
   );
 }

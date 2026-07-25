@@ -41,8 +41,13 @@ export function BankAccountsSection({ items, onChange, entityType = 'COUNTERPART
         _localId: localId(),
         entityType,
         entityId: 0,
-        accountType: typeOptions.find((o) => o.label === 'Settlement')?.value ?? 0,
-        currencyId: currencies[0]?.currencyId ?? 0,
+        // No `?? 0` fallback — 0 is never a real lookup_value id, and a
+        // silently-wrong default FK is worse than leaving the field unset
+        // and letting the form's `required` rule force an explicit pick.
+        // The cast is safe: this placeholder is always overwritten by
+        // validated form values (which enforce `required`) before save.
+        accountType: typeOptions.find((o) => o.label === 'Settlement')?.value as BankAccount['accountType'],
+        currencyId: currencies[0]?.currencyId as number,
         isPrimary: items.length === 0,
         bankName: '',
         bankCode: null,

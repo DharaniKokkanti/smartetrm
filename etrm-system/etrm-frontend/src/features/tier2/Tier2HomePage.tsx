@@ -56,7 +56,11 @@ const EXTERNAL_LINKS: Record<string, { label: string; url: string }[]> = {
 // ── Description panel ──────────────────────────────────────────────────────────
 function DescriptionPanel({ table }: { table: RegistryEntry }) {
   const links = EXTERNAL_LINKS[table.tableName] ?? [];
-  if (!table.description && links.length === 0) return null;
+  // Always render — table.displayName is this page's only title/label.
+  // description/links are optional extras below it, not a gate on whether
+  // the label itself shows: most registry rows have no description text
+  // populated, and hiding the whole panel for those left ~150 Static Data
+  // pages with no page title at all, just a highlighted sidebar item.
   return (
     <div style={{
       background: '#f6f8fa',
@@ -70,7 +74,7 @@ function DescriptionPanel({ table }: { table: RegistryEntry }) {
     }}>
       <InfoCircleOutlined style={{ color: '#1677ff', fontSize: 14, marginTop: 2, flexShrink: 0 }} />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <Text strong style={{ fontSize: 13 }}>{table.displayName}</Text>
+        <Text strong style={{ fontSize: 14 }}>{table.displayName}</Text>
         {table.description && (
           <Paragraph style={{ margin: '3px 0 0', fontSize: 12.5, color: '#4b5563', lineHeight: 1.55 }}>
             {table.description}

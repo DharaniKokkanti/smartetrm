@@ -47,7 +47,15 @@ async function fetchConfigOptions(group: string): Promise<ConfigOption[]> {
   const key = group.toUpperCase();
   const table = GROUP_TO_TABLE[key];
   const pk = GROUP_TO_PK[key];
-  if (!table || !pk) return [];
+  if (!table || !pk) {
+    // An unregistered group silently returning [] is indistinguishable from
+    // a registered one that legitimately has no active rows yet — a select
+    // with no options otherwise gives no clue which case it is.
+    if (import.meta.env.DEV) {
+      console.warn(`useCustomConfigOptions: unknown lookup group "${group}" — add it to GROUP_TO_TABLE/GROUP_TO_PK in configLookups.ts.`);
+    }
+    return [];
+  }
   const { data } = await apiClient.get<ReferenceDataRow[]>(`/reference-data/${table}`);
   return (data ?? [])
     .filter((row) => row.isActive !== false)
