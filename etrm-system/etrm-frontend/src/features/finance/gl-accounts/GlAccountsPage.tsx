@@ -15,6 +15,7 @@ import { useGlAccounts, useSaveGlAccount, useDeactivateGlAccount } from './hooks
 import type { GlAccount, GlAccountInput } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AuditInfo } from '@components/smart/AuditInfo';
+import { color } from '@theme/tokens';
 
 const NORMAL_BALANCE_OPTS = [
   { value: 'DEBIT', label: 'Debit' },
@@ -113,7 +114,7 @@ export function GlAccountsPage() {
     { field: 'externalGlCode', headerName: 'External GL Code', width: 130, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },
     { field: 'isControlAccount', headerName: 'Control', width: 85,
       cellRenderer: (p: { value: boolean }) => (p.value ? <Tag color="purple" style={{ fontSize: 10 }}>Control</Tag> : null) },
-    { field: 'description',   headerName: 'Description', flex: 1, minWidth: 200, cellStyle: { fontSize: 11, color: '#6b7280' }, valueFormatter: (p) => p.value ?? '—' },
+    { field: 'description',   headerName: 'Description', flex: 1, minWidth: 200, cellStyle: { fontSize: 11, color: color.textSecondary }, valueFormatter: (p) => p.value ?? '—' },
     { field: 'isActive', headerName: 'Active', width: 80, cellRenderer: (p: { value: boolean }) => <ActiveTag active={p.value} /> },
     { headerName: '', width: 80, sortable: false, filter: false, pinned: 'right',
       cellRenderer: (p: { data: GlAccount }) => (

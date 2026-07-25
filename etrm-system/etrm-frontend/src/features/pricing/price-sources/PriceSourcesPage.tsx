@@ -23,6 +23,7 @@ import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import { AuditInfo } from '@components/smart/AuditInfo';
 import { usePriceIndices } from '@features/markets/price-indices/hooks';
+import { color } from '@theme/tokens';
 
 const TYPE_COLOR: Record<SourceType, string> = {
   EXCHANGE: 'blue', VENDOR: 'green', BROKER: 'purple', BLOOMBERG: 'cyan',
@@ -68,7 +69,7 @@ function IndexLinksDrawer({ source, onClose }: { source: PriceSource; onClose: (
       open onClose={onClose} width={680}
       extra={<Button icon={<PlusOutlined />} type="primary" size="small" onClick={openAdd}>Link Index</Button>}
     >
-      <div style={{ marginBottom: 12, fontSize: 12, color: '#888' }}>
+      <div style={{ marginBottom: 12, fontSize: 12, color: color.textSecondary }}>
         Each price index can have one primary MTM source, one settlement source, and optional backups. The SOURCE_FIELD_CODE / TICKER maps to the vendor-specific field identifier used when loading prices.
       </div>
       <Table
@@ -104,7 +105,7 @@ function IndexLinksDrawer({ source, onClose }: { source: PriceSource; onClose: (
       />
 
       {addOpen && (
-        <div style={{ marginTop: 16, padding: 16, border: '1px solid #d9d9d9', borderRadius: 6 }}>
+        <div style={{ marginTop: 16, padding: 16, border: `1px solid ${color.border}`, borderRadius: 6 }}>
           <Form form={form} layout="vertical">
             <Space style={{ width: '100%', gap: 12 }}>
               <Form.Item name="priceIndexId" label={hint('Price Index', 'Index from the Price Indices master data table. The index must already exist. Multiple roles can link the same index-source pair with different roles.')} rules={[{ required: true }]} style={{ flex: 1 }}>

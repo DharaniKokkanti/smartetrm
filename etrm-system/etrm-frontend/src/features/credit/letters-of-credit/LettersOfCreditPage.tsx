@@ -17,6 +17,7 @@ import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import { AuditInfo } from '@components/smart/AuditInfo';
 import dayjs, { type Dayjs } from 'dayjs';
+import { color } from '@theme/tokens';
 
 const { Text } = Typography;
 
@@ -30,7 +31,7 @@ const LC_STATUS_COLOR: Record<string, string> = {
 
 function sec(label: string) {
   return (
-    <Divider orientation="left" style={{ margin: '14px 0 8px', fontSize: 11, color: '#6b7280' }}>
+    <Divider orientation="left" style={{ margin: '14px 0 8px', fontSize: 11, color: color.textSecondary }}>
       <Text type="secondary" style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.5, textTransform: 'uppercase' }}>{label}</Text>
     </Divider>
   );
@@ -172,10 +173,10 @@ export function LettersOfCreditPage() {
       />
 
       {/* Summary band */}
-      <div style={{ display: 'flex', gap: 32, marginBottom: 16, padding: '12px 16px', background: 'rgba(22,119,255,0.04)', borderRadius: 6, border: '1px solid rgba(22,119,255,0.12)' }}>
+      <div style={{ display: 'flex', gap: 32, marginBottom: 16, padding: '12px 16px', background: `${color.secondary}0A`, borderRadius: 6, border: `1px solid ${color.secondary}1F` }}>
         <Statistic title="Active Face Value (USD)" value={totalFaceValue} precision={0} groupSeparator="," prefix="$" valueStyle={{ fontSize: 16 }} />
-        <Statistic title="Available" value={totalAvailable} precision={0} groupSeparator="," prefix="$" valueStyle={{ fontSize: 16, color: '#22c55e' }} />
-        <Statistic title="Drawn" value={totalDrawn} precision={0} groupSeparator="," prefix="$" valueStyle={{ fontSize: 16, color: '#ef4444' }} />
+        <Statistic title="Available" value={totalAvailable} precision={0} groupSeparator="," prefix="$" valueStyle={{ fontSize: 16, color: color.success }} />
+        <Statistic title="Drawn" value={totalDrawn} precision={0} groupSeparator="," prefix="$" valueStyle={{ fontSize: 16, color: color.error }} />
         <Statistic title="Active LCs" value={data.filter((d) => d.status === 'ACTIVE').length} valueStyle={{ fontSize: 16 }} />
       </div>
 

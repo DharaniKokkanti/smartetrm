@@ -14,6 +14,7 @@ import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import { AuditInfo } from '@components/smart/AuditInfo';
 import dayjs, { type Dayjs } from 'dayjs';
+import { color as themeColor } from '@theme/tokens';
 
 const STATUS_COLOR: Record<string, string> = {
   OPEN: 'processing', SURRENDERED: 'success', PARTIALLY_SURRENDERED: 'warning', OVERDUE: 'error',
@@ -79,8 +80,8 @@ export function EmissionObligationsPage() {
     { field: 'shortfallUnits',      headerName: 'Shortfall',      width: 120, type: 'numericColumn',
       cellRenderer: (p: { value: number | null }) => {
         if (p.value == null) return '—';
-        const color = p.value > 0 ? '#ef4444' : '#22c55e';
-        return <span style={{ color, fontFamily: 'monospace', fontWeight: 600 }}>{p.value > 0 ? `+${p.value.toLocaleString()}` : p.value.toLocaleString()}</span>;
+        const shortfallColor = p.value > 0 ? themeColor.error : themeColor.success;
+        return <span style={{ color: shortfallColor, fontFamily: 'monospace', fontWeight: 600 }}>{p.value > 0 ? `+${p.value.toLocaleString()}` : p.value.toLocaleString()}</span>;
       } },
     { field: 'surrenderDeadline',   headerName: 'Deadline',       width: 105, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },
     { field: 'status', headerName: 'Status', width: 170,

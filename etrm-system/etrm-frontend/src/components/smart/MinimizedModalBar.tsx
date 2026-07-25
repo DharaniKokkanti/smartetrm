@@ -1,4 +1,5 @@
 import { ExpandOutlined } from '@ant-design/icons';
+import { color } from '@theme/tokens';
 
 interface Props {
   visible: boolean;
@@ -19,12 +20,12 @@ export function MinimizedModalBar({ visible, label, onRestore }: Props) {
         bottom: 16,
         right: 16,
         zIndex: 1050,
-        background: '#1677ff',
-        color: '#fff',
+        background: color.secondary,
+        color: '#fff', // white text on the colored pill surface, not a muted/body-text token
         padding: '9px 16px',
         borderRadius: 20,
         cursor: 'pointer',
-        boxShadow: '0 4px 14px rgba(0,0,0,0.28)',
+        boxShadow: '0 4px 14px rgba(0,0,0,0.28)', // drop shadow, not a token concept
         display: 'flex',
         alignItems: 'center',
         gap: 8,

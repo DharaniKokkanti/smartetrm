@@ -11,6 +11,7 @@ import type { Currency, CurrencyInput } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AuditInfo } from '@components/smart/AuditInfo';
 import { useCountries } from '@features/reference/countries/hooks';
+import { color } from '@theme/tokens';
 
 export function CurrenciesPage() {
   const { data, isLoading, refetch } = useCurrencies();
@@ -48,7 +49,7 @@ export function CurrenciesPage() {
       valueFormatter: (p) => (p.value != null ? countryCodeById.get(p.value) ?? '—' : '—') },
     { field: 'decimalPlaces', headerName: 'Decimals', width: 90, type: 'numericColumn' },
     { field: 'isBaseCurrency', headerName: 'Base', width: 70,
-      cellRenderer: (p: { value: boolean }) => p.value ? <StarFilled style={{ color: '#faad14' }} /> : null },
+      cellRenderer: (p: { value: boolean }) => p.value ? <StarFilled style={{ color: color.warning }} /> : null },
     { field: 'isActive', headerName: 'Status', width: 90, cellRenderer: (p: { value: boolean }) => <ActiveTag active={p.value} /> },
     { headerName: '', width: 80, sortable: false, filter: false, pinned: 'right',
       cellRenderer: (p: { data: Currency }) => (

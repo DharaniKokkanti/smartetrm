@@ -18,6 +18,7 @@ import { AppDatePicker } from '@components/smart/AppDatePicker';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AuditInfo } from '@components/smart/AuditInfo';
+import { color } from '@theme/tokens';
 
 const { Text } = Typography;
 
@@ -35,7 +36,7 @@ const AGREEMENT_TYPE_COLOR: Record<string, string> = {
 
 function sec(label: string) {
   return (
-    <Divider orientation="left" style={{ margin: '14px 0 8px', fontSize: 11, color: '#6b7280' }}>
+    <Divider orientation="left" style={{ margin: '14px 0 8px', fontSize: 11, color: color.textSecondary }}>
       <Text type="secondary" style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.5, textTransform: 'uppercase' }}>{label}</Text>
     </Divider>
   );

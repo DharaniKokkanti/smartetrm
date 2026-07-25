@@ -1,14 +1,16 @@
-import { useState, useMemo } from 'react';
-import { Input, Card, Tag, Typography, Divider, Tooltip } from 'antd';
+import { useState, useMemo, useRef, useCallback } from 'react';
+import { Input, Card, Tag, Typography, Divider, Tooltip, Empty, Button } from 'antd';
 import {
   SearchOutlined, ApartmentOutlined, TeamOutlined, ShopOutlined,
   GlobalOutlined, CalendarOutlined, DollarOutlined,
   FileTextOutlined, SafetyCertificateOutlined, BankOutlined,
-  ThunderboltOutlined, CarOutlined, WarningOutlined, CloudOutlined, AuditOutlined,
+  ThunderboltOutlined, CarOutlined, CloudOutlined, AuditOutlined,
   ReconciliationOutlined, LockOutlined, DeploymentUnitOutlined,
+  DownOutlined, RightOutlined, ExpandAltOutlined, ShrinkOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '@components/layout/PageHeader';
+import { color } from '@theme/tokens';
 
 const { Text, Title } = Typography;
 
@@ -270,6 +272,25 @@ const ALL_ENTRIES: Entry[] = [
 
 ];
 
+// A previous pass here flagged 44 /static-data/* cards as "not addable" and
+// bucketed them into a System Configuration group. That was wrong: it was
+// based on grepping this file for literal `tableName: 'x'` strings, which
+// misses every table registered via the `...PARENT_LOOKUP_TABLES.map(...)`
+// spread in registrySeed/metadataSeed/rowSeed further down in
+// mocks/referenceData.ts — 35 of the 44 were already fully registered and
+// addable there. The remaining 9 (loading_rack, blend_recipe,
+// blend_recipe_component, throughput_agreement, product_interface_rule,
+// road_tariff, movement_type, inventory_ownership_type, book_level_type)
+// turned out to be a mock-data-only gap too: the real backend already
+// registers all nine in dbo.master_data_table_registry (V116/V117/V123/
+// V124), addable by anyone with master-data write permission — same
+// server-side RBAC gate as every other table here, no separate "system
+// admin only" concept exists in this app. Fixed at the root instead: those
+// 9 tables' registry/metadata/row entries were added to
+// mocks/referenceData.ts so dev-mode (MSW) now matches what the real
+// backend has already supported for several sessions. No Hub-side
+// relabelling needed — every card below is either genuinely `live` (build
+// exists) or genuinely not (kept as `live: false`, the normal "Soon" case).
 const LIVE_COUNT  = ALL_ENTRIES.filter((e) => e.live).length;
 const TOTAL_COUNT = ALL_ENTRIES.length;
 
@@ -277,7 +298,15 @@ const GROUP_MAP = Object.fromEntries(GROUPS.map((g) => [g.key, g])) as Record<Gr
 
 export function MasterDataHub() {
   const [search, setSearch] = useState('');
+  // Which groups the user has manually expanded — a flat 18-group, ~270-card
+  // page was one continuous scroll with no way to jump straight to a group,
+  // so sections now start collapsed and open on demand (or all at once via
+  // Expand All / a quick-jump chip). Search still searches every group
+  // regardless of collapse state — collapse is a browsing convenience, not a
+  // scope restriction.
+  const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
+  const groupRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   const filtered = useMemo(() => {
     if (!search.trim()) return ALL_ENTRIES;
@@ -299,6 +328,24 @@ export function MasterDataHub() {
   }, [filtered]);
 
   const visibleGroups = [...grouped.entries()].filter(([, v]) => v.length > 0);
+  const isSearching = search.trim().length > 0;
+
+  const toggleGroup = useCallback((key: string) => {
+    setExpandedKeys((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }, []);
+
+  const jumpToGroup = useCallback((key: string) => {
+    setExpandedKeys((prev) => new Set(prev).add(key));
+    // Let the panel actually expand before scrolling to it.
+    requestAnimationFrame(() => {
+      groupRefs.current.get(key)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }, []);
 
   return (
     <>
@@ -318,7 +365,7 @@ export function MasterDataHub() {
       {/* Search */}
       <div style={{ marginBottom: 28, display: 'flex', alignItems: 'center', gap: 12 }}>
         <Input
-          prefix={<SearchOutlined style={{ color: '#aaa' }} />}
+          prefix={<SearchOutlined style={{ color: color.textDisabled }} />}
           placeholder="Search by name, table, keyword — e.g. 'bank guarantee', 'worldscale', 'netting', 'imo', 'remit'..."
           size="large"
           value={search}
@@ -334,9 +381,51 @@ export function MasterDataHub() {
       </div>
 
       {filtered.length === 0 && (
-        <div style={{ padding: '48px 0', textAlign: 'center' }}>
-          <WarningOutlined style={{ fontSize: 32, color: '#d1d5db', display: 'block', marginBottom: 10 }} />
-          <Text type="secondary">No tables match "{search}"</Text>
+        <Empty description={`No tables match "${search}"`} style={{ padding: '48px 0' }} />
+      )}
+
+      {/* Quick-jump — every group at a glance with its live count, so you can
+          go straight to one instead of scrolling past everything above it. */}
+      {!isSearching && visibleGroups.length > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6, marginBottom: 20 }}>
+          {visibleGroups.map(([key, entries]) => {
+            const g = GROUP_MAP[key as GroupKey];
+            const liveCount = entries.filter((e) => e.live).length;
+            const isOpen = expandedKeys.has(key);
+            return (
+              <Tag
+                key={key}
+                onClick={() => jumpToGroup(key)}
+                style={{
+                  cursor: 'pointer',
+                  margin: 0,
+                  fontSize: 11.5,
+                  padding: '3px 9px',
+                  borderRadius: 14,
+                  color: isOpen ? '#fff' : g.color,
+                  background: isOpen ? g.color : g.bg,
+                  border: `1px solid ${g.color}`,
+                }}
+              >
+                {g.label} <span style={{ opacity: 0.75 }}>{liveCount}</span>
+              </Tag>
+            );
+          })}
+          <Button
+            size="small"
+            type="text"
+            icon={expandedKeys.size === visibleGroups.length ? <ShrinkOutlined /> : <ExpandAltOutlined />}
+            onClick={() =>
+              setExpandedKeys(
+                expandedKeys.size === visibleGroups.length
+                  ? new Set()
+                  : new Set(visibleGroups.map(([key]) => key)),
+              )
+            }
+            style={{ fontSize: 11.5, color: color.textSecondary }}
+          >
+            {expandedKeys.size === visibleGroups.length ? 'Collapse all' : 'Expand all'}
+          </Button>
         </div>
       )}
 
@@ -345,23 +434,54 @@ export function MasterDataHub() {
         const entries = grouped.get(g.key) ?? [];
         if (entries.length === 0) return null;
         const liveCount = entries.filter((e) => e.live).length;
+        const isOpen = isSearching || expandedKeys.has(g.key);
         return (
-          <div key={g.key} style={{ marginBottom: 36 }}>
-            {/* Group header */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, paddingBottom: 8, borderBottom: `2px solid ${g.color}30` }}>
+          <div
+            key={g.key}
+            ref={(el) => {
+              if (el) groupRefs.current.set(g.key, el);
+              else groupRefs.current.delete(g.key);
+            }}
+            style={{ marginBottom: isOpen ? 36 : 8, scrollMarginTop: 16 }}
+          >
+            {/* Group header — click to expand/collapse (always expanded while searching) */}
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => !isSearching && toggleGroup(g.key)}
+              onKeyDown={(e) => {
+                if (!isSearching && (e.key === 'Enter' || e.key === ' ')) toggleGroup(g.key);
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                marginBottom: isOpen ? 12 : 0,
+                paddingBottom: 8,
+                borderBottom: `2px solid ${g.color}30`,
+                cursor: isSearching ? 'default' : 'pointer',
+                userSelect: 'none',
+              }}
+            >
+              {!isSearching && (
+                <span style={{ color: color.textDisabled, fontSize: 11 }}>
+                  {isOpen ? <DownOutlined /> : <RightOutlined />}
+                </span>
+              )}
               <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 6, background: g.bg, color: g.color, fontSize: 14 }}>
                 {g.icon}
               </span>
               <Title level={5} style={{ margin: 0, color: g.color, fontWeight: 700, fontSize: 14 }}>{g.label}</Title>
               <Tag color={g.color} style={{ fontSize: 11, padding: '0 5px', margin: 0, lineHeight: '18px' }}>{liveCount} live</Tag>
               {entries.length - liveCount > 0 && (
-                <Tag style={{ fontSize: 11, padding: '0 5px', margin: 0, lineHeight: '18px', color: '#9ca3af', borderColor: '#e5e7eb' }}>
+                <Tag style={{ fontSize: 11, padding: '0 5px', margin: 0, lineHeight: '18px', color: color.textDisabled, borderColor: color.border }}>
                   {entries.length - liveCount} soon
                 </Tag>
               )}
             </div>
 
             {/* Cards — auto-fill grid: column count adapts to viewport width */}
+            {isOpen && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))', gap: 10 }}>
               {entries.map((entry) => {
                 const gDef = GROUP_MAP[entry.group as GroupKey];
@@ -372,7 +492,7 @@ export function MasterDataHub() {
                     hoverable={entry.live}
                     onClick={entry.live ? () => navigate(entry.path) : undefined}
                     style={{
-                      borderLeft: `3px solid ${entry.live ? gDef?.color : '#e5e7eb'}`,
+                      borderLeft: `3px solid ${entry.live ? gDef?.color : color.border}`,
                       cursor: entry.live ? 'pointer' : 'default',
                       opacity: entry.live ? 1 : 0.6,
                       height: '100%',
@@ -382,23 +502,23 @@ export function MasterDataHub() {
                     styles={{ body: { padding: '9px 11px', display: 'flex', flexDirection: 'column', flex: 1 } }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 6, marginBottom: 4 }}>
-                      <Text strong style={{ fontSize: 12.5, lineHeight: 1.3, color: entry.live ? undefined : '#9ca3af' }}>
+                      <Text strong style={{ fontSize: 12.5, lineHeight: 1.3, color: entry.live ? undefined : color.textDisabled }}>
                         {entry.label}
                       </Text>
                       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                        <Tag color={entry.kind === 'entity' ? '#0f766e' : '#64748b'} style={{ fontSize: 10, padding: '0 4px', margin: 0, lineHeight: '16px', flexShrink: 0 }}>
+                        <Tag color={entry.kind === 'entity' ? color.moduleCredit : color.textSecondary} style={{ fontSize: 10, padding: '0 4px', margin: 0, lineHeight: '16px', flexShrink: 0 }}>
                           {entry.kind === 'entity' ? 'Entity' : 'Reference'}
                         </Tag>
                         {entry.live
                           ? <Tag color={gDef?.color} style={{ fontSize: 10, padding: '0 4px', margin: 0, lineHeight: '16px', flexShrink: 0 }}>Live</Tag>
-                          : <Tag style={{ fontSize: 10, padding: '0 4px', margin: 0, lineHeight: '16px', flexShrink: 0, color: '#d1d5db', borderColor: '#f3f4f6' }}>Soon</Tag>
+                          : <Tag style={{ fontSize: 10, padding: '0 4px', margin: 0, lineHeight: '16px', flexShrink: 0, color: color.textDisabled, borderColor: color.border }}>Soon</Tag>
                         }
                       </div>
                     </div>
-                    <Text style={{ fontSize: 10.5, display: 'block', lineHeight: 1.45, color: '#6b7280', flex: 1 }}>
+                    <Text style={{ fontSize: 10.5, display: 'block', lineHeight: 1.45, color: color.textSecondary, flex: 1 }}>
                       {entry.description}
                     </Text>
-                    <Text style={{ fontSize: 10, color: '#d1d5db', display: 'block', marginTop: 5, fontFamily: 'monospace' }}>
+                    <Text style={{ fontSize: 10, color: color.textDisabled, display: 'block', marginTop: 5, fontFamily: 'monospace' }}>
                       dbo.{entry.db}
                     </Text>
                   </Card>
@@ -409,6 +529,7 @@ export function MasterDataHub() {
                   : <Tooltip key={entry.path} title="Coming soon — not yet implemented"><div>{card}</div></Tooltip>;
               })}
             </div>
+            )}
           </div>
         );
       })}

@@ -24,6 +24,7 @@ import { AuditInfo } from '@components/smart/AuditInfo';
 import { useTableRows } from '@features/tier2/hooks';
 import { useUom } from '@features/reference/uom/hooks';
 import { useCurrencies } from '@features/reference/currencies/hooks';
+import { color } from '@theme/tokens';
 
 const { Text } = Typography;
 
@@ -136,7 +137,7 @@ export function BrokerFeeAgreementsPage() {
       field: 'productName', headerName: 'Product', flex: 1, minWidth: 160,
       valueFormatter: (p) => p.value ?? '—',
       tooltipValueGetter: (p) => p.value,
-      cellStyle: { fontSize: 12, color: '#6b7280' },
+      cellStyle: { fontSize: 12, color: color.textSecondary },
     },
     {
       field: 'tradeType', headerName: 'Trade Type', width: 100,
@@ -348,7 +349,7 @@ export function BrokerFeeAgreementsPage() {
                 <span>
                   {FEE_TYPE_META[selectedFeeType]?.rateLabel ?? 'Rate'}
                   <Tooltip title={FEE_TYPE_META[selectedFeeType]?.hint}>
-                    <InfoCircleOutlined style={{ marginLeft: 6, color: '#8c8c8c' }} />
+                    <InfoCircleOutlined style={{ marginLeft: 6, color: color.textSecondary }} />
                   </Tooltip>
                 </span>
               }

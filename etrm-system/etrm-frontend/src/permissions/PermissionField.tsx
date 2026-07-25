@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Tooltip, Typography } from 'antd';
 import { LockOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import type { FieldPermissionMap } from './types';
+import { color } from '@theme/tokens';
 
 const { Text } = Typography;
 
@@ -46,11 +47,11 @@ export function PermissionField({
         </Text>
         {lockReason ? (
           <Tooltip title={lockReason}>
-            <LockOutlined style={{ color: '#faad14', fontSize: 13 }} />
+            <LockOutlined style={{ color: color.warning, fontSize: 13 }} />
           </Tooltip>
         ) : (
           <Tooltip title="View only — your role does not have edit access to this field">
-            <EyeInvisibleOutlined style={{ color: '#8c8c8c', fontSize: 13 }} />
+            <EyeInvisibleOutlined style={{ color: color.textSecondary, fontSize: 13 }} />
           </Tooltip>
         )}
       </div>

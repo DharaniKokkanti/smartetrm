@@ -24,6 +24,7 @@ import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import { AuditInfo } from '@components/smart/AuditInfo';
 import dayjs, { type Dayjs } from 'dayjs';
+import { color } from '@theme/tokens';
 
 const { Text } = Typography;
 
@@ -46,7 +47,7 @@ const ALERT_TYPE_COLOR: Record<string, string> = {
 
 function sec(label: string) {
   return (
-    <Divider orientation="left" style={{ margin: '14px 0 8px', fontSize: 11, color: '#6b7280' }}>
+    <Divider orientation="left" style={{ margin: '14px 0 8px', fontSize: 11, color: color.textSecondary }}>
       <Text type="secondary" style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.5, textTransform: 'uppercase' }}>{label}</Text>
     </Divider>
   );
@@ -212,10 +213,10 @@ export function CreditLimitsPage() {
       headerName: 'Utilisation', width: 170,
       cellRenderer: (p: { data: CreditLimit }) => {
         const pct = p.data.utilisationPct ?? 0;
-        const color = pct >= (p.data.criticalThresholdPct ?? 95) ? '#ff4d4f' : pct >= (p.data.warningThresholdPct ?? 80) ? '#faad14' : '#52c41a';
+        const barColor = pct >= (p.data.criticalThresholdPct ?? 95) ? color.error : pct >= (p.data.warningThresholdPct ?? 80) ? color.warning : color.success;
         return (
           <div style={{ paddingTop: 4 }}>
-            <Progress percent={Math.min(pct, 100)} size="small" strokeColor={color} format={() => `${pct.toFixed(1)}%`} />
+            <Progress percent={Math.min(pct, 100)} size="small" strokeColor={barColor} format={() => `${pct.toFixed(1)}%`} />
           </div>
         );
       },
@@ -229,7 +230,7 @@ export function CreditLimitsPage() {
     {
       field: 'nextReviewDate', headerName: 'Next Review', width: 110, cellClass: 'cell-mono',
       cellRenderer: (p: { value: string | null }) => p.value
-        ? <span style={{ color: p.value < today ? '#ff4d4f' : undefined, fontWeight: p.value < today ? 600 : undefined }}>{p.value}{p.value < today ? ' ⚠' : ''}</span>
+        ? <span style={{ color: p.value < today ? color.error : undefined, fontWeight: p.value < today ? 600 : undefined }}>{p.value}{p.value < today ? ' ⚠' : ''}</span>
         : '—',
     },
     {
@@ -256,7 +257,7 @@ export function CreditLimitsPage() {
           )}
           {p.data.status === 'SUSPENDED' && (
             <Tooltip title="Reinstate">
-              <Button type="text" size="small" icon={<PlayCircleOutlined />} style={{ color: '#22c55e' }} onClick={() => reinstate.mutate(p.data.creditLimitId)} />
+              <Button type="text" size="small" icon={<PlayCircleOutlined />} style={{ color: color.success }} onClick={() => reinstate.mutate(p.data.creditLimitId)} />
             </Tooltip>
           )}
         </Space>
@@ -574,7 +575,7 @@ export function CreditLimitsPage() {
                       </Form.Item>
                     </Col>
                     <Col span={1}>
-                      <MinusCircleOutlined onClick={() => remove(name)} style={{ color: '#ff4d4f', cursor: 'pointer', fontSize: 16 }} />
+                      <MinusCircleOutlined onClick={() => remove(name)} style={{ color: color.error, cursor: 'pointer', fontSize: 16 }} />
                     </Col>
                   </Row>
                 ))}

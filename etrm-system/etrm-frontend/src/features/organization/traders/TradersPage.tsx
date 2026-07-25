@@ -13,6 +13,7 @@ import { COMMODITY_TYPE_LOOKUP, commodityLabel, commodityCodeById } from '@featu
 import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import { AuditInfo } from '@components/smart/AuditInfo';
+import { color } from '@theme/tokens';
 import { useBooks } from '../books/hooks';
 import { DESK_LEVEL_TYPE_ID } from '../books/types';
 import { useLegalEntities } from '@features/tier1/legal-entity/hooks';
@@ -80,7 +81,7 @@ export function TradersPage() {
             </div>
           ))}</div>
         }>
-          <span style={{ cursor: 'default', fontSize: 12, opacity: 0.65, borderBottom: '1px dashed #aaa' }}>
+          <span style={{ cursor: 'default', fontSize: 12, opacity: 0.65, borderBottom: `1px dashed ${color.border}` }}>
             {p.data.commodityLimits.length} limit{p.data.commodityLimits.length !== 1 ? 's' : ''} set
           </span>
         </Tooltip>

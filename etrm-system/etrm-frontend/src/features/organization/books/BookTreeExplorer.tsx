@@ -6,7 +6,7 @@ import {
 import type { ColDef } from 'ag-grid-community';
 import { SmartGrid } from '@components/smart/SmartGrid';
 import { useThemeStore } from '@store/themeStore';
-import { paletteFor, moduleColor, type ThemeMode } from '@theme/tokens';
+import { color, paletteFor, moduleColor, type ThemeMode } from '@theme/tokens';
 import { useBooks, useBookEodStatus, useBookDescendants, useMoveBook } from './hooks';
 import { bookLevelTypeCode, bookLevelTypeLabel, bookTypeLabel } from './types';
 import type { Book } from './types';
@@ -89,7 +89,9 @@ function highlight(text: string, query: string): JSX.Element | string {
   return (
     <>
       {text.slice(0, idx)}
-      <mark style={{ background: '#F5D67B', color: '#1C1C1A', padding: 0 }}>{text.slice(idx, idx + q.length)}</mark>
+      {/* '#F5D67B' is a dedicated search-highlight yellow — no token concept
+          matches a mark/highlight background, so it stays raw hex. */}
+      <mark style={{ background: '#F5D67B', color: color.textPrimary, padding: 0 }}>{text.slice(idx, idx + q.length)}</mark>
       {text.slice(idx + q.length)}
     </>
   );
@@ -396,7 +398,7 @@ function rollupColDefs(): ColDef<RollupRow>[] {
         return (
           <Space size={6}>
             <Tag color={isShort ? 'red' : 'green'} style={{ fontSize: 10, margin: 0 }}>{isShort ? 'SHORT' : 'LONG'}</Tag>
-            <span className="text-mono" style={{ color: isShort ? '#dc2626' : '#16a34a', fontSize: 12 }}>
+            <span className="text-mono" style={{ color: isShort ? color.error : color.success, fontSize: 12 }}>
               {fmtQty(Math.abs(p.data.netQuantity))}
             </span>
             <Typography.Text type="secondary" style={{ fontSize: 11 }}>{p.data.quantityUomCode}</Typography.Text>
@@ -415,11 +417,11 @@ function rollupColDefs(): ColDef<RollupRow>[] {
     },
     {
       headerName: 'Buys', field: 'grossBuyQuantity', width: 100, type: 'numericColumn',
-      cellRenderer: (p: { data: RollupRow }) => <span style={{ color: '#16a34a', fontSize: 12 }}>{fmtQty(p.data.grossBuyQuantity)}</span>,
+      cellRenderer: (p: { data: RollupRow }) => <span style={{ color: color.success, fontSize: 12 }}>{fmtQty(p.data.grossBuyQuantity)}</span>,
     },
     {
       headerName: 'Sells', field: 'grossSellQuantity', width: 100, type: 'numericColumn',
-      cellRenderer: (p: { data: RollupRow }) => <span style={{ color: '#dc2626', fontSize: 12 }}>{fmtQty(p.data.grossSellQuantity)}</span>,
+      cellRenderer: (p: { data: RollupRow }) => <span style={{ color: color.error, fontSize: 12 }}>{fmtQty(p.data.grossSellQuantity)}</span>,
     },
     { headerName: 'Books', field: 'bookCount', width: 80, type: 'numericColumn' },
     { headerName: 'Trades', field: 'tradeCount', width: 80, type: 'numericColumn' },
@@ -455,7 +457,7 @@ function positionColDefs(showBook: boolean): ColDef<Position>[] {
         return (
           <Space size={6}>
             <Tag color={isShort ? 'red' : 'green'} style={{ fontSize: 10, margin: 0 }}>{isShort ? 'SHORT' : 'LONG'}</Tag>
-            <span className="text-mono" style={{ color: isShort ? '#dc2626' : '#16a34a', fontSize: 12 }}>
+            <span className="text-mono" style={{ color: isShort ? color.error : color.success, fontSize: 12 }}>
               {fmtQty(Math.abs(p.data.netQuantity))}
             </span>
             <Typography.Text type="secondary" style={{ fontSize: 11 }}>{p.data.quantityUomCode}</Typography.Text>
@@ -474,11 +476,11 @@ function positionColDefs(showBook: boolean): ColDef<Position>[] {
     },
     {
       headerName: 'Buys', field: 'grossBuyQuantity', width: 100, type: 'numericColumn',
-      cellRenderer: (p: { data: Position }) => <span style={{ color: '#16a34a', fontSize: 12 }}>{fmtQty(p.data.grossBuyQuantity)}</span>,
+      cellRenderer: (p: { data: Position }) => <span style={{ color: color.success, fontSize: 12 }}>{fmtQty(p.data.grossBuyQuantity)}</span>,
     },
     {
       headerName: 'Sells', field: 'grossSellQuantity', width: 100, type: 'numericColumn',
-      cellRenderer: (p: { data: Position }) => <span style={{ color: '#dc2626', fontSize: 12 }}>{fmtQty(p.data.grossSellQuantity)}</span>,
+      cellRenderer: (p: { data: Position }) => <span style={{ color: color.error, fontSize: 12 }}>{fmtQty(p.data.grossSellQuantity)}</span>,
     },
     { headerName: 'Trades', field: 'tradeCount', width: 80, type: 'numericColumn' },
   ];

@@ -2,8 +2,10 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import type { MouseEvent as ReactMouseEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Input, Spin, Empty, Typography } from 'antd';
-import { SearchOutlined, RightOutlined, DownOutlined, LinkOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { SearchOutlined, RightOutlined, DownOutlined, LinkOutlined } from '@ant-design/icons';
 import { PageHeader } from '@components/layout/PageHeader';
+import { InfoPanel } from '@components/smart/InfoPanel';
+import { color } from '@theme/tokens';
 import { useRegisteredTables } from './hooks';
 import { ReferenceDataTable } from './ReferenceDataTable';
 import type { RegistryEntry } from '@models/referenceData';
@@ -21,14 +23,22 @@ function loadSidebarWidth(): number {
   return DEFAULT_SIDEBAR_WIDTH;
 }
 
-// Canonical sidebar order — mirrors the Master Data Hub's own group order, so
-// a card clicked in the Hub lands in a sidebar group with the same name in
-// the same relative position. Groups not listed here are appended at the end.
+// Canonical sidebar order — mirrors the Master Data Hub's own GROUPS order
+// exactly (MasterDataHub.tsx), so a card clicked in the Hub lands in a
+// sidebar group with the same name in the same relative position. Groups
+// not listed here are appended at the end. Previously only listed 12 of the
+// Hub's 18 groups — the other 6 (User Management, Physical Operations,
+// Supply & Distribution, Voyage & Charter Ops, Calendar & Periods, Sanctions
+// & Regulatory Reporting) silently sorted to the bottom here regardless of
+// their real position in the Hub, contradicting this comment's own stated
+// intent — found during a GUI navigation-consistency audit.
 const GROUP_ORDER = [
-  'Organization & Users', 'Counterparties & Agreements', 'Credit & Collateral',
-  'Products & Markets', 'Contract & Legal', 'Logistics & Delivery',
-  'Freight & Shipping', 'Power & Energy', 'Pricing & Rates',
-  'Finance & Settlement', 'Carbon & Environmental', 'RIN & Renewable Fuels',
+  'Organization & Users', 'User Management', 'Counterparties & Agreements',
+  'Credit & Collateral', 'Products & Markets', 'Contract & Legal',
+  'Physical Operations', 'Logistics & Delivery', 'Supply & Distribution',
+  'Freight & Shipping', 'Voyage & Charter Ops', 'Power & Energy',
+  'Calendar & Periods', 'Pricing & Rates', 'Finance & Settlement',
+  'Sanctions & Regulatory Reporting', 'RIN & Renewable Fuels', 'Carbon & Environmental',
 ];
 
 function sortedGroupEntries(map: Map<string, RegistryEntry[]>): [string, RegistryEntry[]][] {
@@ -62,36 +72,24 @@ function DescriptionPanel({ table }: { table: RegistryEntry }) {
   // populated, and hiding the whole panel for those left ~150 Static Data
   // pages with no page title at all, just a highlighted sidebar item.
   return (
-    <div style={{
-      background: '#f6f8fa',
-      border: '1px solid #e8ebee',
-      borderRadius: 6,
-      padding: '10px 16px',
-      marginBottom: 16,
-      display: 'flex',
-      gap: 12,
-      alignItems: 'flex-start',
-    }}>
-      <InfoCircleOutlined style={{ color: '#1677ff', fontSize: 14, marginTop: 2, flexShrink: 0 }} />
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <Text strong style={{ fontSize: 14 }}>{table.displayName}</Text>
-        {table.description && (
-          <Paragraph style={{ margin: '3px 0 0', fontSize: 12.5, color: '#4b5563', lineHeight: 1.55 }}>
-            {table.description}
-          </Paragraph>
-        )}
-        {links.length > 0 && (
-          <div style={{ marginTop: 6, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            {links.map((lnk) => (
-              <a key={lnk.url} href={lnk.url} target="_blank" rel="noopener noreferrer"
-                style={{ fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                <LinkOutlined style={{ fontSize: 11 }} />{lnk.label}
-              </a>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+    <InfoPanel variant="neutral">
+      <Text strong style={{ fontSize: 14 }}>{table.displayName}</Text>
+      {table.description && (
+        <Paragraph style={{ margin: '3px 0 0', fontSize: 12.5, color: color.textSecondary, lineHeight: 1.55 }}>
+          {table.description}
+        </Paragraph>
+      )}
+      {links.length > 0 && (
+        <div style={{ marginTop: 6, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          {links.map((lnk) => (
+            <a key={lnk.url} href={lnk.url} target="_blank" rel="noopener noreferrer"
+              style={{ fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <LinkOutlined style={{ fontSize: 11 }} />{lnk.label}
+            </a>
+          ))}
+        </div>
+      )}
+    </InfoPanel>
   );
 }
 
@@ -166,9 +164,20 @@ export function Tier2HomePage() {
   const autoKey = `${tableName ?? ''}::${[...allGroupNames].sort().join(',')}`;
   const [lastAutoKey, setLastAutoKey] = useState<string | null>(null);
   if (allGroupNames.size > 0 && autoKey !== lastAutoKey) {
+    const isFirstLoad = lastAutoKey === null;
     setLastAutoKey(autoKey);
     const next = new Set(allGroupNames);
-    if (activeTable) next.delete(activeTable.moduleGroup);
+    if (activeTable) {
+      next.delete(activeTable.moduleGroup);
+    } else if (isFirstLoad) {
+      // Landing on /static-data with no table selected yet — leaving every
+      // group collapsed left the whole content area blank behind a sidebar
+      // of headers with nothing to click first. Open the first group instead
+      // (canonical GROUP_ORDER, same order the sidebar renders in) so there's
+      // something to see and pick from immediately.
+      const firstGroup = GROUP_ORDER.find((g) => allGroupNames.has(g)) ?? [...allGroupNames][0];
+      next.delete(firstGroup);
+    }
     setCollapsed(next);
   }
 
@@ -212,20 +221,27 @@ export function Tier2HomePage() {
       {isLoading ? (
         <Spin style={{ display: 'block', marginTop: 60 }} />
       ) : (
-        <div style={{ display: 'flex', height: 'calc(100vh - 150px)', overflow: 'hidden' }}>
+        // Single page-level scroll surface: the sidebar is `position: sticky`
+        // with no height cap of its own (no independent scrollbar), so the
+        // browser's normal document scroll is the only vertical scrollbar on
+        // this screen. Previously both the sidebar and the content area had
+        // their own `overflowY: auto` inside a fixed-height wrapper, which
+        // produced two separate vertical scrollbars side by side plus the
+        // table's own horizontal scrollbar — three scroll surfaces to manage
+        // at once. The table's `scroll={{ x: 'max-content' }}` (in
+        // ReferenceDataTable) still scrolls horizontally on its own, but
+        // that's contained to the table, not the whole page.
+        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
 
           {/* ── Sidebar ─────────────────────────────────────────────────── */}
           <div style={{
             width: sidebarWidth,
             flexShrink: 0,
-            position: 'relative',
-            borderRight: '1px solid #f0f0f0',
-            display: 'flex',
-            flexDirection: 'column',
+            position: 'sticky',
+            top: 12,
+            borderRight: `1px solid ${color.border}`,
           }}>
-            {/* Drag handle — resizes the sidebar; leaves the main app sidebar untouched.
-                Sits on this non-scrolling wrapper (not the inner overflowY:auto div)
-                so its half-outside overhang isn't clipped by the scroll container. */}
+            {/* Drag handle — resizes the sidebar; leaves the main app sidebar untouched. */}
             <div
               onMouseDown={onResizeHandleMouseDown}
               style={{
@@ -237,30 +253,29 @@ export function Tier2HomePage() {
                 cursor: 'col-resize',
                 zIndex: 2,
               }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#d9d9d9'; }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = color.borderStrong; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
             />
 
-            <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ padding: '10px 10px 6px', position: 'sticky', top: 0, background: '#fff', zIndex: 1 }}>
-                <Input
-                  prefix={<SearchOutlined style={{ color: '#bfbfbf', fontSize: 12 }} />}
-                  placeholder="Filter tables…"
-                  value={filter}
-                  onChange={(e) => setFilter(e.target.value)}
-                  allowClear
-                  size="small"
-                />
-              </div>
+            <div style={{ padding: '10px 10px 6px', background: color.bgElevated }}>
+              <Input
+                prefix={<SearchOutlined style={{ color: color.textDisabled, fontSize: 12 }} />}
+                placeholder="Filter tables…"
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                allowClear
+                size="small"
+              />
+            </div>
 
-              <div style={{ flex: 1 }}>
-                {grouped.length === 0 && (
-                  <div style={{ padding: '20px 12px', color: '#bfbfbf', fontSize: 12, textAlign: 'center' }}>
-                    No tables match "{filter}"
-                  </div>
-                )}
+            <div>
+              {grouped.length === 0 && (
+                <div style={{ padding: '20px 12px', color: color.textDisabled, fontSize: 12, textAlign: 'center' }}>
+                  No tables match "{filter}"
+                </div>
+              )}
 
-                {grouped.map(([group, items]) => {
+              {grouped.map(([group, items]) => {
                   const isCollapsed = !isFiltering && collapsed.has(group);
                   return (
                     <div key={group} style={{ marginBottom: 4 }}>
@@ -271,7 +286,7 @@ export function Tier2HomePage() {
                           padding: '8px 10px 6px 12px',
                           fontSize: 11,
                           fontWeight: 700,
-                          color: '#6b7280',
+                          color: color.textSecondary,
                           letterSpacing: '0.5px',
                           textTransform: 'uppercase',
                           userSelect: 'none',
@@ -280,8 +295,8 @@ export function Tier2HomePage() {
                           alignItems: 'center',
                           gap: 5,
                         }}
-                        onMouseEnter={(e) => { if (!isFiltering) (e.currentTarget as HTMLElement).style.color = '#374151'; }}
-                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = '#6b7280'; }}
+                        onMouseEnter={(e) => { if (!isFiltering) (e.currentTarget as HTMLElement).style.color = color.textPrimary; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = color.textSecondary; }}
                       >
                         {!isFiltering && (
                           isCollapsed
@@ -291,12 +306,12 @@ export function Tier2HomePage() {
                         {group}
                         <span style={{
                           marginLeft: 'auto',
-                          background: '#f0f0f0',
+                          background: color.bg,
                           borderRadius: 8,
                           padding: '0 5px',
                           fontSize: 10,
                           fontWeight: 500,
-                          color: '#9ca3af',
+                          color: color.textDisabled,
                         }}>
                           {items.length}
                         </span>
@@ -314,12 +329,11 @@ export function Tier2HomePage() {
                     </div>
                   );
                 })}
-              </div>
             </div>
           </div>
 
           {/* ── Content area ────────────────────────────────────────────── */}
-          <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', padding: '0 24px 24px' }}>
+          <div style={{ flex: 1, minWidth: 0, padding: '0 24px 24px' }}>
             {activeTable ? (
               <>
                 <DescriptionPanel table={activeTable} />
@@ -350,9 +364,9 @@ function NavItem({ label, active, onClick }: { label: string; active: boolean; o
         cursor: 'pointer',
         fontSize: 13,
         lineHeight: '20px',
-        borderLeft: `2px solid ${active ? '#1890ff' : 'transparent'}`,
-        background: active ? '#e6f4ff' : hovered ? '#fafafa' : 'transparent',
-        color: active ? '#1677ff' : '#262626',
+        borderLeft: `2px solid ${active ? color.moduleTier2 : 'transparent'}`,
+        background: active ? `${color.moduleTier2}14` : hovered ? color.bg : 'transparent',
+        color: active ? color.moduleTier2 : color.textPrimary,
         fontWeight: active ? 500 : 400,
         transition: 'background 0.1s',
         borderRadius: '0 4px 4px 0',

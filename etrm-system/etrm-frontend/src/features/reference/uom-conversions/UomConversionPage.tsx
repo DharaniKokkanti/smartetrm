@@ -5,11 +5,13 @@ import type { ColDef } from 'ag-grid-community';
 import { PageHeader } from '@components/layout/PageHeader';
 import { SmartGrid } from '@components/smart/SmartGrid';
 import { hint } from '@components/smart/FieldHint';
+import { InfoPanel } from '@components/smart/InfoPanel';
 import { useUomConversions, useSaveUomConversion, useDeleteUomConversion } from './hooks';
 import { useUom } from '@features/reference/uom/hooks';
 import { COMMODITY_TYPES, type CommodityType } from '@features/reference/commodity-types/types';
 import type { UomConversion, UomConversionInput } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { color } from '@theme/tokens';
 
 const COMMODITY_COLOR: Record<CommodityType, string> = {
   OIL: 'volcano', GAS: 'blue', POWER: 'gold', METALS: 'purple', AGRICULTURAL: 'green',
@@ -25,7 +27,7 @@ function UomTag({ code, typeMap }: { code: string; typeMap: Map<string, string> 
   return (
     <Space size={3}>
       {type && <Tag color={UOM_TYPE_COLOR[type]} style={{ fontSize: 10, margin: 0, padding: '0 4px' }}>{type}</Tag>}
-      <code style={{ background: '#f3f4f6', padding: '0 5px', borderRadius: 3, fontSize: 12 }}>{code}</code>
+      <code style={{ background: color.bg, padding: '0 5px', borderRadius: 3, fontSize: 12 }}>{code}</code>
     </Space>
   );
 }
@@ -166,9 +168,9 @@ export function UomConversionPage() {
         const isCross  = fromType && toType && fromType !== toType;
         return (
           <Space size={4}>
-            <code style={{ color: '#6b7280', fontSize: 11 }}>1 {p.data.fromUomCode} =</code>
-            <code style={{ color: isCross ? '#d97706' : '#111827' }}>{display}</code>
-            <code style={{ color: '#6b7280', fontSize: 11 }}>{p.data.toUomCode}</code>
+            <code style={{ color: color.textSecondary, fontSize: 11 }}>1 {p.data.fromUomCode} =</code>
+            <code style={{ color: isCross ? color.warning : color.textPrimary }}>{display}</code>
+            <code style={{ color: color.textSecondary, fontSize: 11 }}>{p.data.toUomCode}</code>
           </Space>
         );
       },
@@ -182,7 +184,7 @@ export function UomConversionPage() {
     },
     {
       field: 'notes', headerName: 'Notes / Authority', flex: 1, minWidth: 220,
-      cellStyle: { fontSize: 11, color: '#6b7280' },
+      cellStyle: { fontSize: 11, color: color.textSecondary },
     },
     {
       headerName: '', width: 80, sortable: false, filter: false, pinned: 'right',
@@ -230,7 +232,7 @@ export function UomConversionPage() {
           <div style={{ padding: '6px 0 8px', display: 'flex', alignItems: 'center', gap: 12 }}>
             {commodityFilterBar}
           </div>
-          <Space size={16} style={{ fontSize: 12, color: '#6b7280', paddingBottom: 4 }}>
+          <Space size={16} style={{ fontSize: 12, color: color.textSecondary, paddingBottom: 4 }}>
             <Space size={4}>
               <Tag color="default" style={{ fontSize: 10 }}>Same type — fixed ratio</Tag>
               <span>Volume↔Volume, Energy↔Energy, Weight↔Weight — stored here</span>
@@ -301,7 +303,7 @@ export function UomConversionPage() {
           </Form.Item>
 
           {!editing && fromWatch && toWatch && factorWatch && factorWatch > 0 && (
-            <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 6, padding: '8px 12px', marginBottom: 16 }}>
+            <InfoPanel variant="info" icon={false} style={{ marginBottom: 16 }}>
               <Space align="center">
                 <Switch size="small" checked={addReverse} onChange={setAddReverse} />
                 <Typography.Text style={{ fontSize: 12 }}>
@@ -312,7 +314,7 @@ export function UomConversionPage() {
               <Typography.Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 4 }}>
                 Creates both directions in one step so users don't need to enter the inverse manually.
               </Typography.Text>
-            </div>
+            </InfoPanel>
           )}
 
           <Form.Item

@@ -8,6 +8,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PageHeader } from '@components/layout/PageHeader';
 import { fetchProfiles, fetchProfileDetail, updateProfileRules } from '@permissions/api';
 import type { FieldRuleDto, AccessLevel } from '@permissions/types';
+import { color } from '@theme/tokens';
 
 const { Text } = Typography;
 
@@ -199,7 +200,7 @@ export function FieldPermissionsPage() {
                     />
                     {row.isRequiredField && current === 'HIDDEN' && (
                       <Tooltip title="Will be clamped to View Only — required fields cannot be hidden">
-                        <LockOutlined style={{ color: '#faad14' }} />
+                        <LockOutlined style={{ color: color.warning }} />
                       </Tooltip>
                     )}
                   </Space>

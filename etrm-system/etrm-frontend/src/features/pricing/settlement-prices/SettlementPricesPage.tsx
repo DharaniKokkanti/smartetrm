@@ -13,6 +13,7 @@ import { AuditInfo } from '@components/smart/AuditInfo';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useUom } from '@features/reference/uom/hooks';
 import { useCurrencies } from '@features/reference/currencies/hooks';
+import { color } from '@theme/tokens';
 
 const EXCHANGE_COLOR: Record<TasExchange, string> = {
   CME_NYMEX: 'blue', ICE_EUROPE: 'orange', ICE_US: 'cyan',
@@ -82,7 +83,7 @@ export function SettlementPricesPage() {
           : <Tag color="warning" style={{ fontSize: 10 }}>PENDING</Tag>
       ),
     },
-    { field: 'notes', headerName: 'Notes', flex: 1, valueFormatter: (p) => p.value ?? '—', cellStyle: { fontSize: 11, color: '#6b7280' } },
+    { field: 'notes', headerName: 'Notes', flex: 1, valueFormatter: (p) => p.value ?? '—', cellStyle: { fontSize: 11, color: color.textSecondary } },
     {
       headerName: '', width: 105, sortable: false, filter: false, pinned: 'right',
       cellRenderer: (p: { data: SettlementPrice }) => (
@@ -91,7 +92,7 @@ export function SettlementPricesPage() {
           {!p.data.isConfirmed && (
             <Popconfirm title="Confirm settlement price?" description={`${p.data.contractTicker} ${p.data.settleDate} = ${p.data.settlePrice}`} onConfirm={() => confirm.mutate(p.data.settlementPriceId)} okText="Confirm" okButtonProps={{ icon: <CheckCircleOutlined /> }}>
               <Tooltip title="Confirm settlement">
-                <Button type="text" size="small" icon={<CheckCircleOutlined />} style={{ color: '#22c55e' }} />
+                <Button type="text" size="small" icon={<CheckCircleOutlined />} style={{ color: color.success }} />
               </Tooltip>
             </Popconfirm>
           )}
@@ -115,7 +116,7 @@ export function SettlementPricesPage() {
         addLabel="Add Settlement Price"
         onRefresh={() => { void refetch(); }}
         getRowId={(p) => String(p.data.settlementPriceId)}
-        getRowStyle={(p) => !(p.data as SettlementPrice).isConfirmed ? { background: 'rgba(250,173,20,0.04)' } : undefined}
+        getRowStyle={(p) => !(p.data as SettlementPrice).isConfirmed ? { background: `${color.warning}0A` } : undefined}
       />
 
       <Drawer mask={false} forceRender

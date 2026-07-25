@@ -13,6 +13,7 @@ import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import { AuditInfo } from '@components/smart/AuditInfo';
 import dayjs, { type Dayjs } from 'dayjs';
+import { color } from '@theme/tokens';
 
 const D_CODE_COLOR: Record<string, string> = { D3: 'purple', D4: 'blue', D5: 'green', D6: 'orange', D7: 'cyan' };
 const STATUS_COLOR: Record<string, string> = {
@@ -86,9 +87,9 @@ export function RinObligationsPage() {
       valueFormatter: (p) => Number(p.value).toLocaleString() },
     { field: 'shortfallQuantity', headerName: 'Shortfall',      width: 130, type: 'numericColumn',
       cellRenderer: (p: { value: number }) => {
-        const color = p.value > 0 ? '#ef4444' : '#22c55e';
+        const shortfallColor = p.value > 0 ? color.error : color.success;
         const text = p.value > 0 ? `−${p.value.toLocaleString()}` : `+${Math.abs(p.value).toLocaleString()} surplus`;
-        return <span style={{ fontFamily: 'monospace', fontWeight: 600, color }}>{text}</span>;
+        return <span style={{ fontFamily: 'monospace', fontWeight: 600, color: shortfallColor }}>{text}</span>;
       } },
     { headerName: 'Completion', width: 160, sortable: false, filter: false,
       cellRenderer: (p: { data: RinObligation }) => {
@@ -122,12 +123,12 @@ export function RinObligationsPage() {
       <Row gutter={[12, 12]} style={{ marginBottom: 12 }}>
         <Col xs={24} sm={8}>
           <Card size="small">
-            <Statistic title="Total RVO Required" value={totalRequired} formatter={(v) => Number(v).toLocaleString()} suffix="RINs" valueStyle={{ color: '#1677ff' }} />
+            <Statistic title="Total RVO Required" value={totalRequired} formatter={(v) => Number(v).toLocaleString()} suffix="RINs" valueStyle={{ color: color.secondary }} />
           </Card>
         </Col>
         <Col xs={24} sm={8}>
           <Card size="small">
-            <Statistic title="Total RINs Retired" value={totalRetired} formatter={(v) => Number(v).toLocaleString()} suffix="RINs" valueStyle={{ color: '#22c55e' }} />
+            <Statistic title="Total RINs Retired" value={totalRetired} formatter={(v) => Number(v).toLocaleString()} suffix="RINs" valueStyle={{ color: color.success }} />
           </Card>
         </Col>
         <Col xs={24} sm={8}>
@@ -136,7 +137,7 @@ export function RinObligationsPage() {
               title="Open Obligations"
               value={openObligations.length}
               suffix={`/ ${data.length}`}
-              valueStyle={{ color: openObligations.length > 0 ? '#f59e0b' : '#22c55e' }}
+              valueStyle={{ color: openObligations.length > 0 ? color.warning : color.success }}
             />
           </Card>
         </Col>

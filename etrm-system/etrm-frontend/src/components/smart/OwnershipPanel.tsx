@@ -6,6 +6,8 @@ import type { ColumnsType } from 'antd/es/table';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
+import { InfoPanel } from '@components/smart/InfoPanel';
+import { color } from '@theme/tokens';
 
 /**
  * Shared shape behind both dbo.legal_entity_ownership (V125) and
@@ -99,7 +101,7 @@ function ownershipColumns<TRow extends OwnershipRow>(onRemove: (row: TRow) => vo
       render: (v: string, r) => (
         <div>
           <Typography.Text>{v}</Typography.Text>
-          <div style={{ fontSize: 11, color: '#6b7280' }}>{r.ownerType}</div>
+          <div style={{ fontSize: 11, color: color.textSecondary }}>{r.ownerType}</div>
         </div>
       ),
     },
@@ -171,7 +173,7 @@ export function OwnershipPanel<TRow extends OwnershipRow>({
       </div>
 
       {showAdd && (
-        <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8, padding: 12, marginBottom: 12 }}>
+        <InfoPanel variant="neutral" icon={false} compact style={{ marginBottom: 12 }}>
           <Form form={form} layout="vertical" size="small" initialValues={{
             ownerType: 'LEGAL_ENTITY', isOperator: false, consolidationMethod: 'EQUITY', effectiveFrom: dayjs(),
           }}>
@@ -197,7 +199,7 @@ export function OwnershipPanel<TRow extends OwnershipRow>({
               <Form.Item name="ownershipPct" label="Ownership %" rules={[{ required: true, message: 'Required' }]} style={{ width: 100, marginBottom: 0 }}>
                 <InputNumber min={0.001} max={100} step={0.1} style={{ width: '100%' }} />
               </Form.Item>
-              <Form.Item name="consolidationMethod" label={<Tooltip title={CONSOLIDATION_HINT}>Consolidation <span style={{ color: '#6b7280', fontSize: 10 }}>(?)</span></Tooltip>} rules={[{ required: true }]} style={{ width: 140, marginBottom: 0 }}>
+              <Form.Item name="consolidationMethod" label={<Tooltip title={CONSOLIDATION_HINT}>Consolidation <span style={{ color: color.textSecondary, fontSize: 10 }}>(?)</span></Tooltip>} rules={[{ required: true }]} style={{ width: 140, marginBottom: 0 }}>
                 <Select options={CONSOLIDATION_OPTIONS} />
               </Form.Item>
               <Form.Item name="effectiveFrom" label="Effective From" rules={[{ required: true }]} style={{ width: 140, marginBottom: 0 }}>
@@ -215,7 +217,7 @@ export function OwnershipPanel<TRow extends OwnershipRow>({
               </div>
             </div>
           </Form>
-        </div>
+        </InfoPanel>
       )}
 
       <Table
@@ -226,7 +228,7 @@ export function OwnershipPanel<TRow extends OwnershipRow>({
         rowKey={rowKey}
         pagination={false}
         footer={() => (
-          <div style={{ textAlign: 'right', fontSize: 12, color: Math.abs(total - 100) < 0.01 ? '#16a34a' : '#dc2626' }}>
+          <div style={{ textAlign: 'right', fontSize: 12, color: Math.abs(total - 100) < 0.01 ? color.success : color.error }}>
             Total active ownership: <strong>{total.toFixed(3)}%</strong>
             {Math.abs(total - 100) < 0.01 ? ' ✓' : ' — does not total 100%'}
           </div>

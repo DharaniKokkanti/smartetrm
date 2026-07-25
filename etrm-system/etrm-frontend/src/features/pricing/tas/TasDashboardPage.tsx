@@ -7,6 +7,7 @@ import type { ColDef, CellStyle } from 'ag-grid-community';
 import { PageHeader } from '@components/layout/PageHeader';
 import { SmartGrid } from '@components/smart/SmartGrid';
 import { apiClient, type ProblemDetail } from '@services/api';
+import { color } from '@theme/tokens';
 
 interface TasPosition {
   orderId: number;
@@ -80,7 +81,7 @@ export function TasDashboardPage() {
     {
       field: 'direction', headerName: 'B/S', width: 58,
       cellRenderer: (p: { value: string | null }) =>
-        p.value ? <Tag color={DIRECTION_COLOR[p.value]} style={{ fontWeight: 700, fontSize: 10 }}>{p.value}</Tag> : <span style={{ color: '#9ca3af' }}>—</span>,
+        p.value ? <Tag color={DIRECTION_COLOR[p.value]} style={{ fontWeight: 700, fontSize: 10 }}>{p.value}</Tag> : <span style={{ color: color.textDisabled }}>—</span>,
     },
     {
       headerName: 'Contract', width: 90, cellClass: 'cell-mono',
@@ -95,7 +96,7 @@ export function TasDashboardPage() {
       },
       cellStyle: (p) => {
         const d = (p.data as TasPosition)?.tasDetail?.tasDifferential;
-        return d != null && d !== 0 ? { fontWeight: 600, color: d > 0 ? '#22c55e' : '#ef4444' } : null;
+        return d != null && d !== 0 ? { fontWeight: 600, color: d > 0 ? color.success : color.error } : null;
       },
     },
     {
@@ -113,7 +114,7 @@ export function TasDashboardPage() {
       valueGetter: (p) => p.data?.tasDetail?.tasStatus ?? '—',
       cellRenderer: (p: { value: string }) => (
         p.value === '—'
-          ? <span style={{ color: '#9ca3af' }}>—</span>
+          ? <span style={{ color: color.textDisabled }}>—</span>
           : <Tag color={STATUS_COLOR[p.value] ?? 'default'} icon={p.value === 'AWAITING_SETTLEMENT' ? <ClockCircleOutlined /> : <CheckCircleOutlined />} style={{ fontSize: 10 }}>
               {p.value.replace(/_/g, ' ')}
             </Tag>
@@ -126,7 +127,7 @@ export function TasDashboardPage() {
         return lp != null ? `${p.data?.currencyCode ?? ''} ${Number(lp).toFixed(4)}` : null;
       },
       valueFormatter: (p) => p.value ?? '—',
-      cellStyle: { color: '#22c55e', fontWeight: 600 } as CellStyle,
+      cellStyle: { color: color.success, fontWeight: 600 } as CellStyle,
     },
     {
       field: 'tasDetail', headerName: 'Settle Date', width: 110,
@@ -170,17 +171,17 @@ export function TasDashboardPage() {
       <Row gutter={16} style={{ marginBottom: 16 }}>
         <Col span={8}>
           <Card size="small">
-            <Statistic title="Total TAS Positions" value={data.length} valueStyle={{ color: '#1677ff' }} prefix={<ClockCircleOutlined />} />
+            <Statistic title="Total TAS Positions" value={data.length} valueStyle={{ color: color.secondary }} prefix={<ClockCircleOutlined />} />
           </Card>
         </Col>
         <Col span={8}>
           <Card size="small">
-            <Statistic title="Awaiting Settlement" value={awaiting} valueStyle={{ color: awaiting > 0 ? '#f59e0b' : '#6b7280' }} prefix={<ClockCircleOutlined />} />
+            <Statistic title="Awaiting Settlement" value={awaiting} valueStyle={{ color: awaiting > 0 ? color.warning : color.textSecondary }} prefix={<ClockCircleOutlined />} />
           </Card>
         </Col>
         <Col span={8}>
           <Card size="small">
-            <Statistic title="Price Locked" value={locked} valueStyle={{ color: locked > 0 ? '#22c55e' : '#6b7280' }} prefix={<CheckCircleOutlined />} />
+            <Statistic title="Price Locked" value={locked} valueStyle={{ color: locked > 0 ? color.success : color.textSecondary }} prefix={<CheckCircleOutlined />} />
           </Card>
         </Col>
       </Row>
@@ -193,8 +194,8 @@ export function TasDashboardPage() {
         getRowId={(p) => String(p.data.orderId)}
         getRowStyle={(p) => {
           const status = (p.data as TasPosition).tasDetail?.tasStatus;
-          if (status === 'PRICE_LOCKED') return { background: 'rgba(34,197,94,0.04)' };
-          if (status === 'AWAITING_SETTLEMENT') return { background: 'rgba(245,158,11,0.04)' };
+          if (status === 'PRICE_LOCKED') return { background: `${color.success}0A` };
+          if (status === 'AWAITING_SETTLEMENT') return { background: `${color.warning}0A` };
           return undefined;
         }}
       />

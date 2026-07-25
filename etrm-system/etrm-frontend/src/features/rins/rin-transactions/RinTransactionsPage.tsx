@@ -14,6 +14,7 @@ import type { RinTransaction, RinTransactionInput } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import dayjs, { type Dayjs } from 'dayjs';
+import { color } from '@theme/tokens';
 
 const TX_TYPE_COLOR: Record<string, string> = {
   GENERATE: 'green', SEPARATE: 'cyan', TRANSFER_BUY: 'blue', TRANSFER_SELL: 'orange', RETIRE: 'purple',
@@ -116,8 +117,8 @@ export function RinTransactionsPage() {
     { field: 'quantity',    headerName: 'RINs',    width: 120, type: 'numericColumn',
       cellRenderer: (p: { value: number; data: RinTransaction }) => {
         const sign = p.data.transactionType === 'TRANSFER_SELL' || p.data.transactionType === 'RETIRE' ? '-' : '+';
-        const color = sign === '-' ? '#ef4444' : '#22c55e';
-        return <span style={{ fontFamily: 'monospace', fontWeight: 600, color }}>{sign}{p.value.toLocaleString()}</span>;
+        const qtyColor = sign === '-' ? color.error : color.success;
+        return <span style={{ fontFamily: 'monospace', fontWeight: 600, color: qtyColor }}>{sign}{p.value.toLocaleString()}</span>;
       } },
     { field: 'pricePerRin', headerName: 'Price/RIN', width: 110, type: 'numericColumn',
       valueFormatter: (p) => p.value != null ? `$${Number(p.value).toFixed(4)}` : '—' },

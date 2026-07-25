@@ -10,6 +10,7 @@ import { useBrokers, useSaveBroker, useDeactivateBroker } from './hooks';
 import { BROKER_TYPES, BROKER_TYPE_META, type Broker, type BrokerInput, type BrokerType } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AuditInfo } from '@components/smart/AuditInfo';
+import { color } from '@theme/tokens';
 import { useCountries } from '@features/reference/countries/hooks';
 import { useUom } from '@features/reference/uom/hooks';
 
@@ -20,7 +21,7 @@ function BrokerTypeOption({ type }: { type: BrokerType }) {
   return (
     <div style={{ padding: '4px 0' }}>
       <div style={{ fontWeight: 600, fontSize: 13 }}>{m.label}</div>
-      <div style={{ fontSize: 11, color: '#6b7280', lineHeight: 1.5, marginTop: 2 }}>{m.summary}</div>
+      <div style={{ fontSize: 11, color: color.textSecondary, lineHeight: 1.5, marginTop: 2 }}>{m.summary}</div>
     </div>
   );
 }
@@ -97,7 +98,7 @@ export function BrokersPage() {
     {
       field: 'description', headerName: 'Description', flex: 2, minWidth: 200,
       valueFormatter: (p) => p.value ?? '—',
-      cellStyle: { fontSize: 12, color: '#6b7280' },
+      cellStyle: { fontSize: 12, color: color.textSecondary },
     },
     {
       field: 'countryId', headerName: 'Country', width: 90, cellClass: 'cell-mono',
@@ -246,7 +247,7 @@ export function BrokersPage() {
             <Input placeholder="https://www.icap.com" />
           </Form.Item>
 
-          <Divider orientation="left" style={{ margin: '16px 0 8px', fontSize: 12, color: '#888' }}>
+          <Divider orientation="left" style={{ margin: '16px 0 8px', fontSize: 12, color: color.textSecondary }}>
             <Text type="secondary" style={{ fontSize: 12, fontWeight: 600, letterSpacing: 0.5, textTransform: 'uppercase' }}>Legal & Commission</Text>
           </Divider>
 

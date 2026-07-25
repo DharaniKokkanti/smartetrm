@@ -17,6 +17,7 @@ import {
     Empty,
   Spin,
   Alert,
+  Tooltip,
 } from 'antd';
 import { PlusOutlined, EditOutlined, StopOutlined, MinusOutlined, ExpandOutlined, CompressOutlined, UploadOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
@@ -37,6 +38,8 @@ import { useProducts } from '@features/markets/products/hooks';
 import { useStorageFacilities } from '@features/logistics/storage/hooks';
 import { useVessels } from '@features/logistics/vessels/hooks';
 import { ExcelUploadModal } from './ExcelUploadModal';
+import { useAuthStore } from '@store/authStore';
+import { color } from '@theme/tokens';
 
 /** Column-name fragments that count as a "code/short-name" field — always
  *  stored uppercase, even if the user types lowercase. Codes with a stricter
@@ -44,6 +47,20 @@ import { ExcelUploadModal } from './ExcelUploadModal';
  *  top of this. */
 function isCodeColumn(name: string): boolean {
   return /code$/i.test(name);
+}
+
+/** Singularizes a table's plural display name for "Add X" / "New X" labels —
+ *  e.g. "Currencies" → "Currency", "KYC Statuses" → "KYC Status". A bare
+ *  `.replace(/s$/, '')` (the previous approach) mishandled every "-ies"
+ *  plural (Currencies → "Currencie", Counterparties → "Counterpartie",
+ *  Legal Entities → "Legal Entitie") and every "-uses" plural (KYC Statuses →
+ *  "KYC Statuse") — both patterns are common across this app's table names. */
+function singularizeLabel(label: string): string {
+  if (/[A-Za-z]uses$/.test(label)) return label.slice(0, -2); // Statuses → Status
+  if (/ies$/.test(label)) return label.replace(/ies$/, 'y'); // Currencies → Currency
+  if (/(ch|sh|x|z|ss)es$/.test(label)) return label.replace(/es$/, ''); // Addresses → Address
+  if (/s$/.test(label) && !/ss$/.test(label)) return label.replace(/s$/, ''); // Traders → Trader
+  return label;
 }
 
 /** Builds a human-readable option label for a foreign-key row without a
@@ -301,6 +318,21 @@ export function ReferenceDataTable({ table }: Props) {
   const saveRow = useSaveRow(table.tableName);
   const deleteRow = useDeleteRow(table.tableName);
 
+  // The ADMIN role can bypass a table's registry-level allow_create/
+  // allow_edit/allow_delete=0 lock (V157's "SYSTEM-only" lockdown on ~51
+  // tables — ISO codes, internal enum vocab, external registries) — the
+  // real gate is server-side (ReferenceDataController checks ROLE_ADMIN
+  // itself on every write), this just decides whether to show the button
+  // instead of hiding a capability the backend would actually accept.
+  const isSystemAdmin = useAuthStore((s) => s.user?.isSystemAdmin ?? false);
+  const canCreate = table.allowCreate || isSystemAdmin;
+  const canEdit = table.allowEdit || isSystemAdmin;
+  const canDelete = table.allowDelete || isSystemAdmin;
+  // True only when at least one of the three above is actually an admin
+  // bypass (registry says no, admin gets it anyway) — drives the "Admin
+  // override" hint so this doesn't look like a silent inconsistency.
+  const isAdminOverriding = isSystemAdmin && (!table.allowCreate || !table.allowEdit || !table.allowDelete);
+
   const [form] = Form.useForm();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -313,7 +345,7 @@ export function ReferenceDataTable({ table }: Props) {
   const isLargeTable = (rows?.length ?? 0) > SEARCH_AND_FILTER_ROW_THRESHOLD;
   useFormDraft(`tier2-${table.tableName}`, {
     form, open: modalOpen, setOpen: setModalOpen, editing: editingId, setEditing: setEditingId,
-    meta: () => ({ route: `/static-data/${table.tableName}`, label: table.displayName.replace(/s$/, '') }),
+    meta: () => ({ route: `/static-data/${table.tableName}`, label: singularizeLabel(table.displayName) }),
   });
 
   // ── Move / minimize / maximize the capture modal ──────────────────────────
@@ -631,7 +663,7 @@ export function ReferenceDataTable({ table }: Props) {
       fixed: 'right' as const,
       render: (_, row) => (
         <Space size={4}>
-          {table.allowEdit && (
+          {canEdit && (
             <Button
               type="text"
               size="small"
@@ -639,7 +671,7 @@ export function ReferenceDataTable({ table }: Props) {
               onClick={() => openEdit(row)}
             />
           )}
-          {table.allowDelete && hasIsActive && row.isActive !== false && (
+          {canDelete && hasIsActive && row.isActive !== false && (
             <Popconfirm
               title="Deactivate this row?"
               okText="Deactivate"
@@ -656,7 +688,7 @@ export function ReferenceDataTable({ table }: Props) {
 
   return (
     <div>
-      {(isLargeTable || table.allowCreate) && (
+      {(isLargeTable || canCreate) && (
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, gap: 12 }}>
           {isLargeTable ? (
             <Input.Search
@@ -668,14 +700,19 @@ export function ReferenceDataTable({ table }: Props) {
             />
           ) : <span />}
           <Space>
-            {table.allowExcelUpload && table.allowCreate && (
+            {isAdminOverriding && (
+              <Tooltip title="This table is normally SYSTEM-managed only (no Add/Edit/Deactivate) — you're seeing these controls because your account holds the system ADMIN role.">
+                <Tag color="gold" style={{ cursor: 'default' }}>Admin override</Tag>
+              </Tooltip>
+            )}
+            {table.allowExcelUpload && canCreate && (
               <Button icon={<UploadOutlined />} onClick={() => setUploadModalOpen(true)}>
                 Bulk Upload
               </Button>
             )}
-            {table.allowCreate && (
+            {canCreate && (
               <Button type="primary" icon={<PlusOutlined />} onClick={openAdd}>
-                Add {table.displayName.replace(/s$/, '')}
+                Add {singularizeLabel(table.displayName)}
               </Button>
             )}
           </Space>
@@ -713,7 +750,7 @@ export function ReferenceDataTable({ table }: Props) {
               userSelect: 'none',
             }}
           >
-            <span>{editingId === null ? `New ${table.displayName.replace(/s$/, '')}` : `Edit row`}</span>
+            <span>{editingId === null ? `New ${singularizeLabel(table.displayName)}` : `Edit row`}</span>
             <Space size={2} onMouseDown={(e) => e.stopPropagation()}>
               <Button type="text" size="small" icon={<MinusOutlined />} onClick={() => setMinimized(true)} aria-label="Minimize" />
               <Button
@@ -787,19 +824,19 @@ export function ReferenceDataTable({ table }: Props) {
             bottom: 16,
             right: 16,
             zIndex: 1050,
-            background: '#1677ff',
-            color: '#fff',
+            background: color.secondary,
+            color: '#fff', // white text on the colored pill surface, not a muted/body-text token
             padding: '9px 16px',
             borderRadius: 20,
             cursor: 'pointer',
-            boxShadow: '0 4px 14px rgba(0,0,0,0.28)',
+            boxShadow: '0 4px 14px rgba(0,0,0,0.28)', // drop shadow, not a token concept
             display: 'flex',
             alignItems: 'center',
             gap: 8,
             fontSize: 13,
           }}
         >
-          <span>{editingId === null ? `New ${table.displayName.replace(/s$/, '')}` : 'Editing row'} (minimized)</span>
+          <span>{editingId === null ? `New ${singularizeLabel(table.displayName)}` : 'Editing row'} (minimized)</span>
           <ExpandOutlined />
         </div>
       )}

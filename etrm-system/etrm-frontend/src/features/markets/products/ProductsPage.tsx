@@ -15,6 +15,8 @@ import { PageHeader } from '@components/layout/PageHeader';
 import { SmartGrid } from '@components/smart/SmartGrid';
 import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
+import { InfoPanel } from '@components/smart/InfoPanel';
+import { color } from '@theme/tokens';
 import {
   useProducts, useSaveProduct, useDeactivateProduct,
   useProductPriceIndices, useLinkPriceIndex, useUnlinkPriceIndex,
@@ -118,7 +120,7 @@ function PriceIndicesTab({ productId }: { productId: number }) {
       </div>
 
       {showLink && (
-        <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8, padding: 16, marginBottom: 16 }}>
+        <InfoPanel variant="neutral" icon={false}>
           <Form form={linkForm} layout="inline" size="small">
             <Form.Item name="priceIndexId" label="Price Index" rules={[{ required: true }]}>
               <Select
@@ -145,7 +147,7 @@ function PriceIndicesTab({ productId }: { productId: number }) {
             <Button type="primary" size="small" onClick={submitLink} loading={link.isPending}>Add</Button>
             <Button size="small" onClick={() => setShowLink(false)} style={{ marginLeft: 4 }}>Cancel</Button>
           </Form>
-        </div>
+        </InfoPanel>
       )}
 
       <Table
@@ -184,7 +186,7 @@ function MarketsTab({ productId }: { productId: number }) {
     { title: 'Market Code', dataIndex: 'marketCode', width: 160, render: (v: string) => <code>{v}</code> },
     { title: 'Market Name', dataIndex: 'marketName', ellipsis: true },
     { title: 'Ticker', dataIndex: 'ticker', width: 100,
-      render: (v: string | null) => v ? <code>{v}</code> : <span style={{ color: '#9ca3af' }}>—</span> },
+      render: (v: string | null) => v ? <code>{v}</code> : <span style={{ color: color.textDisabled }}>—</span> },
     { title: 'CCY', dataIndex: 'currencyCode', width: 70,
       render: (v: string | null) => v ? <code>{v}</code> : '—' },
     { title: 'UoM', dataIndex: 'uomCode', width: 80,
@@ -221,7 +223,7 @@ function MarketsTab({ productId }: { productId: number }) {
         )}
       />
       {addOpen && (
-        <div style={{ marginTop: 12, padding: 16, border: '1px solid #d9d9d9', borderRadius: 6 }}>
+        <div style={{ marginTop: 12, padding: 16, border: `1px solid ${color.border}`, borderRadius: 6 }}>
           <Form form={form} layout="vertical">
             <Space style={{ width: '100%', gap: 12 }}>
               <Form.Item name="marketId" label={hint('Market', 'The market or exchange this product is listed on.')} rules={[{ required: true }]} style={{ flex: 1 }}>
@@ -346,7 +348,7 @@ function ReportingGroupsTab({ productId }: { productId: number }) {
         </Typography.Text>
       )}
       {showAssign && classificationOptions.length > 0 && (
-        <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8, padding: 16, marginBottom: 16 }}>
+        <InfoPanel variant="neutral" icon={false}>
           <Space>
             <Select
               placeholder="Classification type…"
@@ -368,7 +370,7 @@ function ReportingGroupsTab({ productId }: { productId: number }) {
             <Button type="primary" size="small" onClick={() => { void submitAssign(); }} loading={assign.isPending} disabled={selectedGroupId == null}>Add</Button>
             <Button size="small" onClick={() => setShowAssign(false)}>Cancel</Button>
           </Space>
-        </div>
+        </InfoPanel>
       )}
 
       <Table
@@ -511,7 +513,7 @@ function SpecTemplateValues({ templateId, commodityType }: { templateId: number;
     },
     {
       title: 'Typical', dataIndex: 'valueTypical', width: 80, align: 'right' as const,
-      render: (v: number | null) => v != null ? <code>{v}</code> : <span style={{ color: '#9ca3af' }}>—</span>,
+      render: (v: number | null) => v != null ? <code>{v}</code> : <span style={{ color: color.textDisabled }}>—</span>,
     },
     {
       title: '', dataIndex: 'isMandatory', width: 40, align: 'center' as const,
@@ -521,7 +523,7 @@ function SpecTemplateValues({ templateId, commodityType }: { templateId: number;
     },
     {
       title: 'Test Method', dataIndex: 'testMethod', width: 140,
-      render: (v: string | null) => v ? <span style={{ fontSize: 11, color: '#6b7280' }}>{v}</span> : '—',
+      render: (v: string | null) => v ? <span style={{ fontSize: 11, color: color.textSecondary }}>{v}</span> : '—',
     },
     {
       title: '', width: 70, align: 'center' as const,
@@ -627,10 +629,10 @@ function TemplateCollapseHeader({ t }: { t: ProductSpecTemplate }) {
   return (
     <Space>
       <code style={{ fontSize: 12 }}>{t.templateCode}</code>
-      <span style={{ color: '#374151' }}>{t.templateName}</span>
+      <span style={{ color: color.textSecondary }}>{t.templateName}</span>
       {t.isDefault && <Tag color="green" style={{ fontSize: 10, margin: 0 }}>Default</Tag>}
       {t.standardRef && (
-        <span style={{ color: '#9ca3af', fontSize: 11 }}>({t.standardRef})</span>
+        <span style={{ color: color.textDisabled, fontSize: 11 }}>({t.standardRef})</span>
       )}
     </Space>
   );
@@ -643,7 +645,7 @@ const BLEND_COMPONENT_COLS = (onRemove: (id: number) => void): ColumnsType<Blend
     render: (v: string, r: BlendComponent) => (
       <div>
         <code style={{ fontSize: 12 }}>{v}</code>
-        <div style={{ fontSize: 11, color: '#6b7280' }}>{r.componentName}</div>
+        <div style={{ fontSize: 11, color: color.textSecondary }}>{r.componentName}</div>
       </div>
     ),
   },
@@ -661,7 +663,7 @@ const BLEND_COMPONENT_COLS = (onRemove: (id: number) => void): ColumnsType<Blend
   },
   {
     title: 'Tolerance', dataIndex: 'tolerancePct', width: 90, align: 'center' as const,
-    render: (v: number) => <span style={{ color: '#6b7280' }}>±{v}%</span>,
+    render: (v: number) => <span style={{ color: color.textSecondary }}>±{v}%</span>,
   },
   {
     title: 'Position Gen', dataIndex: 'needsPositionGen', width: 110, align: 'center' as const,
@@ -752,7 +754,7 @@ function SpecsTab({ product, isBlend }: { product: Product; isBlend: boolean }) 
             <Alert type="info" showIcon message={product.blendNotes} style={{ marginBottom: 10, fontSize: 12 }} />
           )}
           {showAddComp && (
-            <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8, padding: 12, marginBottom: 12 }}>
+            <InfoPanel variant="neutral" icon={false} compact>
               <Form form={addCompForm} layout="vertical" size="small">
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'flex-end' }}>
                   <Form.Item name="componentProductId" label="Component Product" rules={[{ required: true, message: 'Select a product' }]} style={{ flex: '1 1 240px', minWidth: 200, marginBottom: 0 }}>
@@ -782,7 +784,7 @@ function SpecsTab({ product, isBlend }: { product: Product; isBlend: boolean }) 
                   <Form.Item
                     name="needsPositionGen"
                     label={<Tooltip title="When enabled, the position engine will generate individual positions for this component (in addition to the blended product). Disable for minor additives you track at parent level only.">
-                      Position Gen <span style={{ color: '#6b7280', fontSize: 10 }}>(?)</span>
+                      Position Gen <span style={{ color: color.textSecondary, fontSize: 10 }}>(?)</span>
                     </Tooltip>}
                     valuePropName="checked"
                     initialValue={true}
@@ -796,7 +798,7 @@ function SpecsTab({ product, isBlend }: { product: Product; isBlend: boolean }) 
                   </div>
                 </div>
               </Form>
-            </div>
+            </InfoPanel>
           )}
           <Table
             size="small"
@@ -808,7 +810,7 @@ function SpecsTab({ product, isBlend }: { product: Product; isBlend: boolean }) 
             footer={() => {
               const total = components.reduce((s, c) => s + c.targetPct, 0);
               return (
-                <div style={{ textAlign: 'right', fontSize: 12, color: Math.abs(total - 100) < 0.01 ? '#16a34a' : '#dc2626' }}>
+                <div style={{ textAlign: 'right', fontSize: 12, color: Math.abs(total - 100) < 0.01 ? color.success : color.error }}>
                   Total target: <strong>{total.toFixed(2)}%</strong>
                   {Math.abs(total - 100) < 0.01 ? ' ✓' : ' — must equal 100%'}
                 </div>
@@ -847,21 +849,21 @@ function SpecsTab({ product, isBlend }: { product: Product; isBlend: boolean }) 
                   <Space size={24} style={{ marginBottom: 12, flexWrap: 'wrap' }}>
                     {t.issuingBody && (
                       <Typography.Text style={{ fontSize: 11 }}>
-                        <span style={{ color: '#9ca3af' }}>Issuing Body:</span>{' '}{t.issuingBody}
+                        <span style={{ color: color.textDisabled }}>Issuing Body:</span>{' '}{t.issuingBody}
                       </Typography.Text>
                     )}
                     {t.version && (
                       <Typography.Text style={{ fontSize: 11 }}>
-                        <span style={{ color: '#9ca3af' }}>Version:</span>{' '}{t.version}
+                        <span style={{ color: color.textDisabled }}>Version:</span>{' '}{t.version}
                       </Typography.Text>
                     )}
                     {t.effectiveFrom && (
                       <Typography.Text style={{ fontSize: 11 }}>
-                        <span style={{ color: '#9ca3af' }}>From:</span>{' '}{t.effectiveFrom}
+                        <span style={{ color: color.textDisabled }}>From:</span>{' '}{t.effectiveFrom}
                       </Typography.Text>
                     )}
                     {t.notes && (
-                      <Typography.Text style={{ fontSize: 11, color: '#6b7280' }}>{t.notes}</Typography.Text>
+                      <Typography.Text style={{ fontSize: 11, color: color.textSecondary }}>{t.notes}</Typography.Text>
                     )}
                   </Space>
                   <SpecTemplateValues templateId={t.templateId} commodityType={productCommodityType} />
@@ -1125,7 +1127,7 @@ export function ProductsPage() {
             </Form.Item>
           </Space>
           {/* ── Settlement & Pricing ──────────────────────────────────────── */}
-          <Divider orientation="left" orientationMargin={0} style={{ fontSize: 12, color: '#6b7280', marginBottom: 12 }}>
+          <Divider orientation="left" orientationMargin={0} style={{ fontSize: 12, color: color.textSecondary, marginBottom: 12 }}>
             Settlement & Pricing Defaults
           </Divider>
           <Space style={{ width: '100%' }} size={12}>
@@ -1149,7 +1151,7 @@ export function ProductsPage() {
           </Space>
 
           {/* ── Quantity constraints ──────────────────────────────────────── */}
-          <Divider orientation="left" orientationMargin={0} style={{ fontSize: 12, color: '#6b7280', marginBottom: 12 }}>
+          <Divider orientation="left" orientationMargin={0} style={{ fontSize: 12, color: color.textSecondary, marginBottom: 12 }}>
             Quantity Constraints
           </Divider>
           <Space style={{ width: '100%' }} size={12}>
@@ -1166,7 +1168,7 @@ export function ProductsPage() {
           </Space>
 
           {/* ── Vendor Identifiers ────────────────────────────────────────── */}
-          <Divider orientation="left" orientationMargin={0} style={{ fontSize: 12, color: '#6b7280', marginBottom: 12 }}>
+          <Divider orientation="left" orientationMargin={0} style={{ fontSize: 12, color: color.textSecondary, marginBottom: 12 }}>
             Vendor Identifiers
           </Divider>
           <Space style={{ width: '100%' }} size={12}>
@@ -1184,7 +1186,7 @@ export function ProductsPage() {
           {/* ── Pricing Basis ─────────────────────────────────────────────── */}
           {commodityTypeWatched && (
             <>
-              <Divider orientation="left" orientationMargin={0} style={{ fontSize: 12, color: '#6b7280', marginBottom: 12 }}>
+              <Divider orientation="left" orientationMargin={0} style={{ fontSize: 12, color: color.textSecondary, marginBottom: 12 }}>
                 Pricing Basis
                 <Typography.Text type="secondary" style={{ fontSize: 11, marginLeft: 8 }}>
                   {commodityTypeWatched === 'OIL' && 'Product-specific density required for BBL/CBM↔MT position conversion. No commodity-level default exists — every OIL product has a different density.'}
@@ -1214,7 +1216,7 @@ export function ProductsPage() {
               {commodityTypeWatched === 'OIL' && (
                 <>
                   {oilVolumeRates.length > 0 && (
-                    <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 6, padding: '8px 12px', marginBottom: 12 }}>
+                    <InfoPanel variant="info" icon={false} compact>
                       <Typography.Text type="secondary" style={{ fontSize: 11, fontWeight: 600 }}>
                         Volume ↔ Volume (exact physical constants, same for every OIL product — stored in UoM Conversions):
                       </Typography.Text>
@@ -1234,7 +1236,7 @@ export function ProductsPage() {
                       <Typography.Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 4 }}>
                         Volume ↔ Weight (e.g. BBL → MT) cannot be a universal constant — it depends on this product's density. Set it below.
                       </Typography.Text>
-                    </div>
+                    </InfoPanel>
                   )}
                   <Space style={{ width: '100%' }} size={12}>
                     <Form.Item name="densityEstimateKgM3"
@@ -1250,8 +1252,8 @@ export function ProductsPage() {
                   </Space>
                   {/* Product-specific cross-type rates derived from density — shown in real time */}
                   {(densityEstimateWatched || densityBaseWatched) && (
-                    <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, padding: '8px 12px', marginBottom: 12, fontSize: 12 }}>
-                      <Typography.Text strong style={{ fontSize: 12, color: '#166534' }}>
+                    <InfoPanel variant="success" icon={false} compact style={{ fontSize: 12 }}>
+                      <Typography.Text strong style={{ fontSize: 12, color: color.success }}>
                         Product-specific cross-type rates (overrides commodity defaults where applicable):
                       </Typography.Text>
                       <div style={{ display: 'flex', gap: 32, marginTop: 4, flexWrap: 'wrap' }}>
@@ -1281,14 +1283,14 @@ export function ProductsPage() {
                       <Typography.Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 4 }}>
                         Effective factor = density (kg/m³) × 0.000158987 m³/BBL. Unique per crude grade.
                       </Typography.Text>
-                    </div>
+                    </InfoPanel>
                   )}
                 </>
               )}
               {commodityTypeWatched === 'GAS' && (
                 <>
                   {gasEnergyRates.length > 0 && (
-                    <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 6, padding: '8px 12px', marginBottom: 12 }}>
+                    <InfoPanel variant="info" icon={false} compact>
                       <Typography.Text type="secondary" style={{ fontSize: 11, fontWeight: 600 }}>
                         Energy ↔ Energy (exact physical constants, same for every GAS product — stored in UoM Conversions):
                       </Typography.Text>
@@ -1308,7 +1310,7 @@ export function ProductsPage() {
                       <Typography.Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 4 }}>
                         SCM → MWh requires product GCV below (varies per gas stream — TTF ≈ 10.7, NBP ≈ 10.97 MJ/scm).
                       </Typography.Text>
-                    </div>
+                    </InfoPanel>
                   )}
                   <Space style={{ width: '100%' }} size={12}>
                     <Form.Item name="cvGrossMjScm"
@@ -1324,8 +1326,8 @@ export function ProductsPage() {
                   </Space>
                   {/* Product-specific volume→energy rates from GCV — shown in real time */}
                   {cvGrossWatched && (
-                    <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, padding: '8px 12px', marginBottom: 12, fontSize: 12 }}>
-                      <Typography.Text strong style={{ fontSize: 12, color: '#166534' }}>
+                    <InfoPanel variant="success" icon={false} compact style={{ fontSize: 12 }}>
+                      <Typography.Text strong style={{ fontSize: 12, color: color.success }}>
                         Product-specific cross-type rates (GCV {cvGrossWatched} MJ/scm — SCM ↔ energy):
                       </Typography.Text>
                       <div style={{ display: 'flex', gap: 32, marginTop: 4, flexWrap: 'wrap' }}>
@@ -1341,7 +1343,7 @@ export function ProductsPage() {
                       <Typography.Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 4 }}>
                         GCV ÷ 3600 = MWh/scm · GCV ÷ 1055.056 = MMBTU/scm. Unique per gas stream.
                       </Typography.Text>
-                    </div>
+                    </InfoPanel>
                   )}
                 </>
               )}
@@ -1370,7 +1372,7 @@ export function ProductsPage() {
           )}
 
           {/* ── Flags ─────────────────────────────────────────────────────── */}
-          <Divider orientation="left" orientationMargin={0} style={{ fontSize: 12, color: '#6b7280', marginBottom: 12 }}>
+          <Divider orientation="left" orientationMargin={0} style={{ fontSize: 12, color: color.textSecondary, marginBottom: 12 }}>
             Trading Venue Flags
           </Divider>
           <Space size={32}>

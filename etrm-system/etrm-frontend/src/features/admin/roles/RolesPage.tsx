@@ -27,6 +27,7 @@ import {
   useApproveBookAccessGrant, useRejectBookAccessGrant, useRevokeBookAccessGrant,
 } from '@features/admin/bookaccess/hooks';
 import type { BookAccessGrant, BookAccessGrantStatus, BookAccessScopeType, BookAccessLevel } from '@features/admin/bookaccess/types';
+import { color } from '@theme/tokens';
 
 const { Text } = Typography;
 
@@ -87,7 +88,7 @@ function FunctionMatrix({ modules, functions, value, onChange, disabled }: Funct
                     fontSize: 11,
                     letterSpacing: 0.8,
                     textTransform: 'uppercase',
-                    color: '#6b7280',
+                    color: color.textSecondary,
                     borderTop: '1px solid rgba(0,0,0,0.08)',
                   }}
                 >
@@ -522,7 +523,7 @@ export function RolesPage() {
       width: 160,
       render: (v, r) => (
         <Space size={4}>
-          {r.roleType === 'SYSTEM' ? <LockOutlined style={{ color: '#6b7280' }} /> : <UnlockOutlined style={{ color: '#3b82f6' }} />}
+          {r.roleType === 'SYSTEM' ? <LockOutlined style={{ color: color.textSecondary }} /> : <UnlockOutlined style={{ color: color.secondary }} />}
           <Text strong style={{ fontFamily: 'monospace' }}>{v}</Text>
         </Space>
       ),

@@ -5,6 +5,7 @@ import { PageHeader } from '@components/layout/PageHeader';
 import { SmartGrid } from '@components/smart/SmartGrid';
 import { useRinInventory } from './hooks';
 import type { RinInventoryItem } from './types';
+import { color } from '@theme/tokens';
 
 const D_CODE_COLOR: Record<string, string> = { D3: 'purple', D4: 'blue', D5: 'green', D6: 'orange', D7: 'cyan' };
 
@@ -33,7 +34,7 @@ export function RinInventoryPage() {
     { field: 'accountName', headerName: 'RIN Account',   flex: 1,   minWidth: 180 },
     { field: 'quantity',    headerName: 'RINs Held',     width: 140, type: 'numericColumn',
       cellRenderer: (p: { value: number }) => (
-        <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#1677ff' }}>{p.value.toLocaleString()}</span>
+        <span style={{ fontFamily: 'monospace', fontWeight: 700, color: color.secondary }}>{p.value.toLocaleString()}</span>
       ) },
     { field: 'avgCostPerRin', headerName: 'Avg Cost/RIN', width: 130, type: 'numericColumn',
       valueFormatter: (p) => p.value != null ? `$${Number(p.value).toFixed(4)}` : '—' },
@@ -60,9 +61,9 @@ export function RinInventoryPage() {
           <Col key={dCode} xs={12} sm={8} md={6} lg={4}>
             <Card size="small" style={{ textAlign: 'center' }}>
               <Tag color={D_CODE_COLOR[dCode] ?? 'default'} style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: 13, marginBottom: 4 }}>{dCode}</Tag>
-              <Statistic value={qty} formatter={(v) => Number(v).toLocaleString()} valueStyle={{ fontSize: 18, fontWeight: 700, color: '#1677ff' }} />
-              <div style={{ fontSize: 10, color: '#6b7280' }}>{fuelName}</div>
-              {value > 0 && <div style={{ fontSize: 11, color: '#16a34a', marginTop: 2 }}>${value.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>}
+              <Statistic value={qty} formatter={(v) => Number(v).toLocaleString()} valueStyle={{ fontSize: 18, fontWeight: 700, color: color.secondary }} />
+              <div style={{ fontSize: 10, color: color.textSecondary }}>{fuelName}</div>
+              {value > 0 && <div style={{ fontSize: 11, color: color.success, marginTop: 2 }}>${value.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>}
             </Card>
           </Col>
         ))}

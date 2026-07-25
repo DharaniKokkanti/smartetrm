@@ -27,6 +27,7 @@ import { AuditInfo } from '@components/smart/AuditInfo';
 import { useUom } from '@features/reference/uom/hooks';
 import { useLocations } from '@features/logistics/locations/hooks';
 import { useCurrencies } from '@features/reference/currencies/hooks';
+import { color } from '@theme/tokens';
 
 const { Text } = Typography;
 
@@ -139,7 +140,7 @@ export function BolmoAgreementsPage() {
     {
       field: 'bolmoReference', headerName: 'BKO Ref', width: 160, pinned: 'left', cellClass: 'cell-mono',
       cellRenderer: (p: { value: string; data: BolmoAgreement }) => (
-        <span style={{ fontWeight: 600, cursor: 'pointer', color: selectedBolmoId === p.data?.bolmoId ? '#1677ff' : undefined }}>
+        <span style={{ fontWeight: 600, cursor: 'pointer', color: selectedBolmoId === p.data?.bolmoId ? color.secondary : undefined }}>
           {p.value}
         </span>
       ),
@@ -185,21 +186,21 @@ export function BolmoAgreementsPage() {
             {s === 'PENDING' && (
               <Tooltip title="Mark Agreed">
                 <Popconfirm title="Mark as AGREED?" onConfirm={() => agree.mutate(p.data.bolmoId)} okText="Agree">
-                  <Button type="text" size="small" icon={<CheckCircleOutlined />} style={{ color: '#1677ff' }} />
+                  <Button type="text" size="small" icon={<CheckCircleOutlined />} style={{ color: color.secondary }} />
                 </Popconfirm>
               </Tooltip>
             )}
             {s === 'AGREED' && (
               <Tooltip title="Mark Completed">
                 <Popconfirm title="Mark as COMPLETED?" description="Confirm all legs have been cash-settled." onConfirm={() => complete.mutate(p.data.bolmoId)} okText="Complete">
-                  <Button type="text" size="small" icon={<FileDoneOutlined />} style={{ color: '#22c55e' }} />
+                  <Button type="text" size="small" icon={<FileDoneOutlined />} style={{ color: color.success }} />
                 </Popconfirm>
               </Tooltip>
             )}
             {(s === 'PENDING' || s === 'AGREED') && (
               <Tooltip title="Mark Disputed">
                 <Popconfirm title="Mark as DISPUTED?" onConfirm={() => dispute.mutate(p.data.bolmoId)} okText="Dispute" okButtonProps={{ danger: true }}>
-                  <Button type="text" size="small" icon={<WarningOutlined />} style={{ color: '#f59e0b' }} />
+                  <Button type="text" size="small" icon={<WarningOutlined />} style={{ color: color.warning }} />
                 </Popconfirm>
               </Tooltip>
             )}
@@ -224,7 +225,7 @@ export function BolmoAgreementsPage() {
       render: (v: string) => <Tag color={DIRECTION_COLOR[v]} style={{ fontWeight: 700, fontSize: 10, margin: 0 }}>{v}</Tag>,
     },
     { title: 'Order Ref', dataIndex: 'orderReference', width: 175,
-      render: (v: string | null) => v ? <span style={{ fontFamily: 'monospace', fontSize: 11 }}>{v}</span> : <span style={{ color: '#9ca3af' }}>—</span>,
+      render: (v: string | null) => v ? <span style={{ fontFamily: 'monospace', fontSize: 11 }}>{v}</span> : <span style={{ color: color.textDisabled }}>—</span>,
     },
     {
       title: 'Qty / UoM', width: 130,
@@ -235,10 +236,10 @@ export function BolmoAgreementsPage() {
       title: 'Price', dataIndex: 'price', width: 100,
       render: (v: number | null) => v != null
         ? <span style={{ fontFamily: 'monospace', fontSize: 11 }}>{Number(v).toFixed(4)}</span>
-        : <span style={{ color: '#9ca3af', fontSize: 11 }}>TBD</span>,
+        : <span style={{ color: color.textDisabled, fontSize: 11 }}>TBD</span>,
     },
     { title: 'Notes', dataIndex: 'notes', ellipsis: true,
-      render: (v: string | null) => v ?? <span style={{ color: '#9ca3af', fontSize: 11 }}>—</span>,
+      render: (v: string | null) => v ?? <span style={{ color: color.textDisabled, fontSize: 11 }}>—</span>,
     },
     {
       title: '', width: 60,
@@ -283,21 +284,21 @@ export function BolmoAgreementsPage() {
           const id = (e.data as BolmoAgreement).bolmoId;
           setSelectedBolmoId((prev) => (prev === id ? null : id));
         }}
-        getRowStyle={(p) => (p.data as BolmoAgreement).bolmoId === selectedBolmoId ? { background: 'rgba(22,119,255,0.06)' } : undefined}
+        getRowStyle={(p) => (p.data as BolmoAgreement).bolmoId === selectedBolmoId ? { background: `${color.secondary}0F` } : undefined}
       />
 
       {/* ── Legs sub-panel ── */}
       <Card
         size="small"
-        style={{ marginTop: 16, border: selectedAgreement ? '1px solid rgba(22,119,255,0.25)' : undefined }}
+        style={{ marginTop: 16, border: selectedAgreement ? `1px solid ${color.secondary}40` : undefined }}
         styles={{ body: { padding: '8px 12px 12px' } }}
         title={
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             {selectedAgreement ? (
               <Space size={6}>
                 <Text strong style={{ fontSize: 13 }}>Booked-Out Legs</Text>
-                <Text style={{ fontSize: 12, color: '#1677ff', fontWeight: 600 }}>{selectedAgreement.bolmoReference}</Text>
-                <Badge count={legs.length} showZero style={{ backgroundColor: legs.length ? '#1677ff' : '#d9d9d9' }} />
+                <Text style={{ fontSize: 12, color: color.secondary, fontWeight: 600 }}>{selectedAgreement.bolmoReference}</Text>
+                <Badge count={legs.length} showZero style={{ backgroundColor: legs.length ? color.secondary : color.border }} />
                 {statusTag(selectedAgreement.status)}
                 {cashSummary !== null && (
                   <Tag color={cashSummary.net >= 0 ? 'success' : 'error'} style={{ fontSize: 11 }}>

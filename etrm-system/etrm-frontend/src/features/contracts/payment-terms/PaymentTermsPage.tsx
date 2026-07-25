@@ -18,6 +18,7 @@ import type {
   BaseDateEvent, BusinessDayConvention, DaysBasis,
 } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
+import { color } from '@theme/tokens';
 
 // ── Static option maps for non-lookup fields ──────────────────────────────────
 
@@ -174,7 +175,7 @@ export function PaymentTermsPage() {
     {
       field: 'isDefault', headerName: 'Default', width: 85,
       cellRenderer: (p: { value: boolean }) =>
-        p.value ? <StarFilled style={{ color: '#faad14' }} /> : null,
+        p.value ? <StarFilled style={{ color: color.warning }} /> : null,
     },
     {
       field: 'isActive', headerName: 'Active', width: 85,
@@ -252,10 +253,10 @@ export function PaymentTermsPage() {
             </Form.Item>
 
             {/* ── Date Calculation ───────────────────────────────────────── */}
-            <Divider orientation="left" orientationMargin={0} style={{ fontSize: 12, color: '#6b7280', marginBottom: 12 }}>
+            <Divider orientation="left" orientationMargin={0} style={{ fontSize: 12, color: color.textSecondary, marginBottom: 12 }}>
               Payment Date Calculation
               <Tooltip title="Payment Date = BD_adjust( base_date + monthOffset months + offsetDays days, convention, calendar ) — or snap to fixedDayOfMonth of the resulting month">
-                <InfoCircleOutlined style={{ marginLeft: 6, color: '#9ca3af' }} />
+                <InfoCircleOutlined style={{ marginLeft: 6, color: color.textSecondary }} />
               </Tooltip>
             </Divider>
 
@@ -318,7 +319,7 @@ export function PaymentTermsPage() {
             </Form.Item>
 
             {/* ── Business Day Adjustment ────────────────────────────────── */}
-            <Divider orientation="left" orientationMargin={0} style={{ fontSize: 12, color: '#6b7280', marginBottom: 12 }}>
+            <Divider orientation="left" orientationMargin={0} style={{ fontSize: 12, color: color.textSecondary, marginBottom: 12 }}>
               Business Day Adjustment
             </Divider>
 
@@ -347,7 +348,7 @@ export function PaymentTermsPage() {
             </Space>
 
             {/* ── Early Payment Discount ─────────────────────────────────── */}
-            <Divider orientation="left" orientationMargin={0} style={{ fontSize: 12, color: '#6b7280', marginBottom: 12 }}>
+            <Divider orientation="left" orientationMargin={0} style={{ fontSize: 12, color: color.textSecondary, marginBottom: 12 }}>
               Early Payment Discount
             </Divider>
 
@@ -369,7 +370,7 @@ export function PaymentTermsPage() {
             </Space>
 
             {/* ── Additional ────────────────────────────────────────────── */}
-            <Divider orientation="left" orientationMargin={0} style={{ fontSize: 12, color: '#6b7280', marginBottom: 12 }}>
+            <Divider orientation="left" orientationMargin={0} style={{ fontSize: 12, color: color.textSecondary, marginBottom: 12 }}>
               Additional Settings
             </Divider>
 

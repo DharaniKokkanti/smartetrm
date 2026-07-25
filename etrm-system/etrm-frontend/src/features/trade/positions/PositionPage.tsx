@@ -7,6 +7,7 @@ import { SmartGrid } from '@components/smart/SmartGrid';
 import { COMMODITY_TYPES, type CommodityType } from '@features/reference/commodity-types/types';
 import { usePositions } from './hooks';
 import type { Position, ConversionSource } from './types';
+import { color } from '@theme/tokens';
 
 const { Text } = Typography;
 
@@ -83,7 +84,7 @@ export function PositionPage() {
             <Tag color={isShort ? 'red' : 'green'} style={{ fontSize: 10, margin: 0 }}>
               {isShort ? 'SHORT' : 'LONG'}
             </Tag>
-            <code style={{ color: isShort ? '#dc2626' : '#16a34a', fontSize: 12 }}>
+            <code style={{ color: isShort ? color.error : color.success, fontSize: 12 }}>
               {fmt(Math.abs(p.data.netQuantity))}
             </code>
             <Text type="secondary" style={{ fontSize: 11 }}>{p.data.quantityUomCode}</Text>
@@ -101,7 +102,7 @@ export function PositionPage() {
         const src = p.data.conversionSource;
         return (
           <Space size={6}>
-            <code style={{ color: isShort ? '#dc2626' : '#16a34a', fontSize: 12 }}>
+            <code style={{ color: isShort ? color.error : color.success, fontSize: 12 }}>
               {fmt(Math.abs(p.data.netQuantityBase), 1)}
             </code>
             <Text type="secondary" style={{ fontSize: 11 }}>{p.data.baseUomCode}</Text>
@@ -130,7 +131,7 @@ export function PositionPage() {
       headerName: 'Buys', field: 'grossBuyQuantity', width: 110, type: 'numericColumn',
       cellRenderer: (p: { data: Position }) => (
         <Space size={4}>
-          <Text style={{ color: '#16a34a', fontSize: 12 }}>{fmt(p.data.grossBuyQuantity)}</Text>
+          <Text style={{ color: color.success, fontSize: 12 }}>{fmt(p.data.grossBuyQuantity)}</Text>
           <Text type="secondary" style={{ fontSize: 11 }}>{p.data.quantityUomCode}</Text>
         </Space>
       ),
@@ -139,7 +140,7 @@ export function PositionPage() {
       headerName: 'Sells', field: 'grossSellQuantity', width: 110, type: 'numericColumn',
       cellRenderer: (p: { data: Position }) => (
         <Space size={4}>
-          <Text style={{ color: '#dc2626', fontSize: 12 }}>{fmt(p.data.grossSellQuantity)}</Text>
+          <Text style={{ color: color.error, fontSize: 12 }}>{fmt(p.data.grossSellQuantity)}</Text>
           <Text type="secondary" style={{ fontSize: 11 }}>{p.data.quantityUomCode}</Text>
         </Space>
       ),

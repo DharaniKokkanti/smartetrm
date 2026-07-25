@@ -15,6 +15,7 @@ import type { ColDef } from 'ag-grid-community';
 import { PageHeader } from '@components/layout/PageHeader';
 import { SmartGrid } from '@components/smart/SmartGrid';
 import { hint } from '@components/smart/FieldHint';
+import { color } from '@theme/tokens';
 import {
   useTrades, useSaveTrade, useCancelTrade, useConfirmTrade,
   useCounterparties, useLegalEntities, useIncoterms, useBrokers, usePipelines,
@@ -120,7 +121,7 @@ type SelectOpt = { value: string | number; label: string };
 
 function sectionTitle(label: string) {
   return (
-    <Divider orientation="left" style={{ margin: '16px 0 8px', fontSize: 12, color: '#888' }}>
+    <Divider orientation="left" style={{ margin: '16px 0 8px', fontSize: 12, color: color.textSecondary }}>
       <Text type="secondary" style={{ fontSize: 12, fontWeight: 600, letterSpacing: 0.5, textTransform: 'uppercase' }}>{label}</Text>
     </Divider>
   );
@@ -680,7 +681,7 @@ function PriceAdjustmentsSection({ currencyOpts, uomOpts }: { currencyOpts: Sele
                   </Form.Item>
                 </Col>
                 <Col span={1}>
-                  <MinusCircleOutlined onClick={() => remove(name)} style={{ color: '#ff4d4f', cursor: 'pointer', fontSize: 16 }} />
+                  <MinusCircleOutlined onClick={() => remove(name)} style={{ color: color.error, cursor: 'pointer', fontSize: 16 }} />
                 </Col>
               </Row>
             ))}
@@ -922,7 +923,7 @@ function CostsEditor<T extends CostLike>({ costs, isLoading, adding, onAdd, onDe
   const [form] = Form.useForm();
   const columns = [
     { title: 'Type', dataIndex: 'costType', width: 150, render: (v: string) => <Tag>{v.replace(/_/g, ' ')}</Tag> },
-    { title: 'Description', dataIndex: 'description', ellipsis: true, render: (v: string | null) => v ?? <span style={{ color: '#9ca3af' }}>—</span> },
+    { title: 'Description', dataIndex: 'description', ellipsis: true, render: (v: string | null) => v ?? <span style={{ color: color.textSecondary }}>—</span> },
     { title: 'Amount', dataIndex: 'amount', width: 130, render: (v: number, r: T) => `${r.currencyCode} ${v.toLocaleString(undefined, { minimumFractionDigits: 2 })}` },
     { title: 'Est/Actual', dataIndex: 'isEstimated', width: 90, render: (v: boolean) => <Tag color={v ? 'orange' : 'green'}>{v ? 'Estimate' : 'Actual'}</Tag> },
     { title: 'Notes', dataIndex: 'notes', ellipsis: true, render: (v: string | null) => v ?? '—' },
@@ -1270,7 +1271,7 @@ function AssayResultsSection({ orderId, productId }: { orderId: number; productI
       title: 'Result', width: 110,
       render: (_: unknown, r: TradeAssayResult) => {
         const pf = passFail(r);
-        return pf ? <Tag color={pf.color}>{pf.label}</Tag> : <span style={{ color: '#9ca3af' }}>—</span>;
+        return pf ? <Tag color={pf.color}>{pf.label}</Tag> : <span style={{ color: color.textSecondary }}>—</span>;
       },
     },
     { title: 'Notes', dataIndex: 'notes', ellipsis: true, render: (v: string | null) => v ?? '—' },
@@ -1687,7 +1688,7 @@ export function TradeBlotter() {
     {
       field: 'tradeReference', headerName: 'Reference', width: 170, pinned: 'left', cellClass: 'cell-mono',
       cellRenderer: (p: { value: string; data: Trade }) => (
-        <span style={{ fontWeight: 600, cursor: 'pointer', color: selectedTradeId === p.data?.tradeId ? '#1677ff' : undefined }}>
+        <span style={{ fontWeight: 600, cursor: 'pointer', color: selectedTradeId === p.data?.tradeId ? color.secondary : undefined }}>
           {p.value}
         </span>
       ),
@@ -1735,7 +1736,7 @@ export function TradeBlotter() {
         const COLOR: Record<string, string> = { APPROVED: 'success', PENDING: 'warning', REJECTED: 'error', EXEMPT: 'default' };
         return p.value
           ? <Tag color={COLOR[p.value] ?? 'default'} style={{ fontSize: 10 }}>{p.value}</Tag>
-          : <span style={{ color: '#9ca3af', fontSize: 11 }}>—</span>;
+          : <span style={{ color: color.textSecondary, fontSize: 11 }}>—</span>;
       },
     },
     {
@@ -1749,7 +1750,7 @@ export function TradeBlotter() {
           <Tooltip title="Edit Trade"><Button type="text" size="small" icon={<EditOutlined />} onClick={() => openEditTrade(p.data)} /></Tooltip>
           {p.data.status === 'DRAFT' && (
             <Tooltip title="Confirm Trade">
-              <Button type="text" size="small" icon={<CheckCircleOutlined />} style={{ color: '#22c55e' }} onClick={() => confirmTrade.mutate(p.data.tradeId)} />
+              <Button type="text" size="small" icon={<CheckCircleOutlined />} style={{ color: color.success }} onClick={() => confirmTrade.mutate(p.data.tradeId)} />
             </Tooltip>
           )}
           {(p.data.status === 'DRAFT' || p.data.status === 'CONFIRMED') && (
@@ -1805,14 +1806,14 @@ export function TradeBlotter() {
           <Button
             type="text" size="small"
             icon={<UnorderedListOutlined />}
-            style={{ color: selectedOrderId === p.data.orderId ? '#1677ff' : undefined }}
+            style={{ color: selectedOrderId === p.data.orderId ? color.secondary : undefined }}
             onClick={() => setSelectedOrderId((prev) => (prev === p.data.orderId ? null : p.data.orderId))}
           >
             <span style={{ fontSize: 11 }}>Items</span>
           </Button>
           {p.data.status === 'WORKING' && (
             <Tooltip title="Confirm Leg">
-              <Button type="text" size="small" icon={<CheckCircleOutlined />} style={{ color: '#22c55e' }} onClick={() => confirmOrder.mutate({ id: p.data.orderId, tradeId: p.data.tradeId })} />
+              <Button type="text" size="small" icon={<CheckCircleOutlined />} style={{ color: color.success }} onClick={() => confirmOrder.mutate({ id: p.data.orderId, tradeId: p.data.tradeId })} />
             </Tooltip>
           )}
           {(p.data.status === 'WORKING' || p.data.status === 'CONFIRMED') && (
@@ -1828,7 +1829,7 @@ export function TradeBlotter() {
   // ── Items table columns ──
   const itemColumns = [
     { title: 'Seq', dataIndex: 'itemSequence', width: 50 },
-    { title: 'Product', dataIndex: 'productCode', width: 120, render: (v: string | null) => v ?? <span style={{ color: '#9ca3af' }}>—</span> },
+    { title: 'Product', dataIndex: 'productCode', width: 120, render: (v: string | null) => v ?? <span style={{ color: color.textSecondary }}>—</span> },
     { title: 'Description', dataIndex: 'description', ellipsis: true },
     { title: 'Qty', dataIndex: 'quantity', width: 90, render: (v: number) => v.toLocaleString() },
     { title: 'UoM', dataIndex: 'uomCode', width: 65 },
@@ -2152,7 +2153,8 @@ export function TradeBlotter() {
                         </div>
                         {/* RFP fields — visible only when termType = RFP */}
                         {watchedTermType === 'RFP' && (
-                          <Card size="small" style={{ marginBottom: 12, border: '1px solid #d3adf7', background: 'rgba(114,46,209,0.03)' }}>
+                          // background stays rgba (not hex) — same violet family as moduleTier1, left as-is to avoid a visible tint shift
+                          <Card size="small" style={{ marginBottom: 12, border: `1px solid ${color.moduleTier1}55`, background: 'rgba(114,46,209,0.03)' }}>
                             {sectionTitle('RFP Parameters')}
                             <Row gutter={16}>
                               <Col span={8}>
@@ -2261,7 +2263,7 @@ export function TradeBlotter() {
                 items={[
                   {
                     key: 'legs',
-                    label: <Space size={4}>Delivery Legs<Badge count={orders.length} showZero style={{ backgroundColor: orders.length ? '#1677ff' : '#d9d9d9' }} /></Space>,
+                    label: <Space size={4}>Delivery Legs<Badge count={orders.length} showZero style={{ backgroundColor: orders.length ? color.secondary : color.border }} /></Space>,
                     children: (
                       <>
                         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
@@ -2286,7 +2288,7 @@ export function TradeBlotter() {
                   },
                   {
                     key: 'items',
-                    label: <Space size={4}>Items<Badge count={items.length} showZero style={{ backgroundColor: items.length ? '#1677ff' : '#d9d9d9' }} /></Space>,
+                    label: <Space size={4}>Items<Badge count={items.length} showZero style={{ backgroundColor: items.length ? color.secondary : color.border }} /></Space>,
                     children: (
                       <>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

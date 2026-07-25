@@ -2,13 +2,13 @@ import { useState } from 'react';
 import { Layout, Menu, Typography, Space, Avatar, Button, Badge, Tooltip, Dropdown } from 'antd';
 import {
   MenuFoldOutlined, MenuUnfoldOutlined, SwapOutlined, FundOutlined,
-  SunOutlined, MoonOutlined, CodeOutlined, LogoutOutlined, UserOutlined, HomeOutlined,
+  SunOutlined, MoonOutlined, BgColorsOutlined, CodeOutlined, LogoutOutlined, UserOutlined, HomeOutlined,
   BankOutlined, AppstoreOutlined, TableOutlined, TeamOutlined, SafetyCertificateOutlined,
   ControlOutlined, AlertOutlined, DollarOutlined, CloudOutlined, ApartmentOutlined,
   GlobalOutlined, FileProtectOutlined, AccountBookOutlined,
   AuditOutlined, TagsOutlined, IdcardOutlined, InboxOutlined,
   LineChartOutlined, StockOutlined, ScheduleOutlined, ReconciliationOutlined, CalendarOutlined,
-  DatabaseOutlined, SettingOutlined, DoubleLeftOutlined, DoubleRightOutlined,
+  DatabaseOutlined, SettingOutlined, DoubleLeftOutlined, DoubleRightOutlined, ShopOutlined,
 } from '@ant-design/icons';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useUiStore } from '@store/uiStore';
@@ -27,6 +27,21 @@ const NAV_ITEMS = [
   { key: '/',               icon: <HomeOutlined />,       label: 'Dashboard' },
   { key: '/trade/blotter',  icon: <SwapOutlined />,       label: 'Trade Blotter' },
   { key: '/position',       icon: <FundOutlined />,       label: 'Position & P&L' },
+  { type: 'divider' as const },
+  {
+    key: 'g-counterparties', icon: <TeamOutlined />, label: 'Counterparties & Legal',
+    children: [
+      { key: '/tier1/counterparty',  icon: <TeamOutlined />,   label: 'Counterparties' },
+      { key: '/tier1/legal-entity',  icon: <IdcardOutlined />, label: 'Legal Entities' },
+    ],
+  },
+  {
+    key: 'g-markets', icon: <ShopOutlined />, label: 'Products & Markets',
+    children: [
+      { key: '/markets/products', icon: <TagsOutlined />,   label: 'Products' },
+      { key: '/markets/markets',  icon: <GlobalOutlined />, label: 'Markets' },
+    ],
+  },
   { type: 'divider' as const },
   {
     key: 'g-master-data', icon: <DatabaseOutlined />, label: 'Master Data',
@@ -99,6 +114,8 @@ const NAV_ITEMS = [
 
 const ALL_KEYS = [
   '/', '/trade/blotter', '/position', '/static-data', '/master-data',
+  '/tier1/counterparty', '/tier1/legal-entity',
+  '/markets/products', '/markets/markets',
   '/org/books/hierarchy', '/org/books',
   '/credit/margin-agreements', '/credit/limits', '/credit/letters-of-credit',
   '/pricing/settlement-prices', '/pricing/tas', '/pricing/pricing-rules', '/pricing/price-sources',
@@ -113,6 +130,8 @@ const ALL_KEYS = [
 // route prefix → submenu group key (used to auto-open the group of the current page)
 function groupKeyFor(pathname: string): string[] {
   if (pathname.startsWith('/master-data') || pathname.startsWith('/static-data') || pathname.startsWith('/finance')) return ['g-master-data'];
+  if (pathname.startsWith('/tier1/counterparty') || pathname.startsWith('/tier1/legal-entity')) return ['g-counterparties'];
+  if (pathname.startsWith('/markets')) return ['g-markets'];
   if (pathname.startsWith('/org/books')) return ['g-books'];
   if (pathname.startsWith('/credit')) return ['g-credit'];
   if (pathname.startsWith('/pricing')) return ['g-pricing'];
@@ -126,7 +145,7 @@ function groupKeyFor(pathname: string): string[] {
 
 export function AppShell() {
   const { sidebarCollapsed, toggleSidebar } = useUiStore();
-  const { mode, toggle: toggleTheme } = useThemeStore();
+  const { mode, toggle: toggleTheme, monochrome, toggleMonochrome } = useThemeStore();
   const { entries, toggle: toggleApiLog } = useApiLogStore();
   const { user, clearAuth } = useAuthStore();
   const navigate = useNavigate();
@@ -163,14 +182,16 @@ export function AppShell() {
           <button
             onClick={toggleSidebar}
             aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            // '#fff': header background is always navy (color.primary, see antd-theme.ts headerBg)
+            // regardless of light/dark mode, so header icons/text stay fixed white for contrast.
             style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center' }}
           >
             {sidebarCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
           </button>
           <Space align="center" size={8}>
-            <BankOutlined style={{ color: '#60a5fa', fontSize: 20 }} />
+            <BankOutlined style={{ color: color.secondary, fontSize: 20 }} />
             <Typography.Text style={{ color: '#fff', fontWeight: 700, fontSize: 16, letterSpacing: 0.5 }}>Noname</Typography.Text>
-            <Typography.Text style={{ color: '#60a5fa', fontWeight: 700, fontSize: 16 }}>ETRM</Typography.Text>
+            <Typography.Text style={{ color: color.secondary, fontWeight: 700, fontSize: 16 }}>ETRM</Typography.Text>
           </Space>
           <div style={{ flex: 1 }} />
           <Tooltip title="API Activity Log">
@@ -186,6 +207,20 @@ export function AppShell() {
                 : <MoonOutlined style={{ color: '#fff', fontSize: 16 }} />}
               onClick={toggleTheme}
               aria-label="Toggle dark mode"
+            />
+          </Tooltip>
+          <Tooltip title={monochrome ? 'Switch to color' : 'Switch to black & white'}>
+            <Button
+              type="text"
+              icon={<BgColorsOutlined style={{ color: '#fff', fontSize: 16 }} />}
+              onClick={toggleMonochrome}
+              aria-label="Toggle black and white mode"
+              // Pressed/filled look when active — the grayscale filter (see
+              // index.css's html.theme-mono rule) applies to the whole
+              // document including this header, so this button desaturates
+              // along with everything else; the on/off pressed state still
+              // reads clearly since it only depends on lightness, not hue.
+              style={monochrome ? { background: 'rgba(255,255,255,0.2)' } : undefined}
             />
           </Tooltip>
           <Dropdown menu={{ items: userMenuItems }} trigger={['click']} placement="bottomRight">

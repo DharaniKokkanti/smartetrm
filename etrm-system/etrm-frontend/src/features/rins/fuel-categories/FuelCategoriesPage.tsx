@@ -10,6 +10,7 @@ import { useRinFuelCategories, useSaveRinFuelCategory, useDeactivateRinFuelCateg
 import type { RinFuelCategory, RinFuelCategoryInput } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AuditInfo } from '@components/smart/AuditInfo';
+import { color } from '@theme/tokens';
 
 const D_CODE_COLOR: Record<string, string> = {
   D3: 'purple', D4: 'blue', D5: 'green', D6: 'orange', D7: 'cyan',
@@ -55,9 +56,9 @@ export function FuelCategoriesPage() {
     { field: 'fuelType', headerName: 'Category',  flex: 1,   minWidth: 160, valueFormatter: (p) => FUEL_TYPE_OPTS.find((o) => o.value === p.value)?.label ?? p.value },
     { field: 'equivalenceValue', headerName: 'Equiv. Value', width: 130, type: 'numericColumn',
       cellRenderer: (p: { value: number }) => (
-        <span style={{ fontFamily: 'monospace', fontWeight: 600, color: '#1677ff' }}>{p.value.toFixed(1)} RINs/gal</span>
+        <span style={{ fontFamily: 'monospace', fontWeight: 600, color: color.secondary }}>{p.value.toFixed(1)} RINs/gal</span>
       ) },
-    { field: 'energySources', headerName: 'Typical Feedstocks', flex: 2, minWidth: 220, cellStyle: { fontSize: 11, color: '#6b7280' }, valueFormatter: (p) => p.value ?? '—' },
+    { field: 'energySources', headerName: 'Typical Feedstocks', flex: 2, minWidth: 220, cellStyle: { fontSize: 11, color: color.textSecondary }, valueFormatter: (p) => p.value ?? '—' },
     { field: 'isActive', headerName: 'Active', width: 80, cellRenderer: (p: { value: boolean }) => <ActiveTag active={p.value} /> },
     { headerName: '', width: 80, sortable: false, filter: false, pinned: 'right',
       cellRenderer: (p: { data: RinFuelCategory }) => (
@@ -87,7 +88,7 @@ export function FuelCategoriesPage() {
             <Card size="small" style={{ textAlign: 'center', borderTop: `3px solid` }}>
               <Tag color={D_CODE_COLOR[cat.dCode] ?? 'default'} style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: 13, marginBottom: 4 }}>{cat.dCode}</Tag>
               <Statistic value={cat.equivalenceValue} precision={1} suffix="RINs/gal" valueStyle={{ fontSize: 20, fontWeight: 700 }} />
-              <div style={{ fontSize: 10, color: '#6b7280', marginTop: 2 }}>{cat.fuelName}</div>
+              <div style={{ fontSize: 10, color: color.textSecondary, marginTop: 2 }}>{cat.fuelName}</div>
             </Card>
           </Col>
         ))}

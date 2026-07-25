@@ -3,6 +3,7 @@ import { Card, Col, Row, Tag, Typography, Progress, Space, Statistic, Table, But
 import { SyncOutlined, LineChartOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { PageHeader } from '@components/layout/PageHeader';
+import { color } from '@theme/tokens';
 
 const { Text } = Typography;
 
@@ -94,12 +95,12 @@ export function BalmoDashboardPage() {
         const pct = pctElapsed(r);
         return r.totalPricingDays ? (
           <Space direction="vertical" size={0} style={{ width: '100%' }}>
-            <Progress percent={pct} size="small" strokeColor={pct < 50 ? '#1677ff' : pct < 80 ? '#faad14' : '#52c41a'} style={{ marginBottom: 0 }} />
+            <Progress percent={pct} size="small" strokeColor={pct < 50 ? color.secondary : pct < 80 ? color.warning : color.success} style={{ marginBottom: 0 }} />
             <Text type="secondary" style={{ fontSize: 10 }}>
               {r.elapsedPricingDays ?? 0}/{r.totalPricingDays} days
             </Text>
           </Space>
-        ) : <span style={{ color: '#9ca3af', fontSize: 11 }}>—</span>;
+        ) : <span style={{ color: color.textDisabled, fontSize: 11 }}>—</span>;
       },
     },
     {
@@ -114,7 +115,7 @@ export function BalmoDashboardPage() {
       title: 'Final Price', width: 110,
       render: (_: unknown, r: BalmoPosition) => (
         r.finalSettledPrice != null
-          ? <Text style={{ fontFamily: 'monospace', color: '#52c41a', fontWeight: 600 }}>{r.currencyCode} {r.finalSettledPrice.toFixed(4)}</Text>
+          ? <Text style={{ fontFamily: 'monospace', color: color.success, fontWeight: 600 }}>{r.currencyCode} {r.finalSettledPrice.toFixed(4)}</Text>
           : <Text type="secondary" style={{ fontSize: 11 }}>—</Text>
       ),
     },
@@ -148,17 +149,17 @@ export function BalmoDashboardPage() {
       <Row gutter={16} style={{ marginBottom: 16 }}>
         <Col span={6}>
           <Card size="small">
-            <Statistic title="Active Positions" value={active.length} prefix={<LineChartOutlined style={{ color: '#1677ff' }} />} />
+            <Statistic title="Active Positions" value={active.length} prefix={<LineChartOutlined style={{ color: color.secondary }} />} />
           </Card>
         </Col>
         <Col span={6}>
           <Card size="small">
-            <Statistic title="Total Buy Volume" value={totalBuy.toLocaleString()} suffix="BBL/eq" valueStyle={{ color: '#52c41a', fontSize: 18 }} />
+            <Statistic title="Total Buy Volume" value={totalBuy.toLocaleString()} suffix="BBL/eq" valueStyle={{ color: color.success, fontSize: 18 }} />
           </Card>
         </Col>
         <Col span={6}>
           <Card size="small">
-            <Statistic title="Total Sell Volume" value={totalSell.toLocaleString()} suffix="BBL/eq" valueStyle={{ color: '#ef4444', fontSize: 18 }} />
+            <Statistic title="Total Sell Volume" value={totalSell.toLocaleString()} suffix="BBL/eq" valueStyle={{ color: color.error, fontSize: 18 }} />
           </Card>
         </Col>
         <Col span={6}>
@@ -170,7 +171,7 @@ export function BalmoDashboardPage() {
 
       <Card
         size="small"
-        title={<Space><LineChartOutlined style={{ color: '#1677ff' }} /><span>Active BALMO Positions</span><Tag color="processing">{active.length}</Tag></Space>}
+        title={<Space><LineChartOutlined style={{ color: color.secondary }} /><span>Active BALMO Positions</span><Tag color="processing">{active.length}</Tag></Space>}
         extra={<Button size="small" icon={<SyncOutlined />} onClick={() => { void refetch(); }} loading={isLoading}>Refresh</Button>}
         style={{ marginBottom: 16 }}
       >

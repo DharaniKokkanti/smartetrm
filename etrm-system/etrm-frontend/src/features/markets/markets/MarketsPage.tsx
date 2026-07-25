@@ -22,6 +22,7 @@ import { useProducts } from '@features/markets/products/hooks';
 import { useFormDraft } from '@components/smart/formDraft';
 import { useCountries } from '@features/reference/countries/hooks';
 import { useExchanges } from '@features/markets/exchanges/hooks';
+import { color } from '@theme/tokens';
 
 const MKT_TYPE_COLOR: Record<MarketType, string> = {
   EXCHANGE: 'blue', OTC_CLEARED: 'cyan', OTC_BILATERAL: 'orange', OTC_PHYSICAL: 'green', BROKER: 'purple', INTERNAL: 'default',
@@ -52,7 +53,7 @@ function MarketProductDetail({ mp, onClose }: { mp: MarketProduct; onClose: () =
           children: (
             <>
               <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 12, color: '#888' }}>Periods valid for this product on this market — controls what a trader can select in deal capture</span>
+                <span style={{ fontSize: 12, color: color.textSecondary }}>Periods valid for this product on this market — controls what a trader can select in deal capture</span>
                 <Button size="small" icon={<PlusOutlined />} onClick={() => setAddPeriodOpen(true)}>Link Period</Button>
               </div>
               <Table
@@ -70,7 +71,7 @@ function MarketProductDetail({ mp, onClose }: { mp: MarketProduct; onClose: () =
                 ]}
               />
               {addPeriodOpen && (
-                <div style={{ marginTop: 16, padding: 12, border: '1px solid #d9d9d9', borderRadius: 6 }}>
+                <div style={{ marginTop: 16, padding: 12, border: `1px solid ${color.border}`, borderRadius: 6 }}>
                   <Form layout="inline" onFinish={(v: { periodId: number }) => { addPeriod.mutate(v.periodId); setAddPeriodOpen(false); }}>
                     <Form.Item name="periodId" label={hint('Period ID', 'Contract-month/delivery-period identifier per the venue\'s ID convention — not a free-text label.')} rules={[{ required: true }]}>
                       <InputNumber placeholder="Period ID" />
@@ -90,7 +91,7 @@ function MarketProductDetail({ mp, onClose }: { mp: MarketProduct; onClose: () =
           label: <Space><DollarOutlined />Price Sources<Badge count={sources?.length ?? 0} showZero size="small" /></Space>,
           children: (
             <>
-              <div style={{ marginBottom: 12, fontSize: 12, color: '#888' }}>
+              <div style={{ marginBottom: 12, fontSize: 12, color: color.textSecondary }}>
                 Price data feeds for {mp.productCode} on this market — PRIMARY_MTM is used for daily mark-to-market, SETTLEMENT for contract expiry
               </div>
               <Table
@@ -106,7 +107,7 @@ function MarketProductDetail({ mp, onClose }: { mp: MarketProduct; onClose: () =
                     render: (v: string) => <Tag color={ROLE_COLOR[v] ?? 'default'}>{v.replace('_', ' ')}</Tag> },
                   { title: 'Field / Ticker', dataIndex: 'sourceTicker', width: 140,
                     render: (_: unknown, r: { sourceTicker: string | null; sourceFieldCode: string | null }) =>
-                      r.sourceTicker ?? r.sourceFieldCode ?? <span style={{ color: '#888' }}>—</span> },
+                      r.sourceTicker ?? r.sourceFieldCode ?? <span style={{ color: color.textSecondary }}>—</span> },
                   { title: 'Eff. From', dataIndex: 'effectiveFrom', width: 100,
                     render: (v: string) => dayjs(v).format('DD MMM YY') },
                   { title: 'Active', dataIndex: 'isActive', width: 70, render: (v: boolean) => <ActiveTag active={v} /> },
@@ -134,8 +135,8 @@ function MarketProductDetail({ mp, onClose }: { mp: MarketProduct; onClose: () =
                 ['Last Trading Day Offset', mp.lastTradingDayOffset != null ? `${mp.lastTradingDayOffset} days before delivery month end` : '—'],
                 ['Listed Date', mp.listedDate ? dayjs(mp.listedDate).format('DD MMM YYYY') : '—'],
               ] as [string, string][]).map(([label, value]) => (
-                <tr key={label} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                  <td style={{ padding: '6px 0', color: '#888', width: 220 }}>{label}</td>
+                <tr key={label} style={{ borderBottom: `1px solid ${color.border}` }}>
+                  <td style={{ padding: '6px 0', color: color.textSecondary, width: 220 }}>{label}</td>
                   <td style={{ padding: '6px 0', fontFamily: value === '—' ? undefined : 'monospace' }}>{value}</td>
                 </tr>
               ))}
@@ -172,7 +173,7 @@ function MarketProductsDrawer({ market, onClose }: { market: Market; onClose: ()
         open onClose={onClose} width={760}
         extra={<Button icon={<PlusOutlined />} type="primary" size="small" onClick={() => setAddOpen(true)}>Link Product</Button>}
       >
-        <div style={{ marginBottom: 12, fontSize: 12, color: '#888' }}>
+        <div style={{ marginBottom: 12, fontSize: 12, color: color.textSecondary }}>
           Products listed on {market.marketName}. Click a product to view its valid trading periods and price sources.
         </div>
         <Table
@@ -185,7 +186,7 @@ function MarketProductsDrawer({ market, onClose }: { market: Market; onClose: ()
             { title: 'Product', dataIndex: 'productCode', width: 140,
               render: (v: string, r: MarketProduct) => <Tooltip title={r.productName}><Tag color="blue">{v}</Tag></Tooltip> },
             { title: 'Ticker', dataIndex: 'ticker', width: 100, render: (v: string | null) => v ? <code style={{ fontFamily: 'monospace' }}>{v}</code> : '—' },
-            { title: 'CCY', dataIndex: 'currencyCode', width: 70, render: (v: string | null) => v ?? <span style={{ color: '#888' }}>Default</span> },
+            { title: 'CCY', dataIndex: 'currencyCode', width: 70, render: (v: string | null) => v ?? <span style={{ color: color.textSecondary }}>Default</span> },
             { title: 'Lot Size', dataIndex: 'lotSize', width: 90, render: (v: number | null) => v != null ? v.toLocaleString() : '—' },
             { title: 'LTD Offset', dataIndex: 'lastTradingDayOffset', width: 100,
               render: (v: number | null) => v != null ? <Tooltip title="Days before delivery month end">{v}d</Tooltip> : '—' },
@@ -200,7 +201,7 @@ function MarketProductsDrawer({ market, onClose }: { market: Market; onClose: ()
         />
 
         {addOpen && (
-          <div style={{ marginTop: 16, padding: 16, border: '1px solid #d9d9d9', borderRadius: 6 }}>
+          <div style={{ marginTop: 16, padding: 16, border: `1px solid ${color.border}`, borderRadius: 6 }}>
             <Form form={form} layout="vertical">
               <Space style={{ width: '100%', gap: 12 }}>
                 <Form.Item name="productId" label={hint('Product', 'The product being listed on this market. Market-specific attributes below (ticker, lot size) override the product defaults.')} rules={[{ required: true }]} style={{ flex: 1 }}>

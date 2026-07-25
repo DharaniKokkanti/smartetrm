@@ -14,6 +14,7 @@ import { hint } from '@components/smart/FieldHint';
 import { useDraggableModal } from '@components/smart/useDraggableModal';
 import { DraggableModalTitle } from '@components/smart/DraggableModalTitle';
 import { MinimizedModalBar } from '@components/smart/MinimizedModalBar';
+import { InfoPanel } from '@components/smart/InfoPanel';
 
 interface Props {
   items: ContactAssignment[];
@@ -241,13 +242,13 @@ export function ContactsSection({ items, onChange, entityType = 'COUNTERPARTY' }
               {selectedPoolId && (() => {
                 const c = pool.find((x) => x.contactId === selectedPoolId);
                 return c ? (
-                  <div style={{ marginTop: 8, padding: '8px 10px', background: '#f9f9f9', borderRadius: 4, fontSize: 12, color: '#595959' }}>
+                  <InfoPanel variant="neutral" icon={false} compact style={{ marginTop: 8, marginBottom: 0, fontSize: 12 }}>
                     <strong>{c.firstName} {c.lastName}</strong>{c.jobTitle ? ` — ${c.jobTitle}` : ''}
                     {c.email && <div>{c.email}</div>}
                     {(c.phoneMobile || c.phoneDirect || c.phoneMain) && (
                       <div>{c.phoneMobile || c.phoneDirect || c.phoneMain}</div>
                     )}
-                  </div>
+                  </InfoPanel>
                 ) : null;
               })()}
             </Form.Item>

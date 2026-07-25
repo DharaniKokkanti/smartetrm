@@ -15,6 +15,7 @@ import { hint } from '@components/smart/FieldHint';
 import { useDraggableModal } from '@components/smart/useDraggableModal';
 import { DraggableModalTitle } from '@components/smart/DraggableModalTitle';
 import { MinimizedModalBar } from '@components/smart/MinimizedModalBar';
+import { InfoPanel } from '@components/smart/InfoPanel';
 
 interface Props {
   items: AddressAssignment[];
@@ -248,10 +249,10 @@ export function AddressesSection({ items, onChange, entityType = 'COUNTERPARTY' 
               {selectedPoolId && (() => {
                 const a = pool.find((x) => x.addressId === selectedPoolId);
                 return a ? (
-                  <div style={{ marginTop: 8, padding: '8px 10px', background: '#f9f9f9', borderRadius: 4, fontSize: 12, color: '#595959' }}>
+                  <InfoPanel variant="neutral" icon={false} compact style={{ marginTop: 8, marginBottom: 0, fontSize: 12 }}>
                     {[a.addressLine1, a.addressLine2, a.city, a.stateProvince, a.postalCode, countryLabelById.get(a.countryId) ?? a.countryId].filter(Boolean).join(', ')}
                     {a.phoneNumber && <div style={{ marginTop: 2 }}>{a.phoneNumber}</div>}
-                  </div>
+                  </InfoPanel>
                 ) : null;
               })()}
             </Form.Item>
