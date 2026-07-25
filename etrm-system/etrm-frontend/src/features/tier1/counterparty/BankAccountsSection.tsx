@@ -1,7 +1,7 @@
 import { Form, Input, Select, Switch } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { ChildRecordSection, PrimaryTag } from './ChildRecordSection';
-import type { BankAccount } from './types';
+import type { BankAccount, PolymorphicEntityType } from './types';
 import { localId } from '@utils/localId';
 import { useCustomConfigOptions } from './configLookups';
 import { useCurrencies } from '@features/reference/currencies/hooks';
@@ -10,9 +10,10 @@ import { hint } from '@components/smart/FieldHint';
 interface Props {
   items: BankAccount[];
   onChange: (items: BankAccount[]) => void;
+  entityType?: PolymorphicEntityType;
 }
 
-export function BankAccountsSection({ items, onChange }: Props) {
+export function BankAccountsSection({ items, onChange, entityType = 'COUNTERPARTY' }: Props) {
   const { data: typeOptions = [], isLoading } = useCustomConfigOptions('BANK_ACCOUNT_TYPE');
   const { data: currencies = [], isLoading: loadingCurrencies } = useCurrencies();
   const currencyOptions = currencies
@@ -38,7 +39,7 @@ export function BankAccountsSection({ items, onChange }: Props) {
       emptyItem={() => ({
         bankAccountId: null,
         _localId: localId(),
-        entityType: 'COUNTERPARTY',
+        entityType,
         entityId: 0,
         accountType: typeOptions.find((o) => o.label === 'Settlement')?.value ?? 0,
         currencyId: currencies[0]?.currencyId ?? 0,

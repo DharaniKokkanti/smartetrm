@@ -4,6 +4,7 @@ import type {
   LegalEntityOwnership, LegalEntityOwnershipInput, LegalEntityOwnershipListView,
 } from './types';
 import { fetchEntityAddresses, fetchEntityContacts, fetchEntityTaxRegistrations } from '@features/tier1/counterparty/api';
+import type { BankAccount } from '@features/tier1/counterparty/types';
 
 /**
  * REST contract per the Master Data Entry Technical Design (Tier 1 pattern):
@@ -38,6 +39,24 @@ export const legalEntityApi = {
     await apiClient.patch(`${BASE}/${id}/deactivate`);
   },
 
+  // ── Bank accounts (V159 — previously entirely missing; the RECEIVE side of
+  // settlement instructions needs one of the entity's own accounts to point
+  // at). Mirrors counterpartyApi.bankAccounts exactly.
+  bankAccounts: {
+    list: async (id: number): Promise<BankAccount[]> => {
+      const { data } = await apiClient.get<BankAccount[]>(`${BASE}/${id}/bank-accounts`);
+      return data;
+    },
+    create: async (id: number, b: Omit<BankAccount, 'bankAccountId' | '_localId'>): Promise<BankAccount> => {
+      const { data } = await apiClient.post<BankAccount>(`${BASE}/${id}/bank-accounts`, b);
+      return data;
+    },
+    update: async (id: number, bankAccountId: number, b: Omit<BankAccount, 'bankAccountId' | '_localId'>): Promise<BankAccount> => {
+      const { data } = await apiClient.put<BankAccount>(`${BASE}/${id}/bank-accounts/${bankAccountId}`, b);
+      return data;
+    },
+  },
+
   /** Bulk create from a validated Excel upload — one call, server applies
    *  the same duplicate-rejection rule row-by-row and reports back which
    *  rows failed, rather than the client trying to guess server-side state. */
@@ -66,12 +85,15 @@ export const legalEntityApi = {
 };
 
 /** Fetch a legal entity's full child record set in parallel — same shape as
- *  fetchCounterpartyChildren, minus bank accounts (a Counterparty-only concept). */
+ *  fetchCounterpartyChildren. Bank accounts were a genuine gap until V159
+ *  (LegalEntityController had zero bank-account routes at all, despite
+ *  bank_account fully supporting entity_type='LEGAL_ENTITY' at the DB level). */
 export async function fetchLegalEntityChildren(id: number) {
-  const [contacts, addresses, taxRegistrations] = await Promise.all([
+  const [contacts, addresses, taxRegistrations, bankAccounts] = await Promise.all([
     fetchEntityContacts('LEGAL_ENTITY', id),
     fetchEntityAddresses('LEGAL_ENTITY', id),
     fetchEntityTaxRegistrations('LEGAL_ENTITY', id),
+    legalEntityApi.bankAccounts.list(id),
   ]);
-  return { contacts, addresses, taxRegistrations };
+  return { contacts, addresses, taxRegistrations, bankAccounts };
 }

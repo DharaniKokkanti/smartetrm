@@ -125,6 +125,17 @@ export function useSaveLegalEntityDraft() {
         }
       }
 
+      for (const account of draft.bankAccounts) {
+        const { _localId: _l, bankAccountId, ...rest } = account;
+        const payload = { ...rest, entityType: 'LEGAL_ENTITY' as const, entityId: leId };
+        try {
+          if (bankAccountId === null) await legalEntityApi.bankAccounts.create(leId, payload);
+          else await legalEntityApi.bankAccounts.update(leId, bankAccountId, payload);
+        } catch {
+          errors.push(`Bank account "${account.accountName}" failed to save.`);
+        }
+      }
+
       return { parent, errors };
     },
     onSuccess: ({ parent, errors }) => {
@@ -192,5 +203,15 @@ export function useRemoveOwnership(jvEntityId: number | null) {
     onError: (err: ProblemDetail) => {
       message.error(err.detail ?? err.title ?? 'Remove ownership failed.');
     },
+  });
+}
+
+// ── Bank accounts (V159) ────────────────────────────────────────────────────
+
+export function useLegalEntityBankAccounts(id: number | null) {
+  return useQuery({
+    queryKey: id !== null ? ['legal-entities', id, 'bank-accounts'] : ['legal-entities', 'bank-accounts', 'none'],
+    queryFn: () => legalEntityApi.bankAccounts.list(id!),
+    enabled: id !== null,
   });
 }

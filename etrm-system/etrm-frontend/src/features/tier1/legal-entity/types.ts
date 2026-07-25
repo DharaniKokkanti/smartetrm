@@ -5,7 +5,7 @@
  * convention changes, this is the one file that needs updating.
  */
 
-import type { AddressAssignment, ContactAssignment, TaxRegistration } from '@features/tier1/counterparty/types';
+import type { AddressAssignment, BankAccount, ContactAssignment, TaxRegistration } from '@features/tier1/counterparty/types';
 import type { OwnerType, ConsolidationMethod } from '@components/smart/OwnershipPanel';
 export type { OwnerType, ConsolidationMethod };
 
@@ -110,4 +110,5 @@ export interface LegalEntityDraft {
   contacts: ContactAssignment[];
   addresses: AddressAssignment[];
   taxRegistrations: TaxRegistration[];
+  bankAccounts: BankAccount[];
 }

@@ -8,6 +8,8 @@ import com.etrm.system.polymorphic.BankAccountRepository;
 import com.etrm.system.polymorphic.Contact;
 import com.etrm.system.polymorphic.ContactRepository;
 import com.etrm.system.polymorphic.EntityType;
+import com.etrm.system.settlement.SettlementInstruction;
+import com.etrm.system.settlement.SettlementInstructionService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,17 +41,20 @@ public class CounterpartyController {
     private final ContactRepository contactRepository;
     private final BankAccountRepository bankAccountRepository;
     private final AddressRepository addressRepository;
+    private final SettlementInstructionService settlementInstructionService;
 
     public CounterpartyController(
             CounterpartyService service,
             ContactRepository contactRepository,
             BankAccountRepository bankAccountRepository,
-            AddressRepository addressRepository
+            AddressRepository addressRepository,
+            SettlementInstructionService settlementInstructionService
     ) {
         this.service = service;
         this.contactRepository = contactRepository;
         this.bankAccountRepository = bankAccountRepository;
         this.addressRepository = addressRepository;
+        this.settlementInstructionService = settlementInstructionService;
     }
 
     // ── Core ──────────────────────────────────────────────────────────────
@@ -162,5 +167,22 @@ public class CounterpartyController {
         input.setEntityType(EntityType.COUNTERPARTY);
         input.setEntityId(id.longValue());
         return addressRepository.save(input);
+    }
+
+    // ── Settlement instructions ─────────────────────────────────────────────
+    // Creation only here (PENDING_VERIFICATION) — verify/reject are standalone
+    // actions on SettlementInstructionController since they aren't scoped to
+    // "which counterparty" the way create naturally is.
+
+    @GetMapping("/{id}/settlement-instructions")
+    public List<SettlementInstruction> listSettlementInstructions(@PathVariable Integer id) {
+        return settlementInstructionService.listForCounterparty(id);
+    }
+
+    @PostMapping("/{id}/settlement-instructions")
+    public ResponseEntity<SettlementInstruction> addSettlementInstruction(
+            @PathVariable Integer id, @Valid @RequestBody SettlementInstruction input
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(settlementInstructionService.create(id, input));
     }
 }

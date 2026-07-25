@@ -9,6 +9,8 @@ import type {
   AddressAssignment,
   PolymorphicEntityType,
   TaxRegistration,
+  SettlementInstruction,
+  SettlementInstructionCreateInput,
 } from './types';
 
 const BASE = '/counterparties';
@@ -185,6 +187,27 @@ export async function saveTaxRegistrationAssignment(reg: TaxRegistration): Promi
 export async function deactivateTaxRegistrationAssignment(taxRegId: number): Promise<void> {
   await apiClient.patch(`/entity-tax-registrations/${taxRegId}/deactivate`);
 }
+
+// ── Settlement instructions (dbo.settlement_instruction, V159) ────────────────
+
+export const settlementInstructionApi = {
+  listForCounterparty: async (cpId: number): Promise<SettlementInstruction[]> => {
+    const { data } = await apiClient.get<SettlementInstruction[]>(`${BASE}/${cpId}/settlement-instructions`);
+    return data;
+  },
+  create: async (cpId: number, input: SettlementInstructionCreateInput): Promise<SettlementInstruction> => {
+    const { data } = await apiClient.post<SettlementInstruction>(`${BASE}/${cpId}/settlement-instructions`, input);
+    return data;
+  },
+  verify: async (id: number, verificationMethod: string): Promise<SettlementInstruction> => {
+    const { data } = await apiClient.post<SettlementInstruction>(`/settlement-instructions/${id}/verify`, { verificationMethod });
+    return data;
+  },
+  reject: async (id: number, notes?: string): Promise<SettlementInstruction> => {
+    const { data } = await apiClient.post<SettlementInstruction>(`/settlement-instructions/${id}/reject`, { notes });
+    return data;
+  },
+};
 
 /** Fetch a counterparty's full child record set in parallel. */
 export async function fetchCounterpartyChildren(cpId: number) {

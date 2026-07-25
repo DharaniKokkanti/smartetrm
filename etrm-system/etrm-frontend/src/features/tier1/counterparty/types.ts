@@ -162,6 +162,47 @@ export interface BankAccount {
   rowVersion?: number;
 }
 
+// ── Settlement instruction (dbo.settlement_instruction, V159) ─────────────────
+// The real "which account do we actually pay/get paid on" routing rule —
+// separate from bank_account itself (see BankAccount above), which only
+// holds the static beneficiary details. direction determines which side's
+// bank_account the instruction must point at: PAY -> counterparty's own
+// account, RECEIVE -> our own legal entity's account. Immutable once
+// created (no update) — a changed bank detail is always a new instruction
+// that supersedes the old one once independently verified (maker-checker),
+// never an edit. See V159's migration header for the full ISDA/FMSB-informed
+// rationale.
+
+export type SettlementInstructionDirection = 'PAY' | 'RECEIVE' | 'BOTH';
+export type SettlementInstructionStatus = 'PENDING_VERIFICATION' | 'ACTIVE' | 'SUPERSEDED' | 'REJECTED';
+
+export interface SettlementInstruction {
+  settlementInstructionId: number;
+  rowVersion: number;
+  instructionCode: string;
+  ourEntityId: number;
+  counterpartyId: number;
+  direction: SettlementInstructionDirection;
+  currencyId: number | null;
+  productScope: string | null;
+  bankAccountId: number;
+  status: SettlementInstructionStatus;
+  verifiedBy: string | null;
+  verifiedAt: string | null;
+  verificationMethod: string | null;
+  validFrom: string;
+  validTo: string | null;
+  supersededById: number | null;
+  notes: string | null;
+  createdAt: string;
+  createdBy: string;
+}
+
+export type SettlementInstructionCreateInput = Pick<
+  SettlementInstruction,
+  'ourEntityId' | 'direction' | 'currencyId' | 'productScope' | 'bankAccountId' | 'validFrom' | 'notes'
+>;
+
 // ── Tax registration (dbo.tax_registration) ────────────────────────────────────
 // Shared VAT/tax-ID registration for LEGAL_ENTITY and COUNTERPARTY — this was
 // an unbuilt placeholder (Master Data Hub card marked live:false) until now;

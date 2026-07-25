@@ -1,6 +1,9 @@
 import { http, HttpResponse } from 'msw';
 import { legalEntitySeed, nextLegalEntityId } from './data';
+import { bankAccountStore, settlementInstructionStore } from './counterpartyHandlers';
+import { nextBankAccountRecordId } from './counterpartyData';
 import type { LegalEntity, LegalEntityInput } from '@features/tier1/legal-entity/types';
+import type { BankAccount } from '@features/tier1/counterparty/types';
 
 // In-memory store, mutated across requests for the lifetime of the dev
 // session — resets on full page reload. This is a mock, not a database.
@@ -102,4 +105,29 @@ export const legalEntityHandlers = [
 
     return HttpResponse.json({ created, rejected });
   }),
+
+  // ── Bank accounts (dbo.bank_account, V159) — previously entirely missing
+  // for legal entities; shares bankAccountStore with counterpartyHandlers.ts
+  // since bank_account is genuinely polymorphic in the real backend too.
+  http.get(`${API}/legal-entities/:id/bank-accounts`, ({ params }) =>
+    HttpResponse.json(bankAccountStore.filter((b) => b.entityType === 'LEGAL_ENTITY' && b.entityId === Number(params.id))),
+  ),
+  http.post(`${API}/legal-entities/:id/bank-accounts`, async ({ params, request }) => {
+    const body = (await request.json()) as Omit<BankAccount, 'bankAccountId' | '_localId'>;
+    const record: BankAccount = { ...body, bankAccountId: nextBankAccountRecordId(), _localId: '', entityType: 'LEGAL_ENTITY', entityId: Number(params.id) };
+    bankAccountStore.push(record);
+    return HttpResponse.json(record, { status: 201 });
+  }),
+  http.put(`${API}/legal-entities/:id/bank-accounts/:bankAccountId`, async ({ params, request }) => {
+    const idx = bankAccountStore.findIndex((b) => b.bankAccountId === Number(params.bankAccountId));
+    if (idx === -1) return problem(404, 'Not Found', 'Bank account not found.');
+    const body = (await request.json()) as Omit<BankAccount, 'bankAccountId' | '_localId'>;
+    bankAccountStore[idx] = { ...bankAccountStore[idx], ...body };
+    return HttpResponse.json(bankAccountStore[idx]);
+  }),
+
+  // ── Settlement instructions read side (dbo.settlement_instruction, V159) ──
+  http.get(`${API}/legal-entities/:id/settlement-instructions`, ({ params }) =>
+    HttpResponse.json(settlementInstructionStore.filter((s) => s.ourEntityId === Number(params.id))),
+  ),
 ];

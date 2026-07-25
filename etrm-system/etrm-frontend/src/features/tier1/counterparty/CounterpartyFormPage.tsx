@@ -20,6 +20,7 @@ import { BankAccountsSection } from './BankAccountsSection';
 import { AddressesSection } from './AddressesSection';
 import { TaxRegistrationsSection } from './TaxRegistrationsSection';
 import { EntityGuaranteesPanel } from '@features/tier1/guarantee/EntityGuaranteesPanel';
+import { SettlementInstructionsPanel } from './SettlementInstructionsPanel';
 import { usePageFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import { hint } from '@components/smart/FieldHint';
@@ -306,6 +307,10 @@ export function CounterpartyFormPage() {
             {
               key: 'guarantees', label: 'Guarantees',
               children: <EntityGuaranteesPanel entityType="COUNTERPARTY" entityId={cpId} defaultRole="principal" />,
+            },
+            {
+              key: 'settlement-instructions', label: 'Settlement Instructions',
+              children: <SettlementInstructionsPanel counterpartyId={cpId} counterpartyBankAccounts={bankAccounts} />,
             },
           ]} />
         </Form>

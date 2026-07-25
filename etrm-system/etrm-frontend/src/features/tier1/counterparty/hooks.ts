@@ -12,8 +12,9 @@ import {
   saveTaxRegistrationAssignment,
   deactivateContactAssignment,
   deactivateTaxRegistrationAssignment,
+  settlementInstructionApi,
 } from './api';
-import type { BankAccount, ContactAssignment, CounterpartyDraft, TaxRegistration } from './types';
+import type { BankAccount, ContactAssignment, CounterpartyDraft, SettlementInstructionCreateInput, TaxRegistration } from './types';
 import type { ProblemDetail } from '@services/api';
 import { isOptimisticLockConflict, showOptimisticLockConflict } from '@components/smart/optimisticLock';
 
@@ -255,5 +256,57 @@ export function useSaveBankAccount() {
         message.error(err.detail ?? err.title ?? 'Save failed.');
       }
     },
+  });
+}
+
+// ── Settlement instructions (dbo.settlement_instruction, V159) ────────────────
+
+const ssiKey = (cpId: number) => ['counterparties', cpId, 'settlement-instructions'] as const;
+
+export function useSettlementInstructions(cpId: number | null) {
+  return useQuery({
+    queryKey: cpId !== null ? ssiKey(cpId) : ['settlement-instructions', 'none'],
+    queryFn: () => settlementInstructionApi.listForCounterparty(cpId!),
+    enabled: cpId !== null,
+  });
+}
+
+export function useCreateSettlementInstruction(cpId: number | null) {
+  const queryClient = useQueryClient();
+  const { message } = AntApp.useApp();
+  return useMutation({
+    mutationFn: (input: SettlementInstructionCreateInput) => settlementInstructionApi.create(cpId!, input),
+    onSuccess: () => {
+      if (cpId !== null) queryClient.invalidateQueries({ queryKey: ssiKey(cpId) });
+      message.success('Settlement instruction created — pending verification by a second user before it becomes active.');
+    },
+    onError: (err: ProblemDetail) => message.error(err.detail ?? err.title ?? 'Create failed.'),
+  });
+}
+
+export function useVerifySettlementInstruction(cpId: number | null) {
+  const queryClient = useQueryClient();
+  const { message } = AntApp.useApp();
+  return useMutation({
+    mutationFn: ({ id, verificationMethod }: { id: number; verificationMethod: string }) =>
+      settlementInstructionApi.verify(id, verificationMethod),
+    onSuccess: () => {
+      if (cpId !== null) queryClient.invalidateQueries({ queryKey: ssiKey(cpId) });
+      message.success('Settlement instruction verified and now active.');
+    },
+    onError: (err: ProblemDetail) => message.error(err.detail ?? err.title ?? 'Verify failed.'),
+  });
+}
+
+export function useRejectSettlementInstruction(cpId: number | null) {
+  const queryClient = useQueryClient();
+  const { message } = AntApp.useApp();
+  return useMutation({
+    mutationFn: ({ id, notes }: { id: number; notes?: string }) => settlementInstructionApi.reject(id, notes),
+    onSuccess: () => {
+      if (cpId !== null) queryClient.invalidateQueries({ queryKey: ssiKey(cpId) });
+      message.success('Settlement instruction rejected.');
+    },
+    onError: (err: ProblemDetail) => message.error(err.detail ?? err.title ?? 'Reject failed.'),
   });
 }

@@ -17,7 +17,8 @@ import { LegalEntityOwnershipPanel } from './LegalEntityOwnershipPanel';
 import { AddressesSection } from '@features/tier1/counterparty/AddressesSection';
 import { ContactsSection } from '@features/tier1/counterparty/ContactsSection';
 import { TaxRegistrationsSection } from '@features/tier1/counterparty/TaxRegistrationsSection';
-import type { AddressAssignment, ContactAssignment, TaxRegistration } from '@features/tier1/counterparty/types';
+import { BankAccountsSection } from '@features/tier1/counterparty/BankAccountsSection';
+import type { AddressAssignment, BankAccount, ContactAssignment, TaxRegistration } from '@features/tier1/counterparty/types';
 import { usePageFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import { hint } from '@components/smart/FieldHint';
@@ -48,17 +49,19 @@ export function LegalEntityFormPage() {
   const [addresses, setAddresses] = useState<AddressAssignment[]>([]);
   const [contacts, setContacts] = useState<ContactAssignment[]>([]);
   const [taxRegistrations, setTaxRegistrations] = useState<TaxRegistration[]>([]);
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
 
   const activeRef = useRef(true);
   const { skipFormSyncRef, skipExtraSyncRef } = usePageFormDraft('legal-entity', {
     form,
     recordId: leId,
     activeRef,
-    extra: () => ({ addresses, contacts, taxRegistrations }),
+    extra: () => ({ addresses, contacts, taxRegistrations, bankAccounts }),
     onRestore: (_values, extra) => {
       setAddresses((extra?.addresses as AddressAssignment[] | undefined) ?? []);
       setContacts((extra?.contacts as ContactAssignment[] | undefined) ?? []);
       setTaxRegistrations((extra?.taxRegistrations as TaxRegistration[] | undefined) ?? []);
+      setBankAccounts((extra?.bankAccounts as BankAccount[] | undefined) ?? []);
     },
     meta: () => ({
       route: isNew ? '/tier1/legal-entity/new' : `/tier1/legal-entity/${leId}`,
@@ -83,6 +86,7 @@ export function LegalEntityFormPage() {
       setAddresses(existingChildren.addresses.map((a) => ({ ...a, _localId: `srv-ea-${a.entityAddressId}` })));
       setContacts(existingChildren.contacts.map((c) => ({ ...c, _localId: `srv-ec-${c.entityContactId}` })));
       setTaxRegistrations(existingChildren.taxRegistrations.map((t) => ({ ...t, _localId: `srv-tr-${t.taxRegId}` })));
+      setBankAccounts(existingChildren.bankAccounts.map((b) => ({ ...b, _localId: `srv-ba-${b.bankAccountId}` })));
     }
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [existingChildren, skipExtraSyncRef]);
@@ -106,7 +110,7 @@ export function LegalEntityFormPage() {
       // 0 for a brand-new record, ignored by Hibernate on insert anyway.
       rowVersion: existing?.rowVersion ?? 0,
     };
-    const result = await saveDraft.mutateAsync({ id: leId, draft: { core, addresses, contacts, taxRegistrations } });
+    const result = await saveDraft.mutateAsync({ id: leId, draft: { core, addresses, contacts, taxRegistrations, bankAccounts } });
     activeRef.current = false;
     navigate(`/tier1/legal-entity/${result.parent.legalEntityId}`, { replace: true });
   }
@@ -117,7 +121,7 @@ export function LegalEntityFormPage() {
     <>
       <PageHeader
         title={isNew ? 'New Legal Entity' : existing ? existing.entityCode : 'Legal Entity'}
-        description="Internal trading company, subsidiary, or branch — with contacts, addresses, guarantees, and (for joint ventures) ownership added inline."
+        description="Internal trading company, subsidiary, or branch — with contacts, addresses, bank accounts, guarantees, and (for joint ventures) ownership added inline."
         moduleGroup="trade"
       />
 
@@ -254,6 +258,15 @@ export function LegalEntityFormPage() {
                 </Badge>
               ),
               children: <TaxRegistrationsSection items={taxRegistrations} onChange={setTaxRegistrations} entityType="LEGAL_ENTITY" />,
+            },
+            {
+              key: 'bank-accounts',
+              label: (
+                <Badge count={bankAccounts.filter((b) => b.isActive).length} showZero color="default">
+                  Bank Accounts
+                </Badge>
+              ),
+              children: <BankAccountsSection items={bankAccounts} onChange={setBankAccounts} entityType="LEGAL_ENTITY" />,
             },
             {
               key: 'guarantees',

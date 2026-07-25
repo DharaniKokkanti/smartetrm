@@ -24,6 +24,8 @@ import type {
   Address,
   AddressAssignment,
   TaxRegistration,
+  SettlementInstruction,
+  SettlementInstructionCreateInput,
 } from '@features/tier1/counterparty/types';
 
 // Exported (matching legalEntityStore's convention in handlers.ts) so other
@@ -34,10 +36,26 @@ import type {
 export const cpStore: Counterparty[] = [...counterpartySeed];
 const contactPool: Contact[] = [...contactPoolSeed];
 const contactAssignments: ContactAssignment[] = [...contactAssignmentSeed];
-const bankAccountStore: BankAccount[] = [...bankAccountSeed];
+// Exported so handlers.ts's legal-entity bank-account routes (V159) can
+// share the same store — bank_account is polymorphic across both entity
+// types in the real backend, so the mock must be too, not two disjoint arrays.
+export const bankAccountStore: BankAccount[] = [...bankAccountSeed];
 const addressPool: Address[] = [...addressPoolSeed];
 const addressAssignments: AddressAssignment[] = [...addressAssignmentSeed];
 const taxRegistrationStore: TaxRegistration[] = [...taxRegistrationSeed];
+
+// dbo.settlement_instruction (V159) — empty seed, exercised live via the UI.
+// Simplified relative to the real backend: mocks run as a single logged-in
+// user, so the maker-checker "verifier must differ from creator" rule isn't
+// enforced here (there's no second mock identity to enforce it against) —
+// verify always succeeds, exactly like every other mock write path in this
+// file skips server-side authorization nuance that SecurityConfig enforces
+// for real.
+export const settlementInstructionStore: SettlementInstruction[] = [];
+let nextSsiId = 1;
+function nextInstructionCode(): string {
+  return `SSI-${String(nextSsiId).padStart(6, '0')}`;
+}
 
 const API = '/api/v1';
 
@@ -289,7 +307,7 @@ export const counterpartyHandlers = [
   // (used by the cross-entity Bank Accounts Directory page).
   http.get(`${API}/bank-accounts`, () => HttpResponse.json(bankAccountStore)),
   http.get(`${API}/counterparties/:id/bank-accounts`, ({ params }) =>
-    HttpResponse.json(bankAccountStore.filter((b) => b.entityId === Number(params.id))),
+    HttpResponse.json(bankAccountStore.filter((b) => b.entityType === 'COUNTERPARTY' && b.entityId === Number(params.id))),
   ),
   http.post(`${API}/counterparties/:id/bank-accounts`, async ({ params, request }) => {
     const body = (await request.json()) as Omit<BankAccount, 'bankAccountId' | '_localId'>;
@@ -339,5 +357,94 @@ export const counterpartyHandlers = [
     const idx = taxRegistrationStore.findIndex((t) => t.taxRegId === Number(params.id));
     if (idx !== -1) taxRegistrationStore[idx] = { ...taxRegistrationStore[idx], isActive: false };
     return new HttpResponse(null, { status: 204 });
+  }),
+
+  // ── Settlement instructions (dbo.settlement_instruction, V159) ────────────
+
+  http.get(`${API}/counterparties/:id/settlement-instructions`, ({ params }) =>
+    HttpResponse.json(settlementInstructionStore.filter((s) => s.counterpartyId === Number(params.id))),
+  ),
+
+  http.post(`${API}/counterparties/:id/settlement-instructions`, async ({ params, request }) => {
+    const body = (await request.json()) as SettlementInstructionCreateInput;
+    const now = new Date().toISOString();
+    const record: SettlementInstruction = {
+      settlementInstructionId: nextSsiId,
+      rowVersion: 0,
+      instructionCode: nextInstructionCode(),
+      ourEntityId: body.ourEntityId,
+      counterpartyId: Number(params.id),
+      direction: body.direction,
+      currencyId: body.currencyId,
+      productScope: body.productScope,
+      bankAccountId: body.bankAccountId,
+      status: 'PENDING_VERIFICATION',
+      verifiedBy: null,
+      verifiedAt: null,
+      verificationMethod: null,
+      validFrom: body.validFrom,
+      validTo: null,
+      supersededById: null,
+      notes: body.notes,
+      createdAt: now,
+      createdBy: 'dev.admin',
+    };
+    nextSsiId += 1;
+    settlementInstructionStore.push(record);
+    return HttpResponse.json(record, { status: 201 });
+  }),
+
+  http.post(`${API}/settlement-instructions/:id/verify`, async ({ params, request }) => {
+    const idx = settlementInstructionStore.findIndex((s) => s.settlementInstructionId === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', 'Settlement instruction not found.');
+    const body = (await request.json()) as { verificationMethod: string };
+    const instruction = settlementInstructionStore[idx];
+
+    // Supersede whatever ACTIVE instruction currently occupies the same
+    // routing key — mirrors SettlementInstructionService.verify().
+    const previousIdx = settlementInstructionStore.findIndex(
+      (s) =>
+        s.settlementInstructionId !== instruction.settlementInstructionId &&
+        s.status === 'ACTIVE' &&
+        s.validTo === null &&
+        s.ourEntityId === instruction.ourEntityId &&
+        s.counterpartyId === instruction.counterpartyId &&
+        s.direction === instruction.direction &&
+        s.currencyId === instruction.currencyId &&
+        s.productScope === instruction.productScope,
+    );
+    if (previousIdx !== -1) {
+      const dayBefore = new Date(instruction.validFrom);
+      dayBefore.setUTCDate(dayBefore.getUTCDate() - 1);
+      settlementInstructionStore[previousIdx] = {
+        ...settlementInstructionStore[previousIdx],
+        status: 'SUPERSEDED',
+        validTo: dayBefore.toISOString().slice(0, 10),
+        supersededById: instruction.settlementInstructionId,
+      };
+    }
+
+    settlementInstructionStore[idx] = {
+      ...instruction,
+      status: 'ACTIVE',
+      verifiedBy: 'dev.admin',
+      verifiedAt: new Date().toISOString(),
+      verificationMethod: body.verificationMethod,
+      rowVersion: instruction.rowVersion + 1,
+    };
+    return HttpResponse.json(settlementInstructionStore[idx]);
+  }),
+
+  http.post(`${API}/settlement-instructions/:id/reject`, async ({ params, request }) => {
+    const idx = settlementInstructionStore.findIndex((s) => s.settlementInstructionId === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', 'Settlement instruction not found.');
+    const body = (await request.json().catch(() => ({}))) as { notes?: string };
+    settlementInstructionStore[idx] = {
+      ...settlementInstructionStore[idx],
+      status: 'REJECTED',
+      notes: body.notes ?? settlementInstructionStore[idx].notes,
+      rowVersion: settlementInstructionStore[idx].rowVersion + 1,
+    };
+    return HttpResponse.json(settlementInstructionStore[idx]);
   }),
 ];

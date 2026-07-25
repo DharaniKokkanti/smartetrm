@@ -163,7 +163,8 @@ public class SecurityConfig {
                         "/api/v1/compliance/**", "/api/v1/entity-tax-registrations/**", "/api/v1/bank-accounts/**",
                         "/api/v1/addresses/**", "/api/v1/entity-addresses/**", "/api/v1/contacts/**",
                         "/api/v1/entity-contacts/**", "/api/v1/voyage-ops/**", "/api/v1/commodity-instrument-map/**",
-                        "/api/v1/operations/**", "/api/v1/freight/**", "/api/v1/gtcs/**")
+                        "/api/v1/operations/**", "/api/v1/freight/**", "/api/v1/gtcs/**",
+                        "/api/v1/settlement-instructions/**")
                     .hasAuthority("PERM_MD_VIEW")
                 .requestMatchers(HttpMethod.POST,
                         "/api/v1/legal-entities/**", "/api/v1/books/**", "/api/v1/book-classification-dimensions/**",
@@ -184,6 +185,15 @@ public class SecurityConfig {
                         "/api/v1/entity-contacts/**", "/api/v1/voyage-ops/**", "/api/v1/commodity-instrument-map/**",
                         "/api/v1/operations/**", "/api/v1/freight/**", "/api/v1/gtcs/**")
                     .hasAuthority("PERM_MD_CREATE_WRITE")
+                // Settlement instruction create/verify/reject are all POST
+                // (verify/reject are actions, not resource creation) — gated
+                // on EDIT rather than CREATE since verify/reject mutate an
+                // existing instruction's state, and create is naturally
+                // nested under /counterparties/{id}/settlement-instructions
+                // which already requires PERM_CP_CREATE_WRITE via the
+                // counterparty matcher above (first-match-wins).
+                .requestMatchers(HttpMethod.POST, "/api/v1/settlement-instructions/**")
+                    .hasAuthority("PERM_MD_EDIT_WRITE")
                 .requestMatchers(HttpMethod.PUT,
                         "/api/v1/legal-entities/**", "/api/v1/books/**", "/api/v1/book-classification-dimensions/**",
                         "/api/v1/currencies/**", "/api/v1/locations/**",
