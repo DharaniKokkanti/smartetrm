@@ -113,11 +113,39 @@ public class SecurityConfig {
                 // book-access-grant create+remove — "assign roles to users".
                 .requestMatchers("/api/v1/users/**", "/api/v1/book-access-grants/**").hasAuthority("PERM_ROLE_ASSIGN_WRITE")
 
+                // ── Dedicated structural/reference-data writes (V158) ───────
+                // exchange, holiday_calendar, payment_term, country,
+                // unit_of_measure — narrower than the broad PERM_MD_*_WRITE
+                // grant below (ADMIN only, not OPERATIONS) since these are
+                // structural/reference tables, not day-to-day-managed master
+                // data. Must be matched before the broad blocks further down
+                // (first-match-wins). View stays on PERM_MD_VIEW, unchanged.
+                .requestMatchers(HttpMethod.POST,
+                        "/api/v1/exchanges/**", "/api/v1/holiday-calendars/**",
+                        "/api/v1/payment-terms/**", "/api/v1/countries/**", "/api/v1/uom/**")
+                    .hasAuthority("PERM_MD_REFDATA_CREATE_WRITE")
+                .requestMatchers(HttpMethod.PUT,
+                        "/api/v1/exchanges/**", "/api/v1/holiday-calendars/**",
+                        "/api/v1/payment-terms/**", "/api/v1/countries/**", "/api/v1/uom/**")
+                    .hasAuthority("PERM_MD_REFDATA_EDIT_WRITE")
+                .requestMatchers(HttpMethod.PATCH,
+                        "/api/v1/exchanges/**", "/api/v1/holiday-calendars/**",
+                        "/api/v1/payment-terms/**", "/api/v1/countries/**", "/api/v1/uom/**")
+                    .hasAuthority("PERM_MD_REFDATA_EDIT_WRITE")
+                .requestMatchers(HttpMethod.DELETE,
+                        "/api/v1/exchanges/**", "/api/v1/holiday-calendars/**",
+                        "/api/v1/payment-terms/**", "/api/v1/countries/**", "/api/v1/uom/**")
+                    .hasAuthority("PERM_MD_REFDATA_DELETE_WRITE")
+
                 // ── Everything else registered/dedicated master data ───────
                 // (legal entities, books, currencies, countries, locations,
                 // vessels, products, logistics, credit/risk agreements,
                 // voyage-ops, environmental/RIN, polymorphic address/contact/
                 // bank-account/tax-registration sub-resources, etc.)
+                // NOTE: countries/exchanges/holiday-calendars/payment-terms/
+                // uom below still need to stay in the GET (view) array since
+                // PERM_MD_VIEW is unchanged — only writes were pulled out
+                // into the block above.
                 .requestMatchers(HttpMethod.GET,
                         "/api/v1/legal-entities/**", "/api/v1/books/**", "/api/v1/book-classification-dimensions/**",
                         "/api/v1/currencies/**", "/api/v1/countries/**", "/api/v1/locations/**",
@@ -139,12 +167,12 @@ public class SecurityConfig {
                     .hasAuthority("PERM_MD_VIEW")
                 .requestMatchers(HttpMethod.POST,
                         "/api/v1/legal-entities/**", "/api/v1/books/**", "/api/v1/book-classification-dimensions/**",
-                        "/api/v1/currencies/**", "/api/v1/countries/**", "/api/v1/locations/**",
+                        "/api/v1/currencies/**", "/api/v1/locations/**",
                         "/api/v1/vessels/**", "/api/v1/products/**", "/api/v1/storage/**",
                         "/api/v1/pipelines/**", "/api/v1/spec-templates/**", "/api/v1/spec-parameters/**",
-                        "/api/v1/logistics/**", "/api/v1/exchanges/**", "/api/v1/markets/**",
-                        "/api/v1/holiday-calendars/**", "/api/v1/incoterms-ref/**", "/api/v1/payment-terms/**",
-                        "/api/v1/payment-methods/**", "/api/v1/uom/**", "/api/v1/uom-conversions/**",
+                        "/api/v1/logistics/**", "/api/v1/markets/**",
+                        "/api/v1/incoterms-ref/**",
+                        "/api/v1/payment-methods/**", "/api/v1/uom-conversions/**",
                         "/api/v1/gl-accounts/**", "/api/v1/periods/**", "/api/v1/traders/**",
                         "/api/v1/credit/**", "/api/v1/brokers/**", "/api/v1/broker-fee-agreements/**",
                         "/api/v1/parent-company-guarantees/**", "/api/v1/carbon-registries/**",
@@ -158,12 +186,12 @@ public class SecurityConfig {
                     .hasAuthority("PERM_MD_CREATE_WRITE")
                 .requestMatchers(HttpMethod.PUT,
                         "/api/v1/legal-entities/**", "/api/v1/books/**", "/api/v1/book-classification-dimensions/**",
-                        "/api/v1/currencies/**", "/api/v1/countries/**", "/api/v1/locations/**",
+                        "/api/v1/currencies/**", "/api/v1/locations/**",
                         "/api/v1/vessels/**", "/api/v1/products/**", "/api/v1/storage/**",
                         "/api/v1/pipelines/**", "/api/v1/spec-templates/**", "/api/v1/spec-parameters/**",
-                        "/api/v1/logistics/**", "/api/v1/exchanges/**", "/api/v1/markets/**",
-                        "/api/v1/holiday-calendars/**", "/api/v1/incoterms-ref/**", "/api/v1/payment-terms/**",
-                        "/api/v1/payment-methods/**", "/api/v1/uom/**", "/api/v1/uom-conversions/**",
+                        "/api/v1/logistics/**", "/api/v1/markets/**",
+                        "/api/v1/incoterms-ref/**",
+                        "/api/v1/payment-methods/**", "/api/v1/uom-conversions/**",
                         "/api/v1/gl-accounts/**", "/api/v1/periods/**", "/api/v1/traders/**",
                         "/api/v1/credit/**", "/api/v1/brokers/**", "/api/v1/broker-fee-agreements/**",
                         "/api/v1/parent-company-guarantees/**", "/api/v1/carbon-registries/**",
@@ -177,12 +205,12 @@ public class SecurityConfig {
                     .hasAuthority("PERM_MD_EDIT_WRITE")
                 .requestMatchers(HttpMethod.PATCH,
                         "/api/v1/legal-entities/**", "/api/v1/books/**", "/api/v1/book-classification-dimensions/**",
-                        "/api/v1/currencies/**", "/api/v1/countries/**", "/api/v1/locations/**",
+                        "/api/v1/currencies/**", "/api/v1/locations/**",
                         "/api/v1/vessels/**", "/api/v1/products/**", "/api/v1/storage/**",
                         "/api/v1/pipelines/**", "/api/v1/spec-templates/**", "/api/v1/spec-parameters/**",
-                        "/api/v1/logistics/**", "/api/v1/exchanges/**", "/api/v1/markets/**",
-                        "/api/v1/holiday-calendars/**", "/api/v1/incoterms-ref/**", "/api/v1/payment-terms/**",
-                        "/api/v1/payment-methods/**", "/api/v1/uom/**", "/api/v1/uom-conversions/**",
+                        "/api/v1/logistics/**", "/api/v1/markets/**",
+                        "/api/v1/incoterms-ref/**",
+                        "/api/v1/payment-methods/**", "/api/v1/uom-conversions/**",
                         "/api/v1/gl-accounts/**", "/api/v1/periods/**", "/api/v1/traders/**",
                         "/api/v1/credit/**", "/api/v1/brokers/**", "/api/v1/broker-fee-agreements/**",
                         "/api/v1/parent-company-guarantees/**", "/api/v1/carbon-registries/**",
@@ -196,12 +224,12 @@ public class SecurityConfig {
                     .hasAuthority("PERM_MD_EDIT_WRITE")
                 .requestMatchers(HttpMethod.DELETE,
                         "/api/v1/legal-entities/**", "/api/v1/books/**", "/api/v1/book-classification-dimensions/**",
-                        "/api/v1/currencies/**", "/api/v1/countries/**", "/api/v1/locations/**",
+                        "/api/v1/currencies/**", "/api/v1/locations/**",
                         "/api/v1/vessels/**", "/api/v1/products/**", "/api/v1/storage/**",
                         "/api/v1/pipelines/**", "/api/v1/spec-templates/**", "/api/v1/spec-parameters/**",
-                        "/api/v1/logistics/**", "/api/v1/exchanges/**", "/api/v1/markets/**",
-                        "/api/v1/holiday-calendars/**", "/api/v1/incoterms-ref/**", "/api/v1/payment-terms/**",
-                        "/api/v1/payment-methods/**", "/api/v1/uom/**", "/api/v1/uom-conversions/**",
+                        "/api/v1/logistics/**", "/api/v1/markets/**",
+                        "/api/v1/incoterms-ref/**",
+                        "/api/v1/payment-methods/**", "/api/v1/uom-conversions/**",
                         "/api/v1/gl-accounts/**", "/api/v1/periods/**", "/api/v1/traders/**",
                         "/api/v1/credit/**", "/api/v1/brokers/**", "/api/v1/broker-fee-agreements/**",
                         "/api/v1/parent-company-guarantees/**", "/api/v1/carbon-registries/**",

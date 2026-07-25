@@ -1844,6 +1844,19 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { lookupId: 71, categoryId: 10, code: 'PARTIALLY_SATISFIED',   displayName: 'Partially Satisfied',  sortOrder: 2, isActive: true },
     { lookupId: 72, categoryId: 10, code: 'SATISFIED',             displayName: 'Satisfied',            sortOrder: 3, isActive: true },
     { lookupId: 73, categoryId: 10, code: 'OVERDUE',               displayName: 'Overdue',              sortOrder: 4, isActive: true },
+    // load_type / gas_day_type — dbo.period.load_type / gas_day_type, real
+    // lookup_value categories since V57; PeriodsPage previously hardcoded
+    // these as frontend constants (types.ts) with no dynamic seed here —
+    // added 2026-07-25 to close that drift risk, values confirmed live.
+    { lookupId: 74, categoryId: 11, code: 'BASE',           displayName: 'Base',            sortOrder: 1, isActive: true },
+    { lookupId: 75, categoryId: 11, code: 'PEAK',           displayName: 'Peak',            sortOrder: 2, isActive: true },
+    { lookupId: 76, categoryId: 11, code: 'OFF_PEAK',       displayName: 'Off-Peak',        sortOrder: 3, isActive: true },
+    { lookupId: 77, categoryId: 11, code: 'EXTENDED_PEAK',  displayName: 'Extended Peak',   sortOrder: 4, isActive: true },
+    { lookupId: 78, categoryId: 11, code: 'OVERNIGHT',      displayName: 'Overnight',       sortOrder: 5, isActive: true },
+    { lookupId: 79, categoryId: 12, code: 'GAS_DAY',        displayName: 'Gas Day',         sortOrder: 1, isActive: true },
+    { lookupId: 80, categoryId: 12, code: 'WITHIN_DAY',     displayName: 'Within Day',      sortOrder: 2, isActive: true },
+    { lookupId: 81, categoryId: 12, code: 'DAY_AHEAD',      displayName: 'Day Ahead',       sortOrder: 3, isActive: true },
+    { lookupId: 82, categoryId: 12, code: 'WEEKEND',        displayName: 'Weekend',         sortOrder: 4, isActive: true },
   ],
   lookup_category: [
     { categoryId: 1,  categoryCode: 'REPORTING_CLASSIFICATION_TYPE', categoryName: 'Reporting Classification Type', description: 'Independent per-report classification axes for Reporting Groups — Position, VaR, Settlement/GL.',        sortOrder: 1,  isActive: true },
@@ -1856,6 +1869,8 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { categoryId: 8,  categoryCode: 'GL_ACCOUNT_TYPE',                 categoryName: 'GL Account Type',               description: 'General ledger account classification — revenue, cost, asset, liability, equity, P&L.',                                sortOrder: 8,  isActive: true },
     { categoryId: 9,  categoryCode: 'RIN_TRANSACTION_TYPE',            categoryName: 'RIN Transaction Type',          description: 'RFS RIN lifecycle transaction types — generate, separate, transfer, retire.',                                           sortOrder: 9,  isActive: true },
     { categoryId: 10, categoryCode: 'RIN_OBLIGATION_STATUS',           categoryName: 'RIN Obligation Status',         description: 'RVO compliance obligation status — open, partially satisfied, satisfied, overdue.',                                    sortOrder: 10, isActive: true },
+    { categoryId: 11, categoryCode: 'LOAD_TYPE',                       categoryName: 'Load Type',                     description: 'Power-specific sub-period load block — base, peak, off-peak, extended peak, overnight.',                             sortOrder: 11, isActive: true },
+    { categoryId: 12, categoryCode: 'GAS_DAY_TYPE',                    categoryName: 'Gas Day Type',                  description: 'Gas-specific day convention — standard gas day, within-day, day-ahead, weekend.',                                     sortOrder: 12, isActive: true },
   ],
   credit_rating: [
     { creditRatingId: 1, agency: 'S&P', rating: 'AAA', numericScore: 1, riskCategory: 'INVESTMENT_GRADE', isActive: true },

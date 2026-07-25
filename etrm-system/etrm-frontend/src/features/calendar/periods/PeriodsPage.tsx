@@ -10,11 +10,12 @@ import { hint } from '@components/smart/FieldHint';
 import { AuditInfo } from '@components/smart/AuditInfo';
 import { usePeriods, useSavePeriod, useDeactivatePeriod } from './hooks';
 import {
-  PERIOD_TYPES, PERIOD_STATUS_CODES, COMMODITY_TYPES, LOAD_TYPES, GAS_DAY_TYPES,
+  PERIOD_TYPES, PERIOD_STATUS_CODES, COMMODITY_TYPES,
   type Period, type PeriodInput, type PeriodType, type PeriodStatusCode,
 } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
+import { useLookupValues } from '@features/tier2/hooks';
 
 const TYPE_COLOR: Record<PeriodType, string> = {
   DAY: 'default', WEEK: 'lime', MONTH: 'green', QUARTER: 'blue',
@@ -35,6 +36,10 @@ export function PeriodsPage() {
   const [form] = Form.useForm<PeriodInput>();
   useFormDraft('calendar-periods', { form, open, setOpen, editing, setEditing });
   const watchedCommodityType = Form.useWatch('commodityType', form);
+  const { data: loadTypeRows = [] } = useLookupValues('LOAD_TYPE');
+  const loadTypeOpts = loadTypeRows.map((l) => ({ value: l.typeCode, label: l.typeName }));
+  const { data: gasDayTypeRows = [] } = useLookupValues('GAS_DAY_TYPE');
+  const gasDayTypeOpts = gasDayTypeRows.map((g) => ({ value: g.typeCode, label: g.typeName }));
 
   function openNew() { setEditing(null); form.resetFields(); form.setFieldValue('isActive', true); form.setFieldValue('statusCode', 'OPEN'); setOpen(true); }
   function openEdit(p: Period) {
@@ -157,7 +162,7 @@ export function PeriodsPage() {
           {watchedCommodityType === 'POWER' && (
             <>
               <Form.Item name="loadType" label={hint('Load Type', 'BASE: all hours (00:00-24:00). PEAK/OFF_PEAK/EXTENDED_PEAK: market-defined sub-daily blocks. OVERNIGHT: overnight hours. Values come from Lookup Values, category \'LOAD_TYPE\' — ask an admin to add a new one there if the block type you need isn\'t listed.', 'PEAK')}>
-                <Select allowClear options={LOAD_TYPES.map((l) => ({ label: l, value: l }))} />
+                <Select allowClear options={loadTypeOpts} />
               </Form.Item>
               <Space style={{ width: '100%', gap: 12 }}>
                 <Form.Item name="startTimeUtc" label={hint('Block Start (UTC)', 'Exact start time for this hourly/sub-hourly power block — e.g. EEX peak block 07:00-19:00, or a single delivery hour for PJM hourly nodes.', '07:00')} style={{ flex: 1 }}>
@@ -171,7 +176,7 @@ export function PeriodsPage() {
           )}
           {watchedCommodityType === 'GAS' && (
             <Form.Item name="gasDayType" label={hint('Gas Day Type', 'GAS_DAY: standard 06:00-06:00 gas day. WITHIN_DAY: intraday gas. DAY_AHEAD: next gas day. WEEKEND: weekend gas day convention. Values come from Lookup Values, category \'GAS_DAY_TYPE\' — ask an admin to add a new one there if the convention you need isn\'t listed.', 'GAS_DAY')}>
-              <Select allowClear options={GAS_DAY_TYPES.map((g) => ({ label: g, value: g }))} />
+              <Select allowClear options={gasDayTypeOpts} />
             </Form.Item>
           )}
           {watchedCommodityType === 'AGRICULTURAL' && (

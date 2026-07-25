@@ -14,13 +14,15 @@ export type PeriodStatusCode = (typeof PERIOD_STATUS_CODES)[number];
 export const COMMODITY_TYPES = ['OIL', 'GAS', 'POWER', 'LNG', 'AGRICULTURAL', 'METALS', 'FREIGHT', 'RINS', 'ENVIRONMENTAL', 'MULTI', 'OTHER'] as const;
 export type CommodityType = (typeof COMMODITY_TYPES)[number];
 
-// Power-specific sub-period (only meaningful when commodityType = 'POWER').
-export const LOAD_TYPES = ['BASE', 'PEAK', 'OFF_PEAK', 'EXTENDED_PEAK', 'OVERNIGHT'] as const;
-export type LoadType = (typeof LOAD_TYPES)[number];
-
-// Gas-specific day convention (only meaningful when commodityType = 'GAS').
-export const GAS_DAY_TYPES = ['GAS_DAY', 'WITHIN_DAY', 'DAY_AHEAD', 'WEEKEND'] as const;
-export type GasDayType = (typeof GAS_DAY_TYPES)[number];
+// Power-specific sub-period (only meaningful when commodityType = 'POWER')
+// and gas-specific day convention (only meaningful when commodityType =
+// 'GAS') — both are real dbo.lookup_value categories ('LOAD_TYPE',
+// 'GAS_DAY_TYPE', since V57), not fixed enums, so plain `string` here
+// rather than a hardcoded union. PeriodsPage sources dropdown options via
+// useLookupValues() instead of a frontend constant, so an admin adding a
+// new lookup_value row actually shows up without a frontend deploy.
+export type LoadType = string;
+export type GasDayType = string;
 
 export interface Period {
   periodId: number;
