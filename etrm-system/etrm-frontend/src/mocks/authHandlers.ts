@@ -36,6 +36,12 @@ export const authHandlers = [
       userId: 1,
       username: 'dev.admin',
       fullName: 'Dev Admin',
+      // dev.admin is a mock-only convenience login, not a real seeded
+      // app_user with role assignments — treated as the system ADMIN role
+      // here so dev-mode behavior matches the real 'admin' dev credential
+      // (which really does hold ADMIN) rather than silently hiding the
+      // ADMIN-only Static Data override behind mocks.
+      isSystemAdmin: true,
     });
   }),
 ];

@@ -319,6 +319,7 @@ public class ReferenceDataCrudService {
                     "\"" + tableName + "\" has no active/inactive flag, so rows cannot be deactivated or deleted.");
         }
         String pkColumn = NameUtils.toSnakeCase(metadata.primaryKeyColumn());
+        boolean versioned = hasRowVersion(columnsByCamelName);
 
         List<String> setClauses = new ArrayList<>();
         setClauses.add("is_active = 0");
@@ -327,6 +328,16 @@ public class ReferenceDataCrudService {
         }
         if (columnsByCamelName.containsKey("updatedAt")) {
             setClauses.add("updated_at = SYSUTCDATETIME()");
+        }
+        // Every table with a row_version column has the V153 guard trigger,
+        // which rejects any UPDATE that doesn't explicitly bump row_version
+        // (same as updateRow above) — this was previously omitted here, so
+        // deactivating a row 500'd on every versioned table, not just the
+        // V157-locked ones (found while testing the ADMIN-override fix on a
+        // locked table surfaced it, then confirmed independently reproducible
+        // against credit_rating, which was never locked).
+        if (versioned) {
+            setClauses.add("row_version = row_version + 1");
         }
         String sql = "UPDATE dbo." + tableName + " SET " + String.join(", ", setClauses)
                 + " WHERE " + pkColumn + " = ?";

@@ -10,6 +10,7 @@ export interface LoginResponse {
   userId: number;
   username: string;
   fullName: string;
+  isSystemAdmin: boolean;
 }
 
 export const authApi = {

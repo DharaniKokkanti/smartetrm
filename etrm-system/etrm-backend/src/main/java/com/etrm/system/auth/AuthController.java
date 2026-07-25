@@ -1,6 +1,7 @@
 package com.etrm.system.auth;
 
 import com.etrm.system.common.JwtService;
+import com.etrm.system.rbac.UserPermissionService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -14,12 +15,14 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDateTime;
 
 /**
- * Minimal but real login flow against dbo.app_user — bcrypt verification,
- * a simple lockout after repeated failures, JWT issuance. This is
- * intentionally NOT a full permission system: every successful login gets
- * the same single ROLE_USER authority (see JwtAuthenticationFilter). Real
- * role-based access waits on the separate role table described in the
- * Master Data Entry Technical Design doc, Section 6.
+ * Real login flow against dbo.app_user — bcrypt verification, a simple
+ * lockout after repeated failures, JWT issuance. Real per-request
+ * authorization (function/role grants) is loaded fresh on every request by
+ * JwtAuthenticationFilter/UserPermissionService, not baked into the token —
+ * this endpoint only additionally reports {@code isSystemAdmin} in the
+ * response body so the frontend can decide whether to show admin-only
+ * affordances (e.g. the ADMIN-role override on V157-locked Static Data
+ * tables) without a second round-trip.
  */
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -31,11 +34,16 @@ public class AuthController {
     private final AppUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final UserPermissionService permissionService;
 
-    public AuthController(AppUserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
+    public AuthController(
+            AppUserRepository userRepository, PasswordEncoder passwordEncoder,
+            JwtService jwtService, UserPermissionService permissionService
+    ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.permissionService = permissionService;
     }
 
     @PostMapping("/login")
@@ -69,8 +77,10 @@ public class AuthController {
         user.setLastLogin(LocalDateTime.now());
         userRepository.save(user);
 
-        String token = jwtService.generateToken(user.getUsername(), user.getUserId().longValue());
-        return ResponseEntity.ok(new LoginResponse(token, user.getUserId().longValue(), user.getUsername(), user.getFullName()));
+        Long userId = user.getUserId().longValue();
+        String token = jwtService.generateToken(user.getUsername(), userId);
+        boolean isSystemAdmin = permissionService.isSystemAdmin(userId);
+        return ResponseEntity.ok(new LoginResponse(token, userId, user.getUsername(), user.getFullName(), isSystemAdmin));
     }
 
     private ResponseEntity<ProblemDetail> unauthorized(String detail) {

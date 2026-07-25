@@ -5,6 +5,7 @@ import com.etrm.system.lookup.LookupResolutionService;
 import com.etrm.system.lookup.LookupValue;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -52,6 +53,24 @@ public class ReferenceDataController {
         return registryRepository.findByTableNameIgnoreCaseAndIsEnabledTrue(tableName)
                 .orElseThrow(() -> new NotFoundException(
                         "\"" + tableName + "\" is not a registered Tier 2 table."));
+    }
+
+    // V157 locked 51 tables SYSTEM-only (allow_create/edit/delete=0) so a
+    // regular master-data editor can't touch ISO codes / internal enum
+    // vocabulary / externally-standardized registries through the generic
+    // screen. That lock was unconditional — not even the system ADMIN role
+    // could override it, which is a real gap once you actually need to add
+    // a value SYSTEM hasn't seeded yet (found via a GUI review: Legal Entity
+    // Types, one of the 51, has no way to add e.g. a new legal form even for
+    // the admin account). ADMIN's ROLE_ADMIN authority (UserPermissionService)
+    // is checked here as an explicit, audited override — the row is still
+    // written by createRow/updateRow/deleteRow's normal path (createdBy/
+    // updatedBy still records the real admin user), it just isn't blocked by
+    // the registry flag for this one role.
+    private boolean isSystemAdmin(Authentication authentication) {
+        if (authentication == null) return false;
+        return authentication.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
     }
 
     @GetMapping
@@ -110,10 +129,10 @@ public class ReferenceDataController {
 
     @PostMapping("/{table}")
     public ResponseEntity<Map<String, Object>> createRow(
-            @PathVariable String table, @RequestBody Map<String, Object> row
+            @PathVariable String table, @RequestBody Map<String, Object> row, Authentication authentication
     ) {
         MasterDataTableRegistry entry = requireRegistered(table);
-        if (!entry.getAllowCreate()) {
+        if (!entry.getAllowCreate() && !isSystemAdmin(authentication)) {
             throw new IllegalStateException("Creating rows in \"" + table + "\" is not permitted.");
         }
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -122,19 +141,22 @@ public class ReferenceDataController {
 
     @PutMapping("/{table}/{id}")
     public Map<String, Object> updateRow(
-            @PathVariable String table, @PathVariable Long id, @RequestBody Map<String, Object> row
+            @PathVariable String table, @PathVariable Long id, @RequestBody Map<String, Object> row,
+            Authentication authentication
     ) {
         MasterDataTableRegistry entry = requireRegistered(table);
-        if (!entry.getAllowEdit()) {
+        if (!entry.getAllowEdit() && !isSystemAdmin(authentication)) {
             throw new IllegalStateException("Editing rows in \"" + table + "\" is not permitted.");
         }
         return crudService.updateRow(entry.getTableName(), entry.getDisplayName(), id, row);
     }
 
     @DeleteMapping("/{table}/{id}")
-    public ResponseEntity<Void> deleteRow(@PathVariable String table, @PathVariable Long id) {
+    public ResponseEntity<Void> deleteRow(
+            @PathVariable String table, @PathVariable Long id, Authentication authentication
+    ) {
         MasterDataTableRegistry entry = requireRegistered(table);
-        if (!entry.getAllowDelete()) {
+        if (!entry.getAllowDelete() && !isSystemAdmin(authentication)) {
             throw new IllegalStateException("Deleting rows in \"" + table + "\" is not permitted.");
         }
         crudService.deleteRow(entry.getTableName(), entry.getDisplayName(), id);

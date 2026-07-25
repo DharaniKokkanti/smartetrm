@@ -5,6 +5,12 @@ export interface AuthUser {
   userId: number;
   username: string;
   fullName: string;
+  /** Holds the fixed system ADMIN role — lets the frontend show admin-only
+   *  overrides (e.g. the ADMIN bypass on V157-locked Static Data tables)
+   *  without a second round-trip. The real gate is still server-side
+   *  (ReferenceDataController checks ROLE_ADMIN itself); this only decides
+   *  whether to show the button. */
+  isSystemAdmin: boolean;
 }
 
 interface AuthState {

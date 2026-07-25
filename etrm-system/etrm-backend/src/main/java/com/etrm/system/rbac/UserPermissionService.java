@@ -24,6 +24,16 @@ import java.util.List;
  * Compliance's MD_CREATE at READ) intentionally produces no _WRITE
  * authority — matches the RBAC admin UI's own semantics, where READ on a
  * mutating function means "visible, not actionable."
+ *
+ * Also attaches one "ROLE_<role_code>" authority per active role the user
+ * holds (e.g. "ROLE_ADMIN") — distinct from the function-level PERM_*
+ * authorities above. Added specifically so ReferenceDataController can let
+ * the ADMIN role bypass a table's registry-level allow_create/allow_edit/
+ * allow_delete=0 lock (V157's "SYSTEM-only" lockdown) — that lock is a
+ * data-governance flag on the table, not a permission grant, so it can't be
+ * expressed as a PERM_* function the RBAC admin UI grants per role; the
+ * fixed system ADMIN role is the one place "can override a data lock" is
+ * meant to live, same as any admin-override in this app's model.
  */
 @Service
 public class UserPermissionService {
@@ -39,6 +49,23 @@ public class UserPermissionService {
 
         List<GrantedAuthority> authorities = new java.util.ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+
+        jdbc.query(
+                """
+                SELECT DISTINCT ur.role_code
+                FROM dbo.user_role_assignment ura
+                JOIN dbo.user_role ur ON ur.role_id = ura.role_id
+                WHERE ura.user_id = ?
+                  AND ura.is_active = 1 AND ura.status = 'ACTIVE'
+                  AND ur.is_active = 1 AND ur.status = 'APPROVED'
+                  AND (ura.valid_to IS NULL OR ura.valid_to >= CAST(SYSUTCDATETIME() AS DATE))
+                """,
+                (rs, rowNum) -> {
+                    authorities.add(new SimpleGrantedAuthority("ROLE_" + rs.getString("role_code")));
+                    return null;
+                },
+                userId
+        );
 
         jdbc.query(
                 """
@@ -65,5 +92,23 @@ public class UserPermissionService {
                 userId
         );
         return authorities;
+    }
+
+    /** True if the given user holds the fixed system ADMIN role right now. */
+    public boolean isSystemAdmin(Long userId) {
+        if (userId == null) return false;
+        Integer count = jdbc.queryForObject(
+                """
+                SELECT COUNT(*)
+                FROM dbo.user_role_assignment ura
+                JOIN dbo.user_role ur ON ur.role_id = ura.role_id
+                WHERE ura.user_id = ? AND ur.role_code = 'ADMIN'
+                  AND ura.is_active = 1 AND ura.status = 'ACTIVE'
+                  AND ur.is_active = 1 AND ur.status = 'APPROVED'
+                  AND (ura.valid_to IS NULL OR ura.valid_to >= CAST(SYSUTCDATETIME() AS DATE))
+                """,
+                Integer.class, userId
+        );
+        return count != null && count > 0;
     }
 }

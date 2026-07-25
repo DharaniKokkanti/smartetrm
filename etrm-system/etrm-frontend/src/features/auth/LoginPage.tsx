@@ -37,6 +37,7 @@ export function LoginPage() {
         userId: res.userId,
         username: res.username,
         fullName: res.fullName,
+        isSystemAdmin: res.isSystemAdmin,
       });
       navigate(from, { replace: true });
     } catch (err) {
@@ -80,7 +81,7 @@ export function LoginPage() {
         <Typography.Title
           level={1}
           style={{
-            color: '#fff',
+            color: '#fff', // white text on navy brand panel — not a token concept, intentional fixed contrast
             fontFamily: font.body,
             fontSize: 36,
             fontWeight: 700,
@@ -226,7 +227,7 @@ export function LoginPage() {
               style={{
                 marginTop: 24,
                 padding: '12px 16px',
-                background: '#FAFAF7',
+                background: color.bg,
                 border: `1px solid ${color.border}`,
                 borderRadius: 6,
               }}
