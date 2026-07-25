@@ -41,6 +41,16 @@ body {
   --etrm-body-bg: #17171a;
 }
 
+/* Global black-and-white preference (themeStore.ts's `monochrome` flag).
+   A root-level filter, not a palette swap, so it covers every page and every
+   antd portal (Modal/Notification/Dropdown mount under <body>) regardless of
+   whether a component pulls colors from paletteFor(mode) or a raw hex —
+   including status colors (success/error/warning), per explicit request that
+   this be fully grayscale, not just accent colors. */
+html.theme-mono {
+  filter: grayscale(1);
+}
+
 /* Numeric/ID/code columns — tabular monospace figures keep grid columns of
    numbers visually aligned, which the body font alone won't guarantee. */
 .cell-mono,

@@ -25,6 +25,7 @@ const queryClient = new QueryClient({
 
 export function AppProviders({ children }: { children: ReactNode }) {
   const mode = useThemeStore((s) => s.mode);
+  const monochrome = useThemeStore((s) => s.monochrome);
   const antdTheme = useMemo(() => buildAntdTheme(mode), [mode]);
 
   // Plain-CSS variables (index.css) switch off this attribute, for the few
@@ -34,6 +35,12 @@ export function AppProviders({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', mode);
   }, [mode]);
+
+  // Global black-and-white preference — see themeStore.ts's `monochrome`
+  // comment for why this is a root-level CSS filter rather than a token swap.
+  useEffect(() => {
+    document.documentElement.classList.toggle('theme-mono', monochrome);
+  }, [monochrome]);
 
   return (
     <ConfigProvider theme={antdTheme}>
