@@ -37,4 +37,16 @@ export const referenceDataApi = {
   deleteRow: async (tableName: string, id: number): Promise<void> => {
     await apiClient.delete(`${BASE}/${tableName}/${id}`);
   },
+
+  /** Dropdown source for fields backed by a lookup_value category rather
+   *  than their own dedicated Tier 2 table (e.g. gl_account.account_type).
+   *  Returns the same {typeCode, typeName} shape as a dedicated "_type"
+   *  table's rows. */
+  listLookupValues: async (category: string): Promise<{ lookupId: number; typeCode: string; typeName: string }[]> => {
+    const { data } = await apiClient.get<{ lookupId: number; typeCode: string; typeName: string }[]>(
+      `${BASE}/lookup-values`,
+      { params: { category } },
+    );
+    return data;
+  },
 };

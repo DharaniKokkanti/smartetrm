@@ -2,7 +2,9 @@
 
 > **Persona for this doc:** You are an ETRM master-data governance expert — apply that expertise to correctly scope which static/reference tables are SYSTEM-only vs. genuinely user-editable in a multi-commodity trading platform.
 
-**Status: not started — identification only, nothing applied yet.**
+**Status: DONE for the registry-flag lock-down (2026-07-23, V157) — 52 tables locked (the original ~38-table list plus a few discovered at the same names during live verification). `lookup_value`/`lookup_category`/`lookup_category_binding` deliberately excluded from this pass — see note below. The `country`/`unit_of_measure`/`exchange`/`holiday_calendar`/`payment_term` scope gap below is still open.**
+
+**2026-07-23 addendum — `lookup_value` scope decision:** the original "Structural tables" bucket below proposed locking `lookup_value` itself. Confirmed with the user this would be wrong to do as-is: `lookup_value` is a single flat `(category, code)` table shared across every lookup category app-wide, with no per-category lock granularity — locking it at the table level would block admins from ever adding a new row to ANY category (including legitimately-editable ones like `gl_account_type`). Excluded from V157; would need a per-category mechanism (e.g. an `is_locked` flag on `lookup_category`, enforced in the `lookup_value` CRUD path) before this table could be locked safely — not attempted here.
 
 ## What this is
 

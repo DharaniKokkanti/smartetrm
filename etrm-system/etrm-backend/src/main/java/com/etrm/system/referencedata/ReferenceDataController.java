@@ -1,6 +1,8 @@
 package com.etrm.system.referencedata;
 
 import com.etrm.system.common.NotFoundException;
+import com.etrm.system.lookup.LookupResolutionService;
+import com.etrm.system.lookup.LookupValue;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -31,15 +34,18 @@ public class ReferenceDataController {
     private final MasterDataTableRegistryRepository registryRepository;
     private final ReferenceDataMetadataService metadataService;
     private final ReferenceDataCrudService crudService;
+    private final LookupResolutionService lookupResolutionService;
 
     public ReferenceDataController(
             MasterDataTableRegistryRepository registryRepository,
             ReferenceDataMetadataService metadataService,
-            ReferenceDataCrudService crudService
+            ReferenceDataCrudService crudService,
+            LookupResolutionService lookupResolutionService
     ) {
         this.registryRepository = registryRepository;
         this.metadataService = metadataService;
         this.crudService = crudService;
+        this.lookupResolutionService = lookupResolutionService;
     }
 
     private MasterDataTableRegistry requireRegistered(String tableName) {
@@ -51,6 +57,31 @@ public class ReferenceDataController {
     @GetMapping
     public List<MasterDataTableRegistry> listTables() {
         return registryRepository.findByIsEnabledTrue();
+    }
+
+    // Dropdown source for fields whose real backing is a lookup_value
+    // category rather than its own dedicated Tier 2 table (e.g. gl_account's
+    // account_type — a real INT FK to lookup_value, per GlAccount.java's own
+    // doc comment — never had a table of its own by design, see V84's
+    // migration comment). Mapped before "/{table}" below so this literal
+    // path wins over that path-variable route for the exact string
+    // "lookup-values" (Spring ranks literal segments above {variable}
+    // segments regardless of declaration order, but keeping the literal
+    // mapping textually first avoids ever having to rely on that).
+    // Returns the same {typeCode, typeName} shape every "_type" dedicated
+    // table already returns, so existing frontend option-mapping code
+    // (`r.typeCode`/`r.typeName`) needs no changes — only the fetch source
+    // does.
+    @GetMapping("/lookup-values")
+    public List<Map<String, Object>> lookupValues(@RequestParam String category) {
+        return lookupResolutionService.valuesForCategory(category).stream()
+                .sorted(Comparator.comparing(LookupValue::getCode))
+                .map(v -> Map.<String, Object>of(
+                        "lookupId", v.getLookupId(),
+                        "typeCode", v.getCode(),
+                        "typeName", v.getDisplayName()
+                ))
+                .toList();
     }
 
     @GetMapping("/{table}/metadata")

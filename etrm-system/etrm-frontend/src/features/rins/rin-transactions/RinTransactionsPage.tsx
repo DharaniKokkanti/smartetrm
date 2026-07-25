@@ -172,7 +172,7 @@ export function RinTransactionsPage() {
             <Form.Item name="transactionDate" label="Date" rules={[{ required: true }]} style={{ flex: 1 }}>
               <AppDatePicker />
             </Form.Item>
-            <Form.Item name="transactionType" label={hint('Transaction Type', 'GENERATE = created at fuel production. SEPARATE = detached from the fuel batch, now tradeable on its own. RETIRE = submitted to EPA for compliance, can\'t be reused.')} rules={[{ required: true }]} style={{ flex: 2 }}>
+            <Form.Item name="transactionType" label={hint('Transaction Type', 'GENERATE = created at fuel production. SEPARATE = detached from the fuel batch, now tradeable on its own. RETIRE = submitted to EPA for compliance, can\'t be reused. Values come from Lookup Values, category \'RIN_TRANSACTION_TYPE\' — ask an admin to add a new one there if the transaction type you need isn\'t listed.')} rules={[{ required: true }]} style={{ flex: 2 }}>
               <Select options={TX_TYPE_OPTS} />
             </Form.Item>
           </Space>

@@ -6,7 +6,7 @@ import { PageHeader } from '@components/layout/PageHeader';
 import { SmartGrid } from '@components/smart/SmartGrid';
 import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
-import { useTableRows } from '@features/tier2/hooks';
+import { useTableRows, useLookupValues } from '@features/tier2/hooks';
 import { COMMODITY_TYPE_LOOKUP, commodityLabel } from '@features/reference/commodity-types/types';
 import { useLegalEntities } from '@features/tier1/legal-entity/hooks';
 import { useBooks } from '@features/organization/books/hooks';
@@ -29,7 +29,7 @@ export function GlAccountsPage() {
   const { data = [], isLoading, refetch } = useGlAccounts();
   const save       = useSaveGlAccount();
   const deactivate = useDeactivateGlAccount();
-  const { data: accountTypeRows = [] } = useTableRows<{ typeCode: string; typeName: string }>('gl_account_type');
+  const { data: accountTypeRows = [] } = useLookupValues('GL_ACCOUNT_TYPE');
   const accountTypeOpts = accountTypeRows.map((r) => ({ value: r.typeCode, label: r.typeName }));
 
   const { data: costCenterRows = [] } = useTableRows<{ costCenterId: number; costCenterCode: string; costCenterName: string }>('cost_center');
@@ -139,7 +139,7 @@ export function GlAccountsPage() {
             <Form.Item name="accountCode" label={hint('Account Code', 'Numeric or alphanumeric GL code — e.g. 4100, 5200.')} rules={[{ required: true }]} style={{ flex: 1 }}>
               <Input placeholder="4100" style={{ fontFamily: 'monospace' }} />
             </Form.Item>
-            <Form.Item name="accountType" label={hint('Account Type', 'Drives normal balance (Debit/Credit) and which financial statement this account rolls up into — Revenue/Cost hit the P&L, Asset/Liability/Equity hit the balance sheet.')} rules={[{ required: true }]} style={{ flex: 1 }}>
+            <Form.Item name="accountType" label={hint('Account Type', 'Drives normal balance (Debit/Credit) and which financial statement this account rolls up into — Revenue/Cost hit the P&L, Asset/Liability/Equity hit the balance sheet. Values come from Lookup Values, category \'GL_ACCOUNT_TYPE\' — ask an admin to add a new one there if the type you need isn\'t listed.')} rules={[{ required: true }]} style={{ flex: 1 }}>
               <Select options={accountTypeOpts} />
             </Form.Item>
           </Space>

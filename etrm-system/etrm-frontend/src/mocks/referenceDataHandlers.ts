@@ -35,6 +35,24 @@ export const referenceDataHandlers = [
     return HttpResponse.json(meta);
   }),
 
+  // Must be registered before the generic ":table" handler below — MSW
+  // matches by registration order, not literal-vs-variable specificity, so
+  // this exact-path handler would otherwise never be reached (the ":table"
+  // handler would match "lookup-values" as a table name first and return
+  // stores['lookup-values'], i.e. undefined -> []).
+  http.get(`${API}/reference-data/lookup-values`, ({ request }) => {
+    const category = new URL(request.url).searchParams.get('category');
+    const cat = (stores.lookup_category ?? []).find(
+      (c) => (c as { categoryCode?: string }).categoryCode?.toUpperCase() === category?.toUpperCase(),
+    );
+    if (!cat) return problem(404, 'Not Found', `No lookup category "${category}".`);
+    const categoryId = (cat as { categoryId: number }).categoryId;
+    const rows = (stores.lookup_value ?? [])
+      .filter((v) => (v as { categoryId?: number }).categoryId === categoryId)
+      .map((v) => ({ lookupId: v.lookupId, typeCode: v.code, typeName: v.displayName }));
+    return HttpResponse.json(rows);
+  }),
+
   http.get(`${API}/reference-data/:table`, ({ params }) => {
     const table = params.table as string;
     return HttpResponse.json(stores[table] ?? []);

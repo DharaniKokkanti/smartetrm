@@ -86,8 +86,11 @@ function MoveModal({ book, onClose }: { book: Book | null; onClose: () => void }
 
   const parentBookOptions = useMemo(() => {
     if (!book) return [];
+    // Leaf/trading books hold direct trade postings and cannot have children,
+    // so they're never valid parent candidates.
     const descendants = collectDescendants(allBooks, book.bookId);
     return allBooks
+      .filter((b) => !b.isLeafNode)
       .filter((b) => b.bookId !== book.bookId && !descendants.has(b.bookId))
       .filter((b) => legalEntityId == null || b.legalEntityId === legalEntityId)
       .map((b) => ({ label: `${b.bookCode} — ${b.bookName}`, value: b.bookId }));

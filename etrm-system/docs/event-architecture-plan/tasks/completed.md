@@ -13,4 +13,9 @@ A log of finished work. Don't delete entries — this is the project history.
 - **Completed:** YYYY-MM-DD
 -->
 
-(Nothing completed yet on this platform build.)
+### Meta-data table system — master data scope
+- **Type:** table
+- **Playbook:** ../playbooks/add-new-table.md
+- **Status notes:** Built `meta_table_registry`, `meta_table_dependency`, `meta_field_change_rule`, `meta_field_transition_rule` (V155-V156), scoped to `master_data_table_registry.data_category IN ('MASTER_CONFIG','MASTER_DATA')` only — `sys_event_outbox`/`sys_stream_registry` deliberately out of scope, see backlog. `meta_table_dependency` populated from real `sys.foreign_keys`, not guessed. Live-verified against dev DB including guard-trigger reject/accept behavior. Full detail in `ETRM_Project_Handoff_v1_0.md` §0, 2026-07-23 entry.
+- **Opened:** 2026-07-23
+- **Completed:** 2026-07-23

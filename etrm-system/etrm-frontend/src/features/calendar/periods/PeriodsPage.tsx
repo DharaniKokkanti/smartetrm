@@ -156,7 +156,7 @@ export function PeriodsPage() {
           </Form.Item>
           {watchedCommodityType === 'POWER' && (
             <>
-              <Form.Item name="loadType" label={hint('Load Type', 'BASE: all hours (00:00-24:00). PEAK/OFF_PEAK/EXTENDED_PEAK: market-defined sub-daily blocks. OVERNIGHT: overnight hours.', 'PEAK')}>
+              <Form.Item name="loadType" label={hint('Load Type', 'BASE: all hours (00:00-24:00). PEAK/OFF_PEAK/EXTENDED_PEAK: market-defined sub-daily blocks. OVERNIGHT: overnight hours. Values come from Lookup Values, category \'LOAD_TYPE\' — ask an admin to add a new one there if the block type you need isn\'t listed.', 'PEAK')}>
                 <Select allowClear options={LOAD_TYPES.map((l) => ({ label: l, value: l }))} />
               </Form.Item>
               <Space style={{ width: '100%', gap: 12 }}>
@@ -170,7 +170,7 @@ export function PeriodsPage() {
             </>
           )}
           {watchedCommodityType === 'GAS' && (
-            <Form.Item name="gasDayType" label={hint('Gas Day Type', 'GAS_DAY: standard 06:00-06:00 gas day. WITHIN_DAY: intraday gas. DAY_AHEAD: next gas day. WEEKEND: weekend gas day convention.', 'GAS_DAY')}>
+            <Form.Item name="gasDayType" label={hint('Gas Day Type', 'GAS_DAY: standard 06:00-06:00 gas day. WITHIN_DAY: intraday gas. DAY_AHEAD: next gas day. WEEKEND: weekend gas day convention. Values come from Lookup Values, category \'GAS_DAY_TYPE\' — ask an admin to add a new one there if the convention you need isn\'t listed.', 'GAS_DAY')}>
               <Select allowClear options={GAS_DAY_TYPES.map((g) => ({ label: g, value: g }))} />
             </Form.Item>
           )}

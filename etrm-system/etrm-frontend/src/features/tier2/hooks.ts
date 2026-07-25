@@ -31,6 +31,19 @@ export function useTableRows<T = ReferenceDataRow>(tableName: string | null) {
   });
 }
 
+/** Dropdown source for a field backed by a lookup_value category rather
+ *  than its own dedicated Tier 2 table — e.g. gl_account.account_type
+ *  (category 'GL_ACCOUNT_TYPE'). Use this instead of useTableRows when the
+ *  field's real backing is lookup_value, not a table registered in
+ *  master_data_table_registry. */
+export function useLookupValues(category: string | null) {
+  return useQuery({
+    queryKey: ['reference-data', 'lookup-values', category],
+    queryFn: () => referenceDataApi.listLookupValues(category!),
+    enabled: category !== null,
+  });
+}
+
 export function useSaveRow(tableName: string) {
   const queryClient = useQueryClient();
   const { message, notification } = AntApp.useApp();

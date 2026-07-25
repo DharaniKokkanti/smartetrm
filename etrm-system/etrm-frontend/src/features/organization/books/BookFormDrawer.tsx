@@ -257,13 +257,16 @@ export function BookFormDrawer({ open, editing, onClose, onSaved, defaultParentB
   );
 
   const parentBookOptions = useMemo(() => {
+    // Leaf/trading books hold direct trade postings and cannot have children,
+    // so they're never valid parent candidates.
+    const nonLeafBooks = allBooks.filter((b) => !b.isLeafNode);
     if (editing == null) {
-      return allBooks
+      return nonLeafBooks
         .filter((b) => legalEntityId == null || b.legalEntityId === legalEntityId)
         .map((b) => ({ label: `${b.bookCode} — ${b.bookName}`, value: b.bookId }));
     }
     const descendants = collectDescendants(allBooks, editing.bookId);
-    return allBooks
+    return nonLeafBooks
       .filter((b) => b.bookId !== editing.bookId && !descendants.has(b.bookId))
       .filter((b) => legalEntityId == null || b.legalEntityId === legalEntityId)
       .map((b) => ({ label: `${b.bookCode} — ${b.bookName}`, value: b.bookId }));

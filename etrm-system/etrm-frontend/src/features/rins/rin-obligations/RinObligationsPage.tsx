@@ -168,7 +168,7 @@ export function RinObligationsPage() {
             <Form.Item name="deadline" label={hint('Deadline', 'Annual RVO submission deadline — typically March 31 of the year following the compliance year.')} style={{ flex: 1 }}>
               <AppDatePicker />
             </Form.Item>
-            <Form.Item name="status" label="Status" rules={[{ required: true }]} style={{ flex: 1 }}>
+            <Form.Item name="status" label={hint('Status', 'Lifecycle status of this annual surrender obligation. OPEN: active, not yet settled. PARTIALLY_SATISFIED: some allowances surrendered but a shortfall remains. SATISFIED: fully surrendered. OVERDUE: deadline passed without full compliance. Values come from Lookup Values, category \'RIN_OBLIGATION_STATUS\' — ask an admin to add a new one there if the status you need isn\'t listed.')} rules={[{ required: true }]} style={{ flex: 1 }}>
               <Select options={STATUS_OPTS} />
             </Form.Item>
           </Space>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type JSX, type MouseEvent as ReactMouseEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type JSX, type DragEvent, type MouseEvent as ReactMouseEvent } from 'react';
 import { Input, Empty, Tag, Space, Typography, Button, Segmented, Tooltip } from 'antd';
 import {
   SearchOutlined, EditOutlined, PlusOutlined, DoubleLeftOutlined, DoubleRightOutlined, InfoCircleOutlined,
@@ -7,7 +7,7 @@ import type { ColDef } from 'ag-grid-community';
 import { SmartGrid } from '@components/smart/SmartGrid';
 import { useThemeStore } from '@store/themeStore';
 import { paletteFor, moduleColor, type ThemeMode } from '@theme/tokens';
-import { useBooks, useBookEodStatus, useBookDescendants } from './hooks';
+import { useBooks, useBookEodStatus, useBookDescendants, useMoveBook } from './hooks';
 import { bookLevelTypeCode, bookLevelTypeLabel, bookTypeLabel } from './types';
 import type { Book } from './types';
 import { BookFormDrawer } from './BookFormDrawer';
@@ -64,6 +64,23 @@ function matchIds(nodes: BookTreeNode[], query: string): Set<number> {
   return hits;
 }
 
+/** Walks parentBookId chains — same cycle-avoidance logic as BookFormDrawer's/BooksPage's picker, needed here so a drag can't be dropped onto its own subtree. */
+function collectDescendants(books: Book[], rootId: number): Set<number> {
+  const result = new Set<number>();
+  let frontier = [rootId];
+  while (frontier.length) {
+    const next: number[] = [];
+    for (const b of books) {
+      if (b.parentBookId != null && frontier.includes(b.parentBookId) && !result.has(b.bookId)) {
+        result.add(b.bookId);
+        next.push(b.bookId);
+      }
+    }
+    frontier = next;
+  }
+  return result;
+}
+
 function highlight(text: string, query: string): JSX.Element | string {
   const q = query.trim();
   if (!q) return text;
@@ -80,6 +97,7 @@ function highlight(text: string, query: string): JSX.Element | string {
 
 function TreeNodeRow({
   node, depth, query, matches, expanded, onToggle, selectedId, onSelect, onEdit, c,
+  draggingId, invalidDropIds, dragOverId, onDragStartNode, onDragEndNode, onDragOverNode, onDropNode,
 }: {
   node: BookTreeNode;
   depth: number;
@@ -91,6 +109,13 @@ function TreeNodeRow({
   onSelect: (book: Book) => void;
   onEdit: (book: Book) => void;
   c: Palette;
+  draggingId: number | null;
+  invalidDropIds: Set<number>;
+  dragOverId: number | null;
+  onDragStartNode: (book: Book) => void;
+  onDragEndNode: () => void;
+  onDragOverNode: (book: Book, e: DragEvent) => void;
+  onDropNode: (book: Book) => void;
 }) {
   const isSearching = query.trim().length > 0;
   if (isSearching && !matches.has(node.bookId)) return null;
@@ -100,6 +125,13 @@ function TreeNodeRow({
   const levelCode = bookLevelTypeCode(node.bookLevelTypeId) ?? 'TRADING_BOOK';
   const icon = LEVEL_ICON[levelCode] ?? '📄';
   const isSelected = selectedId === node.bookId;
+  const isDragging = draggingId === node.bookId;
+  // Valid drop target: a container (non-leaf/non-trading book) that isn't
+  // the dragged node itself or anywhere in its own subtree — mirrors the
+  // backend's validateParentChain + isLeafNode rejection in BookService,
+  // so the cursor/highlight never promises a move the server will reject.
+  const isValidDropTarget = draggingId != null && isContainer && node.bookId !== draggingId && !invalidDropIds.has(node.bookId);
+  const isDragOver = dragOverId === node.bookId && isValidDropTarget;
 
   // Any row — container or leaf — is selectable (so a group book's rolled-up
   // positions/P&L show up the moment you click it, no separate "view rollup"
@@ -114,6 +146,11 @@ function TreeNodeRow({
   return (
     <div>
       <div
+        draggable
+        onDragStart={(e) => { e.dataTransfer.effectAllowed = 'move'; onDragStartNode(node); }}
+        onDragEnd={onDragEndNode}
+        onDragOver={(e) => { if (draggingId != null) { e.preventDefault(); onDragOverNode(node, e); } }}
+        onDrop={(e) => { e.preventDefault(); onDropNode(node); }}
         onClick={handleClick}
         role="treeitem"
         aria-expanded={isContainer ? isOpen : undefined}
@@ -126,10 +163,13 @@ function TreeNodeRow({
           paddingLeft: 6 + depth * 16,
           cursor: 'pointer',
           borderRadius: 4,
-          background: isSelected ? `${c.secondary}26` : 'transparent',
+          background: isDragOver ? `${c.secondary}40` : isSelected ? `${c.secondary}26` : 'transparent',
+          outline: isDragOver ? `1px dashed ${c.secondary}` : 'none',
+          outlineOffset: -1,
           color: node.isActive ? c.textPrimary : c.textDisabled,
           fontWeight: isSelected ? 600 : 400,
           fontSize: 12.5,
+          opacity: isDragging ? 0.4 : 1,
         }}
       >
         <span style={{ width: 11, display: 'inline-block', fontSize: 9, color: c.textSecondary }}>
@@ -152,7 +192,9 @@ function TreeNodeRow({
       </div>
       {isContainer && isOpen && node.children.map((child) => (
         <TreeNodeRow key={child.bookId} node={child} depth={depth + 1} query={query} matches={matches}
-          expanded={expanded} onToggle={onToggle} selectedId={selectedId} onSelect={onSelect} onEdit={onEdit} c={c} />
+          expanded={expanded} onToggle={onToggle} selectedId={selectedId} onSelect={onSelect} onEdit={onEdit} c={c}
+          draggingId={draggingId} invalidDropIds={invalidDropIds} dragOverId={dragOverId}
+          onDragStartNode={onDragStartNode} onDragEndNode={onDragEndNode} onDragOverNode={onDragOverNode} onDropNode={onDropNode} />
       ))}
     </div>
   );
@@ -166,15 +208,22 @@ interface BookTreeExplorerProps {
   leadingAction: JSX.Element;
 }
 
-/** Recursive, search-filtered tree over the book hierarchy — free-form, any book can nest under any other, however many levels an admin has defined. Every row is selectable (containers also expand/collapse) and carries its own edit affordance. */
+/** Recursive, search-filtered tree over the book hierarchy — free-form, any book can nest under any other, however many levels an admin has defined. Every row is selectable (containers also expand/collapse), carries its own edit affordance, and can be dragged onto another (non-leaf) row to re-parent it. */
 export function BookTreeExplorer({ books, selectedBookId, onSelectBook, onEditBook, leadingAction }: BookTreeExplorerProps) {
   const { mode } = useThemeStore();
   const c = paletteFor(mode as ThemeMode);
   const [query, setQuery] = useState('');
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
+  const [draggingBook, setDraggingBook] = useState<Book | null>(null);
+  const [dragOverId, setDragOverId] = useState<number | null>(null);
+  const move = useMoveBook();
 
   const tree = useMemo(() => buildTree(books), [books]);
   const matches = useMemo(() => matchIds(tree, query), [tree, query]);
+  const invalidDropIds = useMemo(
+    () => (draggingBook ? collectDescendants(books, draggingBook.bookId) : new Set<number>()),
+    [books, draggingBook],
+  );
 
   function toggle(id: number) {
     setExpanded((prev) => {
@@ -182,6 +231,27 @@ export function BookTreeExplorer({ books, selectedBookId, onSelectBook, onEditBo
       if (next.has(id)) next.delete(id); else next.add(id);
       return next;
     });
+  }
+
+  function handleDragStart(book: Book) {
+    setDraggingBook(book);
+  }
+  function handleDragEnd() {
+    setDraggingBook(null);
+    setDragOverId(null);
+  }
+  function handleDragOver(book: Book) {
+    setDragOverId(book.bookId);
+  }
+  function handleDrop(target: Book) {
+    const dragged = draggingBook;
+    setDraggingBook(null);
+    setDragOverId(null);
+    if (!dragged) return;
+    if (target.bookId === dragged.bookId) return;
+    if (target.isLeafNode || invalidDropIds.has(target.bookId)) return;
+    if (dragged.parentBookId === target.bookId) return;
+    move.mutate({ id: dragged.bookId, body: { legalEntityId: dragged.legalEntityId, parentBookId: target.bookId } });
   }
 
   return (
@@ -202,7 +272,9 @@ export function BookTreeExplorer({ books, selectedBookId, onSelectBook, onEditBo
         {isSearchWithNoMatches(tree, query, matches) && <Empty style={{ marginTop: 40 }} description="No matches" />}
         {tree.map((node) => (
           <TreeNodeRow key={node.bookId} node={node} depth={0} query={query} matches={matches}
-            expanded={expanded} onToggle={toggle} selectedId={selectedBookId} onSelect={onSelectBook} onEdit={onEditBook} c={c} />
+            expanded={expanded} onToggle={toggle} selectedId={selectedBookId} onSelect={onSelectBook} onEdit={onEditBook} c={c}
+            draggingId={draggingBook?.bookId ?? null} invalidDropIds={invalidDropIds} dragOverId={dragOverId}
+            onDragStartNode={handleDragStart} onDragEndNode={handleDragEnd} onDragOverNode={handleDragOver} onDropNode={handleDrop} />
         ))}
       </div>
     </div>
@@ -661,7 +733,7 @@ export function BookTreeExplorerPage() {
       }}>
         <Space size={6}>
           <Typography.Text strong style={{ fontSize: 15 }}>Book Hierarchy</Typography.Text>
-          <Tooltip title="Free-form book hierarchy — any book can contain others, however many levels your admins have defined (Desk, Strategy, Location, or anything else added under Static Data → Book Level Types). Only leaf books (no children) hold direct postings; select a leaf for its own positions/P&L, or a group book for a live roll-up from every leaf underneath it.">
+          <Tooltip title="Free-form book hierarchy — any book can contain others, however many levels your admins have defined (Desk, Strategy, Location, or anything else added under Static Data → Book Level Types). Only leaf books (no children) hold direct postings; select a leaf for its own positions/P&L, or a group book for a live roll-up from every leaf underneath it. Drag a book onto another in the tree to move it — you can only drop onto a non-leaf (non-trading) book.">
             <InfoCircleOutlined style={{ fontSize: 13, color: c.textSecondary, cursor: 'help' }} />
           </Tooltip>
         </Space>

@@ -9,6 +9,8 @@ import java.util.List;
 public interface BookRepository extends JpaRepository<Book, Integer> {
     boolean existsByBookCodeIgnoreCase(String bookCode);
 
+    boolean existsByParentBookId(Integer parentBookId);
+
     /**
      * SQL Server recursive CTE walking book.parent_book_id from rootBookId
      * down to every leaf — the query shape a "roll up P&L for this book and

@@ -67,6 +67,11 @@ public class BookService {
      */
     private void validateParentChain(Integer bookId, Integer parentBookId) {
         if (parentBookId == null) return;
+        Book directParent = repository.findById(parentBookId)
+                .orElseThrow(() -> new NotFoundException("No book with id " + parentBookId + "."));
+        if (Boolean.TRUE.equals(directParent.getIsLeafNode())) {
+            throw new ConflictException("Book " + parentBookId + " is a leaf/trading book and cannot have child books.");
+        }
         Integer current = parentBookId;
         int depth = 0;
         while (current != null) {
@@ -98,6 +103,9 @@ public class BookService {
         Book existing = get(id);
         normalizeCodeField(input);
         validateParentChain(id, input.getParentBookId());
+        if (Boolean.TRUE.equals(input.getIsLeafNode()) && repository.existsByParentBookId(id)) {
+            throw new ConflictException("Book " + id + " has child books and cannot be marked as a leaf/trading book.");
+        }
         input.setBookId(id);
         // created_at/created_by are @CreatedDate/@CreatedBy — only populated by
         // JPA auditing on insert, so the request body never carries them and
