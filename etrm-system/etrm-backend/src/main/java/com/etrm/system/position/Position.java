@@ -62,8 +62,9 @@ public class Position {
     @Column(name = "commodity_type", nullable = false, length = 20)
     private String commodityType;
 
+    // BIGINT since V162 (period_id widened for LME-style daily prompt-date volume).
     @Column(name = "period_id")
-    private Integer periodId;
+    private Long periodId;
 
     @Transient
     @JsonProperty
@@ -190,11 +191,11 @@ public class Position {
         this.commodityType = commodityType;
     }
 
-    public Integer getPeriodId() {
+    public Long getPeriodId() {
         return periodId;
     }
 
-    public void setPeriodId(Integer periodId) {
+    public void setPeriodId(Long periodId) {
         this.periodId = periodId;
     }
 

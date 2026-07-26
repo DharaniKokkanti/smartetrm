@@ -17,9 +17,9 @@ export interface Product {
   defaultUomCode: string;
   defaultCurrencyCode: string | null;
   defaultIncotermCode: string | null;
-  lotSize: number | null;
-  minQuantity: number | null;
-  maxQuantity: number | null;
+  // V165 — lotSize/minQuantity/maxQuantity dropped: redundant with
+  // market_product_link's per-listing versions of the same fields (lot
+  // conventions vary by venue, not by product itself).
   gradeCode: string | null;
   // FK to dbo.commodity_family(commodity_family_id) — replaces the old raw
   // productFamily string (V59). Null = not assigned to a family.
@@ -105,7 +105,7 @@ export type ProductPriceIndexInput = {
 // ── Market link (market_product bridge table) ─────────────────────────────────
 
 export interface ProductMarketLink {
-  marketProductId: number;
+  marketProductLinkId: number;
   marketId: number;
   marketCode: string;
   marketName: string;

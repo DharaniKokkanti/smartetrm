@@ -24,22 +24,20 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 /**
- * dbo.period originally only had created_at/created_by — NOT the full
- * AuditableEntity 4-column set, confirmed directly against the live schema's
- * sys.columns. V148 added updated_at/updated_by (governance-column sweep),
- * mapped here with the same @LastModifiedDate/@LastModifiedBy annotations
- * used by the rest of this batch. An earlier version of this comment claimed
- * created_at-only and left created_by completely unmapped, which made every
- * create() 100% fail with a NOT NULL violation on created_by — fixed by
- * mapping it here with the same @CreatedBy/@CreatedDate JPA-auditing
- * annotations AuditableEntity uses, just without extending it (that
- * superclass assumes all 4 columns exist). commodity_type FKs the dedicated
- * dbo.commodity_type table (V85), NOT lookup_value — see Book.java's doc
- * comment for the full V55-vs-V85 story. load_type/gas_day_type genuinely DO
- * FK lookup_value (V57, never redirected by V85 — only book_type/
- * commodity_type were "the exception"). curve_label/notes columns exist in
- * the DB but have no frontend field — deliberately left unmapped, matching
- * the app's convention of not mapping unused columns.
+ * V162 — full redesign. market_product_link_id replaces commodity_type as
+ * the key: dbo.market_product_link already pairs market_id + product_id, so
+ * one FK encodes "which market AND which product" a period belongs to,
+ * matching real exchange practice (every contract month's lifecycle dates
+ * differ by market as well as by product). period_id widened to BIGINT to
+ * accommodate LME-style daily prompt-date curves (WEEK/DAY period_type),
+ * which project a much higher row volume per market_product_link than
+ * monthly-contract commodities. See
+ * docs/period_fx_fold_product_link_pending_07.md for the full design
+ * record. curve_label/notes remain deliberately unmapped to the frontend,
+ * same as before V162.
+ *
+ * V163 — market_product renamed to market_product_link (the row is a link
+ * record, not a product); this FK field/column followed.
  */
 @Entity
 @Table(name = "period")
@@ -49,12 +47,26 @@ public class Period {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "period_id")
-    private Integer periodId;
+    private Long periodId;
 
-    // V133 — optimistic locking, see LegalEntity.rowVersion (V127) for the full explanation.
     @Version
     @Column(name = "row_version", nullable = false)
     private Integer rowVersion;
+
+    // V163 — market_product renamed to market_product_link; this FK column
+    // followed (market_product_id -> market_product_link_id).
+    @NotNull
+    @Column(name = "market_product_link_id", nullable = false)
+    private Integer marketProductLinkId;
+
+    // Display-only, resolved from market_product_id — see PeriodService.hydrate().
+    @Transient
+    @JsonProperty
+    private String marketCode;
+
+    @Transient
+    @JsonProperty
+    private String productCode;
 
     @NotBlank
     @Size(max = 30)
@@ -66,6 +78,10 @@ public class Period {
     @Column(name = "period_name", nullable = false, length = 200)
     private String periodName;
 
+    @Size(max = 20)
+    @Column(name = "exch_product_code", length = 20)
+    private String exchProductCode;
+
     @NotBlank
     @Column(name = "period_type", nullable = false, length = 20)
     private String periodType;
@@ -74,8 +90,7 @@ public class Period {
     @Column(name = "is_rolling", nullable = false)
     private Boolean isRolling = false;
 
-    // SMALLINT -> Short, not Integer (see the major-session JPA-vs-schema
-    // audit's finding: Hibernate maps Short to SMALLINT, never Integer).
+    // SMALLINT -> Short (Hibernate mapping rule used throughout this codebase).
     @Column(name = "roll_offset")
     private Short rollOffset;
 
@@ -95,6 +110,30 @@ public class Period {
     @Column(name = "delivery_end_date")
     private LocalDate deliveryEndDate;
 
+    @Column(name = "curve_label")
+    private String curveLabel;
+
+    @Column(name = "first_trade_date")
+    private LocalDate firstTradeDate;
+
+    @Column(name = "expiry_date")
+    private LocalDate expiryDate;
+
+    @Column(name = "last_trade_date")
+    private LocalDate lastTradeDate;
+
+    @Column(name = "option_exp_date")
+    private LocalDate optionExpDate;
+
+    @Column(name = "settlement_date")
+    private LocalDate settlementDate;
+
+    @Column(name = "first_notice_date")
+    private LocalDate firstNoticeDate;
+
+    @Column(name = "last_notice_date")
+    private LocalDate lastNoticeDate;
+
     @Size(max = 20)
     @Column(name = "pricing_calendar_code", length = 20)
     private String pricingCalendarCode;
@@ -102,14 +141,6 @@ public class Period {
     @Size(max = 20)
     @Column(name = "settlement_calendar_code", length = 20)
     private String settlementCalendarCode;
-
-    // FK -> dbo.commodity_type(commodity_type_id). Frontend sends/receives
-    // the type_code string ("OIL") — see PeriodService's translation.
-    @Column(name = "commodity_type")
-    private Integer commodityTypeId;
-
-    @Transient
-    private String commodityType;
 
     // FK -> dbo.lookup_value(lookup_id), category='load_type'.
     @Column(name = "load_type_lookup_id")
@@ -131,7 +162,7 @@ public class Period {
     @Column(name = "end_time_utc")
     private LocalTime endTimeUtc;
 
-    // TINYINT -> Short, not Integer (same Hibernate mapping rule as roll_offset above).
+    // TINYINT -> Short.
     @Column(name = "crop_year_offset_months")
     private Short cropYearOffsetMonths;
 
@@ -155,6 +186,10 @@ public class Period {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
+    @Size(max = 300)
+    @Column(name = "notes", length = 300)
+    private String notes;
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -171,8 +206,12 @@ public class Period {
     @Column(name = "updated_by", nullable = false, length = 100)
     private String updatedBy;
 
-    public Integer getPeriodId() {
+    public Long getPeriodId() {
         return periodId;
+    }
+
+    public void setPeriodId(Long periodId) {
+        this.periodId = periodId;
     }
 
     public Integer getRowVersion() {
@@ -183,8 +222,28 @@ public class Period {
         this.rowVersion = rowVersion;
     }
 
-    public void setPeriodId(Integer periodId) {
-        this.periodId = periodId;
+    public Integer getMarketProductLinkId() {
+        return marketProductLinkId;
+    }
+
+    public void setMarketProductLinkId(Integer marketProductLinkId) {
+        this.marketProductLinkId = marketProductLinkId;
+    }
+
+    public String getMarketCode() {
+        return marketCode;
+    }
+
+    public void setMarketCode(String marketCode) {
+        this.marketCode = marketCode;
+    }
+
+    public String getProductCode() {
+        return productCode;
+    }
+
+    public void setProductCode(String productCode) {
+        this.productCode = productCode;
     }
 
     public String getPeriodCode() {
@@ -201,6 +260,14 @@ public class Period {
 
     public void setPeriodName(String periodName) {
         this.periodName = periodName;
+    }
+
+    public String getExchProductCode() {
+        return exchProductCode;
+    }
+
+    public void setExchProductCode(String exchProductCode) {
+        this.exchProductCode = exchProductCode;
     }
 
     public String getPeriodType() {
@@ -267,6 +334,70 @@ public class Period {
         this.deliveryEndDate = deliveryEndDate;
     }
 
+    public String getCurveLabel() {
+        return curveLabel;
+    }
+
+    public void setCurveLabel(String curveLabel) {
+        this.curveLabel = curveLabel;
+    }
+
+    public LocalDate getFirstTradeDate() {
+        return firstTradeDate;
+    }
+
+    public void setFirstTradeDate(LocalDate firstTradeDate) {
+        this.firstTradeDate = firstTradeDate;
+    }
+
+    public LocalDate getExpiryDate() {
+        return expiryDate;
+    }
+
+    public void setExpiryDate(LocalDate expiryDate) {
+        this.expiryDate = expiryDate;
+    }
+
+    public LocalDate getLastTradeDate() {
+        return lastTradeDate;
+    }
+
+    public void setLastTradeDate(LocalDate lastTradeDate) {
+        this.lastTradeDate = lastTradeDate;
+    }
+
+    public LocalDate getOptionExpDate() {
+        return optionExpDate;
+    }
+
+    public void setOptionExpDate(LocalDate optionExpDate) {
+        this.optionExpDate = optionExpDate;
+    }
+
+    public LocalDate getSettlementDate() {
+        return settlementDate;
+    }
+
+    public void setSettlementDate(LocalDate settlementDate) {
+        this.settlementDate = settlementDate;
+    }
+
+    public LocalDate getFirstNoticeDate() {
+        return firstNoticeDate;
+    }
+
+    public void setFirstNoticeDate(LocalDate firstNoticeDate) {
+        this.firstNoticeDate = firstNoticeDate;
+    }
+
+    public LocalDate getLastNoticeDate() {
+        return lastNoticeDate;
+    }
+
+    public void setLastNoticeDate(LocalDate lastNoticeDate) {
+        this.lastNoticeDate = lastNoticeDate;
+    }
+
     public String getPricingCalendarCode() {
         return pricingCalendarCode;
     }
@@ -281,24 +412,6 @@ public class Period {
 
     public void setSettlementCalendarCode(String settlementCalendarCode) {
         this.settlementCalendarCode = settlementCalendarCode;
-    }
-
-    public Integer getCommodityTypeId() {
-        return commodityTypeId;
-    }
-
-    public void setCommodityTypeId(Integer commodityTypeId) {
-        this.commodityTypeId = commodityTypeId;
-    }
-
-    @JsonProperty("commodityType")
-    public String getCommodityType() {
-        return commodityType;
-    }
-
-    @JsonProperty("commodityType")
-    public void setCommodityType(String commodityType) {
-        this.commodityType = commodityType;
     }
 
     public Integer getLoadTypeLookupId() {
@@ -399,6 +512,14 @@ public class Period {
 
     public void setIsActive(Boolean isActive) {
         this.isActive = isActive;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 
     public LocalDateTime getCreatedAt() {

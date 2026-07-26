@@ -27,8 +27,10 @@ public class MarketProductSource {
     @Column(name = "row_version", nullable = false)
     private Integer rowVersion;
 
-    @Column(name = "market_product_id", nullable = false)
-    private Integer marketProductId;
+    // V163 — market_product renamed to market_product_link; this FK column
+    // followed (market_product_id -> market_product_link_id).
+    @Column(name = "market_product_link_id", nullable = false)
+    private Integer marketProductLinkId;
 
     @Column(name = "price_source_id", nullable = false)
     private Integer priceSourceId;
@@ -86,8 +88,8 @@ public class MarketProductSource {
         return rowVersion;
     }
 
-    public Integer getMarketProductId() {
-        return marketProductId;
+    public Integer getMarketProductLinkId() {
+        return marketProductLinkId;
     }
 
     public Integer getPriceSourceId() {

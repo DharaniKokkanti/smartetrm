@@ -15,8 +15,8 @@ public class MarketProductSourceController {
         this.service = service;
     }
 
-    @GetMapping("/api/v1/market-products/{marketProductId}/sources")
-    public List<MarketProductSource> list(@PathVariable Integer marketProductId) {
-        return service.list(marketProductId);
+    @GetMapping("/api/v1/market-product-links/{marketProductLinkId}/sources")
+    public List<MarketProductSource> list(@PathVariable Integer marketProductLinkId) {
+        return service.list(marketProductLinkId);
     }
 }

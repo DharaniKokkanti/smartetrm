@@ -4,9 +4,9 @@ import com.etrm.system.commodity.CommodityRepository;
 import com.etrm.system.commodity.CommodityTypeMapping;
 import com.etrm.system.common.ConflictException;
 import com.etrm.system.common.NotFoundException;
+import com.etrm.system.counterparty.CounterpartyRepository;
 import com.etrm.system.currency.CurrencyRepository;
 import com.etrm.system.exchange.ExchangeRepository;
-import com.etrm.system.uom.UnitOfMeasureRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,16 +20,16 @@ public class MarketService {
     private final ExchangeRepository exchangeRepository;
     private final CommodityRepository commodityRepository;
     private final CurrencyRepository currencyRepository;
-    private final UnitOfMeasureRepository uomRepository;
+    private final CounterpartyRepository counterpartyRepository;
 
     public MarketService(MarketRepository repository, ExchangeRepository exchangeRepository,
                           CommodityRepository commodityRepository, CurrencyRepository currencyRepository,
-                          UnitOfMeasureRepository uomRepository) {
+                          CounterpartyRepository counterpartyRepository) {
         this.repository = repository;
         this.exchangeRepository = exchangeRepository;
         this.commodityRepository = commodityRepository;
         this.currencyRepository = currencyRepository;
-        this.uomRepository = uomRepository;
+        this.counterpartyRepository = counterpartyRepository;
     }
 
     private Market hydrate(Market market) {
@@ -41,8 +41,10 @@ public class MarketService {
                     .ifPresent(c -> market.setCommodityType(CommodityTypeMapping.codeToType(c.getCommodityCode())));
         }
         currencyRepository.findById(market.getCurrencyId()).ifPresent(c -> market.setCurrencyCode(c.getCurrencyCode()));
-        if (market.getContractUomId() != null) {
-            uomRepository.findById(market.getContractUomId()).ifPresent(u -> market.setContractUomCode(u.getUomCode()));
+        // V165 — clearing_house went from a free-text VARCHAR to an FK into
+        // dbo.counterparty (new CLEARING_HOUSE counterparty_type).
+        if (market.getClearingHouseId() != null) {
+            counterpartyRepository.findById(market.getClearingHouseId()).ifPresent(c -> market.setClearingHouseName(c.getLegalName()));
         }
         return market;
     }

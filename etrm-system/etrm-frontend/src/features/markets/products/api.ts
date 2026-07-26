@@ -27,7 +27,7 @@ export const productIndexApi = {
 
 export const productMarketApi = {
   list: (productId: number) =>
-    apiClient.get<ProductMarketLink[]>(`/products/${productId}/markets`).then((r) => r.data),
+    apiClient.get<ProductMarketLink[]>(`/products/${productId}/market-links`).then((r) => r.data),
 };
 
 export const productSpecApi = {

@@ -37,6 +37,9 @@ public class StorageFacilityService {
         if (facility.getCapacityUomId() != null) {
             uomRepository.findById(facility.getCapacityUomId()).ifPresent(u -> facility.setCapacityUomCode(u.getUomCode()));
         }
+        if (facility.getGasVolumeUomId() != null) {
+            uomRepository.findById(facility.getGasVolumeUomId()).ifPresent(u -> facility.setGasVolumeUomCode(u.getUomCode()));
+        }
         return facility;
     }
 

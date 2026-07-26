@@ -5,8 +5,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -136,6 +138,20 @@ public class ReferenceDataMetadataService {
      * out of the constraint's definition text instead) — the same two
      * shapes the documentation-generation Python script had to handle when
      * parsing these same CHECK constraints out of the raw SQL files.
+     *
+     * SQL Server always normalizes `CHECK (col IN (...))` into an OR-chain
+     * (`[col]='A' OR [col]='B' OR ...`, optionally wrapped with
+     * `[col] IS NULL OR (...)` when the column is nullable) in
+     * sys.check_constraints.definition, regardless of how the constraint was
+     * originally declared — so inListPattern below never actually matches
+     * live SQL Server output; it's kept only in case a future definition
+     * shape reintroduces a literal IN(...). orChainPattern handles the real
+     * shape: it collects every `[col]=literal` / `[col] IS NULL` comparison
+     * in the definition, then requires the entire definition to be built
+     * from just those comparisons (joined only by OR/parens) referencing a
+     * single column before treating it as an enum — this rejects
+     * multi-column or AND-joined constraints (e.g. chk_dcs_option_fields_scope)
+     * that happen to share the same token shape but aren't a simple enum.
      */
     private Map<String, List<String>> findCheckEnums(String tableName) {
         Map<String, List<String>> result = new HashMap<>();
@@ -153,24 +169,53 @@ public class ReferenceDataMetadataService {
                 Pattern.CASE_INSENSITIVE
         );
         Pattern literalPattern = Pattern.compile("'([^']*)'");
+        Pattern orChainToken = Pattern.compile(
+                "\\[(\\w+)\\]\\s*(?:=\\s*'([^']*)'|=\\s*NULL|IS\\s+NULL)",
+                Pattern.CASE_INSENSITIVE
+        );
 
         for (Map<String, Object> row : rows) {
             String columnName = (String) row.get("column_name");
             String definition = (String) row.get("definition");
             if (definition == null) continue;
 
+            List<String> values = null;
+            String resolvedColumn = null;
+
             Matcher inListMatcher = inListPattern.matcher(definition);
-            if (!inListMatcher.find()) continue;
-
-            String resolvedColumn = columnName != null ? columnName : inListMatcher.group(1);
-            String valueList = inListMatcher.group(2);
-
-            List<String> values = new ArrayList<>();
-            Matcher litMatcher = literalPattern.matcher(valueList);
-            while (litMatcher.find()) {
-                values.add(litMatcher.group(1));
+            if (inListMatcher.find()) {
+                String valueList = inListMatcher.group(2);
+                List<String> inListValues = new ArrayList<>();
+                Matcher litMatcher = literalPattern.matcher(valueList);
+                while (litMatcher.find()) {
+                    inListValues.add(litMatcher.group(1));
+                }
+                if (!inListValues.isEmpty()) {
+                    resolvedColumn = columnName != null ? columnName : inListMatcher.group(1);
+                    values = inListValues;
+                }
             }
-            if (!values.isEmpty()) {
+
+            if (values == null) {
+                Set<String> columnsSeen = new HashSet<>();
+                List<String> chainValues = new ArrayList<>();
+                Matcher tokenMatcher = orChainToken.matcher(definition);
+                while (tokenMatcher.find()) {
+                    columnsSeen.add(tokenMatcher.group(1));
+                    if (tokenMatcher.group(2) != null) {
+                        chainValues.add(tokenMatcher.group(2));
+                    }
+                }
+                String residual = orChainToken.matcher(definition).replaceAll("")
+                        .replaceAll("(?i)\\bor\\b", "")
+                        .replaceAll("[()\\s]", "");
+                if (!chainValues.isEmpty() && columnsSeen.size() == 1 && residual.isEmpty()) {
+                    resolvedColumn = columnName != null ? columnName : columnsSeen.iterator().next();
+                    values = chainValues;
+                }
+            }
+
+            if (values != null && !values.isEmpty()) {
                 result.put(resolvedColumn, values);
             }
         }

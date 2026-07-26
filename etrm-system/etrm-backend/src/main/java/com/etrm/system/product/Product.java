@@ -88,15 +88,6 @@ public class Product {
     @Transient
     private String defaultIncotermCode;
 
-    @Column(name = "lot_size")
-    private BigDecimal lotSize;
-
-    @Column(name = "min_quantity")
-    private BigDecimal minQuantity;
-
-    @Column(name = "max_quantity")
-    private BigDecimal maxQuantity;
-
     @Size(max = 30)
     @Column(name = "grade_code", length = 30)
     private String gradeCode;
@@ -291,30 +282,6 @@ public class Product {
     @JsonProperty("defaultIncotermCode")
     public void setDefaultIncotermCode(String defaultIncotermCode) {
         this.defaultIncotermCode = defaultIncotermCode;
-    }
-
-    public BigDecimal getLotSize() {
-        return lotSize;
-    }
-
-    public void setLotSize(BigDecimal lotSize) {
-        this.lotSize = lotSize;
-    }
-
-    public BigDecimal getMinQuantity() {
-        return minQuantity;
-    }
-
-    public void setMinQuantity(BigDecimal minQuantity) {
-        this.minQuantity = minQuantity;
-    }
-
-    public BigDecimal getMaxQuantity() {
-        return maxQuantity;
-    }
-
-    public void setMaxQuantity(BigDecimal maxQuantity) {
-        this.maxQuantity = maxQuantity;
     }
 
     public String getGradeCode() {

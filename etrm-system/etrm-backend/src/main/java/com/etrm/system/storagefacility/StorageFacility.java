@@ -25,18 +25,25 @@ import java.time.LocalDateTime;
 /**
  * V151 — added created_at/created_by/updated_at/updated_by; dbo
  * .storage_facility previously had NO audit columns at all. The frontend's
- * createdAt field now has a real backing column. regulatoryRef/
- * injectionRate/withdrawalRate/statusCode still have no backing columns —
- * genuinely absent concepts, not naming differences, so left unmapped per
- * this session's standing rule (documented here rather than schema-
- * extended). countryCode is resolved transitively through the Location this
- * facility belongs to (location.country_id -> country.country_code) since
- * storage_facility itself has no country_id. storageType is the frontend's
- * historical name for the real facility_type numeric FK id itself (not a
- * resolved code string — the frontend resolves the label client-side via
+ * createdAt field now has a real backing column. regulatoryRef/statusCode
+ * still have no backing columns — genuinely absent concepts, not naming
+ * differences, so left unmapped per this session's standing rule
+ * (documented here rather than schema-extended). countryCode is resolved
+ * transitively through the Location this facility belongs to
+ * (location.country_id -> country.country_code) since storage_facility
+ * itself has no country_id. storageType is the frontend's historical name
+ * for the real facility_type numeric FK id itself (not a resolved code
+ * string — the frontend resolves the label client-side via
  * useCustomConfigOptions). operator is genuinely free text on this table
  * (unlike vessel/truck/pipeline/container/railcar, where the equivalent
  * column is an FK) — mapped directly to the frontend's operatorName.
+ *
+ * V161 — gas-storage physical attributes added (max_injection_rate_per_day/
+ * max_withdrawal_rate_per_day/gas_volume_uom_id/working_gas_capacity/
+ * cushion_gas_volume). The rate columns close the pre-existing frontend gap
+ * noted above: the frontend's injectionRate/withdrawalRate fields have
+ * existed since before V103 with no backing column at all — this maps them
+ * to the new real columns instead of introducing new field names.
  */
 @Entity
 @Table(name = "storage_facility")
@@ -102,6 +109,25 @@ public class StorageFacility {
     @NotNull
     @Column(name = "facility_type", nullable = false)
     private Integer storageType;
+
+    @Column(name = "working_gas_capacity", precision = 18, scale = 4)
+    private BigDecimal workingGasCapacity;
+
+    @Column(name = "cushion_gas_volume", precision = 18, scale = 4)
+    private BigDecimal cushionGasVolume;
+
+    @Column(name = "max_injection_rate_per_day", precision = 18, scale = 4)
+    private BigDecimal injectionRate;
+
+    @Column(name = "max_withdrawal_rate_per_day", precision = 18, scale = 4)
+    private BigDecimal withdrawalRate;
+
+    @Column(name = "gas_volume_uom_id")
+    private Integer gasVolumeUomId;
+
+    @Transient
+    @JsonProperty
+    private String gasVolumeUomCode;
 
     @Transient
     @JsonProperty
@@ -233,6 +259,54 @@ public class StorageFacility {
 
     public void setStorageType(Integer storageType) {
         this.storageType = storageType;
+    }
+
+    public BigDecimal getWorkingGasCapacity() {
+        return workingGasCapacity;
+    }
+
+    public void setWorkingGasCapacity(BigDecimal workingGasCapacity) {
+        this.workingGasCapacity = workingGasCapacity;
+    }
+
+    public BigDecimal getCushionGasVolume() {
+        return cushionGasVolume;
+    }
+
+    public void setCushionGasVolume(BigDecimal cushionGasVolume) {
+        this.cushionGasVolume = cushionGasVolume;
+    }
+
+    public BigDecimal getInjectionRate() {
+        return injectionRate;
+    }
+
+    public void setInjectionRate(BigDecimal injectionRate) {
+        this.injectionRate = injectionRate;
+    }
+
+    public BigDecimal getWithdrawalRate() {
+        return withdrawalRate;
+    }
+
+    public void setWithdrawalRate(BigDecimal withdrawalRate) {
+        this.withdrawalRate = withdrawalRate;
+    }
+
+    public Integer getGasVolumeUomId() {
+        return gasVolumeUomId;
+    }
+
+    public void setGasVolumeUomId(Integer gasVolumeUomId) {
+        this.gasVolumeUomId = gasVolumeUomId;
+    }
+
+    public String getGasVolumeUomCode() {
+        return gasVolumeUomCode;
+    }
+
+    public void setGasVolumeUomCode(String gasVolumeUomCode) {
+        this.gasVolumeUomCode = gasVolumeUomCode;
     }
 
     public String getCountryCode() {

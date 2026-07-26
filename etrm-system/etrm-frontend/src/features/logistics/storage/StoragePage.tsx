@@ -69,6 +69,9 @@ export function StoragePage() {
       regulatoryRef: s.regulatoryRef ?? undefined,
       injectionRate: s.injectionRate ?? undefined,
       withdrawalRate: s.withdrawalRate ?? undefined,
+      workingGasCapacity: s.workingGasCapacity ?? undefined,
+      cushionGasVolume: s.cushionGasVolume ?? undefined,
+      gasVolumeUomCode: s.gasVolumeUomCode ?? undefined,
       statusCode: s.statusCode,
       isActive: s.isActive,
     });
@@ -86,6 +89,9 @@ export function StoragePage() {
       regulatoryRef: v.regulatoryRef ?? null,
       injectionRate: v.injectionRate ?? null,
       withdrawalRate: v.withdrawalRate ?? null,
+      workingGasCapacity: v.workingGasCapacity ?? null,
+      cushionGasVolume: v.cushionGasVolume ?? null,
+      gasVolumeUomCode: v.gasVolumeUomCode ?? null,
     };
     const saved = await save.mutateAsync({ id: editing?.storageId ?? null, input });
     if (closeAfter) setOpen(false); else setEditing(saved);
@@ -254,6 +260,30 @@ export function StoragePage() {
               <InputNumber style={{ width: '100%' }} placeholder="15000" min={0} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
             </Form.Item>
           </Space>
+
+          <Space style={{ width: '100%', gap: 12 }}>
+            <Form.Item
+              name="workingGasCapacity"
+              label={hint('Working Gas Capacity', 'Usable/withdrawable gas volume — gas storage facilities only.')}
+              style={{ flex: 1 }}
+            >
+              <InputNumber style={{ width: '100%' }} placeholder="500000" min={0} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
+            </Form.Item>
+            <Form.Item
+              name="cushionGasVolume"
+              label={hint('Cushion Gas Volume', 'Permanent base gas required to maintain reservoir pressure — gas storage facilities only.')}
+              style={{ flex: 1 }}
+            >
+              <InputNumber style={{ width: '100%' }} placeholder="150000" min={0} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
+            </Form.Item>
+          </Space>
+
+          <Form.Item
+            name="gasVolumeUomCode"
+            label={hint('Gas Volume UOM', 'Unit of measure shared by Working Gas Capacity, Cushion Gas Volume, Injection Rate and Withdrawal Rate.', 'MMBTU / MCF')}
+          >
+            <Input placeholder="MMBTU / MCF" />
+          </Form.Item>
 
           <Form.Item
             name="statusCode"

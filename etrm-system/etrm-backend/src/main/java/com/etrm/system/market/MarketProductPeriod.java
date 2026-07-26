@@ -23,11 +23,11 @@ import java.time.LocalDateTime;
 
 /**
  * The frontend's MarketProductPeriod type is much smaller than this table
- * (mppId/marketProductId/periodId/periodCode/periodName/periodType/
+ * (mppId/marketProductLinkId/periodId/periodCode/periodName/periodType/
  * curveLabel/isActive only) — the various trading-date/offset columns
  * below are mapped for completeness (a future date-calculation feature
  * would need them) but are not read or written by the current UI, which
- * only ever calls addPeriod(marketProductId, periodId).
+ * only ever calls addPeriod(marketProductLinkId, periodId).
  *
  * V147 — added created_at/created_by/updated_at/updated_by (previously
  * completely missing) as @CreatedDate/@CreatedBy/@LastModifiedDate/
@@ -48,13 +48,16 @@ public class MarketProductPeriod {
     @Column(name = "row_version", nullable = false)
     private Integer rowVersion;
 
+    // V163 — market_product renamed to market_product_link; this FK column
+    // followed (market_product_id -> market_product_link_id).
     @NotNull
-    @Column(name = "market_product_id", nullable = false)
-    private Integer marketProductId;
+    @Column(name = "market_product_link_id", nullable = false)
+    private Integer marketProductLinkId;
 
+    // BIGINT since V162 (period_id widened for LME-style daily prompt-date volume).
     @NotNull
     @Column(name = "period_id", nullable = false)
-    private Integer periodId;
+    private Long periodId;
 
     @Transient
     @JsonProperty
@@ -168,19 +171,19 @@ public class MarketProductPeriod {
         this.rowVersion = rowVersion;
     }
 
-    public Integer getMarketProductId() {
-        return marketProductId;
+    public Integer getMarketProductLinkId() {
+        return marketProductLinkId;
     }
 
-    public void setMarketProductId(Integer marketProductId) {
-        this.marketProductId = marketProductId;
+    public void setMarketProductLinkId(Integer marketProductLinkId) {
+        this.marketProductLinkId = marketProductLinkId;
     }
 
-    public Integer getPeriodId() {
+    public Long getPeriodId() {
         return periodId;
     }
 
-    public void setPeriodId(Integer periodId) {
+    public void setPeriodId(Long periodId) {
         this.periodId = periodId;
     }
 

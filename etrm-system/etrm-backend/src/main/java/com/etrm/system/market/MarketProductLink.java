@@ -19,21 +19,35 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-// V147 — added updated_at/updated_by and upgraded created_at/created_by to
-// real @CreatedDate/@CreatedBy JPA auditing (previously set manually by
-// MarketProductService).
+/**
+ * V163 — renamed from MarketProduct/market_product: the row is a link
+ * record (market x product), not a product itself, so the old name read
+ * misleadingly. Table + PK column renamed via sp_rename (metadata-only, no
+ * data movement); FK columns on market_product_period/market_product_source/
+ * period renamed the same way — those tables kept their own names since
+ * they aren't literally "market_product", only their FK column changed.
+ *
+ * V147 — added updated_at/updated_by and upgraded created_at/created_by to
+ * real @CreatedDate/@CreatedBy JPA auditing (previously set manually by
+ * MarketProductLinkService).
+ *
+ * V164 — dropped listed_date/delisted_date (redundant: dbo.period is the
+ * home for lifecycle dates since V162 — first_trade_date covers this per
+ * concrete period, is_active covers current listing status); added
+ * altPriceSourceId/mtmPriceSourceId (alternate/backup and primary
+ * mark-to-market price sources for this listing).
+ */
 @Entity
-@Table(name = "market_product")
+@Table(name = "market_product_link")
 @EntityListeners(AuditingEntityListener.class)
-public class MarketProduct {
+public class MarketProductLink {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "market_product_id")
-    private Integer marketProductId;
+    @Column(name = "market_product_link_id")
+    private Integer marketProductLinkId;
 
     // V131 — optimistic locking, see LegalEntity.java's rowVersion doc comment.
     @Version
@@ -43,6 +57,13 @@ public class MarketProduct {
     @NotNull
     @Column(name = "market_id", nullable = false)
     private Integer marketId;
+
+    // Display-only, resolved by MarketProductLinkService.hydrateWithMarket()
+    // for cross-market pickers (e.g. the Period screen) — not set by the
+    // market-scoped listByMarket()/listByProduct() paths.
+    @Transient
+    @JsonProperty
+    private String marketCode;
 
     @NotNull
     @Column(name = "product_id", nullable = false)
@@ -102,11 +123,21 @@ public class MarketProduct {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
-    @Column(name = "listed_date")
-    private LocalDate listedDate;
+    // V164 — alternate/backup price source for this listing.
+    @Column(name = "alt_price_source_id")
+    private Integer altPriceSourceId;
 
-    @Column(name = "delisted_date")
-    private LocalDate delistedDate;
+    @Transient
+    @JsonProperty
+    private String altPriceSourceCode;
+
+    // V164 — primary mark-to-market price source for this listing.
+    @Column(name = "mtm_price_source_id")
+    private Integer mtmPriceSourceId;
+
+    @Transient
+    @JsonProperty
+    private String mtmPriceSourceCode;
 
     @Size(max = 500)
     @Column(name = "notes", length = 500)
@@ -128,12 +159,12 @@ public class MarketProduct {
     @Column(name = "updated_by", nullable = false, length = 100)
     private String updatedBy;
 
-    public Integer getMarketProductId() {
-        return marketProductId;
+    public Integer getMarketProductLinkId() {
+        return marketProductLinkId;
     }
 
-    public void setMarketProductId(Integer marketProductId) {
-        this.marketProductId = marketProductId;
+    public void setMarketProductLinkId(Integer marketProductLinkId) {
+        this.marketProductLinkId = marketProductLinkId;
     }
 
     public Integer getRowVersion() {
@@ -150,6 +181,14 @@ public class MarketProduct {
 
     public void setMarketId(Integer marketId) {
         this.marketId = marketId;
+    }
+
+    public String getMarketCode() {
+        return marketCode;
+    }
+
+    public void setMarketCode(String marketCode) {
+        this.marketCode = marketCode;
     }
 
     public Integer getProductId() {
@@ -280,20 +319,36 @@ public class MarketProduct {
         this.isActive = isActive;
     }
 
-    public LocalDate getListedDate() {
-        return listedDate;
+    public Integer getAltPriceSourceId() {
+        return altPriceSourceId;
     }
 
-    public void setListedDate(LocalDate listedDate) {
-        this.listedDate = listedDate;
+    public void setAltPriceSourceId(Integer altPriceSourceId) {
+        this.altPriceSourceId = altPriceSourceId;
     }
 
-    public LocalDate getDelistedDate() {
-        return delistedDate;
+    public String getAltPriceSourceCode() {
+        return altPriceSourceCode;
     }
 
-    public void setDelistedDate(LocalDate delistedDate) {
-        this.delistedDate = delistedDate;
+    public void setAltPriceSourceCode(String altPriceSourceCode) {
+        this.altPriceSourceCode = altPriceSourceCode;
+    }
+
+    public Integer getMtmPriceSourceId() {
+        return mtmPriceSourceId;
+    }
+
+    public void setMtmPriceSourceId(Integer mtmPriceSourceId) {
+        this.mtmPriceSourceId = mtmPriceSourceId;
+    }
+
+    public String getMtmPriceSourceCode() {
+        return mtmPriceSourceCode;
+    }
+
+    public void setMtmPriceSourceCode(String mtmPriceSourceCode) {
+        this.mtmPriceSourceCode = mtmPriceSourceCode;
     }
 
     public String getNotes() {

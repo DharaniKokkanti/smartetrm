@@ -15,16 +15,16 @@ public class MarketProductPeriodController {
         this.service = service;
     }
 
-    @GetMapping("/api/v1/market-products/{marketProductId}/periods")
-    public List<MarketProductPeriod> list(@PathVariable Integer marketProductId) {
-        return service.list(marketProductId);
+    @GetMapping("/api/v1/market-product-links/{marketProductLinkId}/periods")
+    public List<MarketProductPeriod> list(@PathVariable Integer marketProductLinkId) {
+        return service.list(marketProductLinkId);
     }
 
-    public record AddPeriodRequest(@NotNull Integer periodId) {}
+    public record AddPeriodRequest(@NotNull Long periodId) {}
 
-    @PostMapping("/api/v1/market-products/{marketProductId}/periods")
-    public MarketProductPeriod add(@PathVariable Integer marketProductId, @Valid @RequestBody AddPeriodRequest request) {
-        return service.add(marketProductId, request.periodId());
+    @PostMapping("/api/v1/market-product-links/{marketProductLinkId}/periods")
+    public MarketProductPeriod add(@PathVariable Integer marketProductLinkId, @Valid @RequestBody AddPeriodRequest request) {
+        return service.add(marketProductLinkId, request.periodId());
     }
 
     @PatchMapping("/api/v1/market-product-periods/{mppId}/deactivate")

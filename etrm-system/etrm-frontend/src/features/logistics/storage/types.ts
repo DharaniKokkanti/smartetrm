@@ -22,8 +22,16 @@ export interface StorageFacility {
   operatorName: string;
   countryCode: string;
   regulatoryRef: string | null;
+  /** V161 — max commodity injection per day; gas storage's primary use case, backed by max_injection_rate_per_day. */
   injectionRate: number | null;
+  /** V161 — max commodity withdrawal per day; backed by max_withdrawal_rate_per_day. */
   withdrawalRate: number | null;
+  /** V161 — usable/withdrawable gas volume, gas storage facilities only. */
+  workingGasCapacity: number | null;
+  /** V161 — permanent base gas required to maintain reservoir pressure, gas storage facilities only. */
+  cushionGasVolume: number | null;
+  /** V161 — shared UOM for workingGasCapacity/cushionGasVolume/injectionRate/withdrawalRate (e.g. MMBtu, MCF). */
+  gasVolumeUomCode: string | null;
   statusCode: StorageStatusCode;
   isActive: boolean;
   createdAt: string;

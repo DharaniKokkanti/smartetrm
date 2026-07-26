@@ -19,8 +19,8 @@ public class PeriodController {
     }
 
     @GetMapping
-    public List<Period> list() {
-        return service.list();
+    public List<Period> list(@RequestParam(required = false) Integer marketProductLinkId) {
+        return marketProductLinkId == null ? service.list() : service.listByMarketProductLink(marketProductLinkId);
     }
 
     @PostMapping
@@ -29,13 +29,25 @@ public class PeriodController {
     }
 
     @PutMapping("/{id}")
-    public Period update(@PathVariable Integer id, @Valid @RequestBody Period input) {
+    public Period update(@PathVariable Long id, @Valid @RequestBody Period input) {
         return service.update(id, input);
     }
 
     @PatchMapping("/{id}/deactivate")
-    public ResponseEntity<Void> deactivate(@PathVariable Integer id) {
+    public ResponseEntity<Void> deactivate(@PathVariable Long id) {
         service.deactivate(id);
         return ResponseEntity.noContent().build();
+    }
+
+    public record BulkCreateRequest(List<Period> periods) {}
+
+    @PostMapping("/bulk")
+    public PeriodService.BulkResult bulkCreate(@RequestBody BulkCreateRequest request) {
+        return service.bulkCreate(request.periods());
+    }
+
+    @PostMapping("/auto-generate")
+    public List<Period> autoGenerate(@Valid @RequestBody PeriodService.AutoGenerateRequest request) {
+        return service.autoGenerate(request);
     }
 }

@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { App as AntApp } from 'antd';
 import { marketsApi } from './api';
-import type { MarketInput, MarketProductInput } from './types';
+import type { MarketInput, MarketProductLinkInput } from './types';
 import type { ProblemDetail } from '@services/api';
 
 const MKT_KEY = ['markets'] as const;
@@ -31,50 +31,50 @@ export function useDeactivateMarket() {
   });
 }
 
-export function useMarketProducts(marketId: number | null) {
+export function useMarketProductLinks(marketId: number | null) {
   return useQuery({
-    queryKey: [...MKT_KEY, marketId, 'products'],
-    queryFn: () => marketsApi.listProducts(marketId!),
+    queryKey: [...MKT_KEY, marketId, 'product-links'],
+    queryFn: () => marketsApi.listProductLinks(marketId!),
     enabled: marketId != null,
     staleTime: 5 * 60 * 1000,
   });
 }
 
-export function useSaveMarketProduct(marketId: number) {
+export function useSaveMarketProductLink(marketId: number) {
   const qc = useQueryClient();
   const { message } = AntApp.useApp();
   return useMutation({
-    mutationFn: ({ id, input }: { id: number | null; input: MarketProductInput }) =>
-      id === null ? marketsApi.addProduct(marketId, input) : marketsApi.updateProduct(marketId, id, input),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: [...MKT_KEY, marketId, 'products'] }); message.success('Market product saved.'); },
+    mutationFn: ({ id, input }: { id: number | null; input: MarketProductLinkInput }) =>
+      id === null ? marketsApi.addProductLink(marketId, input) : marketsApi.updateProductLink(marketId, id, input),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: [...MKT_KEY, marketId, 'product-links'] }); message.success('Market product link saved.'); },
     onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Save failed.'),
   });
 }
 
-export function useMarketProductPeriods(marketProductId: number | null) {
+export function useMarketProductPeriods(marketProductLinkId: number | null) {
   return useQuery({
-    queryKey: ['market-product-periods', marketProductId],
-    queryFn: () => marketsApi.listPeriods(marketProductId!),
-    enabled: marketProductId != null,
+    queryKey: ['market-product-periods', marketProductLinkId],
+    queryFn: () => marketsApi.listPeriods(marketProductLinkId!),
+    enabled: marketProductLinkId != null,
     staleTime: 5 * 60 * 1000,
   });
 }
 
-export function useAddPeriodToMarketProduct(marketProductId: number) {
+export function useAddPeriodToMarketProductLink(marketProductLinkId: number) {
   const qc = useQueryClient();
   const { message } = AntApp.useApp();
   return useMutation({
-    mutationFn: (periodId: number) => marketsApi.addPeriod(marketProductId, periodId),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['market-product-periods', marketProductId] }); message.success('Period linked.'); },
+    mutationFn: (periodId: number) => marketsApi.addPeriod(marketProductLinkId, periodId),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['market-product-periods', marketProductLinkId] }); message.success('Period linked.'); },
     onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Failed to link period.'),
   });
 }
 
-export function useMarketProductSources(marketProductId: number | null) {
+export function useMarketProductSources(marketProductLinkId: number | null) {
   return useQuery({
-    queryKey: ['market-product-sources', marketProductId],
-    queryFn: () => marketsApi.listSources(marketProductId!),
-    enabled: marketProductId != null,
+    queryKey: ['market-product-sources', marketProductLinkId],
+    queryFn: () => marketsApi.listSources(marketProductLinkId!),
+    enabled: marketProductLinkId != null,
     staleTime: 5 * 60 * 1000,
   });
 }

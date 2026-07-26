@@ -18,8 +18,8 @@ public class MarketProductSourceService {
         this.priceSourceRepository = priceSourceRepository;
     }
 
-    public List<MarketProductSource> list(Integer marketProductId) {
-        return repository.findByMarketProductId(marketProductId).stream().map(mps -> {
+    public List<MarketProductSource> list(Integer marketProductLinkId) {
+        return repository.findByMarketProductLinkId(marketProductLinkId).stream().map(mps -> {
             priceSourceRepository.findById(mps.getPriceSourceId()).ifPresent(ps -> {
                 mps.setSourceCode(ps.getSourceCode());
                 mps.setSourceName(ps.getSourceName());

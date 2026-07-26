@@ -12,16 +12,19 @@ import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import {
   useMarkets, useSaveMarket, useDeactivateMarket,
-  useMarketProducts, useSaveMarketProduct,
-  useMarketProductPeriods, useAddPeriodToMarketProduct,
+  useMarketProductLinks, useSaveMarketProductLink,
+  useMarketProductPeriods, useAddPeriodToMarketProductLink,
   useMarketProductSources,
 } from './hooks';
-import { MARKET_TYPES, SETTLEMENT_TYPES_MKT, type Market, type MarketInput, type MarketProduct, type MarketType, type SettlementTypeMkt } from './types';
+import { MARKET_TYPES, SETTLEMENT_TYPES_MKT, type Market, type MarketInput, type MarketProductLink, type MarketType, type SettlementTypeMkt } from './types';
 import { COMMODITY_TYPES } from '@features/reference/commodity-types/types';
 import { useProducts } from '@features/markets/products/hooks';
+import { usePriceSources } from '@features/pricing/price-sources/hooks';
 import { useFormDraft } from '@components/smart/formDraft';
-import { useCountries } from '@features/reference/countries/hooks';
 import { useExchanges } from '@features/markets/exchanges/hooks';
+import { useCurrencies } from '@features/reference/currencies/hooks';
+import { useCounterparties } from '@features/tier1/counterparty/hooks';
+import { useCustomConfigOptions } from '@features/tier1/counterparty/configLookups';
 import { color } from '@theme/tokens';
 
 const MKT_TYPE_COLOR: Record<MarketType, string> = {
@@ -35,11 +38,11 @@ const ROLE_COLOR: Record<string, string> = {
 };
 
 // ─── Market-Product detail drawer ─────────────────────────────────────────────
-function MarketProductDetail({ mp, onClose }: { mp: MarketProduct; onClose: () => void }) {
+function MarketProductDetail({ mp, onClose }: { mp: MarketProductLink; onClose: () => void }) {
   const [addPeriodOpen, setAddPeriodOpen] = useState(false);
-  const { data: periods, isLoading: periodsLoading } = useMarketProductPeriods(mp.marketProductId);
-  const { data: sources, isLoading: sourcesLoading } = useMarketProductSources(mp.marketProductId);
-  const addPeriod = useAddPeriodToMarketProduct(mp.marketProductId);
+  const { data: periods, isLoading: periodsLoading } = useMarketProductPeriods(mp.marketProductLinkId);
+  const { data: sources, isLoading: sourcesLoading } = useMarketProductSources(mp.marketProductLinkId);
+  const addPeriod = useAddPeriodToMarketProductLink(mp.marketProductLinkId);
 
   return (
     <Drawer mask={false} forceRender
@@ -133,7 +136,8 @@ function MarketProductDetail({ mp, onClose }: { mp: MarketProduct; onClose: () =
                 ['Settlement Type Override', mp.settlementType ?? 'Product default'],
                 ['First Notice Day Offset', mp.firstNoticeDayOffset != null ? `${mp.firstNoticeDayOffset} days before expiry` : '—'],
                 ['Last Trading Day Offset', mp.lastTradingDayOffset != null ? `${mp.lastTradingDayOffset} days before delivery month end` : '—'],
-                ['Listed Date', mp.listedDate ? dayjs(mp.listedDate).format('DD MMM YYYY') : '—'],
+                ['MTM Price Source', mp.mtmPriceSourceCode ?? '—'],
+                ['Alt Price Source', mp.altPriceSourceCode ?? '—'],
               ] as [string, string][]).map(([label, value]) => (
                 <tr key={label} style={{ borderBottom: `1px solid ${color.border}` }}>
                   <td style={{ padding: '6px 0', color: color.textSecondary, width: 220 }}>{label}</td>
@@ -150,20 +154,58 @@ function MarketProductDetail({ mp, onClose }: { mp: MarketProduct; onClose: () =
 
 // ─── Market Products sub-drawer ───────────────────────────────────────────────
 function MarketProductsDrawer({ market, onClose }: { market: Market; onClose: () => void }) {
-  const { data: mps, isLoading } = useMarketProducts(market.marketId);
-  const save = useSaveMarketProduct(market.marketId);
+  const { data: mps, isLoading } = useMarketProductLinks(market.marketId);
+  const save = useSaveMarketProductLink(market.marketId);
   const { data: products = [] } = useProducts();
   const productOpts = (products as { productId: number; productCode: string; productName: string }[])
     .map((p) => ({ value: p.productId, label: `${p.productCode} — ${p.productName}` }));
+  const { data: priceSources = [] } = usePriceSources();
+  const priceSourceOpts = priceSources.map((s) => ({ value: s.priceSourceId, label: s.sourceCode }));
   const [addOpen, setAddOpen] = useState(false);
-  const [selectedMp, setSelectedMp] = useState<MarketProduct | null>(null);
+  const [selectedMp, setSelectedMp] = useState<MarketProductLink | null>(null);
+  const [editingMp, setEditingMp] = useState<MarketProductLink | null>(null);
   const [form] = Form.useForm();
+
+  function openAdd() {
+    setEditingMp(null);
+    form.resetFields();
+    setAddOpen(true);
+  }
+
+  function openEditMp(mp: MarketProductLink) {
+    setEditingMp(mp);
+    form.setFieldsValue(mp);
+    setAddOpen(true);
+  }
+
+  function closeForm() {
+    setAddOpen(false);
+    setEditingMp(null);
+    form.resetFields();
+  }
 
   async function submit(closeAfter = true) {
     const v = await form.validateFields();
-    await save.mutateAsync({ id: null, input: { ...v, marketId: market.marketId } });
-    if (closeAfter) setAddOpen(false);
-    form.resetFields();
+    // The form only has Form.Items for a subset of MarketProductLinkInput's
+    // fields — validateFields() returns just those, so on edit the rest
+    // (isActive, currencyId, uomId, minQuantity, maxQuantity, settlementType,
+    // notes) must be carried over from the existing row explicitly, or
+    // they'd silently fall back to MarketProductLink.java's field
+    // initializers (isActive=true) and e.g. reactivate a deactivated link.
+    const preserved = editingMp
+      ? {
+          currencyId: editingMp.currencyId, uomId: editingMp.uomId,
+          minQuantity: editingMp.minQuantity, maxQuantity: editingMp.maxQuantity,
+          settlementType: editingMp.settlementType, notes: editingMp.notes,
+          isActive: editingMp.isActive,
+        }
+      : { isActive: true };
+    await save.mutateAsync({
+      id: editingMp?.marketProductLinkId ?? null,
+      input: { ...preserved, ...v, marketId: market.marketId, rowVersion: editingMp?.rowVersion ?? 0 },
+    });
+    if (closeAfter || editingMp) closeForm();
+    else form.resetFields();
   }
 
   return (
@@ -171,20 +213,20 @@ function MarketProductsDrawer({ market, onClose }: { market: Market; onClose: ()
       <Drawer mask={false} forceRender
         title={<Space><Tag color="blue">{market.marketCode}</Tag>Products & Periods & Sources</Space>}
         open onClose={onClose} width={760}
-        extra={<Button icon={<PlusOutlined />} type="primary" size="small" onClick={() => setAddOpen(true)}>Link Product</Button>}
+        extra={<Button icon={<PlusOutlined />} type="primary" size="small" onClick={openAdd}>Link Product</Button>}
       >
         <div style={{ marginBottom: 12, fontSize: 12, color: color.textSecondary }}>
           Products listed on {market.marketName}. Click a product to view its valid trading periods and price sources.
         </div>
         <Table
           dataSource={mps}
-          rowKey="marketProductId"
+          rowKey="marketProductLinkId"
           pagination={false}
           size="small"
           loading={isLoading}
           columns={[
             { title: 'Product', dataIndex: 'productCode', width: 140,
-              render: (v: string, r: MarketProduct) => <Tooltip title={r.productName}><Tag color="blue">{v}</Tag></Tooltip> },
+              render: (v: string, r: MarketProductLink) => <Tooltip title={r.productName}><Tag color="blue">{v}</Tag></Tooltip> },
             { title: 'Ticker', dataIndex: 'ticker', width: 100, render: (v: string | null) => v ? <code style={{ fontFamily: 'monospace' }}>{v}</code> : '—' },
             { title: 'CCY', dataIndex: 'currencyCode', width: 70, render: (v: string | null) => v ?? <span style={{ color: color.textSecondary }}>Default</span> },
             { title: 'Lot Size', dataIndex: 'lotSize', width: 90, render: (v: number | null) => v != null ? v.toLocaleString() : '—' },
@@ -192,9 +234,12 @@ function MarketProductsDrawer({ market, onClose }: { market: Market; onClose: ()
               render: (v: number | null) => v != null ? <Tooltip title="Days before delivery month end">{v}d</Tooltip> : '—' },
             { title: 'Active', dataIndex: 'isActive', width: 80, render: (v: boolean) => <ActiveTag active={v} /> },
             {
-              title: '', width: 80,
-              render: (_: unknown, r: MarketProduct) => (
-                <Button size="small" type="link" icon={<LinkOutlined />} onClick={() => setSelectedMp(r)}>Detail</Button>
+              title: '', width: 130,
+              render: (_: unknown, r: MarketProductLink) => (
+                <Space size={4}>
+                  <Button size="small" type="link" icon={<EditOutlined />} onClick={() => openEditMp(r)} />
+                  <Button size="small" type="link" icon={<LinkOutlined />} onClick={() => setSelectedMp(r)}>Detail</Button>
+                </Space>
               ),
             },
           ]}
@@ -202,6 +247,7 @@ function MarketProductsDrawer({ market, onClose }: { market: Market; onClose: ()
 
         {addOpen && (
           <div style={{ marginTop: 16, padding: 16, border: `1px solid ${color.border}`, borderRadius: 6 }}>
+            <div style={{ marginBottom: 8, fontWeight: 500 }}>{editingMp ? `Editing ${editingMp.productCode}` : 'Link a new product'}</div>
             <Form form={form} layout="vertical">
               <Space style={{ width: '100%', gap: 12 }}>
                 <Form.Item name="productId" label={hint('Product', 'The product being listed on this market. Market-specific attributes below (ticker, lot size) override the product defaults.')} rules={[{ required: true }]} style={{ flex: 1 }}>
@@ -226,10 +272,24 @@ function MarketProductsDrawer({ market, onClose }: { market: Market; onClose: ()
                   <InputNumber style={{ width: '100%' }} placeholder="2" min={0} max={8} />
                 </Form.Item>
               </Space>
+              <Space style={{ width: '100%', gap: 12 }}>
+                <Form.Item name="mtmPriceSourceId" label={hint('MTM Price Source', 'Primary mark-to-market price source for this listing.')} style={{ flex: 1 }}>
+                  <Select allowClear showSearch optionFilterProp="label" options={priceSourceOpts} placeholder="Select source" />
+                </Form.Item>
+                <Form.Item name="altPriceSourceId" label={hint('Alternate Price Source', 'Backup/reference price source used if the primary MTM source is unavailable.')} style={{ flex: 1 }}>
+                  <Select allowClear showSearch optionFilterProp="label" options={priceSourceOpts} placeholder="Select source" />
+                </Form.Item>
+              </Space>
               <Space>
-                <Button onClick={() => { void submit(false); }} loading={save.isPending} size="small">Add & Next</Button>
-                <Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending} size="small">Add & Close</Button>
-                <Button size="small" onClick={() => { setAddOpen(false); form.resetFields(); }}>Cancel</Button>
+                {editingMp ? (
+                  <Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending} size="small">Save</Button>
+                ) : (
+                  <>
+                    <Button onClick={() => { void submit(false); }} loading={save.isPending} size="small">Add & Next</Button>
+                    <Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending} size="small">Add & Close</Button>
+                  </>
+                )}
+                <Button size="small" onClick={closeForm}>Cancel</Button>
               </Space>
             </Form>
           </div>
@@ -246,10 +306,19 @@ export function MarketsPage() {
   const { data, isLoading, refetch } = useMarkets();
   const save = useSaveMarket();
   const deactivate = useDeactivateMarket();
-  const { data: countries = [] } = useCountries();
-  const countryOptions = countries.map((c) => ({ value: c.countryId, label: `${c.countryCode} — ${c.countryName}` }));
   const { data: exchanges = [] } = useExchanges();
   const exchangeOptions = exchanges.map((e) => ({ value: e.exchangeId, label: `${e.exchangeCode} — ${e.exchangeName}` }));
+  const { data: currencies = [] } = useCurrencies();
+  const currencyOptions = currencies.map((c) => ({ value: c.currencyId, label: `${c.currencyCode} — ${c.currencyName}` }));
+  // V165 — clearing_house went from free-text to an FK into dbo.counterparty
+  // (new CLEARING_HOUSE counterparty_type) — resolve the type id by label
+  // rather than hardcoding it, since it's assigned by IDENTITY at migration time.
+  const { data: cpTypeOptions = [] } = useCustomConfigOptions('COUNTERPARTY_TYPE');
+  const { data: counterparties = [] } = useCounterparties();
+  const clearingHouseTypeId = cpTypeOptions.find((o) => o.label === 'Clearing House (CCP)')?.value;
+  const clearingHouseOptions = counterparties
+    .filter((c) => c.cpType === clearingHouseTypeId)
+    .map((c) => ({ value: c.counterpartyId, label: c.legalName }));
   const [editOpen, setEditOpen] = useState(false);
   const [detailMarket, setDetailMarket] = useState<Market | null>(null);
   const [editing, setEditing] = useState<Market | null>(null);
@@ -262,10 +331,10 @@ export function MarketsPage() {
     form.setFieldsValue({
       exchangeId: m.exchangeId, commodityType: m.commodityType, marketCode: m.marketCode,
       marketName: m.marketName, marketType: m.marketType, settlementType: m.settlementType,
-      currencyCode: m.currencyCode, timezone: m.timezone, countryId: m.countryId ?? undefined,
-      clearingHouse: m.clearingHouse ?? undefined, contractSize: m.contractSize,
-      contractUomCode: m.contractUomCode ?? undefined, priceQuotation: m.priceQuotation ?? undefined,
-      tickSize: m.tickSize, isActive: m.isActive,
+      currencyId: m.currencyId, timezone: m.timezone,
+      clearingHouseId: m.clearingHouseId ?? undefined,
+      priceQuotation: m.priceQuotation ?? undefined,
+      isActive: m.isActive,
     });
     setEditOpen(true);
   }
@@ -286,9 +355,7 @@ export function MarketsPage() {
     { field: 'marketType', headerName: 'Type', width: 130, cellRenderer: (p: { value: MarketType }) => <Tag color={MKT_TYPE_COLOR[p.value] ?? 'default'}>{p.value.replace('_', ' ')}</Tag> },
     { field: 'settlementType', headerName: 'Settlement', width: 110, cellRenderer: (p: { value: SettlementTypeMkt }) => <Tag color={SETTLE_COLOR[p.value] ?? 'default'}>{p.value}</Tag> },
     { field: 'currencyCode', headerName: 'CCY', width: 75, cellClass: 'cell-mono' },
-    { field: 'clearingHouse', headerName: 'Clearing House', width: 140, valueFormatter: (p) => p.value ?? 'Bilateral' },
-    { field: 'tickSize', headerName: 'Tick', width: 80, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—',
-      tooltipValueGetter: () => 'Minimum price movement — determines P&L sensitivity per tick' },
+    { field: 'clearingHouseName', headerName: 'Clearing House', width: 160, valueFormatter: (p) => p.value ?? 'Bilateral' },
     { field: 'priceQuotation', headerName: 'Quotation', flex: 1, valueFormatter: (p) => p.value ?? '—' },
     { field: 'isActive', headerName: 'Status', width: 100, cellRenderer: (p: { value: boolean }) => <ActiveTag active={p.value} /> },
     {
@@ -353,30 +420,16 @@ export function MarketsPage() {
             <Form.Item name="exchangeId" label={hint('Exchange', 'Optional — link to Exchange master data. Leave blank for OTC/bilateral markets with no formal exchange listing.')} style={{ flex: 1 }}>
               <Select allowClear showSearch optionFilterProp="label" options={exchangeOptions} placeholder="Select exchange" />
             </Form.Item>
-            <Form.Item name="currencyCode" label={hint('Currency', 'Market quoting currency. Most crude oil markets: USD. European gas/power: EUR. UK gas: GBP. LME base metals: USD.', 'USD, EUR, GBP')} rules={[{ required: true }]} style={{ flex: 1 }}>
-              <Input placeholder="USD" maxLength={3} style={{ fontFamily: 'monospace', textTransform: 'uppercase' }} />
-            </Form.Item>
-            <Form.Item name="countryId" label="Country" style={{ flex: 1 }}>
-              <Select options={countryOptions} showSearch optionFilterProp="label" allowClear placeholder="Select country" />
+            <Form.Item name="currencyId" label={hint('Currency', 'Market quoting currency. Most crude oil markets: USD. European gas/power: EUR. UK gas: GBP. LME base metals: USD.', 'USD, EUR, GBP')} rules={[{ required: true }]} style={{ flex: 1 }}>
+              <Select showSearch optionFilterProp="label" options={currencyOptions} placeholder="Select currency" />
             </Form.Item>
           </Space>
           <Form.Item name="timezone" label={hint('Timezone', 'IANA timezone for market hours, session open/close, and last trading day calculations.', 'Europe/London, America/New_York, Asia/Singapore')} rules={[{ required: true }]}>
             <Input placeholder="Europe/London" />
           </Form.Item>
-          <Form.Item name="clearingHouse" label={hint('Clearing House (CCP)', 'Central counterparty that clears trades on this market. Required for EXCHANGE and OTC_CLEARED. Absent for OTC_BILATERAL where both parties bear full counterparty credit risk.', 'ICE Clear Europe, LCH, CME Clearing')}>
-            <Input placeholder="ICE Clear Europe" />
+          <Form.Item name="clearingHouseId" label={hint('Clearing House (CCP)', 'Central counterparty that clears trades on this market. Required for EXCHANGE and OTC_CLEARED. Absent for OTC_BILATERAL where both parties bear full counterparty credit risk. Modeled as a Counterparty (Clearing House type) — register one there first if it\'s missing here.', 'ICE Clear Europe, LCH, CME Clearing')}>
+            <Select allowClear showSearch optionFilterProp="label" options={clearingHouseOptions} placeholder="Select clearing house" />
           </Form.Item>
-          <Space style={{ width: '100%', gap: 12 }}>
-            <Form.Item name="contractSize" label={hint('Contract Size', 'Standard lot size for exchange contracts. NYMEX WTI: 1,000 BBL. ICE Brent: 1,000 BBL. LME Copper: 25 MT. EEX Power: 1 MW/h.', '1000')} style={{ flex: 1 }}>
-              <InputNumber style={{ width: '100%' }} placeholder="1000" />
-            </Form.Item>
-            <Form.Item name="contractUomCode" label="Contract UoM" style={{ flex: 1 }}>
-              <Input placeholder="BBL" style={{ fontFamily: 'monospace' }} />
-            </Form.Item>
-            <Form.Item name="tickSize" label={hint('Tick Size', 'Minimum price movement. NYMEX WTI: $0.01/BBL. LME Copper: $0.50/MT. Power: €0.01/MWh. Determines minimum P&L step.', '0.01')} style={{ flex: 1 }}>
-              <InputNumber style={{ width: '100%' }} placeholder="0.01" step={0.01} />
-            </Form.Item>
-          </Space>
           <Form.Item name="priceQuotation" label={hint('Price Quotation', 'How prices are quoted — used for display and confirmations.', 'USD per barrel, EUR per MWh, USD per metric tonne')}>
             <Input placeholder="USD per barrel" />
           </Form.Item>

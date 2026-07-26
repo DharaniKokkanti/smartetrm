@@ -14,7 +14,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /** commodity_id resolves to the frontend's plain commodityType string via CommodityTypeMapping — see PriceIndex.java's doc comment. */
@@ -76,29 +75,28 @@ public class Market extends AuditableEntity {
     @Column(name = "timezone", nullable = false, length = 50)
     private String timezone;
 
-    @Column(name = "country_id")
-    private Integer countryId;
-
-    @Size(max = 100)
-    @Column(name = "clearing_house", length = 100)
-    private String clearingHouse;
-
-    @Column(name = "contract_size")
-    private BigDecimal contractSize;
-
-    @Column(name = "contract_uom_id")
-    private Integer contractUomId;
+    // V165 — country_id dropped (redundant with dbo.exchange.country_id for
+    // EXCHANGE-type markets, the only case exchange_id is populated);
+    // contract_size/tick_size dropped (redundant with V161's
+    // derivative_contract_specification, scoped per instrument, and
+    // market_product_link.lot_size, scoped per listing); clearing_house
+    // (free-text VARCHAR) replaced by clearing_house_id — a CCP is a real
+    // legal entity (credit/membership exposure), modeled via dbo.counterparty
+    // (new CLEARING_HOUSE counterparty_type) rather than a bespoke master
+    // table. Stays on market rather than moving to exchange: OTC_CLEARED
+    // markets have no exchange_id at all, so this is the only place a CCP
+    // fact can live for them. V166 — contract_uom_id also dropped: its only
+    // purpose was describing contract_size, orphaned once that was dropped.
+    @Column(name = "clearing_house_id")
+    private Integer clearingHouseId;
 
     @Transient
     @JsonProperty
-    private String contractUomCode;
+    private String clearingHouseName;
 
     @Size(max = 100)
     @Column(name = "price_quotation", length = 100)
     private String priceQuotation;
-
-    @Column(name = "tick_size")
-    private BigDecimal tickSize;
 
     @Column(name = "go_live_date")
     private LocalDate goLiveDate;
@@ -220,44 +218,20 @@ public class Market extends AuditableEntity {
         this.timezone = timezone;
     }
 
-    public Integer getCountryId() {
-        return countryId;
+    public Integer getClearingHouseId() {
+        return clearingHouseId;
     }
 
-    public void setCountryId(Integer countryId) {
-        this.countryId = countryId;
+    public void setClearingHouseId(Integer clearingHouseId) {
+        this.clearingHouseId = clearingHouseId;
     }
 
-    public String getClearingHouse() {
-        return clearingHouse;
+    public String getClearingHouseName() {
+        return clearingHouseName;
     }
 
-    public void setClearingHouse(String clearingHouse) {
-        this.clearingHouse = clearingHouse;
-    }
-
-    public BigDecimal getContractSize() {
-        return contractSize;
-    }
-
-    public void setContractSize(BigDecimal contractSize) {
-        this.contractSize = contractSize;
-    }
-
-    public Integer getContractUomId() {
-        return contractUomId;
-    }
-
-    public void setContractUomId(Integer contractUomId) {
-        this.contractUomId = contractUomId;
-    }
-
-    public String getContractUomCode() {
-        return contractUomCode;
-    }
-
-    public void setContractUomCode(String contractUomCode) {
-        this.contractUomCode = contractUomCode;
+    public void setClearingHouseName(String clearingHouseName) {
+        this.clearingHouseName = clearingHouseName;
     }
 
     public String getPriceQuotation() {
@@ -266,14 +240,6 @@ public class Market extends AuditableEntity {
 
     public void setPriceQuotation(String priceQuotation) {
         this.priceQuotation = priceQuotation;
-    }
-
-    public BigDecimal getTickSize() {
-        return tickSize;
-    }
-
-    public void setTickSize(BigDecimal tickSize) {
-        this.tickSize = tickSize;
     }
 
     public LocalDate getGoLiveDate() {

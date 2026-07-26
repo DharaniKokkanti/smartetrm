@@ -30,13 +30,13 @@ public class MarketProductPeriodService {
     }
 
     @Transactional(readOnly = true)
-    public List<MarketProductPeriod> list(Integer marketProductId) {
-        return repository.findByMarketProductId(marketProductId).stream().map(this::hydrate).toList();
+    public List<MarketProductPeriod> list(Integer marketProductLinkId) {
+        return repository.findByMarketProductLinkId(marketProductLinkId).stream().map(this::hydrate).toList();
     }
 
-    public MarketProductPeriod add(Integer marketProductId, Integer periodId) {
+    public MarketProductPeriod add(Integer marketProductLinkId, Long periodId) {
         MarketProductPeriod mpp = new MarketProductPeriod();
-        mpp.setMarketProductId(marketProductId);
+        mpp.setMarketProductLinkId(marketProductLinkId);
         mpp.setPeriodId(periodId);
         mpp.setIsActive(true);
         mpp.setDatesPopulatedAt(LocalDateTime.now());

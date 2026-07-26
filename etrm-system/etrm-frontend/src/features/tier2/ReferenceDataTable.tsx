@@ -37,6 +37,8 @@ import { useLegalEntities } from '@features/tier1/legal-entity/hooks';
 import { useProducts } from '@features/markets/products/hooks';
 import { useStorageFacilities } from '@features/logistics/storage/hooks';
 import { useVessels } from '@features/logistics/vessels/hooks';
+import { useMarketProductLinkOptions } from '@features/calendar/periods/hooks';
+import { useUom } from '@features/reference/uom/hooks';
 import { ExcelUploadModal } from './ExcelUploadModal';
 import { useAuthStore } from '@store/authStore';
 import { color } from '@theme/tokens';
@@ -116,7 +118,7 @@ const ISO_3166_COLS = new Set(['countryCode', 'jurisdictionCode', 'incorporation
  *  comment below for why these need a real /api/v1/... fetch instead of the
  *  generic /reference-data/:table mechanism every other foreign_key column uses. */
 const DEDICATED_ENTITY_FK_TABLES = new Set([
-  'counterparty', 'location', 'holiday_calendar', 'legal_entity', 'product', 'storage_facility', 'vessel',
+  'counterparty', 'location', 'holiday_calendar', 'legal_entity', 'product', 'storage_facility', 'vessel', 'market_product_link', 'unit_of_measure',
 ]);
 
 /** Extra validation rules injected for globally-standardised codes */
@@ -415,12 +417,16 @@ export function ReferenceDataTable({ table }: Props) {
   // Tier2-registered tables (some pre-existing, e.g. generation_asset/
   // transmission_zone -> location; some new, e.g. port_activity_template ->
   // location) with a FK into one of these dedicated entities, every one of
-  // them silently broken the same way. `payment_term` and `unit_of_measure`
-  // are excluded here on purpose — neither has a real backend controller at
-  // all yet (confirmed via a live request: both 404 as NoResourceFoundException,
-  // surfaced as a 500 by GlobalExceptionHandler's catch-all), a separate,
-  // pre-existing gap this fix can't paper over — their FK dropdowns stay
-  // empty until that future controller work lands.
+  // them silently broken the same way. `unit_of_measure` has a real
+  // controller (/api/v1/uom) and is now included above — a prior version of
+  // this comment claimed it 404'd, which was stale by the time
+  // derivative_contract_specification's price_uom_id/lot_uom_id (V164) added
+  // new FK columns into it. `payment_term` is still excluded on purpose: it
+  // has no real backend controller at all yet (confirmed via a live request:
+  // 404 as NoResourceFoundException, surfaced as a 500 by
+  // GlobalExceptionHandler's catch-all), a separate, pre-existing gap this
+  // fix can't paper over — its FK dropdowns stay empty until that future
+  // controller work lands.
   const fkTables = useMemo(
     () => Array.from(new Set(editableColumns.filter((c) => c.kind === 'foreign_key' && c.foreignKeyTable && c.foreignKeyTable !== 'country' && !DEDICATED_ENTITY_FK_TABLES.has(c.foreignKeyTable)).map((c) => c.foreignKeyTable as string))),
     [editableColumns],
@@ -483,6 +489,8 @@ export function ReferenceDataTable({ table }: Props) {
   const { data: productRows = [] } = useProducts();
   const { data: storageFacilityRows = [] } = useStorageFacilities();
   const { data: vesselRows = [] } = useVessels();
+  const { data: marketProductLinkRows = [] } = useMarketProductLinkOptions();
+  const { data: uomRows = [] } = useUom();
   const dedicatedEntityFkOptions = useMemo<Record<string, { value: number; label: string }[]>>(() => ({
     counterparty: counterpartyRows.map((c) => ({ value: c.counterpartyId, label: c.legalName })),
     location: locationRows.map((l) => ({ value: l.locationId, label: l.locationName })),
@@ -491,7 +499,12 @@ export function ReferenceDataTable({ table }: Props) {
     product: productRows.map((p) => ({ value: p.productId, label: p.productName })),
     storage_facility: storageFacilityRows.map((s) => ({ value: s.storageId, label: s.storageName })),
     vessel: vesselRows.map((v) => ({ value: v.vesselId, label: v.vesselName })),
-  }), [counterpartyRows, locationRows, holidayCalendarRows, legalEntityRows, productRows, storageFacilityRows, vesselRows]);
+    market_product_link: marketProductLinkRows.map((m) => ({
+      value: m.marketProductLinkId,
+      label: `${m.marketCode ?? '—'} / ${m.productCode ?? '—'}`,
+    })),
+    unit_of_measure: uomRows.map((u) => ({ value: u.uomId, label: `${u.uomCode} — ${u.uomName}` })),
+  }), [counterpartyRows, locationRows, holidayCalendarRows, legalEntityRows, productRows, storageFacilityRows, vesselRows, marketProductLinkRows, uomRows]);
 
   const fkOptions = useMemo(() => {
     const map: Record<string, { value: number; label: string }[]> = {};

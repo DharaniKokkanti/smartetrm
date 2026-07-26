@@ -215,7 +215,7 @@ function MarketsTab({ productId }: { productId: number }) {
         columns={cols}
         dataSource={data}
         loading={isLoading}
-        rowKey="marketProductId"
+        rowKey="marketProductLinkId"
         pagination={false}
         locale={{ emptyText: 'Not listed on any market.' }}
         footer={() => (
@@ -974,9 +974,6 @@ export function ProductsPage() {
       isOtc:                  p.isOtc,
       isBlend:                p.isBlend,
       blendNotes:             p.blendNotes ?? undefined,
-      lotSize:                p.lotSize ?? undefined,
-      minQuantity:            p.minQuantity ?? undefined,
-      maxQuantity:            p.maxQuantity ?? undefined,
       description:            p.description ?? undefined,
       isActive:               p.isActive,
       // Pricing basis
@@ -1065,10 +1062,6 @@ export function ProductsPage() {
         return count > 0 ? <Tag icon={<GlobalOutlined />} color="default">{count} link{count > 1 ? 's' : ''}</Tag> : null;
       },
     },
-    {
-      field: 'lotSize', headerName: 'Lot Size', width: 110, cellClass: 'cell-mono',
-      valueFormatter: (p) => p.value != null ? Number(p.value).toLocaleString() : '—',
-    },
     { field: 'isActive', headerName: 'Status', width: 100, cellRenderer: (p: { value: boolean }) => <ActiveTag active={p.value} /> },
     {
       headerName: '', width: 90, sortable: false, filter: false, pinned: 'right',
@@ -1147,23 +1140,6 @@ export function ProductsPage() {
             </Form.Item>
             <Form.Item name="defaultIncotermCode" label={hint('Default Incoterm', 'ICC-standard delivery term (e.g. FOB, CIF, DAP) that pre-fills new deals — defines the point where risk/cost transfers.')} style={{ flex: 1 }}>
               <Input placeholder="FOB" style={{ fontFamily: 'monospace', width: 90 }} maxLength={10} />
-            </Form.Item>
-          </Space>
-
-          {/* ── Quantity constraints ──────────────────────────────────────── */}
-          <Divider orientation="left" orientationMargin={0} style={{ fontSize: 12, color: color.textSecondary, marginBottom: 12 }}>
-            Quantity Constraints
-          </Divider>
-          <Space style={{ width: '100%' }} size={12}>
-            <Form.Item name="lotSize" label={hint('Lot Size', 'Minimum tradeable unit. NYMEX WTI = 1,000 BBL. LME Copper = 25 MT.', '1000')} style={{ flex: 1 }}>
-              <InputNumber style={{ width: '100%' }} placeholder="1000"
-                formatter={(v) => `${v ?? ''}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
-            </Form.Item>
-            <Form.Item name="minQuantity" label="Min Quantity" style={{ flex: 1 }}>
-              <InputNumber style={{ width: '100%' }} placeholder="500" />
-            </Form.Item>
-            <Form.Item name="maxQuantity" label="Max Quantity" style={{ flex: 1 }}>
-              <InputNumber style={{ width: '100%' }} placeholder="5000000" />
             </Form.Item>
           </Space>
 
