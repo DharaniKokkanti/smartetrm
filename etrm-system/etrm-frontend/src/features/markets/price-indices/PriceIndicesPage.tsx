@@ -8,17 +8,12 @@ import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import { usePriceIndices, useSavePriceIndex, useDeactivatePriceIndex } from './hooks';
 import { PUBLICATION_SOURCES, type PriceIndex, type PriceIndexInput } from './types';
-import { COMMODITY_TYPES, type CommodityType } from '@features/reference/commodity-types/types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AuditInfo } from '@components/smart/AuditInfo';
 
 const SOURCE_COLOR: Record<string, string> = {
   PLATTS: 'blue', ARGUS: 'cyan', ICE: 'purple', LME: 'gold',
   BLOOMBERG: 'orange', REUTERS: 'geekblue', NYMEX: 'magenta', INTERNAL: 'default',
-};
-const COMMODITY_COLOR: Record<CommodityType, string> = {
-  OIL: 'volcano', GAS: 'blue', POWER: 'gold', METALS: 'purple', AGRICULTURAL: 'green',
-  LNG: 'cyan', FREIGHT: 'orange', RINS: 'lime', ENVIRONMENTAL: 'geekblue', MULTI: 'magenta', OTHER: 'default',
 };
 
 export function PriceIndicesPage() {
@@ -27,19 +22,13 @@ export function PriceIndicesPage() {
   const deactivate = useDeactivatePriceIndex();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<PriceIndex | null>(null);
-  const [activeCommodity, setActiveCommodity] = useState<'ALL' | CommodityType>('ALL');
   const [form] = Form.useForm<PriceIndexInput>();
   useFormDraft('markets-price-indices', { form, open, setOpen, editing, setEditing });
-
-  const filtered = useMemo(
-    () => (data ?? []).filter((p) => activeCommodity === 'ALL' || p.commodityType === activeCommodity),
-    [data, activeCommodity],
-  );
 
   function openNew() { setEditing(null); form.resetFields(); form.setFieldValue('isActive', true); setOpen(true); }
   function openEdit(p: PriceIndex) {
     setEditing(p);
-    form.setFieldsValue({ indexCode: p.indexCode, indexName: p.indexName, commodityType: p.commodityType, currencyCode: p.currencyCode, uomCode: p.uomCode, publicationSource: p.publicationSource, fixingTime: p.fixingTime ?? undefined, fixingTimezone: p.fixingTimezone ?? undefined, publishedPage: p.publishedPage ?? undefined, isActive: p.isActive });
+    form.setFieldsValue({ indexCode: p.indexCode, indexName: p.indexName, currencyCode: p.currencyCode, uomCode: p.uomCode, publicationSource: p.publicationSource, fixingTime: p.fixingTime ?? undefined, fixingTimezone: p.fixingTimezone ?? undefined, publishedPage: p.publishedPage ?? undefined, isActive: p.isActive });
     setOpen(true);
   }
   async function submit(closeAfter = true) {
@@ -52,7 +41,6 @@ export function PriceIndicesPage() {
     { field: 'indexCode', headerName: 'Index Code', cellClass: 'cell-mono', width: 170, pinned: 'left',
       tooltipValueGetter: () => 'Unique code identifying this benchmark — used in pricing formulas, pricing rules, and market data feeds' },
     { field: 'indexName', headerName: 'Index Name', flex: 1.4, minWidth: 220 },
-    { field: 'commodityType', headerName: 'Commodity', width: 120, cellRenderer: (p: { value: CommodityType }) => <Tag color={COMMODITY_COLOR[p.value]}>{p.value}</Tag> },
     {
       field: 'publicationSource', headerName: 'Source', width: 110,
       tooltipValueGetter: () => 'Data vendor that publishes this index — Platts (S&P Global Commodity Insights), Argus, ICE, LME, Bloomberg, Reuters/Refinitiv',
@@ -84,9 +72,8 @@ export function PriceIndicesPage() {
   return (
     <>
       <PageHeader title="Price Indices" description="Market benchmark indices — Platts, Argus, ICE, LME and internal curves used in pricing formulas, MTM, and settlement." moduleGroup="markets" />
-      <SmartGrid columnDefs={colDefs} rowData={filtered} loading={isLoading}
+      <SmartGrid columnDefs={colDefs} rowData={data ?? []} loading={isLoading}
         onAdd={openNew} addLabel="New Index"
-        commodityFilter activeCommodity={activeCommodity} onCommodityChange={(c) => setActiveCommodity(c as 'ALL' | CommodityType)}
         onRefresh={() => { void refetch(); }}
         getRowId={(p) => String(p.data.priceIndexId)} />
 
@@ -98,9 +85,6 @@ export function PriceIndicesPage() {
           </Form.Item>
           <Form.Item name="indexName" label={hint('Index Name', 'Full descriptive name as published by the price reporting agency.', 'Dated Brent Crude Oil')} rules={[{ required: true }]}>
             <Input placeholder="Dated Brent Crude Oil" />
-          </Form.Item>
-          <Form.Item name="commodityType" label={hint('Commodity', 'Commodity class this index prices. Determines which products can use this index in pricing rules.')} rules={[{ required: true }]}>
-            <Select options={COMMODITY_TYPES.map((c) => ({ label: c, value: c }))} />
           </Form.Item>
           <Form.Item name="publicationSource" label={hint('Publication Source', 'Price reporting agency or exchange that publishes and maintains this index. PLATTS = S&P Global Commodity Insights; ARGUS = Argus Media; LME = London Metal Exchange official settlement.', 'PLATTS')} rules={[{ required: true }]}>
             <Select options={PUBLICATION_SOURCES.map((s) => ({ label: s, value: s }))} />

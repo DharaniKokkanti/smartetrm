@@ -23,9 +23,10 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 /**
- * commodity_id resolves to the frontend's plain commodityType string via
- * CommodityTypeMapping (dbo.commodity has exactly 5 rows — see that class's
- * doc comment). created_at added by V101 (table had zero audit columns);
+ * commodity_id was dropped by V172 — it was classification/reporting only,
+ * never part of the real resolution chain (period -> market_product_link ->
+ * price_index_source -> price_index; see period.price_index_id doc below).
+ * created_at added by V101 (table had zero audit columns);
  * created_by/updated_at/updated_by added by V149 — see GlAccount.java's
  * doc comment for the general pattern.
  * publicationFrequency/pnodeId/priceType added by V168, publicationFrequency
@@ -57,12 +58,6 @@ public class PriceIndex {
     @Version
     @Column(name = "row_version", nullable = false)
     private Integer rowVersion;
-
-    @Column(name = "commodity_id")
-    private Integer commodityId;
-
-    @Transient
-    private String commodityType;
 
     @NotBlank
     @Size(max = 30)
@@ -156,24 +151,6 @@ public class PriceIndex {
 
     public void setRowVersion(Integer rowVersion) {
         this.rowVersion = rowVersion;
-    }
-
-    public Integer getCommodityId() {
-        return commodityId;
-    }
-
-    public void setCommodityId(Integer commodityId) {
-        this.commodityId = commodityId;
-    }
-
-    @JsonProperty("commodityType")
-    public String getCommodityType() {
-        return commodityType;
-    }
-
-    @JsonProperty("commodityType")
-    public void setCommodityType(String commodityType) {
-        this.commodityType = commodityType;
     }
 
     public String getIndexCode() {

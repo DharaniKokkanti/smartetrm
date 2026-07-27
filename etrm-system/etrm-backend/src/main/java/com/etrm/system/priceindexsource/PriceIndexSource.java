@@ -33,6 +33,12 @@ import java.time.LocalDateTime;
  * sourceCode/sourceName hydrated from PriceSource — see
  * PriceIndexSourceService.hydrate(). source_role is a plain
  * CHECK-constrained string, not an FK.
+ * marketProductLinkId added by V172 — the same price_index can be fed a
+ * different vendor ticker per listing, so market_product_link is the master
+ * scope for a source mapping row, not price_index itself (which dropped its
+ * commodity_id in the same migration — see PriceIndex.java's doc comment).
+ * marketCode/productCode hydrated the same way Period.java resolves its own
+ * marketProductLinkId (market_product_link -> product/market).
  */
 @Entity
 @Table(name = "price_index_source")
@@ -60,6 +66,18 @@ public class PriceIndexSource {
     @Transient
     @JsonProperty
     private String priceIndexName;
+
+    @NotNull
+    @Column(name = "market_product_link_id", nullable = false)
+    private Integer marketProductLinkId;
+
+    @Transient
+    @JsonProperty
+    private String marketCode;
+
+    @Transient
+    @JsonProperty
+    private String productCode;
 
     @NotNull
     @Column(name = "price_source_id", nullable = false)
@@ -167,6 +185,30 @@ public class PriceIndexSource {
 
     public void setPriceIndexName(String priceIndexName) {
         this.priceIndexName = priceIndexName;
+    }
+
+    public Integer getMarketProductLinkId() {
+        return marketProductLinkId;
+    }
+
+    public void setMarketProductLinkId(Integer marketProductLinkId) {
+        this.marketProductLinkId = marketProductLinkId;
+    }
+
+    public String getMarketCode() {
+        return marketCode;
+    }
+
+    public void setMarketCode(String marketCode) {
+        this.marketCode = marketCode;
+    }
+
+    public String getProductCode() {
+        return productCode;
+    }
+
+    public void setProductCode(String productCode) {
+        this.productCode = productCode;
     }
 
     public Integer getPriceSourceId() {

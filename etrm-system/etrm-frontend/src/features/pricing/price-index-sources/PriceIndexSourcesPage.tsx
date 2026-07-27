@@ -11,6 +11,7 @@ import { hint } from '@components/smart/FieldHint';
 import { useFormDraft } from '@components/smart/formDraft';
 import { usePriceIndices } from '@features/markets/price-indices/hooks';
 import { usePriceSources } from '@features/pricing/price-sources/hooks';
+import { useMarketProductLinkOptions } from '@features/calendar/periods/hooks';
 import { usePriceIndexSources, useSavePriceIndexSource, useDeactivatePriceIndexSource } from './hooks';
 import { SOURCE_ROLES, type PriceIndexSource, type PriceIndexSourceInput } from './types';
 
@@ -22,6 +23,7 @@ export function PriceIndexSourcesPage() {
   const { data = [], isLoading, refetch } = usePriceIndexSources();
   const { data: priceIndices = [] } = usePriceIndices();
   const { data: priceSources = [] } = usePriceSources();
+  const { data: marketProductLinks = [] } = useMarketProductLinkOptions();
   const save = useSavePriceIndexSource();
   const deactivate = useDeactivatePriceIndexSource();
 
@@ -78,9 +80,20 @@ export function PriceIndexSourcesPage() {
     [priceSources],
   );
 
+  const marketProductLinkOpts = useMemo(
+    () => marketProductLinks.map((mp) => ({
+      value: mp.marketProductLinkId, label: `${mp.marketCode ?? '—'} / ${mp.productCode ?? '—'}`,
+    })),
+    [marketProductLinks],
+  );
+
   const colDefs = useMemo<ColDef<PriceIndexSource>[]>(() => [
     { field: 'priceIndexCode', headerName: 'Price Index', width: 130, pinned: 'left', cellClass: 'cell-mono' },
     { field: 'priceIndexName', headerName: 'Index Name', flex: 1.2, minWidth: 180 },
+    {
+      headerName: 'Market / Product', width: 170, cellClass: 'cell-mono',
+      valueGetter: (p) => `${p.data?.marketCode ?? '—'} / ${p.data?.productCode ?? '—'}`,
+    },
     { field: 'sourceCode', headerName: 'Source', width: 120, cellClass: 'cell-mono' },
     { field: 'sourceName', headerName: 'Source Name', flex: 1, minWidth: 160 },
     {
@@ -143,6 +156,13 @@ export function PriceIndexSourcesPage() {
         <Form form={form} layout="vertical">
           <Form.Item name="priceIndexId" label="Price Index" rules={[{ required: true }]}>
             <Select options={priceIndexOpts} showSearch optionFilterProp="label" placeholder="Select price index" />
+          </Form.Item>
+          <Form.Item
+            name="marketProductLinkId"
+            label={hint('Market / Product Listing', 'The specific listing this source mapping applies to — the same price index can be fed a different vendor ticker per listing.')}
+            rules={[{ required: true }]}
+          >
+            <Select options={marketProductLinkOpts} showSearch optionFilterProp="label" placeholder="Select market / product listing" />
           </Form.Item>
           <Form.Item name="priceSourceId" label="Price Source" rules={[{ required: true }]}>
             <Select options={priceSourceOpts} showSearch optionFilterProp="label" placeholder="Select price source" />

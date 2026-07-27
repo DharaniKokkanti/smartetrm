@@ -6,6 +6,9 @@ export interface PriceIndexSource {
   priceIndexId: number;
   priceIndexCode: string;
   priceIndexName: string;
+  marketProductLinkId: number;
+  marketCode: string | null;
+  productCode: string | null;
   priceSourceId: number;
   sourceCode: string;
   sourceName: string;
@@ -22,5 +25,5 @@ export interface PriceIndexSource {
 
 export type PriceIndexSourceInput = Omit<
   PriceIndexSource,
-  'pisId' | 'priceIndexCode' | 'priceIndexName' | 'sourceCode' | 'sourceName'
+  'pisId' | 'priceIndexCode' | 'priceIndexName' | 'marketCode' | 'productCode' | 'sourceCode' | 'sourceName'
 >;

@@ -1,7 +1,5 @@
 package com.etrm.system.priceindex;
 
-import com.etrm.system.commodity.CommodityRepository;
-import com.etrm.system.commodity.CommodityTypeMapping;
 import com.etrm.system.common.ConflictException;
 import com.etrm.system.common.NotFoundException;
 import com.etrm.system.currency.CurrencyRepository;
@@ -16,38 +14,20 @@ import java.util.List;
 public class PriceIndexService {
 
     private final PriceIndexRepository repository;
-    private final CommodityRepository commodityRepository;
     private final CurrencyRepository currencyRepository;
     private final UnitOfMeasureRepository uomRepository;
 
-    public PriceIndexService(PriceIndexRepository repository, CommodityRepository commodityRepository,
+    public PriceIndexService(PriceIndexRepository repository,
                               CurrencyRepository currencyRepository, UnitOfMeasureRepository uomRepository) {
         this.repository = repository;
-        this.commodityRepository = commodityRepository;
         this.currencyRepository = currencyRepository;
         this.uomRepository = uomRepository;
     }
 
     private PriceIndex hydrate(PriceIndex pi) {
-        if (pi.getCommodityId() != null) {
-            commodityRepository.findById(pi.getCommodityId())
-                    .ifPresent(c -> pi.setCommodityType(CommodityTypeMapping.codeToType(c.getCommodityCode())));
-        }
         currencyRepository.findById(pi.getCurrencyId()).ifPresent(c -> pi.setCurrencyCode(c.getCurrencyCode()));
         uomRepository.findById(pi.getUomId()).ifPresent(u -> pi.setUomCode(u.getUomCode()));
         return pi;
-    }
-
-    private void resolveForeignKeys(PriceIndex input) {
-        if (input.getCommodityType() != null) {
-            String code = CommodityTypeMapping.typeToCode(input.getCommodityType());
-            if (code == null) {
-                throw new NotFoundException("No commodity mapping for type \"" + input.getCommodityType() + "\".");
-            }
-            input.setCommodityId(commodityRepository.findByCommodityCodeIgnoreCase(code)
-                    .orElseThrow(() -> new NotFoundException("No commodity \"" + code + "\"."))
-                    .getCommodityId());
-        }
     }
 
     private void normalizeCodeField(PriceIndex input) {
@@ -64,7 +44,6 @@ public class PriceIndexService {
         if (repository.existsByIndexCodeIgnoreCase(input.getIndexCode())) {
             throw new ConflictException("Index Code \"" + input.getIndexCode() + "\" already exists.");
         }
-        resolveForeignKeys(input);
         input.setPriceIndexId(null);
         return hydrate(repository.save(input));
     }
@@ -73,7 +52,6 @@ public class PriceIndexService {
         PriceIndex existing = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("No price index with id " + id + "."));
         normalizeCodeField(input);
-        resolveForeignKeys(input);
         input.setPriceIndexId(id);
         // created_at/created_by are @CreatedDate/@CreatedBy — JPA auditing
         // only populates those on insert, so the request body never carries
