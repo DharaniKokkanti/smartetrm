@@ -17,7 +17,7 @@ import {
   useMarketProductSources,
 } from './hooks';
 import { MARKET_TYPES, SETTLEMENT_TYPES_MKT, type Market, type MarketInput, type MarketProductLink, type MarketType, type SettlementTypeMkt } from './types';
-import { COMMODITY_TYPES } from '@features/reference/commodity-types/types';
+import { COMMODITY_TYPES, type CommodityType } from '@features/reference/commodity-types/types';
 import { useProducts } from '@features/markets/products/hooks';
 import { usePriceSources } from '@features/pricing/price-sources/hooks';
 import { useFormDraft } from '@components/smart/formDraft';
@@ -322,6 +322,7 @@ export function MarketsPage() {
   const [editOpen, setEditOpen] = useState(false);
   const [detailMarket, setDetailMarket] = useState<Market | null>(null);
   const [editing, setEditing] = useState<Market | null>(null);
+  const [activeCommodity, setActiveCommodity] = useState<'ALL' | CommodityType>('ALL');
   const [form] = Form.useForm<MarketInput>();
   useFormDraft('markets-markets', { form, open: editOpen, setOpen: setEditOpen, editing, setEditing });
 
@@ -374,6 +375,11 @@ export function MarketsPage() {
     },
   ], [deactivate]);
 
+  const filteredMarkets = useMemo(
+    () => (data ?? []).filter((m) => activeCommodity === 'ALL' || m.commodityType === activeCommodity),
+    [data, activeCommodity],
+  );
+
   return (
     <>
       <PageHeader
@@ -382,11 +388,13 @@ export function MarketsPage() {
         moduleGroup="markets"
       />
       <SmartGrid
-        columnDefs={colDefs} rowData={data} loading={isLoading}
+        columnDefs={colDefs} rowData={filteredMarkets} loading={isLoading}
         onAdd={openNew} addLabel="New Market"
         onRefresh={() => { void refetch(); }}
         getRowId={(p) => String(p.data.marketId)}
         commodityFilter
+        activeCommodity={activeCommodity}
+        onCommodityChange={(c) => setActiveCommodity(c as 'ALL' | CommodityType)}
       />
 
       {/* Market detail: products + periods + sources */}

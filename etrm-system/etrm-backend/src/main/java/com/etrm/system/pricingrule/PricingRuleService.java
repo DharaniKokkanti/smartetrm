@@ -12,11 +12,12 @@ import java.util.List;
 
 /**
  * See PricingRule.java's class doc comment for the full list of frontend/DB
- * mismatches this service reconciles (differentialUomCode/
- * pricingCalendarCode/publicationSource/balmoExchange/balmoSeries/
- * balmoTickSize have no DB column and are always null; formulaExpression/
- * averagingMethod are best-effort sourced from the linked formula_template
- * row, not real pricing_rule columns).
+ * mismatches this service reconciles (differentialUomCode/publicationSource/
+ * balmoExchange/balmoSeries/balmoTickSize have no DB column and are always
+ * null; formulaExpression/averagingMethod are best-effort sourced from the
+ * linked formula_template row, not real pricing_rule columns).
+ * pricingCalendarCode is a real column (V167) and round-trips directly —
+ * no hydration needed.
  */
 @Service
 @Transactional

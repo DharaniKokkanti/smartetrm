@@ -1366,6 +1366,11 @@ export function TradeBlotter() {
   const saveTrade = useSaveTrade();
   const cancelTrade = useCancelTrade();
   const confirmTrade = useConfirmTrade();
+  const [activeCommodity, setActiveCommodity] = useState<CommodityTypeTrade | 'ALL'>('ALL');
+  const filteredTrades = useMemo(
+    () => (activeCommodity === 'ALL' ? trades : trades.filter((t) => t.commodityType === activeCommodity)),
+    [trades, activeCommodity],
+  );
 
   // ── Selected trade ──
   const [selectedTradeId, setSelectedTradeId] = useState<number | null>(null);
@@ -1881,13 +1886,15 @@ export function TradeBlotter() {
       {!tradeOpen && (
         <SmartGrid
           columnDefs={tradeColDefs}
-          rowData={trades}
+          rowData={filteredTrades}
           loading={tradesLoading}
           height={360}
           onAdd={openNewTrade}
           addLabel="New Trade"
           onRefresh={() => { void refetch(); }}
           commodityFilter
+          activeCommodity={activeCommodity}
+          onCommodityChange={(c) => setActiveCommodity(c as CommodityTypeTrade | 'ALL')}
           getRowId={(p) => String(p.data.tradeId)}
           onRowClicked={(e) => {
             const id = (e.data as Trade).tradeId;

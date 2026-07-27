@@ -17,6 +17,7 @@ import {
 import { useFormDraft } from '@components/smart/formDraft';
 import { AppDatePicker } from '@components/smart/AppDatePicker';
 import { useLookupValues } from '@features/tier2/hooks';
+import { useHolidayCalendars } from '@features/calendar/holiday-calendars/hooks';
 import { downloadBlob, generatePeriodTemplate } from './excelTemplate';
 import { parsePeriodUpload } from './excelUpload';
 import { PeriodUploadReviewModal } from './PeriodUploadReviewModal';
@@ -54,6 +55,8 @@ export function PeriodsPage() {
   const loadTypeOpts = loadTypeRows.map((l) => ({ value: l.typeCode, label: l.typeName }));
   const { data: gasDayTypeRows = [] } = useLookupValues('GAS_DAY_TYPE');
   const gasDayTypeOpts = gasDayTypeRows.map((g) => ({ value: g.typeCode, label: g.typeName }));
+  const { data: calendars = [] } = useHolidayCalendars();
+  const calendarOpts = calendars.filter((c) => c.isActive).map((c) => ({ value: c.calendarCode, label: `${c.calendarCode} — ${c.calendarName}` }));
   const marketProductOpts = marketProducts.map((m) => ({ value: m.marketProductLinkId, label: `${m.marketCode ?? '—'} / ${m.productCode ?? '—'}` }));
   const isRollingWatch = Form.useWatch('isRolling', form);
 
@@ -256,10 +259,10 @@ export function PeriodsPage() {
           </Space>
           <Space style={{ width: '100%', gap: 12 }}>
             <Form.Item name="pricingCalendarCode" label={hint('Pricing Calendar', 'Holiday calendar used to identify valid pricing days.', 'LON, NYC, LME')} style={{ flex: 1 }}>
-              <Input placeholder="LON" style={{ fontFamily: 'monospace' }} />
+              <Select allowClear showSearch optionFilterProp="label" options={calendarOpts} placeholder="Select calendar" />
             </Form.Item>
             <Form.Item name="settlementCalendarCode" label={hint('Settlement Calendar', 'Calendar used for payment date calculations.', 'NYC')} style={{ flex: 1 }}>
-              <Input placeholder="NYC" style={{ fontFamily: 'monospace' }} />
+              <Select allowClear showSearch optionFilterProp="label" options={calendarOpts} placeholder="Select calendar" />
             </Form.Item>
           </Space>
           <Form.Item name="loadType" label={hint('Load Type', 'Power-specific sub-period: BASE (all hours), PEAK, OFF_PEAK, EXTENDED_PEAK, OVERNIGHT. Values come from Lookup Values, category \'LOAD_TYPE\'.')}>

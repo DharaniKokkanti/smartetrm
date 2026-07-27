@@ -28,6 +28,20 @@ import java.time.LocalTime;
  * doc comment). created_at added by V101 (table had zero audit columns);
  * created_by/updated_at/updated_by added by V149 — see GlAccount.java's
  * doc comment for the general pattern.
+ * publicationFrequency/pnodeId/priceType added by V168, publicationFrequency
+ * renamed+broadened by V170 (was settlementIntervalType, power-only values
+ * DAILY/HOURLY/FIFTEEN_MIN/FIVE_MIN) into a general "how often does this
+ * index publish a new value" field for every index — power or not
+ * (WEEKLY/MONTHLY/QUARTERLY/BUSINESS_DAY gas/physical assessments included).
+ * pnodeId/priceType stay power-specific and null for other indices.
+ * priceType (DA/RT) is an index-level attribute, not a per-observation one:
+ * a DA and RT series for the same node are different price_index rows
+ * (different values, different publication timing), same convention as
+ * index_code already encoding identity (DATED_BRENT vs WTI are separate
+ * rows too). V170 also added period.price_index_id/fx_index_id — a
+ * published curve very often has one price_index PER listed period (e.g.
+ * "TTF Month+1" and "TTF Month+2" are different series), so a period, not
+ * just a product/market, is what actually resolves to a specific index.
  */
 @Entity
 @Table(name = "price_index")
@@ -90,6 +104,23 @@ public class PriceIndex {
     @Size(max = 50)
     @Column(name = "fixing_timezone", length = 50)
     private String fixingTimezone;
+
+    @NotBlank
+    @Size(max = 20)
+    @Column(name = "publication_frequency", nullable = false, length = 20)
+    private String publicationFrequency = "DAILY";
+
+    @Column(name = "pnode_id")
+    private Integer pnodeId;
+
+    // V171 — gas-location counterpart to pnodeId, for location-specific gas
+    // indices (Henry Hub, Waha, AECO) tied to a physical pipeline point.
+    @Column(name = "pipeline_point_id")
+    private Integer pipelinePointId;
+
+    @Size(max = 2)
+    @Column(name = "price_type", length = 2)
+    private String priceType;
 
     @NotNull
     @Column(name = "is_active", nullable = false)
@@ -223,6 +254,38 @@ public class PriceIndex {
 
     public void setFixingTimezone(String fixingTimezone) {
         this.fixingTimezone = fixingTimezone;
+    }
+
+    public String getPublicationFrequency() {
+        return publicationFrequency;
+    }
+
+    public void setPublicationFrequency(String publicationFrequency) {
+        this.publicationFrequency = publicationFrequency;
+    }
+
+    public Integer getPnodeId() {
+        return pnodeId;
+    }
+
+    public void setPnodeId(Integer pnodeId) {
+        this.pnodeId = pnodeId;
+    }
+
+    public Integer getPipelinePointId() {
+        return pipelinePointId;
+    }
+
+    public void setPipelinePointId(Integer pipelinePointId) {
+        this.pipelinePointId = pipelinePointId;
+    }
+
+    public String getPriceType() {
+        return priceType;
+    }
+
+    public void setPriceType(String priceType) {
+        this.priceType = priceType;
     }
 
     public Boolean getIsActive() {

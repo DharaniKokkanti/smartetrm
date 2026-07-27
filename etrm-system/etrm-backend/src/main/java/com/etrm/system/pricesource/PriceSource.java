@@ -23,6 +23,9 @@ import jakarta.validation.constraints.Size;
  * updated_by audit set confirmed live, so this extends AuditableEntity.
  * source_type, delivery_method and frequency are plain CHECK-constrained
  * strings, not FKs, matching the frontend's string-union types.
+ * calendarId (V170) is the source's publication holiday calendar — lets a
+ * loader/ingestion job know a given day isn't a valid publication day for
+ * this source, instead of flagging every source holiday as a missing fixing.
  */
 @Entity
 @Table(name = "price_source")
@@ -77,6 +80,9 @@ public class PriceSource extends AuditableEntity {
 
     @Column(name = "sla_minutes")
     private Short slaMinutes;
+
+    @Column(name = "calendar_id")
+    private Integer calendarId;
 
     @NotNull
     @Column(name = "is_active", nullable = false)
@@ -172,6 +178,14 @@ public class PriceSource extends AuditableEntity {
 
     public void setSlaMinutes(Short slaMinutes) {
         this.slaMinutes = slaMinutes;
+    }
+
+    public Integer getCalendarId() {
+        return calendarId;
+    }
+
+    public void setCalendarId(Integer calendarId) {
+        this.calendarId = calendarId;
     }
 
     public Boolean getIsActive() {

@@ -10,6 +10,7 @@ import { usePricingRules, useSavePricingRule, useDeactivatePricingRule } from '.
 import { PRICING_TYPES, AVERAGING_METHODS, ROUNDING_RULES, TAS_EXCHANGES, TAS_CONTRACT_SERIES, BALMO_EXCHANGES, BALMO_CONTRACT_SERIES, type PricingRule, type PricingRuleInput, type PricingType } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AuditInfo } from '@components/smart/AuditInfo';
+import { useHolidayCalendars } from '@features/calendar/holiday-calendars/hooks';
 
 const TYPE_COLOR: Record<PricingType, string> = {
   FIXED: 'default', FLOATING: 'blue', FORMULA: 'purple', DIFFERENTIAL: 'cyan',
@@ -24,6 +25,8 @@ export function PricingRulesPage() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<PricingRule | null>(null);
   const [pricingType, setPricingType] = useState<PricingType>('FLOATING');
+  const { data: calendars = [] } = useHolidayCalendars();
+  const calendarOpts = calendars.filter((c) => c.isActive).map((c) => ({ value: c.calendarCode, label: `${c.calendarCode} — ${c.calendarName}` }));
   const [form] = Form.useForm<PricingRuleInput>();
   useFormDraft('pricing-rules', { form, open, setOpen, editing, setEditing });
 
@@ -173,7 +176,7 @@ export function PricingRulesPage() {
               <Select allowClear placeholder="None (single fix)" options={AVERAGING_METHODS.map((m) => ({ label: m, value: m }))} />
             </Form.Item>
             <Form.Item name="pricingCalendarCode" label={hint('Pricing Calendar', 'Business day calendar determining valid pricing days. Only non-holiday days count toward the average.', 'LON, NYC, LME')} style={{ flex: 1 }}>
-              <Input placeholder="LON" style={{ fontFamily: 'monospace' }} />
+              <Select allowClear showSearch optionFilterProp="label" options={calendarOpts} placeholder="Select calendar" />
             </Form.Item>
           </Space>
           <Space style={{ width: '100%', gap: 12 }}>

@@ -112,6 +112,15 @@ public class Market extends AuditableEntity {
     @Column(name = "notes", length = 500)
     private String notes;
 
+    // V168 — nullable, power markets only. Closes the gap between a
+    // market-listed power product (via market_product_link.market_id /
+    // pricing_rule.market_id) and the physical grid its price_index/pnode
+    // chain resolves to; neither power_pnode nor balancing_authority/
+    // transmission_zone link back to dbo.market, so this was the missing
+    // edge. NULL for non-power markets (oil/gas/metals/agri exchanges).
+    @Column(name = "balancing_authority_id")
+    private Integer balancingAuthorityId;
+
     public Integer getMarketId() {
         return marketId;
     }
@@ -272,5 +281,13 @@ public class Market extends AuditableEntity {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    public Integer getBalancingAuthorityId() {
+        return balancingAuthorityId;
+    }
+
+    public void setBalancingAuthorityId(Integer balancingAuthorityId) {
+        this.balancingAuthorityId = balancingAuthorityId;
     }
 }

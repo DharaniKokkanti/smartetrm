@@ -32,10 +32,13 @@ import java.time.LocalDate;
  * never sends or reads them today.
  *
  * KNOWN FRONTEND/DB MISMATCHES (see PricingRuleService for handling):
- *  - differentialUomCode, pricingCalendarCode, publicationSource,
- *    balmoExchange, balmoSeries, balmoTickSize: frontend fields with NO
- *    backing DB column at all. Exposed as always-null @Transient fields;
- *    silently ignored on input (nothing to persist them into).
+ *  - differentialUomCode, publicationSource, balmoExchange, balmoSeries,
+ *    balmoTickSize: frontend fields with NO backing DB column at all.
+ *    Exposed as always-null @Transient fields; silently ignored on input
+ *    (nothing to persist them into).
+ *  - pricingCalendarCode: real column as of V167 (FK to
+ *    holiday_calendar.calendar_code, same natural-key exception as
+ *    period.pricing_calendar_code — see V167/V100 migration comments).
  *  - differentialAmount (frontend) <-> differential_value (DB column):
  *    JSON name intentionally differs from the column name.
  *  - rounding (frontend) <-> rounding_convention (DB column): JSON name
@@ -241,11 +244,11 @@ public class PricingRule extends AuditableEntity {
     @Column(name = "tas_tick_size", precision = 12, scale = 6)
     private BigDecimal tasTickSize;
 
-    // Frontend fields with no backing DB column — always null, see class doc.
-    @Transient
-    @JsonProperty
-    private final String pricingCalendarCode = null;
+    @Size(max = 20)
+    @Column(name = "pricing_calendar_code", length = 20)
+    private String pricingCalendarCode;
 
+    // Frontend fields with no backing DB column — always null, see class doc.
     @Transient
     @JsonProperty
     private final String publicationSource = null;
@@ -648,6 +651,10 @@ public class PricingRule extends AuditableEntity {
 
     public String getPricingCalendarCode() {
         return pricingCalendarCode;
+    }
+
+    public void setPricingCalendarCode(String pricingCalendarCode) {
+        this.pricingCalendarCode = pricingCalendarCode;
     }
 
     public String getPublicationSource() {

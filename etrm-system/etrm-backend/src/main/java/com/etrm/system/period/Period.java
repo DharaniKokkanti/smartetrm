@@ -38,6 +38,14 @@ import java.time.LocalTime;
  *
  * V163 — market_product renamed to market_product_link (the row is a link
  * record, not a product); this FK field/column followed.
+ *
+ * V170 — +priceIndexId/+fxIndexId. A published curve very often has a
+ * separate value per listed period (e.g. "TTF Month+1" and "TTF Month+2"
+ * are different price_index rows, not one flat "TTF" index), so the period
+ * — not just the market_product_link it belongs to — is what resolves to a
+ * specific price_index. fxIndexId mirrors trade_pricing_schedule's existing
+ * fx_index_id (FX conversion series) at the period level, for a default FX
+ * source without needing a trade-level override every time.
  */
 @Entity
 @Table(name = "period")
@@ -141,6 +149,12 @@ public class Period {
     @Size(max = 20)
     @Column(name = "settlement_calendar_code", length = 20)
     private String settlementCalendarCode;
+
+    @Column(name = "price_index_id")
+    private Integer priceIndexId;
+
+    @Column(name = "fx_index_id")
+    private Integer fxIndexId;
 
     // FK -> dbo.lookup_value(lookup_id), category='load_type'.
     @Column(name = "load_type_lookup_id")
@@ -412,6 +426,22 @@ public class Period {
 
     public void setSettlementCalendarCode(String settlementCalendarCode) {
         this.settlementCalendarCode = settlementCalendarCode;
+    }
+
+    public Integer getPriceIndexId() {
+        return priceIndexId;
+    }
+
+    public void setPriceIndexId(Integer priceIndexId) {
+        this.priceIndexId = priceIndexId;
+    }
+
+    public Integer getFxIndexId() {
+        return fxIndexId;
+    }
+
+    public void setFxIndexId(Integer fxIndexId) {
+        this.fxIndexId = fxIndexId;
     }
 
     public Integer getLoadTypeLookupId() {

@@ -32,6 +32,17 @@ import java.time.LocalDateTime;
  * and tick_currency_id -> currency are real FKs; only uomCode is hydrated
  * for display per the frontend's SettlementPrice type (no currency code
  * field requested).
+ *
+ * V169 — this table is now the single store for all non-power/gas prices
+ * (power/gas sub-hourly stays on MarketIntervalPrice, built for a different
+ * grain): contractTicker+exchange populated (priceIndexId null) means
+ * exchange futures/option settlement, exactly as before; priceIndexId
+ * populated (contractTicker/exchange/tickSize null) means a daily
+ * Platts/Argus/internal/other physical or swap index fixing. There is no
+ * separate "kind" column — V170 dropped it as a redundant discriminator
+ * fully implied by which identity path is populated; chk_sp_identity in the
+ * DB enforces exactly one path, matching this class's existing pattern of
+ * trusting DB CHECK constraints for cross-field rules.
  */
 @Entity
 @Table(name = "settlement_price")
@@ -48,15 +59,16 @@ public class SettlementPrice {
     @Column(name = "row_version", nullable = false)
     private Integer rowVersion;
 
-    @NotBlank
     @Size(max = 40)
-    @Column(name = "exchange", nullable = false, length = 40)
+    @Column(name = "exchange", length = 40)
     private String exchange;
 
-    @NotBlank
     @Size(max = 20)
-    @Column(name = "contract_ticker", nullable = false, length = 20)
+    @Column(name = "contract_ticker", length = 20)
     private String contractTicker;
+
+    @Column(name = "price_index_id")
+    private Integer priceIndexId;
 
     @NotNull
     @Column(name = "settle_date", nullable = false)
@@ -66,8 +78,7 @@ public class SettlementPrice {
     @Column(name = "settle_price", nullable = false, precision = 18, scale = 6)
     private BigDecimal settlePrice;
 
-    @NotNull
-    @Column(name = "tick_size", nullable = false, precision = 12, scale = 6)
+    @Column(name = "tick_size", precision = 12, scale = 6)
     private BigDecimal tickSize;
 
     @NotNull
@@ -141,6 +152,14 @@ public class SettlementPrice {
 
     public void setContractTicker(String contractTicker) {
         this.contractTicker = contractTicker;
+    }
+
+    public Integer getPriceIndexId() {
+        return priceIndexId;
+    }
+
+    public void setPriceIndexId(Integer priceIndexId) {
+        this.priceIndexId = priceIndexId;
     }
 
     public LocalDate getSettleDate() {
