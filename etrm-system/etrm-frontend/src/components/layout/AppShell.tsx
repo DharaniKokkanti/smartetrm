@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Layout, Menu, Typography, Space, Avatar, Button, Badge, Tooltip, Dropdown } from 'antd';
+import { type ReactNode } from 'react';
+import { Layout, Typography, Space, Avatar, Button, Badge, Tooltip, Dropdown, Popover } from 'antd';
 import {
   MenuFoldOutlined, MenuUnfoldOutlined, SwapOutlined, FundOutlined,
   SunOutlined, MoonOutlined, BgColorsOutlined, CodeOutlined, LogoutOutlined, UserOutlined, HomeOutlined,
@@ -21,9 +21,9 @@ import { MinimizedDraftsDock } from './MinimizedDraftsDock';
 
 const { Header, Sider, Content } = Layout;
 
-// Hub groups render as collapsible submenus — all collapsed by default,
-// accordion behaviour (opening one closes the others).
-const NAV_ITEMS = [
+// Hub groups reveal their children via a hover-triggered flyout (see
+// NavGroupRow below) instead of a click-to-expand accordion.
+const NAV_ITEMS: NavEntry[] = [
   { key: '/',               icon: <HomeOutlined />,       label: 'Dashboard' },
   { key: '/trade/blotter',  icon: <SwapOutlined />,       label: 'Trade Blotter' },
   { key: '/position',       icon: <FundOutlined />,       label: 'Position & P&L' },
@@ -127,20 +127,91 @@ const ALL_KEYS = [
   '/admin/users', '/admin/roles', '/admin/field-permissions',
 ];
 
-// route prefix → submenu group key (used to auto-open the group of the current page)
-function groupKeyFor(pathname: string): string[] {
-  if (pathname.startsWith('/master-data') || pathname.startsWith('/static-data') || pathname.startsWith('/finance')) return ['g-master-data'];
-  if (pathname.startsWith('/tier1/counterparty') || pathname.startsWith('/tier1/legal-entity')) return ['g-counterparties'];
-  if (pathname.startsWith('/markets')) return ['g-markets'];
-  if (pathname.startsWith('/org/books')) return ['g-books'];
-  if (pathname.startsWith('/credit')) return ['g-credit'];
-  if (pathname.startsWith('/pricing')) return ['g-pricing'];
-  if (pathname.startsWith('/bolmo')) return ['g-operations'];
-  if (pathname.startsWith('/rins')) return ['g-regulatory'];
-  if (pathname.startsWith('/environmental')) return ['g-environmental'];
-  if (pathname.startsWith('/finance')) return ['g-finance'];
-  if (pathname.startsWith('/admin')) return ['g-admin'];
-  return [];
+type NavLeaf = { key: string; icon: ReactNode; label: string };
+type NavGroup = { key: string; icon: ReactNode; label: string; children: NavLeaf[] };
+type NavDivider = { type: 'divider' };
+type NavEntry = NavLeaf | NavGroup | NavDivider;
+
+// Row shared by both leaf items and the clickable rows inside a group's flyout.
+function NavItemRow({
+  icon, label, active, collapsed, onClick, hoverBg, selectedBg, selectedColor, textColor,
+}: {
+  icon: ReactNode; label: string; active: boolean; collapsed: boolean; onClick: () => void;
+  hoverBg: string; selectedBg: string; selectedColor: string; textColor: string;
+}) {
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 10,
+        padding: collapsed ? '9px 0' : '9px 20px',
+        justifyContent: collapsed ? 'center' : 'flex-start',
+        margin: '2px 4px', borderRadius: 6,
+        cursor: 'pointer', fontSize: 13, lineHeight: 1.2,
+        background: active ? selectedBg : 'transparent',
+        color: active ? selectedColor : textColor,
+      }}
+      onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = hoverBg; }}
+      onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = 'transparent'; }}
+    >
+      <span style={{ fontSize: 15, display: 'flex' }}>{icon}</span>
+      {!collapsed && <span>{label}</span>}
+    </div>
+  );
+}
+
+// Hub groups reveal their children as a hover-triggered flyout to the right
+// of the sidebar (antd Popover, trigger="hover") — no click/expand step.
+function NavGroupRow({
+  item, collapsed, activeKey, navigate, hoverBg, selectedBg, selectedColor, textColor, popoverBg, popoverBorder,
+}: {
+  item: NavGroup; collapsed: boolean; activeKey: string; navigate: (key: string) => void;
+  hoverBg: string; selectedBg: string; selectedColor: string; textColor: string; popoverBg: string; popoverBorder: string;
+}) {
+  const hasActiveChild = item.children.some((c) => c.key === activeKey);
+  const content = (
+    <div style={{ minWidth: 190, padding: 4, background: popoverBg }}>
+      <div style={{ padding: '4px 10px 8px', fontSize: 12, fontWeight: 600, color: textColor, opacity: 0.7 }}>{item.label}</div>
+      {item.children.map((child) => (
+        <NavItemRow
+          key={child.key}
+          icon={child.icon}
+          label={child.label}
+          active={child.key === activeKey}
+          collapsed={false}
+          onClick={() => navigate(child.key)}
+          hoverBg={hoverBg}
+          selectedBg={selectedBg}
+          selectedColor={selectedColor}
+          textColor={textColor}
+        />
+      ))}
+    </div>
+  );
+  return (
+    <Popover
+      trigger="hover"
+      placement={collapsed ? 'right' : 'rightTop'}
+      mouseEnterDelay={0.05}
+      mouseLeaveDelay={0.1}
+      overlayInnerStyle={{ padding: 0, border: `1px solid ${popoverBorder}` }}
+      content={content}
+    >
+      <div>
+        <NavItemRow
+          icon={item.icon}
+          label={item.label}
+          active={hasActiveChild}
+          collapsed={collapsed}
+          onClick={() => {}}
+          hoverBg={hoverBg}
+          selectedBg={selectedBg}
+          selectedColor={selectedColor}
+          textColor={textColor}
+        />
+      </div>
+    </Popover>
+  );
 }
 
 export function AppShell() {
@@ -152,13 +223,10 @@ export function AppShell() {
   const location = useLocation();
   const color = paletteFor(mode);
 
-  // All hub groups start collapsed; the group owning the current route opens.
-  // Accordion: opening a group closes the previously open one.
-  const [openKeys, setOpenKeys] = useState<string[]>(() => groupKeyFor(location.pathname));
-  function handleOpenChange(keys: string[]) {
-    const latest = keys.find((k) => !openKeys.includes(k));
-    setOpenKeys(latest ? [latest] : []);
-  }
+  // Matches Menu tokens in antd-theme.ts so the hand-rolled rows below read
+  // identically to what antd's own Menu component rendered before.
+  const itemSelectedBg = mode === 'dark' ? '#2A2750' : '#EEEDFE';
+  const itemHoverBg = mode === 'dark' ? '#26262B' : '#F2F1EC';
 
   function handleLogout() { clearAuth(); navigate('/login', { replace: true }); }
 
@@ -237,15 +305,46 @@ export function AppShell() {
             borderRight: `1px solid ${color.border}`, overflowY: 'auto', height: 'calc(100vh - 64px)',
             position: 'sticky', top: 64, display: 'flex', flexDirection: 'column',
           }}>
-            <Menu
-              mode="inline"
-              selectedKeys={[activeKey]}
-              // openKeys must not be controlled while the sider is collapsed (antd popup mode)
-              {...(!sidebarCollapsed ? { openKeys, onOpenChange: handleOpenChange } : {})}
-              style={{ borderRight: 'none', paddingTop: 4, fontSize: 13, flex: 1 }}
-              items={NAV_ITEMS}
-              onClick={({ key }) => { void navigate(key); }}
-            />
+            <nav style={{ paddingTop: 4, flex: 1, overflowY: 'auto' }}>
+              {NAV_ITEMS.map((item, idx) => {
+                if ('type' in item) {
+                  return <div key={`divider-${idx}`} style={{ margin: '8px 16px', borderTop: `1px solid ${color.border}` }} />;
+                }
+                if ('children' in item) {
+                  return (
+                    <NavGroupRow
+                      key={item.key}
+                      item={item}
+                      collapsed={sidebarCollapsed}
+                      activeKey={activeKey}
+                      navigate={(key) => { void navigate(key); }}
+                      hoverBg={itemHoverBg}
+                      selectedBg={itemSelectedBg}
+                      selectedColor={color.primary}
+                      textColor={color.textPrimary}
+                      popoverBg={color.bgElevated}
+                      popoverBorder={color.border}
+                    />
+                  );
+                }
+                const row = (
+                  <NavItemRow
+                    icon={item.icon}
+                    label={item.label}
+                    active={activeKey === item.key}
+                    collapsed={sidebarCollapsed}
+                    onClick={() => { void navigate(item.key); }}
+                    hoverBg={itemHoverBg}
+                    selectedBg={itemSelectedBg}
+                    selectedColor={color.primary}
+                    textColor={color.textPrimary}
+                  />
+                );
+                return sidebarCollapsed
+                  ? <Tooltip key={item.key} title={item.label} placement="right">{row}</Tooltip>
+                  : <div key={item.key}>{row}</div>;
+              })}
+            </nav>
             {/* Same collapse state/store as the header hamburger button above —
                 this is just a second, more discoverable affordance for it,
                 anchored to the sidebar itself (matching the edge-tab pattern
