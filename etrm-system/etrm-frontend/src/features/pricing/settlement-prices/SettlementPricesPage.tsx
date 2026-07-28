@@ -48,7 +48,7 @@ export function SettlementPricesPage() {
       settleDate: r.settleDate ? dayjs(r.settleDate) : undefined,
       settlePrice: r.settlePrice, openPrice: r.openPrice ?? undefined, highPrice: r.highPrice ?? undefined,
       lowPrice: r.lowPrice ?? undefined, avgPrice: r.avgPrice ?? undefined, promptPrice: r.promptPrice ?? undefined,
-      bidPrice: r.bidPrice ?? undefined, askPrice: r.askPrice ?? undefined, midPrice: r.midPrice ?? undefined,
+      bidPrice: r.bidPrice ?? undefined, askPrice: r.askPrice ?? undefined,
       periodId: r.periodId ?? undefined,
       tickSize: r.tickSize, tickCurrencyId: r.tickCurrencyId,
       uomId: r.uomId, isConfirmed: r.isConfirmed, source: r.source, notes: r.notes ?? undefined,
@@ -196,9 +196,6 @@ export function SettlementPricesPage() {
               <InputNumber style={{ width: '100%' }} precision={6} step={0.01} placeholder="—" />
             </Form.Item>
             <Form.Item name="askPrice" label={hint('Ask', 'OTC/broker ask quote. Optional.')} style={{ flex: 1 }}>
-              <InputNumber style={{ width: '100%' }} precision={6} step={0.01} placeholder="—" />
-            </Form.Item>
-            <Form.Item name="midPrice" label={hint('Mid', 'OTC/broker mid quote. Optional.')} style={{ flex: 1 }}>
               <InputNumber style={{ width: '100%' }} precision={6} step={0.01} placeholder="—" />
             </Form.Item>
           </Space>

@@ -63,6 +63,10 @@ import java.time.LocalDateTime;
  * V178 — bidPrice/askPrice/midPrice added: OTC/broker-quote support
  * alongside settle/open/high/low/avg/prompt. chk_sp_bid_ask_range enforces
  * ask >= bid when both are populated.
+ * V181 — midPrice de-persisted: it's fully determined by bidPrice/askPrice
+ * (mid = (bid + ask) / 2), so storing it as its own column risked the two
+ * disagreeing on one row. Now computed on read via getMidPrice() below,
+ * never stored or settable.
  */
 @Entity
 @Table(name = "settlement_price")
@@ -121,9 +125,6 @@ public class SettlementPrice {
 
     @Column(name = "ask_price", precision = 18, scale = 6)
     private BigDecimal askPrice;
-
-    @Column(name = "mid_price", precision = 18, scale = 6)
-    private BigDecimal midPrice;
 
     @Column(name = "period_id")
     private Long periodId;
@@ -293,12 +294,12 @@ public class SettlementPrice {
         this.askPrice = askPrice;
     }
 
+    @JsonProperty
     public BigDecimal getMidPrice() {
-        return midPrice;
-    }
-
-    public void setMidPrice(BigDecimal midPrice) {
-        this.midPrice = midPrice;
+        if (bidPrice == null || askPrice == null) {
+            return null;
+        }
+        return bidPrice.add(askPrice).divide(BigDecimal.valueOf(2));
     }
 
     public Long getPeriodId() {

@@ -390,9 +390,16 @@ const pricingRulesStore: unknown[] = [
 ];
 
 // ─── SETTLEMENT PRICES ────────────────────────────────────────────────────────
+// V181 — midPrice is never stored, only computed from bid/ask on read.
+function withComputedMidPrice(row: Record<string, unknown>): Record<string, unknown> {
+  const bid = row['bidPrice'] as number | null | undefined;
+  const ask = row['askPrice'] as number | null | undefined;
+  return { ...row, midPrice: bid != null && ask != null ? (bid + ask) / 2 : null };
+}
+
 const settlementPricesStore: unknown[] = [
-  { settlementPriceId: 1,  exchange: 'CME_NYMEX',  contractTicker: 'CLZ26', settleDate: '2026-07-01', settlePrice: 72.45, openPrice: 71.90, highPrice: 72.80, lowPrice: 71.55, avgPrice: 72.20, promptPrice: null, bidPrice: null, askPrice: null, midPrice: null, periodId: null, periodCode: null, tickSize: 0.01,   tickCurrencyId: 1, uomId: 1, uomCode: 'BBL',   isConfirmed: true,  source: 'CME',    notes: null, createdAt: '2026-07-01T21:30:00Z', updatedAt: '2026-07-01T21:30:00Z' },
-  { settlementPriceId: 2,  exchange: 'CME_NYMEX',  contractTicker: 'CLF27', settleDate: '2026-07-01', settlePrice: 71.80, openPrice: 71.40, highPrice: 72.10, lowPrice: 71.20, avgPrice: 71.65, promptPrice: null, bidPrice: 71.75, askPrice: 71.85, midPrice: 71.80, periodId: 2, periodCode: 'M2026-02', tickSize: 0.01,   tickCurrencyId: 1, uomId: 1, uomCode: 'BBL',   isConfirmed: true,  source: 'CME',    notes: null, createdAt: '2026-07-01T21:30:00Z', updatedAt: '2026-07-01T21:30:00Z' },
+  { settlementPriceId: 1,  exchange: 'CME_NYMEX',  contractTicker: 'CLZ26', settleDate: '2026-07-01', settlePrice: 72.45, openPrice: 71.90, highPrice: 72.80, lowPrice: 71.55, avgPrice: 72.20, promptPrice: null, bidPrice: null, askPrice: null, periodId: null, periodCode: null, tickSize: 0.01,   tickCurrencyId: 1, uomId: 1, uomCode: 'BBL',   isConfirmed: true,  source: 'CME',    notes: null, createdAt: '2026-07-01T21:30:00Z', updatedAt: '2026-07-01T21:30:00Z' },
+  { settlementPriceId: 2,  exchange: 'CME_NYMEX',  contractTicker: 'CLF27', settleDate: '2026-07-01', settlePrice: 71.80, openPrice: 71.40, highPrice: 72.10, lowPrice: 71.20, avgPrice: 71.65, promptPrice: null, bidPrice: 71.75, askPrice: 71.85, periodId: 2, periodCode: 'M2026-02', tickSize: 0.01,   tickCurrencyId: 1, uomId: 1, uomCode: 'BBL',   isConfirmed: true,  source: 'CME',    notes: null, createdAt: '2026-07-01T21:30:00Z', updatedAt: '2026-07-01T21:30:00Z' },
   { settlementPriceId: 3,  exchange: 'CME_NYMEX',  contractTicker: 'NGF27', settleDate: '2026-07-01', settlePrice: 3.456,  tickSize: 0.001,  tickCurrencyId: 1, uomId: 4, uomCode: 'MMBTU', isConfirmed: true,  source: 'CME',    notes: null, createdAt: '2026-07-01T21:30:00Z', updatedAt: '2026-07-01T21:30:00Z' },
   { settlementPriceId: 4,  exchange: 'CME_NYMEX',  contractTicker: 'HOF27', settleDate: '2026-07-01', settlePrice: 2.3421, tickSize: 0.0001, tickCurrencyId: 1, uomId: 7, uomCode: 'GAL',   isConfirmed: true,  source: 'CME',    notes: null, createdAt: '2026-07-01T21:30:00Z', updatedAt: '2026-07-01T21:30:00Z' },
   { settlementPriceId: 5,  exchange: 'ICE_EUROPE',  contractTicker: 'BZF27', settleDate: '2026-07-01', settlePrice: 76.23,  tickSize: 0.01,   tickCurrencyId: 1, uomId: 1, uomCode: 'BBL',   isConfirmed: true,  source: 'ICE',    notes: null, createdAt: '2026-07-01T21:30:00Z', updatedAt: '2026-07-01T21:30:00Z' },
@@ -3972,26 +3979,33 @@ export const etrmHandlers = [
   http.get(`${API}/rin-inventory`, () => HttpResponse.json(rinInventoryStore)),
 
   // Settlement prices — CRUD
+  // V181 — midPrice is computed server-side from bid/ask, never stored or
+  // accepted as input; mirrors SettlementPrice.getMidPrice() on the backend.
+  http.get(`${API}/settlement-prices`, () => HttpResponse.json(
+    (settlementPricesStore as Array<Record<string, unknown>>).map(withComputedMidPrice),
+  )),
   http.post(`${API}/settlement-prices`, async ({ request }) => {
     const input = (await request.json()) as Record<string, unknown>;
+    delete input['midPrice'];
     const s = settlementPricesStore as Array<Record<string, unknown>>;
     const maxId = s.reduce((m, r) => Math.max(m, Number(r['settlementPriceId'])), 0);
     const uom = (uomStore as Array<Record<string, unknown>>).find((u) => u['uomId'] === input['uomId']);
     const period = input['periodId'] != null ? (periodsStore as Array<Record<string, unknown>>).find((p) => p['periodId'] === input['periodId']) : undefined;
     const row = { ...input, settlementPriceId: maxId + 1, uomCode: uom?.['uomCode'] ?? null, periodCode: period?.['periodCode'] ?? null, createdAt: now(), updatedAt: now() };
     s.push(row);
-    return HttpResponse.json(row, { status: 201 });
+    return HttpResponse.json(withComputedMidPrice(row), { status: 201 });
   }),
   http.put(`${API}/settlement-prices/:id`, async ({ params, request }) => {
     const s = settlementPricesStore as Array<Record<string, unknown>>;
     const idx = s.findIndex((r) => r['settlementPriceId'] === Number(params.id));
     if (idx === -1) return problem(404, 'Not Found', `Settlement price ${String(params.id)} not found.`);
     const input = (await request.json()) as Record<string, unknown>;
+    delete input['midPrice'];
     const uom = (uomStore as Array<Record<string, unknown>>).find((u) => u['uomId'] === (input['uomId'] ?? s[idx]['uomId']));
     const periodId = input['periodId'] ?? s[idx]['periodId'];
     const period = periodId != null ? (periodsStore as Array<Record<string, unknown>>).find((p) => p['periodId'] === periodId) : undefined;
     s[idx] = { ...s[idx], ...input, uomCode: uom?.['uomCode'] ?? null, periodCode: period?.['periodCode'] ?? null, updatedAt: now() };
-    return HttpResponse.json(s[idx]);
+    return HttpResponse.json(withComputedMidPrice(s[idx]));
   }),
   ...crudHandlers('settlement-prices', settlementPricesStore as Array<Record<string, unknown>>, 'settlementPriceId'),
   http.patch(`${API}/settlement-prices/:id/confirm`, ({ params }) => {
