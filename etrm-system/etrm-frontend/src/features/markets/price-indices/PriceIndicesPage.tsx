@@ -10,6 +10,8 @@ import { usePriceIndices, useSavePriceIndex, useDeactivatePriceIndex } from './h
 import { PUBLICATION_SOURCES, type PriceIndex, type PriceIndexInput } from './types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AuditInfo } from '@components/smart/AuditInfo';
+import { useCurrencies } from '@features/reference/currencies/hooks';
+import { useUom } from '@features/reference/uom/hooks';
 
 const SOURCE_COLOR: Record<string, string> = {
   PLATTS: 'blue', ARGUS: 'cyan', ICE: 'purple', LME: 'gold',
@@ -20,6 +22,10 @@ export function PriceIndicesPage() {
   const { data, isLoading, refetch } = usePriceIndices();
   const save = useSavePriceIndex();
   const deactivate = useDeactivatePriceIndex();
+  const { data: currencies = [] } = useCurrencies();
+  const currencyOpts = currencies.map((c) => ({ value: c.currencyId, label: c.currencyCode }));
+  const { data: uoms = [] } = useUom();
+  const uomOpts = uoms.map((u) => ({ value: u.uomId, label: u.uomCode }));
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<PriceIndex | null>(null);
   const [form] = Form.useForm<PriceIndexInput>();
@@ -28,7 +34,7 @@ export function PriceIndicesPage() {
   function openNew() { setEditing(null); form.resetFields(); form.setFieldValue('isActive', true); setOpen(true); }
   function openEdit(p: PriceIndex) {
     setEditing(p);
-    form.setFieldsValue({ indexCode: p.indexCode, indexName: p.indexName, currencyCode: p.currencyCode, uomCode: p.uomCode, publicationSource: p.publicationSource, fixingTime: p.fixingTime ?? undefined, fixingTimezone: p.fixingTimezone ?? undefined, publishedPage: p.publishedPage ?? undefined, isActive: p.isActive });
+    form.setFieldsValue({ indexCode: p.indexCode, indexName: p.indexName, currencyId: p.currencyId, uomId: p.uomId, publicationSource: p.publicationSource, fixingTime: p.fixingTime ?? undefined, fixingTimezone: p.fixingTimezone ?? undefined, publishedPage: p.publishedPage ?? undefined, isActive: p.isActive });
     setOpen(true);
   }
   async function submit(closeAfter = true) {
@@ -90,11 +96,11 @@ export function PriceIndicesPage() {
             <Select options={PUBLICATION_SOURCES.map((s) => ({ label: s, value: s }))} />
           </Form.Item>
           <Space style={{ width: '100%', gap: 12 }}>
-            <Form.Item name="currencyCode" label={hint('Currency', 'Currency in which the index is published. Most oil indices publish in USD/BBL. LME publishes in USD/MT.', 'USD')} rules={[{ required: true }]} style={{ flex: 1 }}>
-              <Input placeholder="USD" maxLength={3} style={{ fontFamily: 'monospace', textTransform: 'uppercase' }} />
+            <Form.Item name="currencyId" label={hint('Currency', 'Currency in which the index is published. Most oil indices publish in USD/BBL. LME publishes in USD/MT.', 'USD')} rules={[{ required: true }]} style={{ flex: 1 }}>
+              <Select options={currencyOpts} showSearch optionFilterProp="label" placeholder="Select currency" />
             </Form.Item>
-            <Form.Item name="uomCode" label={hint('Unit of Measure', 'Quantity unit for the published price. Oil: BBL or MT. Gas: MMBTU. Power: MWH. Metals: MT or TROY_OZ.', 'BBL')} rules={[{ required: true }]} style={{ flex: 1 }}>
-              <Input placeholder="BBL" maxLength={10} style={{ fontFamily: 'monospace', textTransform: 'uppercase' }} />
+            <Form.Item name="uomId" label={hint('Unit of Measure', 'Quantity unit for the published price. Oil: BBL or MT. Gas: MMBTU. Power: MWH. Metals: MT or TROY_OZ.', 'BBL')} rules={[{ required: true }]} style={{ flex: 1 }}>
+              <Select options={uomOpts} showSearch optionFilterProp="label" placeholder="Select UoM" />
             </Form.Item>
           </Space>
           <Space style={{ width: '100%', gap: 12 }}>

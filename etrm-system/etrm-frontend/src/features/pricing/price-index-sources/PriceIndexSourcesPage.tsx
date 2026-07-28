@@ -91,6 +91,10 @@ export function PriceIndexSourcesPage() {
     { field: 'priceIndexCode', headerName: 'Price Index', width: 130, pinned: 'left', cellClass: 'cell-mono' },
     { field: 'priceIndexName', headerName: 'Index Name', flex: 1.2, minWidth: 180 },
     {
+      headerName: 'Ccy / UoM', width: 100, cellClass: 'cell-mono',
+      valueGetter: (p) => `${p.data?.currencyCode ?? '—'}/${p.data?.uomCode ?? '—'}`,
+    },
+    {
       headerName: 'Market / Product', width: 170, cellClass: 'cell-mono',
       valueGetter: (p) => `${p.data?.marketCode ?? '—'} / ${p.data?.productCode ?? '—'}`,
     },

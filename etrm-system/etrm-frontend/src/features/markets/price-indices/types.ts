@@ -5,7 +5,9 @@ export interface PriceIndex {
   priceIndexId: number;
   indexCode: string;
   indexName: string;
+  currencyId: number;
   currencyCode: string;
+  uomId: number;
   uomCode: string;
   publicationSource: PublicationSource;
   fixingTime: string | null;
@@ -15,4 +17,4 @@ export interface PriceIndex {
   createdAt: string;
 }
 
-export type PriceIndexInput = Omit<PriceIndex, 'priceIndexId' | 'createdAt'>;
+export type PriceIndexInput = Omit<PriceIndex, 'priceIndexId' | 'currencyCode' | 'uomCode' | 'createdAt'>;

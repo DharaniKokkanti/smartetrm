@@ -60,11 +60,8 @@ export interface MarketProductLink {
   firstNoticeDayOffset: number | null;
   lastTradingDayOffset: number | null;
   // V164 — dropped listedDate/delistedDate (redundant: dbo.period is the
-  // home for lifecycle dates since V162).
-  altPriceSourceId: number | null;
-  altPriceSourceCode: string | null;
-  mtmPriceSourceId: number | null;
-  mtmPriceSourceCode: string | null;
+  // home for lifecycle dates since V162). altPriceSourceId/mtmPriceSourceId
+  // dropped again in V173, superseded by price_index_source.
   notes: string | null;
   isActive: boolean;
   createdAt: string;
@@ -75,7 +72,7 @@ export interface MarketProductLink {
   rowVersion: number;
 }
 
-export type MarketProductLinkInput = Omit<MarketProductLink, 'marketProductLinkId' | 'productCode' | 'productName' | 'altPriceSourceCode' | 'mtmPriceSourceCode' | 'createdAt' | 'createdBy' | 'updatedAt' | 'updatedBy'>;
+export type MarketProductLinkInput = Omit<MarketProductLink, 'marketProductLinkId' | 'productCode' | 'productName' | 'createdAt' | 'createdBy' | 'updatedAt' | 'updatedBy'>;
 
 // Market-Product-Link → Period link
 export interface MarketProductPeriod {

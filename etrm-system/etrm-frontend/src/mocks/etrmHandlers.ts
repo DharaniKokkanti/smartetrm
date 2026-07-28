@@ -207,45 +207,54 @@ const productPriceIndexStore: unknown[] = [
 
 // ─── PRICE INDICES ────────────────────────────────────────────────────────────
 const priceIndicesStore: unknown[] = [
-  { priceIndexId: 1, indexCode: 'DTBRT', indexName: 'Platts Dated Brent', publicationSource: 'PLATTS', currencyCode: 'USD', uomCode: 'BBL', fixingTime: '16:30', fixingTimezone: 'Europe/London', publishedPage: 'AAQUA', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { priceIndexId: 2, indexCode: 'WTI-NYMEX', indexName: 'NYMEX WTI Front Month', publicationSource: 'NYMEX', currencyCode: 'USD', uomCode: 'BBL', fixingTime: '14:30', fixingTimezone: 'America/New_York', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { priceIndexId: 3, indexCode: 'TTF-ICE', indexName: 'ICE TTF Natural Gas', publicationSource: 'ICE', currencyCode: 'EUR', uomCode: 'MWH', fixingTime: '17:00', fixingTimezone: 'Europe/Amsterdam', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { priceIndexId: 4, indexCode: 'NBP-ICE', indexName: 'ICE UK NBP Natural Gas', publicationSource: 'ICE', currencyCode: 'GBP', uomCode: 'THERM', fixingTime: '17:00', fixingTimezone: 'Europe/London', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { priceIndexId: 5, indexCode: 'HH', indexName: 'Henry Hub Natural Gas', publicationSource: 'NYMEX', currencyCode: 'USD', uomCode: 'MMBTU', fixingTime: '14:30', fixingTimezone: 'America/New_York', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { priceIndexId: 6, indexCode: 'LME-CU-CASH', indexName: 'LME Copper Cash', publicationSource: 'LME', currencyCode: 'USD', uomCode: 'MT', fixingTime: '13:00', fixingTimezone: 'Europe/London', publishedPage: 'METALS BULLETIN', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { priceIndexId: 7, indexCode: 'LME-AL-CASH', indexName: 'LME Aluminium Cash', publicationSource: 'LME', currencyCode: 'USD', uomCode: 'MT', fixingTime: '13:00', fixingTimezone: 'Europe/London', publishedPage: 'METALS BULLETIN', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { priceIndexId: 8, indexCode: 'EEX-DE-SPOT', indexName: 'EEX Germany Day-Ahead Power', publicationSource: 'EEX', currencyCode: 'EUR', uomCode: 'MWH', fixingTime: '12:00', fixingTimezone: 'Europe/Berlin', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { priceIndexId: 9, indexCode: 'ARGUS-URALS', indexName: 'Argus Urals Med', publicationSource: 'ARGUS', currencyCode: 'USD', uomCode: 'BBL', fixingTime: '16:30', fixingTimezone: 'Europe/London', publishedPage: 'AP-0001', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { priceIndexId: 10, indexCode: 'JCC', indexName: 'Japan Crude Cocktail', publicationSource: 'REUTERS', currencyCode: 'USD', uomCode: 'BBL', fixingTime: null, fixingTimezone: null, publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 1, indexCode: 'DTBRT', indexName: 'Platts Dated Brent', publicationSource: 'PLATTS', currencyId: 1, currencyCode: 'USD', uomId: 1, uomCode: 'BBL', fixingTime: '16:30', fixingTimezone: 'Europe/London', publishedPage: 'AAQUA', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 2, indexCode: 'WTI-NYMEX', indexName: 'NYMEX WTI Front Month', publicationSource: 'NYMEX', currencyId: 1, currencyCode: 'USD', uomId: 1, uomCode: 'BBL', fixingTime: '14:30', fixingTimezone: 'America/New_York', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 3, indexCode: 'TTF-ICE', indexName: 'ICE TTF Natural Gas', publicationSource: 'ICE', currencyId: 2, currencyCode: 'EUR', uomId: 3, uomCode: 'MWH', fixingTime: '17:00', fixingTimezone: 'Europe/Amsterdam', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 4, indexCode: 'NBP-ICE', indexName: 'ICE UK NBP Natural Gas', publicationSource: 'ICE', currencyId: 3, currencyCode: 'GBP', uomId: 5, uomCode: 'THERM', fixingTime: '17:00', fixingTimezone: 'Europe/London', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 5, indexCode: 'HH', indexName: 'Henry Hub Natural Gas', publicationSource: 'NYMEX', currencyId: 1, currencyCode: 'USD', uomId: 4, uomCode: 'MMBTU', fixingTime: '14:30', fixingTimezone: 'America/New_York', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 6, indexCode: 'LME-CU-CASH', indexName: 'LME Copper Cash', publicationSource: 'LME', currencyId: 1, currencyCode: 'USD', uomId: 2, uomCode: 'MT', fixingTime: '13:00', fixingTimezone: 'Europe/London', publishedPage: 'METALS BULLETIN', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 7, indexCode: 'LME-AL-CASH', indexName: 'LME Aluminium Cash', publicationSource: 'LME', currencyId: 1, currencyCode: 'USD', uomId: 2, uomCode: 'MT', fixingTime: '13:00', fixingTimezone: 'Europe/London', publishedPage: 'METALS BULLETIN', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 8, indexCode: 'EEX-DE-SPOT', indexName: 'EEX Germany Day-Ahead Power', publicationSource: 'EEX', currencyId: 2, currencyCode: 'EUR', uomId: 3, uomCode: 'MWH', fixingTime: '12:00', fixingTimezone: 'Europe/Berlin', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 9, indexCode: 'ARGUS-URALS', indexName: 'Argus Urals Med', publicationSource: 'ARGUS', currencyId: 1, currencyCode: 'USD', uomId: 1, uomCode: 'BBL', fixingTime: '16:30', fixingTimezone: 'Europe/London', publishedPage: 'AP-0001', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 10, indexCode: 'JCC', indexName: 'Japan Crude Cocktail', publicationSource: 'REUTERS', currencyId: 1, currencyCode: 'USD', uomId: 1, uomCode: 'BBL', fixingTime: null, fixingTimezone: null, publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
   // OIL — additional grades
-  { priceIndexId: 11, indexCode: 'DUBAI-OMAN', indexName: 'Platts Dubai/Oman Crude', publicationSource: 'PLATTS', currencyCode: 'USD', uomCode: 'BBL', fixingTime: '16:30', fixingTimezone: 'Europe/London', publishedPage: 'AAFRT00', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { priceIndexId: 12, indexCode: 'ESPO', indexName: 'Platts ESPO Blend CIF Japan', publicationSource: 'PLATTS', currencyCode: 'USD', uomCode: 'BBL', fixingTime: '16:30', fixingTimezone: 'Asia/Singapore', publishedPage: 'AAFRT01', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { priceIndexId: 13, indexCode: 'BONNY-LIGHT', indexName: 'Argus Bonny Light FOB', publicationSource: 'ARGUS', currencyCode: 'USD', uomCode: 'BBL', fixingTime: '16:30', fixingTimezone: 'Europe/London', publishedPage: 'AP-0002', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { priceIndexId: 14, indexCode: 'BASRA-LIGHT', indexName: 'Platts Basra Light FOB', publicationSource: 'PLATTS', currencyCode: 'USD', uomCode: 'BBL', fixingTime: '16:30', fixingTimezone: 'Europe/London', publishedPage: 'AAFRT02', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { priceIndexId: 15, indexCode: 'ARAB-HEAVY', indexName: 'Platts Arab Heavy FOB Ras Tanura', publicationSource: 'PLATTS', currencyCode: 'USD', uomCode: 'BBL', fixingTime: '16:30', fixingTimezone: 'Europe/London', publishedPage: 'AAFRT03', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 11, indexCode: 'DUBAI-OMAN', indexName: 'Platts Dubai/Oman Crude', publicationSource: 'PLATTS', currencyId: 1, currencyCode: 'USD', uomId: 1, uomCode: 'BBL', fixingTime: '16:30', fixingTimezone: 'Europe/London', publishedPage: 'AAFRT00', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 12, indexCode: 'ESPO', indexName: 'Platts ESPO Blend CIF Japan', publicationSource: 'PLATTS', currencyId: 1, currencyCode: 'USD', uomId: 1, uomCode: 'BBL', fixingTime: '16:30', fixingTimezone: 'Asia/Singapore', publishedPage: 'AAFRT01', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 13, indexCode: 'BONNY-LIGHT', indexName: 'Argus Bonny Light FOB', publicationSource: 'ARGUS', currencyId: 1, currencyCode: 'USD', uomId: 1, uomCode: 'BBL', fixingTime: '16:30', fixingTimezone: 'Europe/London', publishedPage: 'AP-0002', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 14, indexCode: 'BASRA-LIGHT', indexName: 'Platts Basra Light FOB', publicationSource: 'PLATTS', currencyId: 1, currencyCode: 'USD', uomId: 1, uomCode: 'BBL', fixingTime: '16:30', fixingTimezone: 'Europe/London', publishedPage: 'AAFRT02', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 15, indexCode: 'ARAB-HEAVY', indexName: 'Platts Arab Heavy FOB Ras Tanura', publicationSource: 'PLATTS', currencyId: 1, currencyCode: 'USD', uomId: 1, uomCode: 'BBL', fixingTime: '16:30', fixingTimezone: 'Europe/London', publishedPage: 'AAFRT03', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
   // GAS
-  { priceIndexId: 16, indexCode: 'GASPOOL', indexName: 'Gaspool (GPL) Day-Ahead Index', publicationSource: 'EEX', currencyCode: 'EUR', uomCode: 'MWH', fixingTime: '17:00', fixingTimezone: 'Europe/Berlin', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { priceIndexId: 17, indexCode: 'NCG', indexName: 'NetConnect Germany Day-Ahead', publicationSource: 'EEX', currencyCode: 'EUR', uomCode: 'MWH', fixingTime: '17:00', fixingTimezone: 'Europe/Berlin', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { priceIndexId: 18, indexCode: 'ZTP', indexName: 'Zeebrugge Trading Point Day-Ahead', publicationSource: 'ICE', currencyCode: 'EUR', uomCode: 'MWH', fixingTime: '17:00', fixingTimezone: 'Europe/Brussels', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { priceIndexId: 19, indexCode: 'JKM', indexName: 'Platts JKM LNG Japan/Korea Marker', publicationSource: 'PLATTS', currencyCode: 'USD', uomCode: 'MMBTU', fixingTime: '16:30', fixingTimezone: 'Asia/Singapore', publishedPage: 'ASGIM00', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { priceIndexId: 20, indexCode: 'AECO', indexName: 'AECO Alberta Gas Price', publicationSource: 'NGX', currencyCode: 'CAD', uomCode: 'MMBTU', fixingTime: '14:00', fixingTimezone: 'America/Edmonton', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 16, indexCode: 'GASPOOL', indexName: 'Gaspool (GPL) Day-Ahead Index', publicationSource: 'EEX', currencyId: 2, currencyCode: 'EUR', uomId: 3, uomCode: 'MWH', fixingTime: '17:00', fixingTimezone: 'Europe/Berlin', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 17, indexCode: 'NCG', indexName: 'NetConnect Germany Day-Ahead', publicationSource: 'EEX', currencyId: 2, currencyCode: 'EUR', uomId: 3, uomCode: 'MWH', fixingTime: '17:00', fixingTimezone: 'Europe/Berlin', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 18, indexCode: 'ZTP', indexName: 'Zeebrugge Trading Point Day-Ahead', publicationSource: 'ICE', currencyId: 2, currencyCode: 'EUR', uomId: 3, uomCode: 'MWH', fixingTime: '17:00', fixingTimezone: 'Europe/Brussels', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 19, indexCode: 'JKM', indexName: 'Platts JKM LNG Japan/Korea Marker', publicationSource: 'PLATTS', currencyId: 1, currencyCode: 'USD', uomId: 4, uomCode: 'MMBTU', fixingTime: '16:30', fixingTimezone: 'Asia/Singapore', publishedPage: 'ASGIM00', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 20, indexCode: 'AECO', indexName: 'AECO Alberta Gas Price', publicationSource: 'NGX', currencyId: 6, currencyCode: 'CAD', uomId: 4, uomCode: 'MMBTU', fixingTime: '14:00', fixingTimezone: 'America/Edmonton', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
   // POWER
-  { priceIndexId: 21, indexCode: 'EPEX-FR-DA', indexName: 'EPEX France Day-Ahead', publicationSource: 'EPEX', currencyCode: 'EUR', uomCode: 'MWH', fixingTime: '12:00', fixingTimezone: 'Europe/Paris', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { priceIndexId: 22, indexCode: 'N2EX-UK', indexName: 'N2EX UK Day-Ahead Power', publicationSource: 'EPEX', currencyCode: 'GBP', uomCode: 'MWH', fixingTime: '10:30', fixingTimezone: 'Europe/London', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { priceIndexId: 23, indexCode: 'GME-IT-DA', indexName: 'GME Italy Day-Ahead (PUN)', publicationSource: 'GME', currencyCode: 'EUR', uomCode: 'MWH', fixingTime: '12:00', fixingTimezone: 'Europe/Rome', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 21, indexCode: 'EPEX-FR-DA', indexName: 'EPEX France Day-Ahead', publicationSource: 'EPEX', currencyId: 2, currencyCode: 'EUR', uomId: 3, uomCode: 'MWH', fixingTime: '12:00', fixingTimezone: 'Europe/Paris', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 22, indexCode: 'N2EX-UK', indexName: 'N2EX UK Day-Ahead Power', publicationSource: 'EPEX', currencyId: 3, currencyCode: 'GBP', uomId: 3, uomCode: 'MWH', fixingTime: '10:30', fixingTimezone: 'Europe/London', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 23, indexCode: 'GME-IT-DA', indexName: 'GME Italy Day-Ahead (PUN)', publicationSource: 'GME', currencyId: 2, currencyCode: 'EUR', uomId: 3, uomCode: 'MWH', fixingTime: '12:00', fixingTimezone: 'Europe/Rome', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
   // METALS
-  { priceIndexId: 24, indexCode: 'LME-ZN-CASH', indexName: 'LME Zinc Cash Official', publicationSource: 'LME', currencyCode: 'USD', uomCode: 'MT', fixingTime: '13:00', fixingTimezone: 'Europe/London', publishedPage: 'METALS BULLETIN', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { priceIndexId: 25, indexCode: 'LME-NI-CASH', indexName: 'LME Nickel Cash Official', publicationSource: 'LME', currencyCode: 'USD', uomCode: 'MT', fixingTime: '13:00', fixingTimezone: 'Europe/London', publishedPage: 'METALS BULLETIN', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { priceIndexId: 26, indexCode: 'LME-PB-CASH', indexName: 'LME Lead Cash Official', publicationSource: 'LME', currencyCode: 'USD', uomCode: 'MT', fixingTime: '13:00', fixingTimezone: 'Europe/London', publishedPage: 'METALS BULLETIN', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { priceIndexId: 27, indexCode: 'LME-SN-CASH', indexName: 'LME Tin Cash Official', publicationSource: 'LME', currencyCode: 'USD', uomCode: 'MT', fixingTime: '13:00', fixingTimezone: 'Europe/London', publishedPage: 'METALS BULLETIN', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { priceIndexId: 28, indexCode: 'SHFE-CU', indexName: 'SHFE Copper Front Month', publicationSource: 'SHFE', currencyCode: 'CNY', uomCode: 'MT', fixingTime: '15:00', fixingTimezone: 'Asia/Shanghai', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 24, indexCode: 'LME-ZN-CASH', indexName: 'LME Zinc Cash Official', publicationSource: 'LME', currencyId: 1, currencyCode: 'USD', uomId: 2, uomCode: 'MT', fixingTime: '13:00', fixingTimezone: 'Europe/London', publishedPage: 'METALS BULLETIN', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 25, indexCode: 'LME-NI-CASH', indexName: 'LME Nickel Cash Official', publicationSource: 'LME', currencyId: 1, currencyCode: 'USD', uomId: 2, uomCode: 'MT', fixingTime: '13:00', fixingTimezone: 'Europe/London', publishedPage: 'METALS BULLETIN', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 26, indexCode: 'LME-PB-CASH', indexName: 'LME Lead Cash Official', publicationSource: 'LME', currencyId: 1, currencyCode: 'USD', uomId: 2, uomCode: 'MT', fixingTime: '13:00', fixingTimezone: 'Europe/London', publishedPage: 'METALS BULLETIN', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 27, indexCode: 'LME-SN-CASH', indexName: 'LME Tin Cash Official', publicationSource: 'LME', currencyId: 1, currencyCode: 'USD', uomId: 2, uomCode: 'MT', fixingTime: '13:00', fixingTimezone: 'Europe/London', publishedPage: 'METALS BULLETIN', isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 28, indexCode: 'SHFE-CU', indexName: 'SHFE Copper Front Month', publicationSource: 'SHFE', currencyId: 5, currencyCode: 'CNY', uomId: 2, uomCode: 'MT', fixingTime: '15:00', fixingTimezone: 'Asia/Shanghai', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
   // AGRICULTURAL
-  { priceIndexId: 29, indexCode: 'CBOT-CORN', indexName: 'CBOT Corn Futures Front Month', publicationSource: 'CME', currencyCode: 'USD', uomCode: 'BUSHEL', fixingTime: '14:20', fixingTimezone: 'America/Chicago', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { priceIndexId: 30, indexCode: 'CBOT-WHEAT', indexName: 'CBOT Wheat (SRW) Futures Front Month', publicationSource: 'CME', currencyCode: 'USD', uomCode: 'BUSHEL', fixingTime: '14:20', fixingTimezone: 'America/Chicago', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { priceIndexId: 31, indexCode: 'CBOT-SOYBEAN', indexName: 'CBOT Soybean Futures Front Month', publicationSource: 'CME', currencyCode: 'USD', uomCode: 'BUSHEL', fixingTime: '14:20', fixingTimezone: 'America/Chicago', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { priceIndexId: 32, indexCode: 'EURONEXT-RAPESEED', indexName: 'Euronext Rapeseed Futures', publicationSource: 'EURONEXT', currencyCode: 'EUR', uomCode: 'MT', fixingTime: '18:30', fixingTimezone: 'Europe/Paris', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { priceIndexId: 33, indexCode: 'EURONEXT-WHEAT', indexName: 'Euronext Milling Wheat Futures', publicationSource: 'EURONEXT', currencyCode: 'EUR', uomCode: 'MT', fixingTime: '18:30', fixingTimezone: 'Europe/Paris', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 29, indexCode: 'CBOT-CORN', indexName: 'CBOT Corn Futures Front Month', publicationSource: 'CME', currencyId: 1, currencyCode: 'USD', uomId: 6, uomCode: 'BUSHEL', fixingTime: '14:20', fixingTimezone: 'America/Chicago', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 30, indexCode: 'CBOT-WHEAT', indexName: 'CBOT Wheat (SRW) Futures Front Month', publicationSource: 'CME', currencyId: 1, currencyCode: 'USD', uomId: 6, uomCode: 'BUSHEL', fixingTime: '14:20', fixingTimezone: 'America/Chicago', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 31, indexCode: 'CBOT-SOYBEAN', indexName: 'CBOT Soybean Futures Front Month', publicationSource: 'CME', currencyId: 1, currencyCode: 'USD', uomId: 6, uomCode: 'BUSHEL', fixingTime: '14:20', fixingTimezone: 'America/Chicago', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 32, indexCode: 'EURONEXT-RAPESEED', indexName: 'Euronext Rapeseed Futures', publicationSource: 'EURONEXT', currencyId: 2, currencyCode: 'EUR', uomId: 2, uomCode: 'MT', fixingTime: '18:30', fixingTimezone: 'Europe/Paris', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 33, indexCode: 'EURONEXT-WHEAT', indexName: 'Euronext Milling Wheat Futures', publicationSource: 'EURONEXT', currencyId: 2, currencyCode: 'EUR', uomId: 2, uomCode: 'MT', fixingTime: '18:30', fixingTimezone: 'Europe/Paris', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
 ];
+
+// Mirrors PriceIndexService.hydrate() — resolves currencyCode/uomCode from
+// currencyId/uomId via currenciesStore/uomStore the same way the real
+// backend does (V173 GUI fix: form now submits ids, not free-typed codes).
+function hydratePriceIndexRow(row: Record<string, unknown>): Record<string, unknown> {
+  const currency = (currenciesStore as Array<Record<string, unknown>>).find((c) => c['currencyId'] === row['currencyId']);
+  const uom = (uomStore as Array<Record<string, unknown>>).find((u) => u['uomId'] === row['uomId']);
+  return { ...row, currencyCode: currency?.['currencyCode'] ?? null, uomCode: uom?.['uomCode'] ?? null };
+}
 
 // ─── EXCHANGES ────────────────────────────────────────────────────────────────
 const exchangesStore: unknown[] = [
@@ -1697,11 +1706,19 @@ const priceIndexSourcesStore: unknown[] = [
 ];
 
 // Mirrors PriceIndexSourceService.hydrate() — resolves marketCode/productCode
-// via market_product_link the same way the real backend does (V172).
+// via market_product_link (V172) and currencyCode/uomCode via price_index
+// (V173) the same way the real backend does.
 function hydratePriceIndexSourceRow(row: Record<string, unknown>): Record<string, unknown> {
   const mp = (marketProductsStore as Array<Record<string, unknown>>).find((m) => m['marketProductLinkId'] === row['marketProductLinkId']);
   const market = mp ? (marketsStore as Array<Record<string, unknown>>).find((m) => m['marketId'] === mp['marketId']) : undefined;
-  return { ...row, marketCode: market?.['marketCode'] ?? null, productCode: mp?.['productCode'] ?? null };
+  const idx = (priceIndicesStore as Array<Record<string, unknown>>).find((pi) => pi['priceIndexId'] === row['priceIndexId']);
+  return {
+    ...row,
+    marketCode: market?.['marketCode'] ?? null,
+    productCode: mp?.['productCode'] ?? null,
+    currencyCode: idx?.['currencyCode'] ?? null,
+    uomCode: idx?.['uomCode'] ?? null,
+  };
 }
 
 // ─── FIELD PERMISSIONS DATA ────────────────────────────────────────────────────
@@ -2768,7 +2785,31 @@ export const etrmHandlers = [
     return new HttpResponse(null, { status: 204 });
   }),
 
-  ...crudHandlers('price-indices', priceIndicesStore as Array<Record<string, unknown>>, 'priceIndexId'),
+  http.get(`${API}/price-indices`, () =>
+    HttpResponse.json((priceIndicesStore as Array<Record<string, unknown>>).map(hydratePriceIndexRow))),
+  http.post(`${API}/price-indices`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const row = { ...input, priceIndexId: nextId(), createdAt: now() };
+    (priceIndicesStore as Array<Record<string, unknown>>).push(row);
+    return HttpResponse.json(hydratePriceIndexRow(row), { status: 201 });
+  }),
+  http.put(`${API}/price-indices/:id`, async ({ params, request }) => {
+    const id = Number(params.id);
+    const store = priceIndicesStore as Array<Record<string, unknown>>;
+    const idx = store.findIndex((r) => r['priceIndexId'] === id);
+    if (idx === -1) return problem(404, 'Not Found', `priceIndexId ${params.id} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    store[idx] = { ...store[idx], ...input };
+    return HttpResponse.json(hydratePriceIndexRow(store[idx]));
+  }),
+  http.patch(`${API}/price-indices/:id/deactivate`, ({ params }) => {
+    const id = Number(params.id);
+    const store = priceIndicesStore as Array<Record<string, unknown>>;
+    const idx = store.findIndex((r) => r['priceIndexId'] === id);
+    if (idx === -1) return problem(404, 'Not Found', `priceIndexId ${params.id} not found.`);
+    store[idx] = { ...store[idx], isActive: false };
+    return new HttpResponse(null, { status: 204 });
+  }),
   ...crudHandlers('exchanges', exchangesStore as Array<Record<string, unknown>>, 'exchangeId'),
   http.get(`${API}/locations/trading-desks`, () =>
     HttpResponse.json((locationsStore as Array<Record<string, unknown>>).filter((l) => l['tradingDeskInd'] === true && l['isActive'] === true))),

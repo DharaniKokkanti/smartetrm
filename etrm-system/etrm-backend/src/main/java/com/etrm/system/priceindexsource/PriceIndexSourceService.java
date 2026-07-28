@@ -1,11 +1,13 @@
 package com.etrm.system.priceindexsource;
 
 import com.etrm.system.common.NotFoundException;
+import com.etrm.system.currency.CurrencyRepository;
 import com.etrm.system.market.MarketProductLinkRepository;
 import com.etrm.system.market.MarketRepository;
 import com.etrm.system.priceindex.PriceIndexRepository;
 import com.etrm.system.pricesource.PriceSourceRepository;
 import com.etrm.system.product.ProductRepository;
+import com.etrm.system.uom.UnitOfMeasureRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,25 +23,33 @@ public class PriceIndexSourceService {
     private final MarketProductLinkRepository marketProductLinkRepository;
     private final MarketRepository marketRepository;
     private final ProductRepository productRepository;
+    private final CurrencyRepository currencyRepository;
+    private final UnitOfMeasureRepository uomRepository;
 
     public PriceIndexSourceService(PriceIndexSourceRepository repository,
                                     PriceIndexRepository priceIndexRepository,
                                     PriceSourceRepository priceSourceRepository,
                                     MarketProductLinkRepository marketProductLinkRepository,
                                     MarketRepository marketRepository,
-                                    ProductRepository productRepository) {
+                                    ProductRepository productRepository,
+                                    CurrencyRepository currencyRepository,
+                                    UnitOfMeasureRepository uomRepository) {
         this.repository = repository;
         this.priceIndexRepository = priceIndexRepository;
         this.priceSourceRepository = priceSourceRepository;
         this.marketProductLinkRepository = marketProductLinkRepository;
         this.marketRepository = marketRepository;
         this.productRepository = productRepository;
+        this.currencyRepository = currencyRepository;
+        this.uomRepository = uomRepository;
     }
 
     private PriceIndexSource hydrate(PriceIndexSource pis) {
         priceIndexRepository.findById(pis.getPriceIndexId()).ifPresent(idx -> {
             pis.setPriceIndexCode(idx.getIndexCode());
             pis.setPriceIndexName(idx.getIndexName());
+            currencyRepository.findById(idx.getCurrencyId()).ifPresent(c -> pis.setCurrencyCode(c.getCurrencyCode()));
+            uomRepository.findById(idx.getUomId()).ifPresent(u -> pis.setUomCode(u.getUomCode()));
         });
         priceSourceRepository.findById(pis.getPriceSourceId()).ifPresent(src -> {
             pis.setSourceCode(src.getSourceCode());

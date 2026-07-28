@@ -37,7 +37,10 @@ import java.time.LocalDateTime;
  * home for lifecycle dates since V162 — first_trade_date covers this per
  * concrete period, is_active covers current listing status); added
  * altPriceSourceId/mtmPriceSourceId (alternate/backup and primary
- * mark-to-market price sources for this listing).
+ * mark-to-market price sources for this listing) — dropped again in V173,
+ * superseded by price_index_source (role PRIMARY_MTM/BACKUP, scoped by
+ * market_product_link_id), which adds ticker/multiplier/offset/effective
+ * dates/failover ordering that these two columns never had.
  */
 @Entity
 @Table(name = "market_product_link")
@@ -122,22 +125,6 @@ public class MarketProductLink {
     @NotNull
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
-
-    // V164 — alternate/backup price source for this listing.
-    @Column(name = "alt_price_source_id")
-    private Integer altPriceSourceId;
-
-    @Transient
-    @JsonProperty
-    private String altPriceSourceCode;
-
-    // V164 — primary mark-to-market price source for this listing.
-    @Column(name = "mtm_price_source_id")
-    private Integer mtmPriceSourceId;
-
-    @Transient
-    @JsonProperty
-    private String mtmPriceSourceCode;
 
     @Size(max = 500)
     @Column(name = "notes", length = 500)
@@ -317,38 +304,6 @@ public class MarketProductLink {
 
     public void setIsActive(Boolean isActive) {
         this.isActive = isActive;
-    }
-
-    public Integer getAltPriceSourceId() {
-        return altPriceSourceId;
-    }
-
-    public void setAltPriceSourceId(Integer altPriceSourceId) {
-        this.altPriceSourceId = altPriceSourceId;
-    }
-
-    public String getAltPriceSourceCode() {
-        return altPriceSourceCode;
-    }
-
-    public void setAltPriceSourceCode(String altPriceSourceCode) {
-        this.altPriceSourceCode = altPriceSourceCode;
-    }
-
-    public Integer getMtmPriceSourceId() {
-        return mtmPriceSourceId;
-    }
-
-    public void setMtmPriceSourceId(Integer mtmPriceSourceId) {
-        this.mtmPriceSourceId = mtmPriceSourceId;
-    }
-
-    public String getMtmPriceSourceCode() {
-        return mtmPriceSourceCode;
-    }
-
-    public void setMtmPriceSourceCode(String mtmPriceSourceCode) {
-        this.mtmPriceSourceCode = mtmPriceSourceCode;
     }
 
     public String getNotes() {

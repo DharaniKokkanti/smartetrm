@@ -39,6 +39,9 @@ import java.time.LocalDateTime;
  * commodity_id in the same migration — see PriceIndex.java's doc comment).
  * marketCode/productCode hydrated the same way Period.java resolves its own
  * marketProductLinkId (market_product_link -> product/market).
+ * currencyCode/uomCode hydrated from PriceIndex (currency_id/uom_id) — a
+ * formula referencing this source needs the index's denomination without a
+ * second round trip; no new FK, price_index_id already provides the path.
  */
 @Entity
 @Table(name = "price_index_source")
@@ -66,6 +69,14 @@ public class PriceIndexSource {
     @Transient
     @JsonProperty
     private String priceIndexName;
+
+    @Transient
+    @JsonProperty
+    private String currencyCode;
+
+    @Transient
+    @JsonProperty
+    private String uomCode;
 
     @NotNull
     @Column(name = "market_product_link_id", nullable = false)
@@ -185,6 +196,22 @@ public class PriceIndexSource {
 
     public void setPriceIndexName(String priceIndexName) {
         this.priceIndexName = priceIndexName;
+    }
+
+    public String getCurrencyCode() {
+        return currencyCode;
+    }
+
+    public void setCurrencyCode(String currencyCode) {
+        this.currencyCode = currencyCode;
+    }
+
+    public String getUomCode() {
+        return uomCode;
+    }
+
+    public void setUomCode(String uomCode) {
+        this.uomCode = uomCode;
     }
 
     public Integer getMarketProductLinkId() {

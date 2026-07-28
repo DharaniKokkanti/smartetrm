@@ -19,7 +19,6 @@ import {
 import { MARKET_TYPES, SETTLEMENT_TYPES_MKT, type Market, type MarketInput, type MarketProductLink, type MarketType, type SettlementTypeMkt } from './types';
 import { COMMODITY_TYPES, type CommodityType } from '@features/reference/commodity-types/types';
 import { useProducts } from '@features/markets/products/hooks';
-import { usePriceSources } from '@features/pricing/price-sources/hooks';
 import { useFormDraft } from '@components/smart/formDraft';
 import { useExchanges } from '@features/markets/exchanges/hooks';
 import { useCurrencies } from '@features/reference/currencies/hooks';
@@ -136,8 +135,6 @@ function MarketProductDetail({ mp, onClose }: { mp: MarketProductLink; onClose: 
                 ['Settlement Type Override', mp.settlementType ?? 'Product default'],
                 ['First Notice Day Offset', mp.firstNoticeDayOffset != null ? `${mp.firstNoticeDayOffset} days before expiry` : '—'],
                 ['Last Trading Day Offset', mp.lastTradingDayOffset != null ? `${mp.lastTradingDayOffset} days before delivery month end` : '—'],
-                ['MTM Price Source', mp.mtmPriceSourceCode ?? '—'],
-                ['Alt Price Source', mp.altPriceSourceCode ?? '—'],
               ] as [string, string][]).map(([label, value]) => (
                 <tr key={label} style={{ borderBottom: `1px solid ${color.border}` }}>
                   <td style={{ padding: '6px 0', color: color.textSecondary, width: 220 }}>{label}</td>
@@ -159,8 +156,6 @@ function MarketProductsDrawer({ market, onClose }: { market: Market; onClose: ()
   const { data: products = [] } = useProducts();
   const productOpts = (products as { productId: number; productCode: string; productName: string }[])
     .map((p) => ({ value: p.productId, label: `${p.productCode} — ${p.productName}` }));
-  const { data: priceSources = [] } = usePriceSources();
-  const priceSourceOpts = priceSources.map((s) => ({ value: s.priceSourceId, label: s.sourceCode }));
   const [addOpen, setAddOpen] = useState(false);
   const [selectedMp, setSelectedMp] = useState<MarketProductLink | null>(null);
   const [editingMp, setEditingMp] = useState<MarketProductLink | null>(null);
@@ -270,14 +265,6 @@ function MarketProductsDrawer({ market, onClose }: { market: Market; onClose: ()
                 </Form.Item>
                 <Form.Item name="pricePrecision" label="Price Precision" style={{ flex: 1 }}>
                   <InputNumber style={{ width: '100%' }} placeholder="2" min={0} max={8} />
-                </Form.Item>
-              </Space>
-              <Space style={{ width: '100%', gap: 12 }}>
-                <Form.Item name="mtmPriceSourceId" label={hint('MTM Price Source', 'Primary mark-to-market price source for this listing.')} style={{ flex: 1 }}>
-                  <Select allowClear showSearch optionFilterProp="label" options={priceSourceOpts} placeholder="Select source" />
-                </Form.Item>
-                <Form.Item name="altPriceSourceId" label={hint('Alternate Price Source', 'Backup/reference price source used if the primary MTM source is unavailable.')} style={{ flex: 1 }}>
-                  <Select allowClear showSearch optionFilterProp="label" options={priceSourceOpts} placeholder="Select source" />
                 </Form.Item>
               </Space>
               <Space>

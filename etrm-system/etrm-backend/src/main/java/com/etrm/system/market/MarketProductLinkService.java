@@ -2,7 +2,6 @@ package com.etrm.system.market;
 
 import com.etrm.system.common.NotFoundException;
 import com.etrm.system.currency.CurrencyRepository;
-import com.etrm.system.pricesource.PriceSourceRepository;
 import com.etrm.system.product.ProductRepository;
 import com.etrm.system.uom.UnitOfMeasureRepository;
 import org.springframework.stereotype.Service;
@@ -19,17 +18,15 @@ public class MarketProductLinkService {
     private final CurrencyRepository currencyRepository;
     private final UnitOfMeasureRepository uomRepository;
     private final MarketRepository marketRepository;
-    private final PriceSourceRepository priceSourceRepository;
 
     public MarketProductLinkService(MarketProductLinkRepository repository, ProductRepository productRepository,
                                      CurrencyRepository currencyRepository, UnitOfMeasureRepository uomRepository,
-                                     MarketRepository marketRepository, PriceSourceRepository priceSourceRepository) {
+                                     MarketRepository marketRepository) {
         this.repository = repository;
         this.productRepository = productRepository;
         this.currencyRepository = currencyRepository;
         this.uomRepository = uomRepository;
         this.marketRepository = marketRepository;
-        this.priceSourceRepository = priceSourceRepository;
     }
 
     private MarketProductLink hydrate(MarketProductLink mp) {
@@ -42,12 +39,6 @@ public class MarketProductLinkService {
         }
         if (mp.getUomId() != null) {
             uomRepository.findById(mp.getUomId()).ifPresent(u -> mp.setUomCode(u.getUomCode()));
-        }
-        if (mp.getAltPriceSourceId() != null) {
-            priceSourceRepository.findById(mp.getAltPriceSourceId()).ifPresent(s -> mp.setAltPriceSourceCode(s.getSourceCode()));
-        }
-        if (mp.getMtmPriceSourceId() != null) {
-            priceSourceRepository.findById(mp.getMtmPriceSourceId()).ifPresent(s -> mp.setMtmPriceSourceCode(s.getSourceCode()));
         }
         return mp;
     }
