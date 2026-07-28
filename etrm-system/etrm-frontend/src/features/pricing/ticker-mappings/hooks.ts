@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { App as AntApp } from 'antd';
 import { tickerMappingsApi } from './api';
-import type { TickerMappingInput } from './types';
+import type { TickerMappingInput, TickerMappingAutoGenerateRequest } from './types';
 import type { ProblemDetail } from '@services/api';
 
 const KEY = ['ticker-mappings'] as const;
@@ -28,5 +28,15 @@ export function useDeactivateTickerMapping() {
     mutationFn: tickerMappingsApi.deactivate,
     onSuccess: () => { qc.invalidateQueries({ queryKey: KEY }); message.success('Ticker mapping deactivated.'); },
     onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Deactivate failed.'),
+  });
+}
+
+export function useAutoGenerateTickerMappings() {
+  const qc = useQueryClient();
+  const { message } = AntApp.useApp();
+  return useMutation({
+    mutationFn: (request: TickerMappingAutoGenerateRequest) => tickerMappingsApi.autoGenerate(request),
+    onSuccess: (created) => { qc.invalidateQueries({ queryKey: KEY }); message.success(`${created.length} ticker mapping(s) auto-generated.`); },
+    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Auto-generate failed.'),
   });
 }

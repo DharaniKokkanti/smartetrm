@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface TickerMappingRepository extends JpaRepository<TickerMapping, Integer> {
     List<TickerMapping> findByPriceIndexId(Integer priceIndexId);
+
+    boolean existsByPriceIndexIdAndPeriodIdAndPriceSourceId(Integer priceIndexId, Long periodId, Integer priceSourceId);
 }

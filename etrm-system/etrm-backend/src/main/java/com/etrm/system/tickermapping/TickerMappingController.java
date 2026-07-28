@@ -40,4 +40,11 @@ public class TickerMappingController {
         service.deactivate(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/api/v1/ticker-mappings/auto-generate")
+    public List<TickerMapping> autoGenerate(@Valid @RequestBody AutoGenerateRequest request) {
+        return service.autoGenerate(request.anchorTickerMappingId(), request.count());
+    }
+
+    public record AutoGenerateRequest(Integer anchorTickerMappingId, Integer count) {}
 }

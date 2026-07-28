@@ -1753,6 +1753,23 @@ function hydrateTickerMappingRow(row: Record<string, unknown>): Record<string, u
   };
 }
 
+// Rolls a single ticker forward to targetStartDate's contract month —
+// mirrors TickerRollCalculator.roll() on the backend. Returns null if
+// anchorTicker doesn't follow the root+month-code+2-digit-year convention.
+const TICKER_MONTH_CODES: Record<number, string> = {
+  1: 'F', 2: 'G', 3: 'H', 4: 'J', 5: 'K', 6: 'M', 7: 'N', 8: 'Q', 9: 'U', 10: 'V', 11: 'X', 12: 'Z',
+};
+function rollTickerMock(anchorTicker: string | null, targetStartDate: string): string | null {
+  if (!anchorTicker) return null;
+  const m = /^(.*?)([FGHJKMNQUVXZ])(\d{2})$/.exec(anchorTicker.trim());
+  if (!m) return null;
+  const root = m[1];
+  const d = new Date(targetStartDate);
+  const code = TICKER_MONTH_CODES[d.getUTCMonth() + 1];
+  const yy = String(d.getUTCFullYear() % 100).padStart(2, '0');
+  return `${root}${code}${yy}`;
+}
+
 // Option Index Links (V180) — links an option index to its underlying
 // linear index and the pricing model used to value it.
 const optionIndexLinksStore: unknown[] = [
@@ -2579,6 +2596,55 @@ export const etrmHandlers = [
     const idx = (tickerMappingsStore as Array<Record<string, unknown>>).findIndex((t) => t.tickerMappingId === Number(params.id));
     if (idx >= 0) (tickerMappingsStore as Array<Record<string, unknown>>)[idx].isActive = false;
     return new HttpResponse(null, { status: 204 });
+  }),
+  http.post(`${API}/ticker-mappings/auto-generate`, async ({ request }) => {
+    const { anchorTickerMappingId, count } = (await request.json()) as { anchorTickerMappingId: number; count: number };
+    const anchor = (tickerMappingsStore as Array<Record<string, unknown>>).find((t) => t['tickerMappingId'] === anchorTickerMappingId);
+    if (!anchor) return problem(404, 'Not Found', `Ticker mapping ${anchorTickerMappingId} not found.`);
+    if (anchor['periodId'] == null) return problem(409, 'Conflict', 'Anchor ticker mapping has no Period set — a rolling/continuous ticker can\'t be auto-rolled.');
+    const anchorPeriod = (periodsStore as Array<Record<string, unknown>>).find((p) => p['periodId'] === anchor['periodId']);
+    if (!anchorPeriod) return problem(404, 'Not Found', `Period ${anchor['periodId']} not found.`);
+
+    const candidatePeriods = (periodsStore as Array<Record<string, unknown>>)
+      .filter((p) => p['marketProductLinkId'] === anchorPeriod['marketProductLinkId'] && (p['startDate'] as string) > (anchorPeriod['startDate'] as string))
+      .sort((a, b) => (a['startDate'] as string).localeCompare(b['startDate'] as string));
+    if (candidatePeriods.length < count) {
+      return problem(409, 'Conflict', `Only ${candidatePeriods.length} future period(s) exist for this listing after the anchor — run Period auto-generate first to create more periods, then retry.`);
+    }
+
+    const TICKER_FIELDS = ['settleTicker', 'openTicker', 'highTicker', 'lowTicker', 'avgTicker', 'promptTicker', 'bidTicker', 'askTicker', 'midTicker'] as const;
+    const generated: Record<string, unknown>[] = [];
+    for (let i = 0; i < count; i++) {
+      const target = candidatePeriods[i];
+      const alreadyMapped = (tickerMappingsStore as Array<Record<string, unknown>>).some(
+        (t) => t['priceIndexId'] === anchor['priceIndexId'] && t['periodId'] === target['periodId'] && t['priceSourceId'] === anchor['priceSourceId'],
+      );
+      if (alreadyMapped) continue;
+      const row: Record<string, unknown> = {
+        tickerMappingId: nextId(),
+        priceIndexId: anchor['priceIndexId'],
+        periodId: target['periodId'],
+        priceSourceId: anchor['priceSourceId'],
+        effectiveFrom: target['startDate'],
+        effectiveTo: null,
+        isActive: true,
+        notes: null,
+        createdAt: now(),
+      };
+      let anyRolled = false;
+      for (const field of TICKER_FIELDS) {
+        const rolled = rollTickerMock(anchor[field] as string | null, target['startDate'] as string);
+        row[field] = rolled;
+        if (rolled) anyRolled = true;
+      }
+      if (!anyRolled) continue;
+      tickerMappingsStore.push(row);
+      generated.push(hydrateTickerMappingRow(row));
+    }
+    if (generated.length === 0) {
+      return problem(409, 'Conflict', 'Nothing to generate — either every candidate period already has a ticker mapping for this index+source, or the anchor\'s ticker(s) don\'t follow a root+month-code+year convention that can be mechanically rolled.');
+    }
+    return HttpResponse.json(generated, { status: 201 });
   }),
 
   // Option Index Links

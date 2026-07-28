@@ -27,3 +27,8 @@ export type TickerMappingInput = Omit<
   TickerMapping,
   'tickerMappingId' | 'priceIndexCode' | 'priceIndexName' | 'periodCode' | 'sourceCode' | 'sourceName'
 >;
+
+export interface TickerMappingAutoGenerateRequest {
+  anchorTickerMappingId: number;
+  count: number;
+}

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Button, Space, Popconfirm, Drawer, Form, Input, Select, Switch } from 'antd';
-import { EditOutlined, StopOutlined } from '@ant-design/icons';
+import { EditOutlined, StopOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import type { ColDef } from 'ag-grid-community';
 import dayjs, { type Dayjs } from 'dayjs';
 import { PageHeader } from '@components/layout/PageHeader';
@@ -13,10 +13,12 @@ import { usePriceIndices } from '@features/markets/price-indices/hooks';
 import { usePriceSources } from '@features/pricing/price-sources/hooks';
 import { usePeriods } from '@features/calendar/periods/hooks';
 import { useTickerMappings, useSaveTickerMapping, useDeactivateTickerMapping } from './hooks';
+import { TickerMappingAutoGenerateModal } from './TickerMappingAutoGenerateModal';
 import type { TickerMapping, TickerMappingInput } from './types';
 
 export function TickerMappingsPage() {
   const { data = [], isLoading, refetch } = useTickerMappings();
+  const [autoGenOpen, setAutoGenOpen] = useState(false);
   const { data: priceIndices = [] } = usePriceIndices();
   const { data: priceSources = [] } = usePriceSources();
   const { data: periods = [] } = usePeriods();
@@ -138,6 +140,7 @@ export function TickerMappingsPage() {
         title="Ticker Mappings"
         description="Where a vendor/exchange ticker string is set up before a price load runs — maps it to the Price Index it feeds, the specific Period/tenor it represents (leave blank for a rolling/continuous ticker), and the Price Source that publishes it. A price loader resolves incoming rows against this table instead of parsing ticker conventions."
         moduleGroup="pricing"
+        extra={<Button icon={<ThunderboltOutlined />} onClick={() => setAutoGenOpen(true)}>Auto-Generate</Button>}
       />
       <SmartGrid
         columnDefs={colDefs}
@@ -225,6 +228,8 @@ export function TickerMappingsPage() {
           </Form.Item>
         </Form>
       </Drawer>
+
+      <TickerMappingAutoGenerateModal open={autoGenOpen} onClose={() => setAutoGenOpen(false)} tickerMappings={data} />
     </>
   );
 }
