@@ -43,7 +43,9 @@ export function SettlementPricesPage() {
     form.setFieldsValue({
       exchange: r.exchange, contractTicker: r.contractTicker,
       settleDate: r.settleDate ? dayjs(r.settleDate) : undefined,
-      settlePrice: r.settlePrice, tickSize: r.tickSize, tickCurrencyId: r.tickCurrencyId,
+      settlePrice: r.settlePrice, openPrice: r.openPrice ?? undefined, highPrice: r.highPrice ?? undefined,
+      lowPrice: r.lowPrice ?? undefined, avgPrice: r.avgPrice ?? undefined, promptPrice: r.promptPrice ?? undefined,
+      tickSize: r.tickSize, tickCurrencyId: r.tickCurrencyId,
       uomId: r.uomId, isConfirmed: r.isConfirmed, source: r.source, notes: r.notes ?? undefined,
     } as unknown as SettlementPriceInput);
     setOpen(true);
@@ -72,6 +74,11 @@ export function SettlementPricesPage() {
       field: 'settlePrice', headerName: 'Settle Price', width: 120, cellClass: 'cell-mono',
       valueFormatter: (p) => p.value != null ? Number(p.value).toFixed(4) : '—',
     },
+    { field: 'openPrice', headerName: 'Open', width: 100, cellClass: 'cell-mono', valueFormatter: (p) => p.value != null ? Number(p.value).toFixed(4) : '—' },
+    { field: 'highPrice', headerName: 'High', width: 100, cellClass: 'cell-mono', valueFormatter: (p) => p.value != null ? Number(p.value).toFixed(4) : '—' },
+    { field: 'lowPrice', headerName: 'Low', width: 100, cellClass: 'cell-mono', valueFormatter: (p) => p.value != null ? Number(p.value).toFixed(4) : '—' },
+    { field: 'avgPrice', headerName: 'Avg', width: 100, cellClass: 'cell-mono', valueFormatter: (p) => p.value != null ? Number(p.value).toFixed(4) : '—' },
+    { field: 'promptPrice', headerName: 'Prompt', width: 100, cellClass: 'cell-mono', valueFormatter: (p) => p.value != null ? Number(p.value).toFixed(4) : '—' },
     { field: 'tickSize', headerName: 'Tick Size', width: 90, cellClass: 'cell-mono', valueFormatter: (p) => p.value?.toString() ?? '—' },
     { field: 'uomCode', headerName: 'UoM', width: 80, cellClass: 'cell-mono' },
     { field: 'source', headerName: 'Source', width: 80, cellClass: 'cell-mono' },
@@ -153,6 +160,23 @@ export function SettlementPricesPage() {
             </Form.Item>
             <Form.Item name="tickCurrencyId" label="Tick CCY" rules={[{ required: true }]} style={{ flex: 1 }}>
               <Select options={currencyOptions} showSearch optionFilterProp="label" placeholder="USD" />
+            </Form.Item>
+          </Space>
+          <Space style={{ width: '100%', gap: 12 }}>
+            <Form.Item name="openPrice" label={hint('Open', 'Opening price for the trading day, if published. Optional.')} style={{ flex: 1 }}>
+              <InputNumber style={{ width: '100%' }} precision={6} step={0.01} placeholder="—" />
+            </Form.Item>
+            <Form.Item name="highPrice" label={hint('High', 'Highest traded price for the day, if published. Optional.')} style={{ flex: 1 }}>
+              <InputNumber style={{ width: '100%' }} precision={6} step={0.01} placeholder="—" />
+            </Form.Item>
+            <Form.Item name="lowPrice" label={hint('Low', 'Lowest traded price for the day, if published. Optional.')} style={{ flex: 1 }}>
+              <InputNumber style={{ width: '100%' }} precision={6} step={0.01} placeholder="—" />
+            </Form.Item>
+            <Form.Item name="avgPrice" label={hint('Avg', 'Volume-weighted or simple average price for the day, if published. Optional.')} style={{ flex: 1 }}>
+              <InputNumber style={{ width: '100%' }} precision={6} step={0.01} placeholder="—" />
+            </Form.Item>
+            <Form.Item name="promptPrice" label={hint('Prompt', 'Distinct "prompt" price some vendors publish separately (e.g. UK NBP within-day/day-ahead prompt gas) — not a synonym for settle/open/high/low/avg. Optional.')} style={{ flex: 1 }}>
+              <InputNumber style={{ width: '100%' }} precision={6} step={0.01} placeholder="—" />
             </Form.Item>
           </Space>
           <Space style={{ width: '100%', gap: 12 }}>

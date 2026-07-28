@@ -1,10 +1,12 @@
 package com.etrm.system.settlementprice;
 
+import com.etrm.system.common.ConflictException;
 import com.etrm.system.common.NotFoundException;
 import com.etrm.system.uom.UnitOfMeasureRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -36,9 +38,22 @@ public class SettlementPriceService {
         return hydrate(repository.save(input));
     }
 
+    // Numeric equality, not .equals() — BigDecimal.equals() treats different
+    // scales (72.45 vs 72.450000) as unequal, which would false-positive here.
+    private boolean sameValue(BigDecimal a, BigDecimal b) {
+        if (a == null || b == null) return a == b;
+        return a.compareTo(b) == 0;
+    }
+
     public SettlementPrice update(Integer id, SettlementPrice input) {
         SettlementPrice existing = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("No settlement price with id " + id + "."));
+        if (sameValue(existing.getOpenPrice(), input.getOpenPrice())
+                && sameValue(existing.getHighPrice(), input.getHighPrice())
+                && sameValue(existing.getLowPrice(), input.getLowPrice())
+                && sameValue(existing.getAvgPrice(), input.getAvgPrice())) {
+            throw new ConflictException("At least one of Open/High/Low/Avg price must change to save this update.");
+        }
         input.setSettlementPriceId(id);
         // created_at/created_by are @CreatedDate/@CreatedBy — JPA auditing
         // only populates those on insert, so the request body never carries

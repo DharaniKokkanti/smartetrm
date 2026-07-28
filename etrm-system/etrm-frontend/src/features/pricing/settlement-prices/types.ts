@@ -10,6 +10,11 @@ export interface SettlementPrice {
   contractTicker: string;   // CLZ26, NGF27, HOF27
   settleDate: string;
   settlePrice: number;
+  openPrice: number | null;
+  highPrice: number | null;
+  lowPrice: number | null;
+  avgPrice: number | null;
+  promptPrice: number | null;
   tickSize: number;
   tickCurrencyId: number;
   uomId: number;

@@ -43,6 +43,17 @@ import java.time.LocalDateTime;
  * fully implied by which identity path is populated; chk_sp_identity in the
  * DB enforces exactly one path, matching this class's existing pattern of
  * trusting DB CHECK constraints for cross-field rules.
+ *
+ * V174 — openPrice/highPrice/lowPrice/avgPrice added: supplementary daily
+ * range/average context on the same row, not a new "kind" axis. settlePrice
+ * stays the one authoritative value every downstream reader (pricing
+ * formulas, MTM, invoicing) already resolves against; these four are
+ * optional context alongside it. chk_sp_ohlc_range enforces high >= low
+ * when both are populated.
+ * V175 — promptPrice added: some vendors publish a genuinely distinct
+ * "prompt" price (e.g. UK NBP within-day/day-ahead) separate from the
+ * settle/open/high/low/avg values above — its own nullable column, not a
+ * synonym for any of them.
  */
 @Entity
 @Table(name = "settlement_price")
@@ -80,6 +91,21 @@ public class SettlementPrice {
 
     @Column(name = "tick_size", precision = 12, scale = 6)
     private BigDecimal tickSize;
+
+    @Column(name = "open_price", precision = 18, scale = 6)
+    private BigDecimal openPrice;
+
+    @Column(name = "high_price", precision = 18, scale = 6)
+    private BigDecimal highPrice;
+
+    @Column(name = "low_price", precision = 18, scale = 6)
+    private BigDecimal lowPrice;
+
+    @Column(name = "avg_price", precision = 18, scale = 6)
+    private BigDecimal avgPrice;
+
+    @Column(name = "prompt_price", precision = 18, scale = 6)
+    private BigDecimal promptPrice;
 
     @NotNull
     @Column(name = "tick_currency_id", nullable = false)
@@ -184,6 +210,46 @@ public class SettlementPrice {
 
     public void setTickSize(BigDecimal tickSize) {
         this.tickSize = tickSize;
+    }
+
+    public BigDecimal getOpenPrice() {
+        return openPrice;
+    }
+
+    public void setOpenPrice(BigDecimal openPrice) {
+        this.openPrice = openPrice;
+    }
+
+    public BigDecimal getHighPrice() {
+        return highPrice;
+    }
+
+    public void setHighPrice(BigDecimal highPrice) {
+        this.highPrice = highPrice;
+    }
+
+    public BigDecimal getLowPrice() {
+        return lowPrice;
+    }
+
+    public void setLowPrice(BigDecimal lowPrice) {
+        this.lowPrice = lowPrice;
+    }
+
+    public BigDecimal getAvgPrice() {
+        return avgPrice;
+    }
+
+    public void setAvgPrice(BigDecimal avgPrice) {
+        this.avgPrice = avgPrice;
+    }
+
+    public BigDecimal getPromptPrice() {
+        return promptPrice;
+    }
+
+    public void setPromptPrice(BigDecimal promptPrice) {
+        this.promptPrice = promptPrice;
     }
 
     public Integer getTickCurrencyId() {
