@@ -132,7 +132,6 @@ function MarketProductDetail({ mp, onClose }: { mp: MarketProductLink; onClose: 
                 ['Min Quantity', mp.minQuantity?.toLocaleString() ?? '—'],
                 ['Max Quantity', mp.maxQuantity?.toLocaleString() ?? '—'],
                 ['Price Precision (dp)', mp.pricePrecision?.toString() ?? '—'],
-                ['Settlement Type Override', mp.settlementType ?? 'Product default'],
                 ['First Notice Day Offset', mp.firstNoticeDayOffset != null ? `${mp.firstNoticeDayOffset} days before expiry` : '—'],
                 ['Last Trading Day Offset', mp.lastTradingDayOffset != null ? `${mp.lastTradingDayOffset} days before delivery month end` : '—'],
               ] as [string, string][]).map(([label, value]) => (
@@ -183,15 +182,15 @@ function MarketProductsDrawer({ market, onClose }: { market: Market; onClose: ()
     const v = await form.validateFields();
     // The form only has Form.Items for a subset of MarketProductLinkInput's
     // fields — validateFields() returns just those, so on edit the rest
-    // (isActive, currencyId, uomId, minQuantity, maxQuantity, settlementType,
-    // notes) must be carried over from the existing row explicitly, or
-    // they'd silently fall back to MarketProductLink.java's field
-    // initializers (isActive=true) and e.g. reactivate a deactivated link.
+    // (isActive, currencyId, uomId, minQuantity, maxQuantity, notes) must be
+    // carried over from the existing row explicitly, or they'd silently fall
+    // back to MarketProductLink.java's field initializers (isActive=true)
+    // and e.g. reactivate a deactivated link.
     const preserved = editingMp
       ? {
           currencyId: editingMp.currencyId, uomId: editingMp.uomId,
           minQuantity: editingMp.minQuantity, maxQuantity: editingMp.maxQuantity,
-          settlementType: editingMp.settlementType, notes: editingMp.notes,
+          notes: editingMp.notes,
           isActive: editingMp.isActive,
         }
       : { isActive: true };

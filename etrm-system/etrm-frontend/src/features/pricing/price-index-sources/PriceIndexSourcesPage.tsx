@@ -47,7 +47,6 @@ export function PriceIndexSourcesPage() {
     form.setFieldsValue({
       ...r,
       sourceFieldCode: r.sourceFieldCode ?? undefined,
-      sourceTicker: r.sourceTicker ?? undefined,
       effectiveFrom: r.effectiveFrom ? dayjs(r.effectiveFrom) : undefined,
       effectiveTo: r.effectiveTo ? dayjs(r.effectiveTo) : undefined,
     } as unknown as PriceIndexSourceInput);
@@ -105,7 +104,6 @@ export function PriceIndexSourcesPage() {
       cellRenderer: (p: { value: string }) => <Tag color={ROLE_COLOR[p.value] ?? 'default'}>{p.value.replace('_', ' ')}</Tag>,
     },
     { field: 'sourceFieldCode', headerName: 'Field Code', width: 110, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },
-    { field: 'sourceTicker', headerName: 'Ticker', width: 130, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },
     { field: 'priceMultiplier', headerName: 'Multiplier', width: 100, cellClass: 'cell-mono', valueFormatter: (p) => p.value === 1 ? '—' : String(p.value) },
     { field: 'priceOffset', headerName: 'Offset', width: 90, cellClass: 'cell-mono', valueFormatter: (p) => p.value === 0 ? '—' : String(p.value) },
     { field: 'calculationSequence', headerName: 'Seq', width: 70, cellClass: 'cell-mono' },
@@ -178,14 +176,9 @@ export function PriceIndexSourcesPage() {
           >
             <Select options={SOURCE_ROLES.map((r) => ({ label: r.replace('_', ' '), value: r }))} />
           </Form.Item>
-          <Space style={{ width: '100%', gap: 12 }}>
-            <Form.Item name="sourceFieldCode" label={hint('Source Field Code', 'Vendor-specific field/page code for this price. Platts uses mnemonics like PCAAS00 for Dated Brent. Argus uses AP codes. Required for automated price loading.', 'PCAAS00, AAQUA, AP-0001')} style={{ flex: 1 }}>
-              <Input placeholder="PCAAS00" style={{ fontFamily: 'monospace' }} />
-            </Form.Item>
-            <Form.Item name="sourceTicker" label={hint('Source Ticker', 'Bloomberg ticker, Reuters RIC, or exchange contract code. Used when pulling from feed rather than direct vendor API.', 'CO1 (Brent), CL1 (WTI), LMCADY (LME Cu Cash)')} style={{ flex: 1 }}>
-              <Input placeholder="CO1" style={{ fontFamily: 'monospace' }} />
-            </Form.Item>
-          </Space>
+          <Form.Item name="sourceFieldCode" label={hint('Source Field Code', 'Vendor-specific field/page code for this price. Platts uses mnemonics like PCAAS00 for Dated Brent. Argus uses AP codes. Required for automated price loading.', 'PCAAS00, AAQUA, AP-0001')}>
+            <Input placeholder="PCAAS00" style={{ fontFamily: 'monospace' }} />
+          </Form.Item>
           <Space style={{ width: '100%', gap: 12 }}>
             <Form.Item name="priceMultiplier" label={hint('Price Multiplier', 'Multiply raw source price by this factor. Use when source quotes in different units — e.g. source gives price per ton, you need per barrel: multiply by 7.45.', '1.0 (most cases), 7.45 (MT to BBL conversion)')} rules={[{ required: true }]} style={{ flex: 1 }}>
               <InputNumber style={{ width: '100%' }} step={0.000001} />

@@ -68,7 +68,6 @@ export function PeriodsPage() {
       periodCode: p.periodCode, periodName: p.periodName, periodType: p.periodType,
       isRolling: p.isRolling, rollOffset: p.rollOffset ?? undefined, rollUnit: p.rollUnit ?? undefined,
       isTradingPeriod: p.isTradingPeriod, isRiskPeriod: p.isRiskPeriod, isSettlementPeriod: p.isSettlementPeriod,
-      exchProductCode: p.exchProductCode ?? undefined,
       startDate: dayjs(p.startDate) as unknown as string, endDate: dayjs(p.endDate) as unknown as string,
       deliveryStartDate: optionalDate(p.deliveryStartDate), deliveryEndDate: optionalDate(p.deliveryEndDate),
       firstTradeDate: optionalDate(p.firstTradeDate), expiryDate: optionalDate(p.expiryDate),
@@ -107,7 +106,6 @@ export function PeriodsPage() {
       startTimeUtc: v.startTimeUtc ? dayjs(v.startTimeUtc as unknown as dayjs.Dayjs).format('HH:mm') : null,
       endTimeUtc: v.endTimeUtc ? dayjs(v.endTimeUtc as unknown as dayjs.Dayjs).format('HH:mm') : null,
       cropYearOffsetMonths: v.cropYearOffsetMonths ?? null,
-      exchProductCode: v.exchProductCode ?? null,
       curveLabel: v.curveLabel ?? null,
       notes: v.notes ?? null,
       pricingCalendarCode: v.pricingCalendarCode ?? null,
@@ -146,7 +144,6 @@ export function PeriodsPage() {
       headerName: 'Market / Product', width: 160,
       valueGetter: (p) => `${p.data?.marketCode ?? '—'} / ${p.data?.productCode ?? '—'}`,
     },
-    { field: 'exchProductCode', headerName: 'Exch Code', width: 110, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },
     { field: 'periodType', headerName: 'Type', width: 110, cellRenderer: (p: { value: PeriodType }) => <Tag color={TYPE_COLOR[p.value] ?? 'default'}>{p.value}</Tag> },
     { field: 'startDate', headerName: 'Start', width: 110, cellClass: 'cell-mono', valueFormatter: (p) => p.value ? dayjs(p.value as string).format('DD MMM YYYY') : '—' },
     { field: 'endDate', headerName: 'End', width: 110, cellClass: 'cell-mono', valueFormatter: (p) => p.value ? dayjs(p.value as string).format('DD MMM YYYY') : '—' },
@@ -196,9 +193,6 @@ export function PeriodsPage() {
           </Form.Item>
           <Form.Item name="periodName" label="Period Name" rules={[{ required: true }]}>
             <Input placeholder="January 2027" />
-          </Form.Item>
-          <Form.Item name="exchProductCode" label={hint('Exchange Product Code', 'The contract-month-specific exchange code, distinct from the market product\'s root ticker — e.g. CL is the root WTI symbol, CLF27 is the Jan-27 contract month code.', 'CLF27')}>
-            <Input placeholder="CLF27" style={{ fontFamily: 'monospace' }} />
           </Form.Item>
           <Form.Item name="periodType" label={hint('Period Type', 'MONTH: calendar month (most common in oil/gas). QUARTER: 3-month strips. YEAR: full calendar year. HALF_YEAR: 6-month strip. SEASON: e.g. Summer/Winter gas seasons. CROP_YEAR: agri marketing year. INTRADAY: sub-daily block. SPOT: immediate/current delivery. DAY/WEEK: single day/week — also the LME metals daily/weekly prompt-date convention.', 'MONTH')} rules={[{ required: true }]}>
             <Select options={PERIOD_TYPES.map((t) => ({ label: t, value: t }))} />

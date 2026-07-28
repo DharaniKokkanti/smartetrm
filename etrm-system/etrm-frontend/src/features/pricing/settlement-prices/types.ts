@@ -15,6 +15,11 @@ export interface SettlementPrice {
   lowPrice: number | null;
   avgPrice: number | null;
   promptPrice: number | null;
+  bidPrice: number | null;
+  askPrice: number | null;
+  midPrice: number | null;
+  periodId: number | null;
+  periodCode: string | null;   // denormalized display code, e.g. M2026-02
   tickSize: number;
   tickCurrencyId: number;
   uomId: number;
@@ -26,7 +31,7 @@ export interface SettlementPrice {
   updatedAt: string;
 }
 
-export type SettlementPriceInput = Omit<SettlementPrice, 'settlementPriceId' | 'uomCode' | 'createdAt' | 'updatedAt'>;
+export type SettlementPriceInput = Omit<SettlementPrice, 'settlementPriceId' | 'uomCode' | 'periodCode' | 'createdAt' | 'updatedAt'>;
 
 // Contract series metadata used for display
 export const CL_MONTH_CODES: Record<string, string> = {

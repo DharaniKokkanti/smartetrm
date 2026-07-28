@@ -24,9 +24,10 @@ export interface Product {
   // FK to dbo.commodity_family(commodity_family_id) — replaces the old raw
   // productFamily string (V59). Null = not assigned to a family.
   commodityFamilyId: number | null;
-  bloombergTicker: string | null;
-  reutersRic: string | null;
-  plattsCode: string | null;
+  // V179 — bloombergTicker/reutersRic/plattsCode dropped: hard-coded to 3
+  // vendors and barely populated; ticker_mapping (pricing/ticker-mappings)
+  // is the generic, extensible replacement (any price_source, per-tenor,
+  // per-price-field).
   isExchangeTraded: boolean;
   isOtc: boolean;
   /** True if this product is a blend of multiple component products */

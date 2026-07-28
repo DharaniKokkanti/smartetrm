@@ -30,9 +30,8 @@ export interface Period {
   productCode: string | null;
   periodCode: string;
   periodName: string;
-  // Contract-month-specific exchange code (e.g. 'CLF27'), distinct from the
-  // market_product's root ticker (e.g. 'CL').
-  exchProductCode: string | null;
+  // V179 — exchProductCode dropped: 0 rows ever populated; market_product_link
+  // (via market/product) is the single path for the exchange root symbol.
   periodType: PeriodType;
   isRolling: boolean;
   rollOffset: number | null;

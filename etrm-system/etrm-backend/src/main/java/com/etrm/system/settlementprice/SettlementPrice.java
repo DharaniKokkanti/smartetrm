@@ -54,6 +54,15 @@ import java.time.LocalDateTime;
  * "prompt" price (e.g. UK NBP within-day/day-ahead) separate from the
  * settle/open/high/low/avg values above — its own nullable column, not a
  * synonym for any of them.
+ * V177 — periodId added (nullable FK to dbo.period): which specific
+ * delivery period/tenor this price row belongs to, closing the gap where a
+ * forward curve (index + per-period prices) couldn't be assembled from
+ * stored settlement prices without inferring the period from contractTicker
+ * text. Independent of chk_sp_identity's two-path rule — supplementary
+ * tenor context on whichever identity path is populated, not a third path.
+ * V178 — bidPrice/askPrice/midPrice added: OTC/broker-quote support
+ * alongside settle/open/high/low/avg/prompt. chk_sp_bid_ask_range enforces
+ * ask >= bid when both are populated.
  */
 @Entity
 @Table(name = "settlement_price")
@@ -106,6 +115,22 @@ public class SettlementPrice {
 
     @Column(name = "prompt_price", precision = 18, scale = 6)
     private BigDecimal promptPrice;
+
+    @Column(name = "bid_price", precision = 18, scale = 6)
+    private BigDecimal bidPrice;
+
+    @Column(name = "ask_price", precision = 18, scale = 6)
+    private BigDecimal askPrice;
+
+    @Column(name = "mid_price", precision = 18, scale = 6)
+    private BigDecimal midPrice;
+
+    @Column(name = "period_id")
+    private Long periodId;
+
+    @Transient
+    @JsonProperty
+    private String periodCode;
 
     @NotNull
     @Column(name = "tick_currency_id", nullable = false)
@@ -250,6 +275,46 @@ public class SettlementPrice {
 
     public void setPromptPrice(BigDecimal promptPrice) {
         this.promptPrice = promptPrice;
+    }
+
+    public BigDecimal getBidPrice() {
+        return bidPrice;
+    }
+
+    public void setBidPrice(BigDecimal bidPrice) {
+        this.bidPrice = bidPrice;
+    }
+
+    public BigDecimal getAskPrice() {
+        return askPrice;
+    }
+
+    public void setAskPrice(BigDecimal askPrice) {
+        this.askPrice = askPrice;
+    }
+
+    public BigDecimal getMidPrice() {
+        return midPrice;
+    }
+
+    public void setMidPrice(BigDecimal midPrice) {
+        this.midPrice = midPrice;
+    }
+
+    public Long getPeriodId() {
+        return periodId;
+    }
+
+    public void setPeriodId(Long periodId) {
+        this.periodId = periodId;
+    }
+
+    public String getPeriodCode() {
+        return periodCode;
+    }
+
+    public void setPeriodCode(String periodCode) {
+        this.periodCode = periodCode;
     }
 
     public Integer getTickCurrencyId() {

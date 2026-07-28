@@ -16,7 +16,8 @@ export interface PriceIndexSource {
   sourceName: string;
   sourceRole: SourceRole;
   sourceFieldCode: string | null;
-  sourceTicker: string | null;
+  // V179 — sourceTicker dropped, superseded by ticker_mapping (per-tenor,
+  // per-price-field vendor tickers); see pricing/ticker-mappings.
   priceMultiplier: number;
   priceOffset: number;
   calculationSequence: number;

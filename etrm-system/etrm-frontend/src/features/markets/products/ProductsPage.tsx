@@ -967,9 +967,6 @@ export function ProductsPage() {
       defaultIncotermCode:    p.defaultIncotermCode ?? undefined,
       gradeCode:              p.gradeCode ?? undefined,
       commodityFamilyId:      p.commodityFamilyId ?? undefined,
-      bloombergTicker:        p.bloombergTicker ?? undefined,
-      reutersRic:             p.reutersRic ?? undefined,
-      plattsCode:             p.plattsCode ?? undefined,
       isExchangeTraded:       p.isExchangeTraded,
       isOtc:                  p.isOtc,
       isBlend:                p.isBlend,
@@ -1054,13 +1051,6 @@ export function ProductsPage() {
           {p.data.isOtc           && <Tooltip title="OTC"><Tag color="cyan" style={{ marginRight: 0 }}>OTC</Tag></Tooltip>}
         </Space>
       ),
-    },
-    {
-      headerName: 'Vendor IDs', width: 110, sortable: false, filter: false,
-      cellRenderer: (p: { data: Product }) => {
-        const count = [p.data.bloombergTicker, p.data.reutersRic, p.data.plattsCode].filter(Boolean).length;
-        return count > 0 ? <Tag icon={<GlobalOutlined />} color="default">{count} link{count > 1 ? 's' : ''}</Tag> : null;
-      },
     },
     { field: 'isActive', headerName: 'Status', width: 100, cellRenderer: (p: { value: boolean }) => <ActiveTag active={p.value} /> },
     {
@@ -1147,18 +1137,6 @@ export function ProductsPage() {
           <Divider orientation="left" orientationMargin={0} style={{ fontSize: 12, color: color.textSecondary, marginBottom: 12 }}>
             Vendor Identifiers
           </Divider>
-          <Space style={{ width: '100%' }} size={12}>
-            <Form.Item name="bloombergTicker" label={hint('Bloomberg Ticker', 'Bloomberg commodity ticker code (e.g. CO1 Comdty, CL1 Comdty).', 'CO1 Comdty')} style={{ flex: 1 }}>
-              <Input placeholder="CO1 Comdty" style={{ fontFamily: 'monospace' }} />
-            </Form.Item>
-            <Form.Item name="reutersRic" label={hint('Reuters RIC', 'Refinitiv/Reuters instrument code (e.g. LCOc1, CLc1, MCUCASH=).', 'LCOc1')} style={{ flex: 1 }}>
-              <Input placeholder="LCOc1" style={{ fontFamily: 'monospace' }} />
-            </Form.Item>
-            <Form.Item name="plattsCode" label={hint('Platts Code', 'S&P Global / Platts price publication code or page (e.g. AAWLD00).', 'AAWLD00')} style={{ flex: 1 }}>
-              <Input placeholder="AAWLD00" style={{ fontFamily: 'monospace' }} />
-            </Form.Item>
-          </Space>
-
           {/* ── Pricing Basis ─────────────────────────────────────────────── */}
           {commodityTypeWatched && (
             <>

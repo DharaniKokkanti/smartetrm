@@ -49,20 +49,19 @@ export function parsePeriodUpload(
       const periodType = cellText(row.getCell(5).value).toUpperCase();
       const startDate = cellDate(row.getCell(6).value);
       const endDate = cellDate(row.getCell(7).value);
-      const exchProductCode = cellText(row.getCell(8).value) || null;
-      const firstTradeDate = cellDate(row.getCell(9).value);
-      const expiryDate = cellDate(row.getCell(10).value);
-      const lastTradeDate = cellDate(row.getCell(11).value);
-      const optionExpDate = cellDate(row.getCell(12).value);
-      const settlementDate = cellDate(row.getCell(13).value);
-      const firstNoticeDate = cellDate(row.getCell(14).value);
-      const lastNoticeDate = cellDate(row.getCell(15).value);
-      const deliveryStartDate = cellDate(row.getCell(16).value);
-      const deliveryEndDate = cellDate(row.getCell(17).value);
-      const pricingCalendarCode = cellText(row.getCell(18).value) || null;
-      const settlementCalendarCode = cellText(row.getCell(19).value) || null;
-      const statusRaw = cellText(row.getCell(20).value).toUpperCase();
-      const notes = cellText(row.getCell(21).value) || null;
+      const firstTradeDate = cellDate(row.getCell(8).value);
+      const expiryDate = cellDate(row.getCell(9).value);
+      const lastTradeDate = cellDate(row.getCell(10).value);
+      const optionExpDate = cellDate(row.getCell(11).value);
+      const settlementDate = cellDate(row.getCell(12).value);
+      const firstNoticeDate = cellDate(row.getCell(13).value);
+      const lastNoticeDate = cellDate(row.getCell(14).value);
+      const deliveryStartDate = cellDate(row.getCell(15).value);
+      const deliveryEndDate = cellDate(row.getCell(16).value);
+      const pricingCalendarCode = cellText(row.getCell(17).value) || null;
+      const settlementCalendarCode = cellText(row.getCell(18).value) || null;
+      const statusRaw = cellText(row.getCell(19).value).toUpperCase();
+      const notes = cellText(row.getCell(20).value) || null;
 
       if (!marketCode && !productCode && !periodCode) continue;
 
@@ -104,7 +103,6 @@ export function parsePeriodUpload(
         marketProductLinkId: mp?.marketProductLinkId ?? 0,
         periodCode,
         periodName,
-        exchProductCode,
         periodType: periodType as PeriodUploadRow['periodType'],
         isRolling: false,
         rollOffset: null,

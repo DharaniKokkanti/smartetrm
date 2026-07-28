@@ -86,10 +86,6 @@ public class Period {
     @Column(name = "period_name", nullable = false, length = 200)
     private String periodName;
 
-    @Size(max = 20)
-    @Column(name = "exch_product_code", length = 20)
-    private String exchProductCode;
-
     @NotBlank
     @Column(name = "period_type", nullable = false, length = 20)
     private String periodType;
@@ -274,14 +270,6 @@ public class Period {
 
     public void setPeriodName(String periodName) {
         this.periodName = periodName;
-    }
-
-    public String getExchProductCode() {
-        return exchProductCode;
-    }
-
-    public void setExchProductCode(String exchProductCode) {
-        this.exchProductCode = exchProductCode;
     }
 
     public String getPeriodType() {

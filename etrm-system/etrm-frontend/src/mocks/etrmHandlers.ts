@@ -245,6 +245,7 @@ const priceIndicesStore: unknown[] = [
   { priceIndexId: 31, indexCode: 'CBOT-SOYBEAN', indexName: 'CBOT Soybean Futures Front Month', publicationSource: 'CME', currencyId: 1, currencyCode: 'USD', uomId: 6, uomCode: 'BUSHEL', fixingTime: '14:20', fixingTimezone: 'America/Chicago', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
   { priceIndexId: 32, indexCode: 'EURONEXT-RAPESEED', indexName: 'Euronext Rapeseed Futures', publicationSource: 'EURONEXT', currencyId: 2, currencyCode: 'EUR', uomId: 2, uomCode: 'MT', fixingTime: '18:30', fixingTimezone: 'Europe/Paris', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
   { priceIndexId: 33, indexCode: 'EURONEXT-WHEAT', indexName: 'Euronext Milling Wheat Futures', publicationSource: 'EURONEXT', currencyId: 2, currencyCode: 'EUR', uomId: 2, uomCode: 'MT', fixingTime: '18:30', fixingTimezone: 'Europe/Paris', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { priceIndexId: 34, indexCode: 'WTI-NYMEX-OPT', indexName: 'NYMEX WTI Options Front Month', publicationSource: 'NYMEX', currencyId: 1, currencyCode: 'USD', uomId: 1, uomCode: 'BBL', fixingTime: '14:30', fixingTimezone: 'America/New_York', publishedPage: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
 ];
 
 // Mirrors PriceIndexService.hydrate() — resolves currencyCode/uomCode from
@@ -390,8 +391,8 @@ const pricingRulesStore: unknown[] = [
 
 // ─── SETTLEMENT PRICES ────────────────────────────────────────────────────────
 const settlementPricesStore: unknown[] = [
-  { settlementPriceId: 1,  exchange: 'CME_NYMEX',  contractTicker: 'CLZ26', settleDate: '2026-07-01', settlePrice: 72.45, openPrice: 71.90, highPrice: 72.80, lowPrice: 71.55, avgPrice: 72.20, promptPrice: null,  tickSize: 0.01,   tickCurrencyId: 1, uomId: 1, uomCode: 'BBL',   isConfirmed: true,  source: 'CME',    notes: null, createdAt: '2026-07-01T21:30:00Z', updatedAt: '2026-07-01T21:30:00Z' },
-  { settlementPriceId: 2,  exchange: 'CME_NYMEX',  contractTicker: 'CLF27', settleDate: '2026-07-01', settlePrice: 71.80, openPrice: 71.40, highPrice: 72.10, lowPrice: 71.20, avgPrice: 71.65, promptPrice: null,  tickSize: 0.01,   tickCurrencyId: 1, uomId: 1, uomCode: 'BBL',   isConfirmed: true,  source: 'CME',    notes: null, createdAt: '2026-07-01T21:30:00Z', updatedAt: '2026-07-01T21:30:00Z' },
+  { settlementPriceId: 1,  exchange: 'CME_NYMEX',  contractTicker: 'CLZ26', settleDate: '2026-07-01', settlePrice: 72.45, openPrice: 71.90, highPrice: 72.80, lowPrice: 71.55, avgPrice: 72.20, promptPrice: null, bidPrice: null, askPrice: null, midPrice: null, periodId: null, periodCode: null, tickSize: 0.01,   tickCurrencyId: 1, uomId: 1, uomCode: 'BBL',   isConfirmed: true,  source: 'CME',    notes: null, createdAt: '2026-07-01T21:30:00Z', updatedAt: '2026-07-01T21:30:00Z' },
+  { settlementPriceId: 2,  exchange: 'CME_NYMEX',  contractTicker: 'CLF27', settleDate: '2026-07-01', settlePrice: 71.80, openPrice: 71.40, highPrice: 72.10, lowPrice: 71.20, avgPrice: 71.65, promptPrice: null, bidPrice: 71.75, askPrice: 71.85, midPrice: 71.80, periodId: 2, periodCode: 'M2026-02', tickSize: 0.01,   tickCurrencyId: 1, uomId: 1, uomCode: 'BBL',   isConfirmed: true,  source: 'CME',    notes: null, createdAt: '2026-07-01T21:30:00Z', updatedAt: '2026-07-01T21:30:00Z' },
   { settlementPriceId: 3,  exchange: 'CME_NYMEX',  contractTicker: 'NGF27', settleDate: '2026-07-01', settlePrice: 3.456,  tickSize: 0.001,  tickCurrencyId: 1, uomId: 4, uomCode: 'MMBTU', isConfirmed: true,  source: 'CME',    notes: null, createdAt: '2026-07-01T21:30:00Z', updatedAt: '2026-07-01T21:30:00Z' },
   { settlementPriceId: 4,  exchange: 'CME_NYMEX',  contractTicker: 'HOF27', settleDate: '2026-07-01', settlePrice: 2.3421, tickSize: 0.0001, tickCurrencyId: 1, uomId: 7, uomCode: 'GAL',   isConfirmed: true,  source: 'CME',    notes: null, createdAt: '2026-07-01T21:30:00Z', updatedAt: '2026-07-01T21:30:00Z' },
   { settlementPriceId: 5,  exchange: 'ICE_EUROPE',  contractTicker: 'BZF27', settleDate: '2026-07-01', settlePrice: 76.23,  tickSize: 0.01,   tickCurrencyId: 1, uomId: 1, uomCode: 'BBL',   isConfirmed: true,  source: 'ICE',    notes: null, createdAt: '2026-07-01T21:30:00Z', updatedAt: '2026-07-01T21:30:00Z' },
@@ -1672,12 +1673,12 @@ const marketProductPeriodsStore: unknown[] = [
 
 // Market-Product-Source links
 const marketProductSourcesStore: unknown[] = [
-  { mpsId: 1, marketProductLinkId: 1, priceSourceId: 5, sourceCode: 'ICE_DATA', sourceName: 'ICE Data Services', sourceRole: 'PRIMARY_MTM', sourceTicker: 'B', sourceFieldCode: null, effectiveFrom: '2020-01-01', effectiveTo: null, isActive: true },
-  { mpsId: 2, marketProductLinkId: 1, priceSourceId: 3, sourceCode: 'BLOOMBERG', sourceName: 'Bloomberg', sourceRole: 'BACKUP', sourceTicker: 'CO1 Comdty', sourceFieldCode: null, effectiveFrom: '2020-01-01', effectiveTo: null, isActive: true },
-  { mpsId: 3, marketProductLinkId: 2, priceSourceId: 6, sourceCode: 'NYMEX_DATA', sourceName: 'CME Group Market Data', sourceRole: 'PRIMARY_MTM', sourceTicker: 'CL1', sourceFieldCode: null, effectiveFrom: '2020-01-01', effectiveTo: null, isActive: true },
-  { mpsId: 4, marketProductLinkId: 2, priceSourceId: 6, sourceCode: 'NYMEX_DATA', sourceName: 'CME Group Market Data', sourceRole: 'SETTLEMENT', sourceTicker: 'CL', sourceFieldCode: 'CL_SETTLE', effectiveFrom: '2020-01-01', effectiveTo: null, isActive: true },
-  { mpsId: 5, marketProductLinkId: 3, priceSourceId: 7, sourceCode: 'LME_DATA', sourceName: 'LME Official Prices', sourceRole: 'PRIMARY_MTM', sourceTicker: 'LMCADY', sourceFieldCode: null, effectiveFrom: '2020-01-01', effectiveTo: null, isActive: true },
-  { mpsId: 6, marketProductLinkId: 3, priceSourceId: 7, sourceCode: 'LME_DATA', sourceName: 'LME Official Prices', sourceRole: 'SETTLEMENT', sourceTicker: 'LMCADS', sourceFieldCode: 'CU_OFFICIAL', effectiveFrom: '2020-01-01', effectiveTo: null, isActive: true },
+  { mpsId: 1, marketProductLinkId: 1, priceSourceId: 5, sourceCode: 'ICE_DATA', sourceName: 'ICE Data Services', sourceRole: 'PRIMARY_MTM', sourceFieldCode: null, effectiveFrom: '2020-01-01', effectiveTo: null, isActive: true },
+  { mpsId: 2, marketProductLinkId: 1, priceSourceId: 3, sourceCode: 'BLOOMBERG', sourceName: 'Bloomberg', sourceRole: 'BACKUP', sourceFieldCode: null, effectiveFrom: '2020-01-01', effectiveTo: null, isActive: true },
+  { mpsId: 3, marketProductLinkId: 2, priceSourceId: 6, sourceCode: 'NYMEX_DATA', sourceName: 'CME Group Market Data', sourceRole: 'PRIMARY_MTM', sourceFieldCode: null, effectiveFrom: '2020-01-01', effectiveTo: null, isActive: true },
+  { mpsId: 4, marketProductLinkId: 2, priceSourceId: 6, sourceCode: 'NYMEX_DATA', sourceName: 'CME Group Market Data', sourceRole: 'SETTLEMENT', sourceFieldCode: 'CL_SETTLE', effectiveFrom: '2020-01-01', effectiveTo: null, isActive: true },
+  { mpsId: 5, marketProductLinkId: 3, priceSourceId: 7, sourceCode: 'LME_DATA', sourceName: 'LME Official Prices', sourceRole: 'PRIMARY_MTM', sourceFieldCode: null, effectiveFrom: '2020-01-01', effectiveTo: null, isActive: true },
+  { mpsId: 6, marketProductLinkId: 3, priceSourceId: 7, sourceCode: 'LME_DATA', sourceName: 'LME Official Prices', sourceRole: 'SETTLEMENT', sourceFieldCode: 'CU_OFFICIAL', effectiveFrom: '2020-01-01', effectiveTo: null, isActive: true },
 ];
 
 // ─── PRICE SOURCES ─────────────────────────────────────────────────────────────
@@ -1696,13 +1697,13 @@ const priceSourcesStore: unknown[] = [
 
 // Price Index → Source links
 const priceIndexSourcesStore: unknown[] = [
-  { pisId: 1, priceIndexId: 1, priceIndexCode: 'DTBRT', priceIndexName: 'Platts Dated Brent', marketProductLinkId: 5, priceSourceId: 1, sourceCode: 'PLATTS', sourceName: 'S&P Global Platts', sourceRole: 'PRIMARY_MTM', sourceFieldCode: 'PCAAS00', sourceTicker: null, priceMultiplier: 1, priceOffset: 0, calculationSequence: 1, effectiveFrom: '2020-01-01', effectiveTo: null, isActive: true },
-  { pisId: 2, priceIndexId: 1, priceIndexCode: 'DTBRT', priceIndexName: 'Platts Dated Brent', marketProductLinkId: 5, priceSourceId: 3, sourceCode: 'BLOOMBERG', sourceName: 'Bloomberg', sourceRole: 'BACKUP', sourceFieldCode: null, sourceTicker: 'PCAAS00 Index', priceMultiplier: 1, priceOffset: 0, calculationSequence: 1, effectiveFrom: '2020-01-01', effectiveTo: null, isActive: true },
-  { pisId: 3, priceIndexId: 2, priceIndexCode: 'WTI-NYMEX', priceIndexName: 'NYMEX WTI Front Month', marketProductLinkId: 2, priceSourceId: 6, sourceCode: 'NYMEX_DATA', sourceName: 'CME Group Market Data', sourceRole: 'PRIMARY_MTM', sourceFieldCode: 'CL_SETTLE', sourceTicker: 'CL1', priceMultiplier: 1, priceOffset: 0, calculationSequence: 1, effectiveFrom: '2020-01-01', effectiveTo: null, isActive: true },
-  { pisId: 4, priceIndexId: 3, priceIndexCode: 'TTF-ICE', priceIndexName: 'ICE TTF Natural Gas', marketProductLinkId: 4, priceSourceId: 5, sourceCode: 'ICE_DATA', sourceName: 'ICE Data Services', sourceRole: 'PRIMARY_MTM', sourceFieldCode: null, sourceTicker: 'TTF', priceMultiplier: 1, priceOffset: 0, calculationSequence: 1, effectiveFrom: '2020-01-01', effectiveTo: null, isActive: true },
-  { pisId: 5, priceIndexId: 6, priceIndexCode: 'LME-CU-CASH', priceIndexName: 'LME Copper Cash', marketProductLinkId: 3, priceSourceId: 7, sourceCode: 'LME_DATA', sourceName: 'LME Official Prices', sourceRole: 'PRIMARY_MTM', sourceFieldCode: 'CU_OFFICIAL', sourceTicker: 'LMCADY', priceMultiplier: 1, priceOffset: 0, calculationSequence: 1, effectiveFrom: '2020-01-01', effectiveTo: null, isActive: true },
-  { pisId: 6, priceIndexId: 6, priceIndexCode: 'LME-CU-CASH', priceIndexName: 'LME Copper Cash', marketProductLinkId: 3, priceSourceId: 3, sourceCode: 'BLOOMBERG', sourceName: 'Bloomberg', sourceRole: 'BACKUP', sourceFieldCode: null, sourceTicker: 'LMCADY Comdty', priceMultiplier: 1, priceOffset: 0, calculationSequence: 1, effectiveFrom: '2020-01-01', effectiveTo: null, isActive: true },
-  { pisId: 7, priceIndexId: 9, priceIndexCode: 'ARGUS-URALS', priceIndexName: 'Argus Urals Med', marketProductLinkId: 5, priceSourceId: 2, sourceCode: 'ARGUS', sourceName: 'Argus Media', sourceRole: 'PRIMARY_MTM', sourceFieldCode: 'AP-0001', sourceTicker: null, priceMultiplier: 1, priceOffset: 0, calculationSequence: 1, effectiveFrom: '2020-01-01', effectiveTo: null, isActive: true },
+  { pisId: 1, priceIndexId: 1, priceIndexCode: 'DTBRT', priceIndexName: 'Platts Dated Brent', marketProductLinkId: 5, priceSourceId: 1, sourceCode: 'PLATTS', sourceName: 'S&P Global Platts', sourceRole: 'PRIMARY_MTM', sourceFieldCode: 'PCAAS00', priceMultiplier: 1, priceOffset: 0, calculationSequence: 1, effectiveFrom: '2020-01-01', effectiveTo: null, isActive: true },
+  { pisId: 2, priceIndexId: 1, priceIndexCode: 'DTBRT', priceIndexName: 'Platts Dated Brent', marketProductLinkId: 5, priceSourceId: 3, sourceCode: 'BLOOMBERG', sourceName: 'Bloomberg', sourceRole: 'BACKUP', sourceFieldCode: null, priceMultiplier: 1, priceOffset: 0, calculationSequence: 1, effectiveFrom: '2020-01-01', effectiveTo: null, isActive: true },
+  { pisId: 3, priceIndexId: 2, priceIndexCode: 'WTI-NYMEX', priceIndexName: 'NYMEX WTI Front Month', marketProductLinkId: 2, priceSourceId: 6, sourceCode: 'NYMEX_DATA', sourceName: 'CME Group Market Data', sourceRole: 'PRIMARY_MTM', sourceFieldCode: 'CL_SETTLE', priceMultiplier: 1, priceOffset: 0, calculationSequence: 1, effectiveFrom: '2020-01-01', effectiveTo: null, isActive: true },
+  { pisId: 4, priceIndexId: 3, priceIndexCode: 'TTF-ICE', priceIndexName: 'ICE TTF Natural Gas', marketProductLinkId: 4, priceSourceId: 5, sourceCode: 'ICE_DATA', sourceName: 'ICE Data Services', sourceRole: 'PRIMARY_MTM', sourceFieldCode: null, priceMultiplier: 1, priceOffset: 0, calculationSequence: 1, effectiveFrom: '2020-01-01', effectiveTo: null, isActive: true },
+  { pisId: 5, priceIndexId: 6, priceIndexCode: 'LME-CU-CASH', priceIndexName: 'LME Copper Cash', marketProductLinkId: 3, priceSourceId: 7, sourceCode: 'LME_DATA', sourceName: 'LME Official Prices', sourceRole: 'PRIMARY_MTM', sourceFieldCode: 'CU_OFFICIAL', priceMultiplier: 1, priceOffset: 0, calculationSequence: 1, effectiveFrom: '2020-01-01', effectiveTo: null, isActive: true },
+  { pisId: 6, priceIndexId: 6, priceIndexCode: 'LME-CU-CASH', priceIndexName: 'LME Copper Cash', marketProductLinkId: 3, priceSourceId: 3, sourceCode: 'BLOOMBERG', sourceName: 'Bloomberg', sourceRole: 'BACKUP', sourceFieldCode: null, priceMultiplier: 1, priceOffset: 0, calculationSequence: 1, effectiveFrom: '2020-01-01', effectiveTo: null, isActive: true },
+  { pisId: 7, priceIndexId: 9, priceIndexCode: 'ARGUS-URALS', priceIndexName: 'Argus Urals Med', marketProductLinkId: 5, priceSourceId: 2, sourceCode: 'ARGUS', sourceName: 'Argus Media', sourceRole: 'PRIMARY_MTM', sourceFieldCode: 'AP-0001', priceMultiplier: 1, priceOffset: 0, calculationSequence: 1, effectiveFrom: '2020-01-01', effectiveTo: null, isActive: true },
 ];
 
 // Mirrors PriceIndexSourceService.hydrate() — resolves marketCode/productCode
@@ -1718,6 +1719,69 @@ function hydratePriceIndexSourceRow(row: Record<string, unknown>): Record<string
     productCode: mp?.['productCode'] ?? null,
     currencyCode: idx?.['currencyCode'] ?? null,
     uomCode: idx?.['uomCode'] ?? null,
+  };
+}
+
+// Ticker Mappings (V176) — the vendor ticker string -> price_index + period +
+// price_source master, resolved by a price loader before/instead of parsing
+// ticker conventions.
+const tickerMappingsStore: unknown[] = [
+  { tickerMappingId: 1, priceIndexId: 1, priceIndexCode: 'DTBRT', priceIndexName: 'Platts Dated Brent', periodId: null, periodCode: null, priceSourceId: 1, sourceCode: 'PLATTS', sourceName: 'S&P Global Platts', settleTicker: 'PCAAS00', openTicker: null, highTicker: null, lowTicker: null, avgTicker: null, promptTicker: null, bidTicker: 'PCAAS00-B', askTicker: 'PCAAS00-A', midTicker: null, effectiveFrom: '2020-01-01', effectiveTo: null, isActive: true, notes: 'Platts assessment code, not a rolling futures contract.' },
+  { tickerMappingId: 2, priceIndexId: 2, priceIndexCode: 'WTI-NYMEX', priceIndexName: 'NYMEX WTI Front Month', periodId: 1, periodCode: 'M2026-01', priceSourceId: 6, sourceCode: 'NYMEX_DATA', sourceName: 'CME Group Market Data', settleTicker: 'CLF26', openTicker: 'CLF26.O', highTicker: 'CLF26.H', lowTicker: 'CLF26.L', avgTicker: null, promptTicker: null, bidTicker: null, askTicker: null, midTicker: null, effectiveFrom: '2025-12-01', effectiveTo: '2026-01-20', isActive: false, notes: 'Rolled off at expiry.' },
+  { tickerMappingId: 3, priceIndexId: 2, priceIndexCode: 'WTI-NYMEX', priceIndexName: 'NYMEX WTI Front Month', periodId: 2, periodCode: 'M2026-02', priceSourceId: 6, sourceCode: 'NYMEX_DATA', sourceName: 'CME Group Market Data', settleTicker: 'CLG26', openTicker: 'CLG26.O', highTicker: 'CLG26.H', lowTicker: 'CLG26.L', avgTicker: null, promptTicker: null, bidTicker: null, askTicker: null, midTicker: null, effectiveFrom: '2026-01-21', effectiveTo: null, isActive: true, notes: null },
+  { tickerMappingId: 4, priceIndexId: 2, priceIndexCode: 'WTI-NYMEX', priceIndexName: 'NYMEX WTI Front Month', periodId: null, periodCode: null, priceSourceId: 3, sourceCode: 'BLOOMBERG', sourceName: 'Bloomberg', settleTicker: 'CL1 Comdty', openTicker: null, highTicker: null, lowTicker: null, avgTicker: null, promptTicker: null, bidTicker: null, askTicker: null, midTicker: null, effectiveFrom: '2020-01-01', effectiveTo: null, isActive: true, notes: 'Continuous front-month generic ticker, not tenor-specific.' },
+];
+
+function hydrateTickerMappingRow(row: Record<string, unknown>): Record<string, unknown> {
+  const idx = (priceIndicesStore as Array<Record<string, unknown>>).find((pi) => pi['priceIndexId'] === row['priceIndexId']);
+  const period = row['periodId'] != null ? (periodsStore as Array<Record<string, unknown>>).find((p) => p['periodId'] === row['periodId']) : undefined;
+  const src = (priceSourcesStore as Array<Record<string, unknown>>).find((s) => s['priceSourceId'] === row['priceSourceId']);
+  return {
+    ...row,
+    priceIndexCode: idx?.['indexCode'] ?? null,
+    priceIndexName: idx?.['indexName'] ?? null,
+    periodCode: period?.['periodCode'] ?? null,
+    sourceCode: src?.['sourceCode'] ?? null,
+    sourceName: src?.['sourceName'] ?? null,
+  };
+}
+
+// Option Index Links (V180) — links an option index to its underlying
+// linear index and the pricing model used to value it.
+const optionIndexLinksStore: unknown[] = [
+  { optionIndexLinkId: 1, optionPriceIndexId: 34, underlyingPriceIndexId: 2, pricingModel: 'BLACK_76', isActive: true, notes: null },
+];
+
+function hydrateOptionIndexLinkRow(row: Record<string, unknown>): Record<string, unknown> {
+  const optIdx = (priceIndicesStore as Array<Record<string, unknown>>).find((pi) => pi['priceIndexId'] === row['optionPriceIndexId']);
+  const underlyingIdx = (priceIndicesStore as Array<Record<string, unknown>>).find((pi) => pi['priceIndexId'] === row['underlyingPriceIndexId']);
+  return {
+    ...row,
+    optionIndexCode: optIdx?.['indexCode'] ?? null,
+    optionIndexName: optIdx?.['indexName'] ?? null,
+    underlyingIndexCode: underlyingIdx?.['indexCode'] ?? null,
+    underlyingIndexName: underlyingIdx?.['indexName'] ?? null,
+  };
+}
+
+// Volatility Points (V180) — implied-vol quotes by option index, period,
+// moneyness/strike, quote date, and source.
+const volatilityPointsStore: unknown[] = [
+  { volatilityPointId: 1, optionIndexLinkId: 1, periodId: 1, moneynessLabel: 'ATM', strikePrice: null, quoteDate: '2026-07-01', impliedVolatility: 0.32, priceSourceId: 6, isConfirmed: true, notes: null },
+  { volatilityPointId: 2, optionIndexLinkId: 1, periodId: 1, moneynessLabel: '25D_PUT', strikePrice: null, quoteDate: '2026-07-01', impliedVolatility: 0.36, priceSourceId: 6, isConfirmed: false, notes: null },
+  { volatilityPointId: 3, optionIndexLinkId: 1, periodId: 1, moneynessLabel: '25D_CALL', strikePrice: null, quoteDate: '2026-07-01', impliedVolatility: 0.29, priceSourceId: 6, isConfirmed: false, notes: null },
+];
+
+function hydrateVolatilityPointRow(row: Record<string, unknown>): Record<string, unknown> {
+  const link = (optionIndexLinksStore as Array<Record<string, unknown>>).find((l) => l['optionIndexLinkId'] === row['optionIndexLinkId']);
+  const optIdx = link ? (priceIndicesStore as Array<Record<string, unknown>>).find((pi) => pi['priceIndexId'] === link['optionPriceIndexId']) : undefined;
+  const period = (periodsStore as Array<Record<string, unknown>>).find((p) => p['periodId'] === row['periodId']);
+  const src = (priceSourcesStore as Array<Record<string, unknown>>).find((s) => s['priceSourceId'] === row['priceSourceId']);
+  return {
+    ...row,
+    optionIndexCode: optIdx?.['indexCode'] ?? null,
+    periodCode: period?.['periodCode'] ?? null,
+    sourceCode: src?.['sourceCode'] ?? null,
   };
 }
 
@@ -2485,6 +2549,82 @@ export const etrmHandlers = [
     const idx = (priceIndexSourcesStore as Array<Record<string, unknown>>).findIndex((p) => p.pisId === Number(params.id));
     if (idx >= 0) (priceIndexSourcesStore as Array<Record<string, unknown>>)[idx].isActive = false;
     return new HttpResponse(null, { status: 204 });
+  }),
+
+  // Ticker Mappings
+  http.get(`${API}/ticker-mappings`, () => HttpResponse.json(
+    (tickerMappingsStore as Array<Record<string, unknown>>).map(hydrateTickerMappingRow),
+  )),
+  http.post(`${API}/ticker-mappings`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const row = { ...input, tickerMappingId: nextId(), isActive: true, createdAt: now() };
+    tickerMappingsStore.push(row);
+    return HttpResponse.json(hydrateTickerMappingRow(row), { status: 201 });
+  }),
+  http.put(`${API}/ticker-mappings/:id`, async ({ params, request }) => {
+    const idx = (tickerMappingsStore as Array<Record<string, unknown>>).findIndex((t) => t.tickerMappingId === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Ticker mapping ${params.id} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    (tickerMappingsStore as Array<Record<string, unknown>>)[idx] = { ...(tickerMappingsStore as Array<Record<string, unknown>>)[idx], ...input };
+    return HttpResponse.json(hydrateTickerMappingRow((tickerMappingsStore as Array<Record<string, unknown>>)[idx]));
+  }),
+  http.patch(`${API}/ticker-mappings/:id/deactivate`, ({ params }) => {
+    const idx = (tickerMappingsStore as Array<Record<string, unknown>>).findIndex((t) => t.tickerMappingId === Number(params.id));
+    if (idx >= 0) (tickerMappingsStore as Array<Record<string, unknown>>)[idx].isActive = false;
+    return new HttpResponse(null, { status: 204 });
+  }),
+
+  // Option Index Links
+  http.get(`${API}/option-index-links`, () => HttpResponse.json(
+    (optionIndexLinksStore as Array<Record<string, unknown>>).map(hydrateOptionIndexLinkRow),
+  )),
+  http.post(`${API}/option-index-links`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const row = { ...input, optionIndexLinkId: nextId(), isActive: true, createdAt: now() };
+    optionIndexLinksStore.push(row);
+    return HttpResponse.json(hydrateOptionIndexLinkRow(row), { status: 201 });
+  }),
+  http.put(`${API}/option-index-links/:id`, async ({ params, request }) => {
+    const idx = (optionIndexLinksStore as Array<Record<string, unknown>>).findIndex((l) => l.optionIndexLinkId === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Option index link ${params.id} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    (optionIndexLinksStore as Array<Record<string, unknown>>)[idx] = { ...(optionIndexLinksStore as Array<Record<string, unknown>>)[idx], ...input };
+    return HttpResponse.json(hydrateOptionIndexLinkRow((optionIndexLinksStore as Array<Record<string, unknown>>)[idx]));
+  }),
+  http.patch(`${API}/option-index-links/:id/deactivate`, ({ params }) => {
+    const idx = (optionIndexLinksStore as Array<Record<string, unknown>>).findIndex((l) => l.optionIndexLinkId === Number(params.id));
+    if (idx >= 0) (optionIndexLinksStore as Array<Record<string, unknown>>)[idx].isActive = false;
+    return new HttpResponse(null, { status: 204 });
+  }),
+
+  // Volatility Points
+  http.get(`${API}/volatility-points`, () => HttpResponse.json(
+    (volatilityPointsStore as Array<Record<string, unknown>>).map(hydrateVolatilityPointRow),
+  )),
+  http.get(`${API}/option-index-links/:id/volatility-points`, ({ params }) => {
+    const linkId = Number(params.id);
+    return HttpResponse.json(
+      (volatilityPointsStore as Array<Record<string, unknown>>).filter((v) => v['optionIndexLinkId'] === linkId).map(hydrateVolatilityPointRow),
+    );
+  }),
+  http.post(`${API}/volatility-points`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const row = { ...input, volatilityPointId: nextId(), isConfirmed: false, createdAt: now() };
+    volatilityPointsStore.push(row);
+    return HttpResponse.json(hydrateVolatilityPointRow(row), { status: 201 });
+  }),
+  http.put(`${API}/volatility-points/:id`, async ({ params, request }) => {
+    const idx = (volatilityPointsStore as Array<Record<string, unknown>>).findIndex((v) => v.volatilityPointId === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Volatility point ${params.id} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    (volatilityPointsStore as Array<Record<string, unknown>>)[idx] = { ...(volatilityPointsStore as Array<Record<string, unknown>>)[idx], ...input };
+    return HttpResponse.json(hydrateVolatilityPointRow((volatilityPointsStore as Array<Record<string, unknown>>)[idx]));
+  }),
+  http.patch(`${API}/volatility-points/:id/confirm`, ({ params }) => {
+    const idx = (volatilityPointsStore as Array<Record<string, unknown>>).findIndex((v) => v.volatilityPointId === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Volatility point ${params.id} not found.`);
+    (volatilityPointsStore as Array<Record<string, unknown>>)[idx].isConfirmed = true;
+    return HttpResponse.json(hydrateVolatilityPointRow((volatilityPointsStore as Array<Record<string, unknown>>)[idx]));
   }),
 
   ...crudHandlers('desks', desksStore as Array<Record<string, unknown>>, 'deskId'),
@@ -3837,7 +3977,8 @@ export const etrmHandlers = [
     const s = settlementPricesStore as Array<Record<string, unknown>>;
     const maxId = s.reduce((m, r) => Math.max(m, Number(r['settlementPriceId'])), 0);
     const uom = (uomStore as Array<Record<string, unknown>>).find((u) => u['uomId'] === input['uomId']);
-    const row = { ...input, settlementPriceId: maxId + 1, uomCode: uom?.['uomCode'] ?? null, createdAt: now(), updatedAt: now() };
+    const period = input['periodId'] != null ? (periodsStore as Array<Record<string, unknown>>).find((p) => p['periodId'] === input['periodId']) : undefined;
+    const row = { ...input, settlementPriceId: maxId + 1, uomCode: uom?.['uomCode'] ?? null, periodCode: period?.['periodCode'] ?? null, createdAt: now(), updatedAt: now() };
     s.push(row);
     return HttpResponse.json(row, { status: 201 });
   }),
@@ -3847,7 +3988,9 @@ export const etrmHandlers = [
     if (idx === -1) return problem(404, 'Not Found', `Settlement price ${String(params.id)} not found.`);
     const input = (await request.json()) as Record<string, unknown>;
     const uom = (uomStore as Array<Record<string, unknown>>).find((u) => u['uomId'] === (input['uomId'] ?? s[idx]['uomId']));
-    s[idx] = { ...s[idx], ...input, uomCode: uom?.['uomCode'] ?? null, updatedAt: now() };
+    const periodId = input['periodId'] ?? s[idx]['periodId'];
+    const period = periodId != null ? (periodsStore as Array<Record<string, unknown>>).find((p) => p['periodId'] === periodId) : undefined;
+    s[idx] = { ...s[idx], ...input, uomCode: uom?.['uomCode'] ?? null, periodCode: period?.['periodCode'] ?? null, updatedAt: now() };
     return HttpResponse.json(s[idx]);
   }),
   ...crudHandlers('settlement-prices', settlementPricesStore as Array<Record<string, unknown>>, 'settlementPriceId'),

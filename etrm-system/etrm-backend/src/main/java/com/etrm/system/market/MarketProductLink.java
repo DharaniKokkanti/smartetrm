@@ -111,10 +111,6 @@ public class MarketProductLink {
     @Column(name = "price_precision")
     private Short pricePrecision;
 
-    @Size(max = 20)
-    @Column(name = "settlement_type", length = 20)
-    private String settlementType;
-
     // SMALLINT -> Short.
     @Column(name = "first_notice_day_offset")
     private Short firstNoticeDayOffset;
@@ -272,14 +268,6 @@ public class MarketProductLink {
 
     public void setPricePrecision(Short pricePrecision) {
         this.pricePrecision = pricePrecision;
-    }
-
-    public String getSettlementType() {
-        return settlementType;
-    }
-
-    public void setSettlementType(String settlementType) {
-        this.settlementType = settlementType;
     }
 
     public Short getFirstNoticeDayOffset() {

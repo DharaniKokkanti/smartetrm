@@ -128,6 +128,9 @@ const DeliveryInstructionsPage = lazy1(() => import('@features/operations/delive
 const ProductSpecTemplatesPage = lazy1(() => import('@features/markets/spec-templates/ProductSpecTemplatesPage'), 'ProductSpecTemplatesPage');
 const TransportRoutesPage = lazy1(() => import('@features/logistics/transport-routes/TransportRoutesPage'), 'TransportRoutesPage');
 const PriceIndexSourcesPage = lazy1(() => import('@features/pricing/price-index-sources/PriceIndexSourcesPage'), 'PriceIndexSourcesPage');
+const TickerMappingsPage = lazy1(() => import('@features/pricing/ticker-mappings/TickerMappingsPage'), 'TickerMappingsPage');
+const OptionIndexLinksPage = lazy1(() => import('@features/pricing/option-index-links/OptionIndexLinksPage'), 'OptionIndexLinksPage');
+const VolatilityPointsPage = lazy1(() => import('@features/pricing/volatility-points/VolatilityPointsPage'), 'VolatilityPointsPage');
 
 // Directory pages (cross-entity, previously inline-only)
 const ContactsDirectoryPage = lazy1(() => import('@features/organization/contacts/ContactsDirectoryPage'), 'ContactsDirectoryPage');
@@ -209,6 +212,9 @@ export function AppRouter() {
         <Route path="/pricing/balmo" element={<S><BalmoDashboardPage /></S>} />
         <Route path="/pricing/formula-templates" element={<S><FormulaTemplatesPage /></S>} />
         <Route path="/pricing/price-index-sources" element={<S><PriceIndexSourcesPage /></S>} />
+        <Route path="/pricing/ticker-mappings" element={<S><TickerMappingsPage /></S>} />
+        <Route path="/pricing/option-index-links" element={<S><OptionIndexLinksPage /></S>} />
+        <Route path="/pricing/volatility-points" element={<S><VolatilityPointsPage /></S>} />
 
         {/* BOLMO / Physical Operations */}
         <Route path="/bolmo" element={<S><BolmoAgreementsPage /></S>} />

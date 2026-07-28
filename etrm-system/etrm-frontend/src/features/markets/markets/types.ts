@@ -56,12 +56,13 @@ export interface MarketProductLink {
   minQuantity: number | null;
   maxQuantity: number | null;
   pricePrecision: number | null;
-  settlementType: string | null;
   firstNoticeDayOffset: number | null;
   lastTradingDayOffset: number | null;
   // V164 — dropped listedDate/delistedDate (redundant: dbo.period is the
   // home for lifecycle dates since V162). altPriceSourceId/mtmPriceSourceId
   // dropped again in V173, superseded by price_index_source.
+  // V179 — dropped settlementType: NULL on every live row; market.settlementType
+  // and product.settlementType are the two actually used and populated.
   notes: string | null;
   isActive: boolean;
   createdAt: string;

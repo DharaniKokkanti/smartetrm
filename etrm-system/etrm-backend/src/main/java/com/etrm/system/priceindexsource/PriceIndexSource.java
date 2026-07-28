@@ -42,6 +42,10 @@ import java.time.LocalDateTime;
  * currencyCode/uomCode hydrated from PriceIndex (currency_id/uom_id) — a
  * formula referencing this source needs the index's denomination without a
  * second round trip; no new FK, price_index_id already provides the path.
+ * V179 — sourceTicker dropped: it duplicated the same (price_index,
+ * price_source) ticker fact ticker_mapping (V176) now owns, with less
+ * granularity (no period/tenor, no per-field ticker). The 4 populated rows
+ * were migrated into ticker_mapping.settle_ticker by that migration.
  */
 @Entity
 @Table(name = "price_index_source")
@@ -110,10 +114,6 @@ public class PriceIndexSource {
     @Size(max = 100)
     @Column(name = "source_field_code", length = 100)
     private String sourceFieldCode;
-
-    @Size(max = 100)
-    @Column(name = "source_ticker", length = 100)
-    private String sourceTicker;
 
     @NotNull
     @Column(name = "price_multiplier", nullable = false, precision = 10, scale = 6)
@@ -276,14 +276,6 @@ public class PriceIndexSource {
 
     public void setSourceFieldCode(String sourceFieldCode) {
         this.sourceFieldCode = sourceFieldCode;
-    }
-
-    public String getSourceTicker() {
-        return sourceTicker;
-    }
-
-    public void setSourceTicker(String sourceTicker) {
-        this.sourceTicker = sourceTicker;
     }
 
     public BigDecimal getPriceMultiplier() {

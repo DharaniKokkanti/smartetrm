@@ -95,18 +95,6 @@ public class Product {
     @Column(name = "commodity_family_id")
     private Integer commodityFamilyId;
 
-    @Size(max = 50)
-    @Column(name = "bloomberg_ticker", length = 50)
-    private String bloombergTicker;
-
-    @Size(max = 50)
-    @Column(name = "reuters_ric", length = 50)
-    private String reutersRic;
-
-    @Size(max = 50)
-    @Column(name = "platts_code", length = 50)
-    private String plattsCode;
-
     @NotNull
     @Column(name = "is_exchange_traded", nullable = false)
     private Boolean isExchangeTraded = false;
@@ -298,30 +286,6 @@ public class Product {
 
     public void setCommodityFamilyId(Integer commodityFamilyId) {
         this.commodityFamilyId = commodityFamilyId;
-    }
-
-    public String getBloombergTicker() {
-        return bloombergTicker;
-    }
-
-    public void setBloombergTicker(String bloombergTicker) {
-        this.bloombergTicker = bloombergTicker;
-    }
-
-    public String getReutersRic() {
-        return reutersRic;
-    }
-
-    public void setReutersRic(String reutersRic) {
-        this.reutersRic = reutersRic;
-    }
-
-    public String getPlattsCode() {
-        return plattsCode;
-    }
-
-    public void setPlattsCode(String plattsCode) {
-        this.plattsCode = plattsCode;
     }
 
     public Boolean getIsExchangeTraded() {

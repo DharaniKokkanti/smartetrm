@@ -2,6 +2,7 @@ package com.etrm.system.settlementprice;
 
 import com.etrm.system.common.ConflictException;
 import com.etrm.system.common.NotFoundException;
+import com.etrm.system.period.PeriodRepository;
 import com.etrm.system.uom.UnitOfMeasureRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,16 +16,23 @@ public class SettlementPriceService {
 
     private final SettlementPriceRepository repository;
     private final UnitOfMeasureRepository unitOfMeasureRepository;
+    private final PeriodRepository periodRepository;
 
     public SettlementPriceService(SettlementPriceRepository repository,
-                                   UnitOfMeasureRepository unitOfMeasureRepository) {
+                                   UnitOfMeasureRepository unitOfMeasureRepository,
+                                   PeriodRepository periodRepository) {
         this.repository = repository;
         this.unitOfMeasureRepository = unitOfMeasureRepository;
+        this.periodRepository = periodRepository;
     }
 
     private SettlementPrice hydrate(SettlementPrice price) {
         unitOfMeasureRepository.findById(price.getUomId())
                 .ifPresent(uom -> price.setUomCode(uom.getUomCode()));
+        if (price.getPeriodId() != null) {
+            periodRepository.findById(price.getPeriodId())
+                    .ifPresent(p -> price.setPeriodCode(p.getPeriodCode()));
+        }
         return price;
     }
 
