@@ -62,17 +62,8 @@ public class Market extends AuditableEntity {
     @Column(name = "settlement_type", nullable = false, length = 20)
     private String settlementType;
 
-    @NotNull
-    @Column(name = "currency_id", nullable = false)
-    private Integer currencyId;
-
-    @Transient
-    @JsonProperty
-    private String currencyCode;
-
-    @NotBlank
     @Size(max = 50)
-    @Column(name = "timezone", nullable = false, length = 50)
+    @Column(name = "timezone", length = 50)
     private String timezone;
 
     // V165 — country_id dropped (redundant with dbo.exchange.country_id for
@@ -93,10 +84,6 @@ public class Market extends AuditableEntity {
     @Transient
     @JsonProperty
     private String clearingHouseName;
-
-    @Size(max = 100)
-    @Column(name = "price_quotation", length = 100)
-    private String priceQuotation;
 
     @Column(name = "go_live_date")
     private LocalDate goLiveDate;
@@ -203,22 +190,6 @@ public class Market extends AuditableEntity {
         this.settlementType = settlementType;
     }
 
-    public Integer getCurrencyId() {
-        return currencyId;
-    }
-
-    public void setCurrencyId(Integer currencyId) {
-        this.currencyId = currencyId;
-    }
-
-    public String getCurrencyCode() {
-        return currencyCode;
-    }
-
-    public void setCurrencyCode(String currencyCode) {
-        this.currencyCode = currencyCode;
-    }
-
     public String getTimezone() {
         return timezone;
     }
@@ -241,14 +212,6 @@ public class Market extends AuditableEntity {
 
     public void setClearingHouseName(String clearingHouseName) {
         this.clearingHouseName = clearingHouseName;
-    }
-
-    public String getPriceQuotation() {
-        return priceQuotation;
-    }
-
-    public void setPriceQuotation(String priceQuotation) {
-        this.priceQuotation = priceQuotation;
     }
 
     public LocalDate getGoLiveDate() {

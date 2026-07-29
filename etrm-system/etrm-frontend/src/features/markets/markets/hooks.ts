@@ -51,25 +51,6 @@ export function useSaveMarketProductLink(marketId: number) {
   });
 }
 
-export function useMarketProductPeriods(marketProductLinkId: number | null) {
-  return useQuery({
-    queryKey: ['market-product-periods', marketProductLinkId],
-    queryFn: () => marketsApi.listPeriods(marketProductLinkId!),
-    enabled: marketProductLinkId != null,
-    staleTime: 5 * 60 * 1000,
-  });
-}
-
-export function useAddPeriodToMarketProductLink(marketProductLinkId: number) {
-  const qc = useQueryClient();
-  const { message } = AntApp.useApp();
-  return useMutation({
-    mutationFn: (periodId: number) => marketsApi.addPeriod(marketProductLinkId, periodId),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['market-product-periods', marketProductLinkId] }); message.success('Period linked.'); },
-    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Failed to link period.'),
-  });
-}
-
 export function useMarketProductSources(marketProductLinkId: number | null) {
   return useQuery({
     queryKey: ['market-product-sources', marketProductLinkId],

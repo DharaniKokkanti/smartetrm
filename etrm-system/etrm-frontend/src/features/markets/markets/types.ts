@@ -13,14 +13,10 @@ export interface Market {
   marketName: string;
   marketType: MarketType;
   settlementType: SettlementTypeMkt;
-  // V166 — currencyCode is now display-only (hydrated from currencyId server
-  // side, same pattern as clearingHouseName); the form/API write path uses
-  // currencyId, resolved via a Select over real dbo.currency rows rather than
-  // a free-typed code (that's what caused market create/update to 400 — see
-  // the V164-audit handoff entry).
-  currencyId: number;
-  currencyCode: string;
-  timezone: string;
+  // V184 — currencyId/currencyCode and priceQuotation dropped: market-level
+  // currency was never consumed downstream (settlement_price has its own
+  // independent tickCurrencyId), and priceQuotation was unused free text.
+  timezone: string | null;
   // V165 — country_id dropped (redundant with Exchange.countryId for
   // EXCHANGE-type markets); contract_size/tick_size dropped (redundant with
   // derivative_contract_specification, scoped per instrument, and
@@ -28,16 +24,13 @@ export interface Market {
   // from free-text to an FK into dbo.counterparty (new CLEARING_HOUSE type).
   clearingHouseId: number | null;
   clearingHouseName: string | null;
-  // V166 — contractUomCode dropped: its only purpose was describing
-  // contract_size, orphaned once V165 dropped that field.
-  priceQuotation: string | null;
   goLiveDate: string | null;
   closeDate: string | null;
   isActive: boolean;
   createdAt: string;
 }
 
-export type MarketInput = Omit<Market, 'marketId' | 'exchangeCode' | 'clearingHouseName' | 'currencyCode' | 'createdAt'>;
+export type MarketInput = Omit<Market, 'marketId' | 'exchangeCode' | 'clearingHouseName' | 'createdAt'>;
 
 // Market <-> Product link (V163 — renamed from MarketProduct/market_product:
 // the row is a link record, not a product itself)
@@ -74,18 +67,6 @@ export interface MarketProductLink {
 }
 
 export type MarketProductLinkInput = Omit<MarketProductLink, 'marketProductLinkId' | 'productCode' | 'productName' | 'createdAt' | 'createdBy' | 'updatedAt' | 'updatedBy'>;
-
-// Market-Product-Link → Period link
-export interface MarketProductPeriod {
-  mppId: number;
-  marketProductLinkId: number;
-  periodId: number;
-  periodCode: string;
-  periodName: string;
-  periodType: string;
-  curveLabel: string | null;
-  isActive: boolean;
-}
 
 // Market-Product-Link → Price Source link
 export interface MarketProductSource {

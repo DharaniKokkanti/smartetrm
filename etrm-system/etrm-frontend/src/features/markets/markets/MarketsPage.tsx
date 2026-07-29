@@ -3,7 +3,7 @@ import {
   Button, Space, Popconfirm, Tag, Drawer, Form, Input, Select, Switch,
   InputNumber, Tabs, Table, Tooltip, Badge,
 } from 'antd';
-import { EditOutlined, StopOutlined, LinkOutlined, PlusOutlined, CalendarOutlined, DollarOutlined } from '@ant-design/icons';
+import { EditOutlined, StopOutlined, LinkOutlined, PlusOutlined, DollarOutlined } from '@ant-design/icons';
 import type { ColDef } from 'ag-grid-community';
 import dayjs from 'dayjs';
 import { PageHeader } from '@components/layout/PageHeader';
@@ -13,7 +13,6 @@ import { hint } from '@components/smart/FieldHint';
 import {
   useMarkets, useSaveMarket, useDeactivateMarket,
   useMarketProductLinks, useSaveMarketProductLink,
-  useMarketProductPeriods, useAddPeriodToMarketProductLink,
   useMarketProductSources,
 } from './hooks';
 import { MARKET_TYPES, SETTLEMENT_TYPES_MKT, type Market, type MarketInput, type MarketProductLink, type MarketType, type SettlementTypeMkt } from './types';
@@ -21,7 +20,6 @@ import { COMMODITY_TYPES, type CommodityType } from '@features/reference/commodi
 import { useProducts } from '@features/markets/products/hooks';
 import { useFormDraft } from '@components/smart/formDraft';
 import { useExchanges } from '@features/markets/exchanges/hooks';
-import { useCurrencies } from '@features/reference/currencies/hooks';
 import { useCounterparties } from '@features/tier1/counterparty/hooks';
 import { useCustomConfigOptions } from '@features/tier1/counterparty/configLookups';
 import { color } from '@theme/tokens';
@@ -38,56 +36,14 @@ const ROLE_COLOR: Record<string, string> = {
 
 // ─── Market-Product detail drawer ─────────────────────────────────────────────
 function MarketProductDetail({ mp, onClose }: { mp: MarketProductLink; onClose: () => void }) {
-  const [addPeriodOpen, setAddPeriodOpen] = useState(false);
-  const { data: periods, isLoading: periodsLoading } = useMarketProductPeriods(mp.marketProductLinkId);
   const { data: sources, isLoading: sourcesLoading } = useMarketProductSources(mp.marketProductLinkId);
-  const addPeriod = useAddPeriodToMarketProductLink(mp.marketProductLinkId);
 
   return (
     <Drawer mask={false} forceRender
       title={<Space><Tag color="blue">{mp.productCode}</Tag>{mp.productName} on this market</Space>}
       open onClose={onClose} width={620}
     >
-      <Tabs defaultActiveKey="periods" items={[
-        {
-          key: 'periods',
-          label: <Space><CalendarOutlined />Trading Periods<Badge count={periods?.length ?? 0} showZero size="small" /></Space>,
-          children: (
-            <>
-              <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 12, color: color.textSecondary }}>Periods valid for this product on this market — controls what a trader can select in deal capture</span>
-                <Button size="small" icon={<PlusOutlined />} onClick={() => setAddPeriodOpen(true)}>Link Period</Button>
-              </div>
-              <Table
-                dataSource={periods}
-                rowKey="mppId"
-                pagination={false}
-                size="small"
-                loading={periodsLoading}
-                columns={[
-                  { title: 'Period Code', dataIndex: 'periodCode', width: 130, render: (v: string) => <code style={{ fontFamily: 'monospace' }}>{v}</code> },
-                  { title: 'Period Name', dataIndex: 'periodName', width: 200 },
-                  { title: 'Type', dataIndex: 'periodType', width: 90, render: (v: string) => <Tag>{v}</Tag> },
-                  { title: 'Curve Label', dataIndex: 'curveLabel', width: 100, render: (v: string | null) => v ? <Tag color="cyan">{v}</Tag> : '—' },
-                  { title: 'Active', dataIndex: 'isActive', width: 70, render: (v: boolean) => <ActiveTag active={v} /> },
-                ]}
-              />
-              {addPeriodOpen && (
-                <div style={{ marginTop: 16, padding: 12, border: `1px solid ${color.border}`, borderRadius: 6 }}>
-                  <Form layout="inline" onFinish={(v: { periodId: number }) => { addPeriod.mutate(v.periodId); setAddPeriodOpen(false); }}>
-                    <Form.Item name="periodId" label={hint('Period ID', 'Contract-month/delivery-period identifier per the venue\'s ID convention — not a free-text label.')} rules={[{ required: true }]}>
-                      <InputNumber placeholder="Period ID" />
-                    </Form.Item>
-                    <Form.Item>
-                      <Button type="primary" htmlType="submit" loading={addPeriod.isPending} size="small">Link</Button>
-                      <Button size="small" style={{ marginLeft: 8 }} onClick={() => setAddPeriodOpen(false)}>Cancel</Button>
-                    </Form.Item>
-                  </Form>
-                </div>
-              )}
-            </>
-          ),
-        },
+      <Tabs defaultActiveKey="sources" items={[
         {
           key: 'sources',
           label: <Space><DollarOutlined />Price Sources<Badge count={sources?.length ?? 0} showZero size="small" /></Space>,
@@ -294,8 +250,6 @@ export function MarketsPage() {
   const deactivate = useDeactivateMarket();
   const { data: exchanges = [] } = useExchanges();
   const exchangeOptions = exchanges.map((e) => ({ value: e.exchangeId, label: `${e.exchangeCode} — ${e.exchangeName}` }));
-  const { data: currencies = [] } = useCurrencies();
-  const currencyOptions = currencies.map((c) => ({ value: c.currencyId, label: `${c.currencyCode} — ${c.currencyName}` }));
   // V165 — clearing_house went from free-text to an FK into dbo.counterparty
   // (new CLEARING_HOUSE counterparty_type) — resolve the type id by label
   // rather than hardcoding it, since it's assigned by IDENTITY at migration time.
@@ -318,9 +272,8 @@ export function MarketsPage() {
     form.setFieldsValue({
       exchangeId: m.exchangeId, commodityType: m.commodityType, marketCode: m.marketCode,
       marketName: m.marketName, marketType: m.marketType, settlementType: m.settlementType,
-      currencyId: m.currencyId, timezone: m.timezone,
+      timezone: m.timezone ?? undefined,
       clearingHouseId: m.clearingHouseId ?? undefined,
-      priceQuotation: m.priceQuotation ?? undefined,
       isActive: m.isActive,
     });
     setEditOpen(true);
@@ -341,9 +294,8 @@ export function MarketsPage() {
     { field: 'commodityType', headerName: 'Commodity', width: 120, cellRenderer: (p: { value: string }) => <Tag>{p.value}</Tag> },
     { field: 'marketType', headerName: 'Type', width: 130, cellRenderer: (p: { value: MarketType }) => <Tag color={MKT_TYPE_COLOR[p.value] ?? 'default'}>{p.value.replace('_', ' ')}</Tag> },
     { field: 'settlementType', headerName: 'Settlement', width: 110, cellRenderer: (p: { value: SettlementTypeMkt }) => <Tag color={SETTLE_COLOR[p.value] ?? 'default'}>{p.value}</Tag> },
-    { field: 'currencyCode', headerName: 'CCY', width: 75, cellClass: 'cell-mono' },
     { field: 'clearingHouseName', headerName: 'Clearing House', width: 160, valueFormatter: (p) => p.value ?? 'Bilateral' },
-    { field: 'priceQuotation', headerName: 'Quotation', flex: 1, valueFormatter: (p) => p.value ?? '—' },
+    { field: 'timezone', headerName: 'Timezone', width: 160, valueFormatter: (p) => p.value ?? '—' },
     { field: 'isActive', headerName: 'Status', width: 100, cellRenderer: (p: { value: boolean }) => <ActiveTag active={p.value} /> },
     {
       headerName: '', width: 120, sortable: false, filter: false, pinned: 'right',
@@ -410,22 +362,14 @@ export function MarketsPage() {
               <Select options={SETTLEMENT_TYPES_MKT.map((s) => ({ label: s, value: s }))} />
             </Form.Item>
           </Space>
-          <Space style={{ width: '100%', gap: 12 }}>
-            <Form.Item name="exchangeId" label={hint('Exchange', 'Optional — link to Exchange master data. Leave blank for OTC/bilateral markets with no formal exchange listing.')} style={{ flex: 1 }}>
-              <Select allowClear showSearch optionFilterProp="label" options={exchangeOptions} placeholder="Select exchange" />
-            </Form.Item>
-            <Form.Item name="currencyId" label={hint('Currency', 'Market quoting currency. Most crude oil markets: USD. European gas/power: EUR. UK gas: GBP. LME base metals: USD.', 'USD, EUR, GBP')} rules={[{ required: true }]} style={{ flex: 1 }}>
-              <Select showSearch optionFilterProp="label" options={currencyOptions} placeholder="Select currency" />
-            </Form.Item>
-          </Space>
-          <Form.Item name="timezone" label={hint('Timezone', 'IANA timezone for market hours, session open/close, and last trading day calculations.', 'Europe/London, America/New_York, Asia/Singapore')} rules={[{ required: true }]}>
+          <Form.Item name="exchangeId" label={hint('Exchange', 'Optional — link to Exchange master data. Leave blank for OTC/bilateral markets with no formal exchange listing.')}>
+            <Select allowClear showSearch optionFilterProp="label" options={exchangeOptions} placeholder="Select exchange" />
+          </Form.Item>
+          <Form.Item name="timezone" label={hint('Timezone', 'IANA timezone for market hours, session open/close, and last trading day calculations — optional, leave blank for global/index-based markets with no single meaningful timezone.', 'Europe/London, America/New_York, Asia/Singapore')}>
             <Input placeholder="Europe/London" />
           </Form.Item>
           <Form.Item name="clearingHouseId" label={hint('Clearing House (CCP)', 'Central counterparty that clears trades on this market. Required for EXCHANGE and OTC_CLEARED. Absent for OTC_BILATERAL where both parties bear full counterparty credit risk. Modeled as a Counterparty (Clearing House type) — register one there first if it\'s missing here.', 'ICE Clear Europe, LCH, CME Clearing')}>
             <Select allowClear showSearch optionFilterProp="label" options={clearingHouseOptions} placeholder="Select clearing house" />
-          </Form.Item>
-          <Form.Item name="priceQuotation" label={hint('Price Quotation', 'How prices are quoted — used for display and confirmations.', 'USD per barrel, EUR per MWh, USD per metric tonne')}>
-            <Input placeholder="USD per barrel" />
           </Form.Item>
           <Form.Item name="isActive" label="Active" valuePropName="checked"><Switch /></Form.Item>
         </Form>

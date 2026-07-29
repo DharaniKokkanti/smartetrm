@@ -1645,14 +1645,14 @@ function crudHandlers<T extends { [K: string]: unknown }>(
 
 // ─── MARKETS (trading markets, not exchanges) ──────────────────────────────────
 const marketsStore: unknown[] = [
-  { marketId: 1, exchangeId: 1, exchangeCode: 'ICE', commodityType: 'OIL', marketCode: 'ICE_BRENT', marketName: 'ICE Brent Crude Futures', marketType: 'EXCHANGE', settlementType: 'FINANCIAL', currencyId: 1, currencyCode: 'USD', timezone: 'Europe/London', clearingHouseId: 201, clearingHouseName: 'ICE Clear Europe Ltd', priceQuotation: 'USD per barrel', goLiveDate: '1988-06-23', closeDate: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { marketId: 2, exchangeId: 2, exchangeCode: 'NYMEX', commodityType: 'OIL', marketCode: 'NYMEX_WTI', marketName: 'NYMEX WTI Light Sweet Crude Futures', marketType: 'EXCHANGE', settlementType: 'PHYSICAL', currencyId: 1, currencyCode: 'USD', timezone: 'America/New_York', clearingHouseId: 203, clearingHouseName: 'CME Clearing (CME Inc.)', priceQuotation: 'USD per barrel', goLiveDate: '1983-03-30', closeDate: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { marketId: 3, exchangeId: 3, exchangeCode: 'LME', commodityType: 'METALS', marketCode: 'LME_COPPER', marketName: 'LME Copper Cash & 3M', marketType: 'EXCHANGE', settlementType: 'PHYSICAL', currencyId: 1, currencyCode: 'USD', timezone: 'Europe/London', clearingHouseId: 204, clearingHouseName: 'LME Clear Ltd', priceQuotation: 'USD per metric tonne', goLiveDate: null, closeDate: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { marketId: 4, exchangeId: 1, exchangeCode: 'ICE', commodityType: 'GAS', marketCode: 'ICE_TTF', marketName: 'ICE TTF Natural Gas Futures', marketType: 'EXCHANGE', settlementType: 'FINANCIAL', currencyId: 2, currencyCode: 'EUR', timezone: 'Europe/Amsterdam', clearingHouseId: 201, clearingHouseName: 'ICE Clear Europe Ltd', priceQuotation: 'EUR per MWh', goLiveDate: null, closeDate: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { marketId: 5, exchangeId: null, exchangeCode: null, commodityType: 'OIL', marketCode: 'OTC_NS_CRUDE', marketName: 'OTC North Sea Crude (Physical)', marketType: 'OTC_BILATERAL', settlementType: 'PHYSICAL', currencyId: 1, currencyCode: 'USD', timezone: 'Europe/London', clearingHouseId: null, clearingHouseName: null, priceQuotation: 'USD per barrel vs Dated Brent', goLiveDate: null, closeDate: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { marketId: 6, exchangeId: 4, exchangeCode: 'EEX', commodityType: 'POWER', marketCode: 'EEX_DE_POWER', marketName: 'EEX German Power Base/Peak Futures', marketType: 'EXCHANGE', settlementType: 'FINANCIAL', currencyId: 2, currencyCode: 'EUR', timezone: 'Europe/Berlin', clearingHouseId: null, clearingHouseName: null, priceQuotation: 'EUR per MWh', goLiveDate: null, closeDate: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { marketId: 7, exchangeId: 3, exchangeCode: 'LME', commodityType: 'METALS', marketCode: 'LME_ALUMINIUM', marketName: 'LME Primary Aluminium Cash & 3M', marketType: 'EXCHANGE', settlementType: 'PHYSICAL', currencyId: 1, currencyCode: 'USD', timezone: 'Europe/London', clearingHouseId: 204, clearingHouseName: 'LME Clear Ltd', priceQuotation: 'USD per metric tonne', goLiveDate: null, closeDate: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
-  { marketId: 8, exchangeId: null, exchangeCode: null, commodityType: 'GAS', marketCode: 'OTC_NBP', marketName: 'OTC UK NBP Gas (Physical)', marketType: 'OTC_CLEARED', settlementType: 'PHYSICAL', currencyId: 3, currencyCode: 'GBP', timezone: 'Europe/London', clearingHouseId: 201, clearingHouseName: 'ICE Clear Europe Ltd', priceQuotation: 'pence per therm', goLiveDate: null, closeDate: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { marketId: 1, exchangeId: 1, exchangeCode: 'ICE', commodityType: 'OIL', marketCode: 'ICE_BRENT', marketName: 'ICE Brent Crude Futures', marketType: 'EXCHANGE', settlementType: 'FINANCIAL', timezone: 'Europe/London', clearingHouseId: 201, clearingHouseName: 'ICE Clear Europe Ltd', goLiveDate: '1988-06-23', closeDate: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { marketId: 2, exchangeId: 2, exchangeCode: 'NYMEX', commodityType: 'OIL', marketCode: 'NYMEX_WTI', marketName: 'NYMEX WTI Light Sweet Crude Futures', marketType: 'EXCHANGE', settlementType: 'PHYSICAL', timezone: 'America/New_York', clearingHouseId: 203, clearingHouseName: 'CME Clearing (CME Inc.)', goLiveDate: '1983-03-30', closeDate: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { marketId: 3, exchangeId: 3, exchangeCode: 'LME', commodityType: 'METALS', marketCode: 'LME_COPPER', marketName: 'LME Copper Cash & 3M', marketType: 'EXCHANGE', settlementType: 'PHYSICAL', timezone: 'Europe/London', clearingHouseId: 204, clearingHouseName: 'LME Clear Ltd', goLiveDate: null, closeDate: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { marketId: 4, exchangeId: 1, exchangeCode: 'ICE', commodityType: 'GAS', marketCode: 'ICE_TTF', marketName: 'ICE TTF Natural Gas Futures', marketType: 'EXCHANGE', settlementType: 'FINANCIAL', timezone: 'Europe/Amsterdam', clearingHouseId: 201, clearingHouseName: 'ICE Clear Europe Ltd', goLiveDate: null, closeDate: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { marketId: 5, exchangeId: null, exchangeCode: null, commodityType: 'OIL', marketCode: 'OTC_NS_CRUDE', marketName: 'OTC North Sea Crude (Physical)', marketType: 'OTC_BILATERAL', settlementType: 'PHYSICAL', timezone: 'Europe/London', clearingHouseId: null, clearingHouseName: null, goLiveDate: null, closeDate: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { marketId: 6, exchangeId: 4, exchangeCode: 'EEX', commodityType: 'POWER', marketCode: 'EEX_DE_POWER', marketName: 'EEX German Power Base/Peak Futures', marketType: 'EXCHANGE', settlementType: 'FINANCIAL', timezone: 'Europe/Berlin', clearingHouseId: null, clearingHouseName: null, goLiveDate: null, closeDate: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { marketId: 7, exchangeId: 3, exchangeCode: 'LME', commodityType: 'METALS', marketCode: 'LME_ALUMINIUM', marketName: 'LME Primary Aluminium Cash & 3M', marketType: 'EXCHANGE', settlementType: 'PHYSICAL', timezone: 'Europe/London', clearingHouseId: 204, clearingHouseName: 'LME Clear Ltd', goLiveDate: null, closeDate: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
+  { marketId: 8, exchangeId: null, exchangeCode: null, commodityType: 'GAS', marketCode: 'OTC_NBP', marketName: 'OTC UK NBP Gas (Physical)', marketType: 'OTC_CLEARED', settlementType: 'PHYSICAL', timezone: 'Europe/London', clearingHouseId: 201, clearingHouseName: 'ICE Clear Europe Ltd', goLiveDate: null, closeDate: null, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
 ];
 
 // Market-Product links
@@ -1662,20 +1662,6 @@ const marketProductsStore: unknown[] = [
   { marketProductLinkId: 3, marketId: 3, productId: 6, productCode: 'LME-COPPER', productName: 'LME Copper', ticker: 'CA', currencyCode: null, uomCode: null,  pricePrecision: 0, settlementType: null, firstNoticeDayOffset: null, lastTradingDayOffset: null, listedDate: null, delistedDate: null, isActive: true },
   { marketProductLinkId: 4, marketId: 4, productId: 4, productCode: 'TTF-GAS', productName: 'TTF Natural Gas', ticker: 'TTF', currencyCode: null, uomCode: null,  pricePrecision: 3, settlementType: null, firstNoticeDayOffset: null, lastTradingDayOffset: -3, listedDate: null, delistedDate: null, isActive: true },
   { marketProductLinkId: 5, marketId: 5, productId: 1, productCode: 'BRENT-CRUDE', productName: 'Brent Crude Oil', ticker: null, currencyCode: null, uomCode: null,  pricePrecision: 4, settlementType: 'PHYSICAL', firstNoticeDayOffset: null, lastTradingDayOffset: null, listedDate: null, delistedDate: null, isActive: true },
-];
-
-// Market-Product-Period links
-const marketProductPeriodsStore: unknown[] = [
-  { mppId: 1, marketProductLinkId: 1, periodId: 1, periodCode: 'M+0', periodName: 'Prompt Month', periodType: 'MONTH', curveLabel: 'M+0', isActive: true },
-  { mppId: 2, marketProductLinkId: 1, periodId: 2, periodCode: 'M+1', periodName: 'Second Month', periodType: 'MONTH', curveLabel: 'M+1', isActive: true },
-  { mppId: 3, marketProductLinkId: 1, periodId: 3, periodCode: 'M+2', periodName: 'Third Month', periodType: 'MONTH', curveLabel: 'M+2', isActive: true },
-  { mppId: 4, marketProductLinkId: 1, periodId: 8, periodCode: 'Q+0', periodName: 'Current Quarter', periodType: 'QUARTER', curveLabel: 'Q+0', isActive: true },
-  { mppId: 5, marketProductLinkId: 1, periodId: 9, periodCode: 'Q+1', periodName: 'Next Quarter', periodType: 'QUARTER', curveLabel: 'Q+1', isActive: true },
-  { mppId: 6, marketProductLinkId: 2, periodId: 1, periodCode: 'M+0', periodName: 'Prompt Month', periodType: 'MONTH', curveLabel: 'M+0', isActive: true },
-  { mppId: 7, marketProductLinkId: 2, periodId: 2, periodCode: 'M+1', periodName: 'Second Month', periodType: 'MONTH', curveLabel: 'M+1', isActive: true },
-  { mppId: 8, marketProductLinkId: 3, periodId: 1, periodCode: 'M+0', periodName: 'Prompt Month', periodType: 'MONTH', curveLabel: 'M+0', isActive: true },
-  { mppId: 9, marketProductLinkId: 3, periodId: 31, periodCode: 'MET-3M', periodName: 'Metals 3 Month', periodType: 'MONTH', curveLabel: '3M', isActive: true },
-  { mppId: 10, marketProductLinkId: 3, periodId: 32, periodCode: 'MET-15M', periodName: 'Metals 15 Month', periodType: 'MONTH', curveLabel: '15M', isActive: true },
 ];
 
 // Market-Product-Source links
@@ -2522,22 +2508,6 @@ export const etrmHandlers = [
   http.patch(`${API}/markets/:id/product-links/:mpId/deactivate`, ({ params }) => {
     const idx = (marketProductsStore as Array<Record<string, unknown>>).findIndex((mp) => mp.marketProductLinkId === Number(params.mpId));
     if (idx >= 0) (marketProductsStore as Array<Record<string, unknown>>)[idx].isActive = false;
-    return new HttpResponse(null, { status: 204 });
-  }),
-  // Market-Product-Period sub-resource
-  http.get(`${API}/market-product-links/:mpId/periods`, ({ params }) => {
-    const mpId = Number(params.mpId);
-    return HttpResponse.json((marketProductPeriodsStore as Array<Record<string, unknown>>).filter((p) => p['marketProductLinkId'] === mpId));
-  }),
-  http.post(`${API}/market-product-links/:mpId/periods`, async ({ params, request }) => {
-    const input = (await request.json()) as Record<string, unknown>;
-    const row = { ...input, mppId: nextId(), marketProductLinkId: Number(params.mpId), isActive: true };
-    marketProductPeriodsStore.push(row);
-    return HttpResponse.json(row, { status: 201 });
-  }),
-  http.patch(`${API}/market-product-periods/:id/deactivate`, ({ params }) => {
-    const idx = (marketProductPeriodsStore as Array<Record<string, unknown>>).findIndex((p) => p.mppId === Number(params.id));
-    if (idx >= 0) (marketProductPeriodsStore as Array<Record<string, unknown>>)[idx].isActive = false;
     return new HttpResponse(null, { status: 204 });
   }),
   // Market-Product-Source sub-resource
