@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
 import {
   Button, Space, Popconfirm, Tag, Drawer, Form, Input, Select,
-  InputNumber, Switch, Divider, Typography, Tabs, Table, Badge,
+  InputNumber, Switch, Divider, Typography, Tabs, Table,
   Tooltip, Collapse, Alert, Empty, Spin, Modal,
 } from 'antd';
 import {
   EditOutlined, StopOutlined, LinkOutlined, DeleteOutlined,
-  BarChartOutlined, GlobalOutlined, ExperimentOutlined, ApartmentOutlined,
+  GlobalOutlined, ExperimentOutlined, ApartmentOutlined,
   PlusOutlined, SaveOutlined,
 } from '@ant-design/icons';
 import type { ColDef } from 'ag-grid-community';
@@ -19,7 +19,6 @@ import { InfoPanel } from '@components/smart/InfoPanel';
 import { color } from '@theme/tokens';
 import {
   useProducts, useSaveProduct, useDeactivateProduct,
-  useProductPriceIndices, useLinkPriceIndex, useUnlinkPriceIndex,
   useProductMarkets, useProductSpecTemplates, useAddSpecTemplate, useSpecValues,
   useProductBlendComponents, useAddBlendComponent, useRemoveBlendComponent,
   useSpecParameters, useAddSpecValue, useUpdateSpecValue, useDeleteSpecValue,
@@ -27,11 +26,10 @@ import {
   useLinkMarketToProduct,
 } from './hooks';
 import { useUomConversions } from '@features/reference/uom-conversions/hooks';
-import { usePriceIndices } from '@features/markets/price-indices/hooks';
 import { useMarkets } from '@features/markets/markets/hooks';
 import {
   type Product, type ProductInput,
-  type ProductPriceIndex, type ProductMarketLink, type IndexRole,
+  type ProductMarketLink,
   type ProductSpecTemplate, type ProductSpecValue, type BlendComponent,
   type BoundDirection, type ParameterCategory, type SpecParameter,
   type CommodityRow, resolveCommodityType, resolveCommodityName,
@@ -51,117 +49,8 @@ const COMMODITY_COLOR: Record<CommodityType, string> = {
   OIL: 'volcano', GAS: 'blue', POWER: 'gold', METALS: 'purple', AGRICULTURAL: 'green',
   LNG: 'cyan', FREIGHT: 'orange', RINS: 'lime', ENVIRONMENTAL: 'geekblue', MULTI: 'magenta', OTHER: 'default',
 };
-const ROLE_COLOR: Record<IndexRole, string> = {
-  PRIMARY_MTM: 'green', SETTLEMENT: 'blue', BACKUP: 'orange', REFERENCE: 'default',
-};
-
 const UOM_OPTIONS = ['BBL', 'MT', 'KBD', 'MWH', 'GWH', 'MW', 'MMBTU', 'MCM', 'THERM', 'BUSHEL', 'KG', 'TROY_OZ'];
 const PRICING_TYPE_OPTIONS = ['FLAT', 'INDEX', 'DIFFERENTIAL', 'FORMULA', 'FLOATING', 'TBN'];
-
-// ── Price Index Link tab ──────────────────────────────────────────────────────
-
-function PriceIndicesTab({ productId }: { productId: number }) {
-  const { data = [], isLoading } = useProductPriceIndices(productId);
-  const { data: allIndices = [], isLoading: indicesLoading } = usePriceIndices();
-  const link   = useLinkPriceIndex(productId);
-  const unlink = useUnlinkPriceIndex(productId);
-  const [linkForm] = Form.useForm<{ priceIndexId: number; role: IndexRole; isPrimary: boolean }>();
-  const [showLink, setShowLink] = useState(false);
-
-  const indexOptions = useMemo(
-    () => allIndices
-      .filter((i) => i.isActive)
-      .sort((a, b) => a.indexCode.localeCompare(b.indexCode))
-      .map((i) => ({
-        value: i.priceIndexId,
-        label: `${i.indexCode} — ${i.indexName} (${i.publicationSource})`,
-      })),
-    [allIndices],
-  );
-
-  async function submitLink() {
-    const v = await linkForm.validateFields();
-    await link.mutateAsync(v);
-    linkForm.resetFields();
-    setShowLink(false);
-  }
-
-  const cols: ColumnsType<ProductPriceIndex> = [
-    { title: 'Index Code', dataIndex: 'indexCode', width: 140, render: (v: string) => <code>{v}</code> },
-    { title: 'Index Name', dataIndex: 'indexName', ellipsis: true },
-    { title: 'Source', dataIndex: 'publicationSource', width: 100,
-      render: (v: string) => <Tag>{v}</Tag> },
-    { title: 'CCY', dataIndex: 'currencyCode', width: 70, render: (v: string) => <code>{v}</code> },
-    { title: 'UoM', dataIndex: 'uomCode', width: 80, render: (v: string) => <code>{v}</code> },
-    {
-      title: 'Role', dataIndex: 'role', width: 130,
-      render: (v: IndexRole) => <Tag color={ROLE_COLOR[v]}>{v.replace('_', ' ')}</Tag>,
-    },
-    {
-      title: '', width: 60, align: 'center' as const,
-      render: (_: unknown, r: ProductPriceIndex) => (
-        <Popconfirm title="Unlink this price index?" onConfirm={() => unlink.mutate(r.productIndexId)}
-          okText="Unlink" okButtonProps={{ danger: true }}>
-          <Button type="text" size="small" danger icon={<DeleteOutlined />} />
-        </Popconfirm>
-      ),
-    },
-  ];
-
-  return (
-    <div>
-      <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-          Price indices used for mark-to-market, settlement, and reference pricing.
-        </Typography.Text>
-        <Button size="small" icon={<LinkOutlined />} onClick={() => setShowLink(!showLink)}>
-          Link Index
-        </Button>
-      </div>
-
-      {showLink && (
-        <InfoPanel variant="neutral" icon={false}>
-          <Form form={linkForm} layout="inline" size="small">
-            <Form.Item name="priceIndexId" label="Price Index" rules={[{ required: true }]}>
-              <Select
-                showSearch
-                placeholder="Search by code or name…"
-                options={indexOptions}
-                optionFilterProp="label"
-                loading={indicesLoading}
-                style={{ width: 300 }}
-              />
-            </Form.Item>
-            <Form.Item name="role" label={hint('Role', 'How this price index is used: Primary MTM values the position daily, Settlement fixes final settlement price, Backup is a fallback if primary is unavailable, Reference is informational only.')} rules={[{ required: true }]}
-              initialValue="PRIMARY_MTM">
-              <Select style={{ width: 140 }} options={[
-                { value: 'PRIMARY_MTM',  label: 'Primary MTM' },
-                { value: 'SETTLEMENT',   label: 'Settlement' },
-                { value: 'BACKUP',       label: 'Backup' },
-                { value: 'REFERENCE',    label: 'Reference' },
-              ]} />
-            </Form.Item>
-            <Form.Item name="isPrimary" label="Primary" valuePropName="checked" initialValue={false}>
-              <Switch size="small" />
-            </Form.Item>
-            <Button type="primary" size="small" onClick={submitLink} loading={link.isPending}>Add</Button>
-            <Button size="small" onClick={() => setShowLink(false)} style={{ marginLeft: 4 }}>Cancel</Button>
-          </Form>
-        </InfoPanel>
-      )}
-
-      <Table
-        size="small"
-        columns={cols}
-        dataSource={data}
-        loading={isLoading}
-        rowKey="productIndexId"
-        pagination={false}
-        locale={{ emptyText: 'No price indices linked yet.' }}
-      />
-    </div>
-  );
-}
 
 // ── Market Links tab ──────────────────────────────────────────────────────────
 
@@ -1355,12 +1244,6 @@ export function ProductsPage() {
           </Form.Item>
         </Form>
       ),
-    },
-    {
-      key: 'price-indices',
-      label: <Space><BarChartOutlined />Price Indices{editing ? <Badge count={0} showZero={false} /> : null}</Space>,
-      disabled: editing === null,
-      children: editing ? <PriceIndicesTab productId={editing.productId} /> : null,
     },
     {
       key: 'markets',

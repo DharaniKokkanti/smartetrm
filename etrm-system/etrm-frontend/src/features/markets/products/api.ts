@@ -1,7 +1,7 @@
 import { apiClient } from '@services/api';
 import type {
   Product, ProductInput,
-  ProductPriceIndex, ProductPriceIndexInput, ProductMarketLink,
+  ProductMarketLink,
   ProductSpecTemplate, ProductSpecValue,
   BlendComponent, BlendComponentInput,
   SpecParameter,
@@ -14,15 +14,6 @@ export const productsApi = {
   create:     (input: ProductInput) => apiClient.post<Product>('/products', input).then((r) => r.data),
   update:     (id: number, input: ProductInput) => apiClient.put<Product>(`/products/${id}`, input).then((r) => r.data),
   deactivate: (id: number) => apiClient.patch(`/products/${id}/deactivate`),
-};
-
-export const productIndexApi = {
-  list:   (productId: number) =>
-    apiClient.get<ProductPriceIndex[]>(`/products/${productId}/price-indices`).then((r) => r.data),
-  link:   (productId: number, input: ProductPriceIndexInput) =>
-    apiClient.post<ProductPriceIndex>(`/products/${productId}/price-indices`, input).then((r) => r.data),
-  unlink: (productId: number, productIndexId: number) =>
-    apiClient.delete(`/products/${productId}/price-indices/${productIndexId}`),
 };
 
 export const productMarketApi = {

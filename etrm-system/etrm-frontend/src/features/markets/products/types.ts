@@ -79,29 +79,6 @@ export function resolveCommodityName(rows: CommodityRow[], id: number | null | u
   return rows.find((r) => r.commodityId === id)?.commodityName ?? `#${id}`;
 }
 
-// ── Price index link (product_price_index bridge table) ───────────────────────
-
-export type IndexRole = 'PRIMARY_MTM' | 'SETTLEMENT' | 'BACKUP' | 'REFERENCE';
-
-export interface ProductPriceIndex {
-  productIndexId: number;
-  productId: number;
-  priceIndexId: number;
-  indexCode: string;
-  indexName: string;
-  publicationSource: string;
-  currencyCode: string;
-  uomCode: string;
-  role: IndexRole;
-  isPrimary: boolean;
-  isActive: boolean;
-}
-
-export type ProductPriceIndexInput = {
-  priceIndexId: number;
-  role: IndexRole;
-  isPrimary: boolean;
-};
 
 // ── Market link (market_product bridge table) ─────────────────────────────────
 

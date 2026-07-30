@@ -12,6 +12,7 @@ import { useFormDraft } from '@components/smart/formDraft';
 import { AuditInfo } from '@components/smart/AuditInfo';
 import { useCurrencies } from '@features/reference/currencies/hooks';
 import { useUom } from '@features/reference/uom/hooks';
+import { useMarketProductLinkOptions } from '@features/calendar/periods/hooks';
 
 const SOURCE_COLOR: Record<string, string> = {
   PLATTS: 'blue', ARGUS: 'cyan', ICE: 'purple', LME: 'gold',
@@ -26,6 +27,10 @@ export function PriceIndicesPage() {
   const currencyOpts = currencies.map((c) => ({ value: c.currencyId, label: c.currencyCode }));
   const { data: uoms = [] } = useUom();
   const uomOpts = uoms.map((u) => ({ value: u.uomId, label: u.uomCode }));
+  const { data: marketProductLinks = [] } = useMarketProductLinkOptions();
+  const listingOpts = marketProductLinks.map((mp) => ({
+    value: mp.marketProductLinkId, label: `${mp.marketCode ?? '—'} / ${mp.productCode ?? '—'}`,
+  }));
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<PriceIndex | null>(null);
   const [form] = Form.useForm<PriceIndexInput>();
@@ -34,12 +39,12 @@ export function PriceIndicesPage() {
   function openNew() { setEditing(null); form.resetFields(); form.setFieldValue('isActive', true); setOpen(true); }
   function openEdit(p: PriceIndex) {
     setEditing(p);
-    form.setFieldsValue({ indexCode: p.indexCode, indexName: p.indexName, currencyId: p.currencyId, uomId: p.uomId, publicationSource: p.publicationSource, fixingTime: p.fixingTime ?? undefined, fixingTimezone: p.fixingTimezone ?? undefined, publishedPage: p.publishedPage ?? undefined, isActive: p.isActive });
+    form.setFieldsValue({ indexCode: p.indexCode, indexName: p.indexName, currencyId: p.currencyId, uomId: p.uomId, publicationSource: p.publicationSource, fixingTime: p.fixingTime ?? undefined, fixingTimezone: p.fixingTimezone ?? undefined, publishedPage: p.publishedPage ?? undefined, marketProductLinkId: p.marketProductLinkId ?? undefined, isActive: p.isActive, rowVersion: p.rowVersion });
     setOpen(true);
   }
   async function submit(closeAfter = true) {
     const v = await form.validateFields();
-    const saved = await save.mutateAsync({ id: editing?.priceIndexId ?? null, input: v });
+    const saved = await save.mutateAsync({ id: editing?.priceIndexId ?? null, input: { ...v, rowVersion: editing?.rowVersion ?? 0 } });
     if (closeAfter) setOpen(false); else setEditing(saved);
   }
 
@@ -52,6 +57,10 @@ export function PriceIndicesPage() {
       tooltipValueGetter: () => 'Data vendor that publishes this index — Platts (S&P Global Commodity Insights), Argus, ICE, LME, Bloomberg, Reuters/Refinitiv',
       cellRenderer: (p: { value: string }) => <Tag color={SOURCE_COLOR[p.value] ?? 'default'}>{p.value}</Tag>,
     },
+    { field: 'marketCode', headerName: 'Listing', width: 130,
+      tooltipValueGetter: () => 'Primary listing this index is quick-picked from — the full sourcing map (including any other listings) lives on Price Index Sources',
+      valueGetter: (p) => p.data?.marketCode && p.data?.productCode ? `${p.data.marketCode} / ${p.data.productCode}` : null,
+      valueFormatter: (p) => p.value ?? '—' },
     { field: 'currencyCode', headerName: 'CCY', width: 75, cellClass: 'cell-mono' },
     { field: 'uomCode', headerName: 'UoM', width: 90, cellClass: 'cell-mono' },
     { field: 'fixingTime', headerName: 'Fixing Time', width: 120, valueFormatter: (p) => p.value ?? '—',
@@ -113,6 +122,9 @@ export function PriceIndicesPage() {
           </Space>
           <Form.Item name="publishedPage" label={hint('Screen Page', 'Bloomberg or Reuters terminal screen reference for this fixing. Used as primary evidence source in pricing disputes. Bloomberg: e.g. BCOM. Reuters: e.g. CRUDE/EU3.', 'PXBR01 (Platts page)')}>
             <Input placeholder="e.g. PXBR01" style={{ fontFamily: 'monospace' }} />
+          </Form.Item>
+          <Form.Item name="marketProductLinkId" label={hint('Listing', 'Primary market/product listing this index is quick-picked from in pricing formulas. Optional — an index sourced from multiple listings (e.g. Dated Brent via both ICE Brent futures and OTC cargoes) keeps its full sourcing map on Price Index Sources; this is just the default one.')}>
+            <Select allowClear showSearch optionFilterProp="label" options={listingOpts} placeholder="Select listing" />
           </Form.Item>
           <Form.Item name="isActive" label="Active" valuePropName="checked"><Switch /></Form.Item>
         </Form>

@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { App as AntApp } from 'antd';
-import { productsApi, productIndexApi, productMarketApi, productSpecApi, productBlendApi, productReportingGroupApi } from './api';
-import type { ProductInput, ProductPriceIndexInput, BlendComponentInput, ProductReportingGroupInput } from './types';
+import { productsApi, productMarketApi, productSpecApi, productBlendApi, productReportingGroupApi } from './api';
+import type { ProductInput, BlendComponentInput, ProductReportingGroupInput } from './types';
 import type { ProblemDetail } from '@services/api';
 import type { CommodityType } from '@features/reference/commodity-types/types';
 import { marketsApi } from '@features/markets/markets/api';
@@ -31,42 +31,6 @@ export function useDeactivateProduct() {
     mutationFn: productsApi.deactivate,
     onSuccess: () => { qc.invalidateQueries({ queryKey: KEY }); message.success('Product deactivated.'); },
     onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Deactivate failed.'),
-  });
-}
-
-// ── Price index links ─────────────────────────────────────────────────────────
-
-export function useProductPriceIndices(productId: number | null) {
-  return useQuery({
-    queryKey: ['products', productId, 'price-indices'],
-    queryFn: () => productIndexApi.list(productId!),
-    enabled: productId !== null,
-  });
-}
-
-export function useLinkPriceIndex(productId: number) {
-  const qc = useQueryClient();
-  const { message } = AntApp.useApp();
-  return useMutation({
-    mutationFn: (input: ProductPriceIndexInput) => productIndexApi.link(productId, input),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['products', productId, 'price-indices'] });
-      message.success('Price index linked.');
-    },
-    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Link failed.'),
-  });
-}
-
-export function useUnlinkPriceIndex(productId: number) {
-  const qc = useQueryClient();
-  const { message } = AntApp.useApp();
-  return useMutation({
-    mutationFn: (productIndexId: number) => productIndexApi.unlink(productId, productIndexId),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['products', productId, 'price-indices'] });
-      message.success('Price index unlinked.');
-    },
-    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Unlink failed.'),
   });
 }
 

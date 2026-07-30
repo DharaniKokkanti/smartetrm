@@ -3,6 +3,9 @@ package com.etrm.system.priceindex;
 import com.etrm.system.common.ConflictException;
 import com.etrm.system.common.NotFoundException;
 import com.etrm.system.currency.CurrencyRepository;
+import com.etrm.system.market.MarketProductLinkRepository;
+import com.etrm.system.market.MarketRepository;
+import com.etrm.system.product.ProductRepository;
 import com.etrm.system.uom.UnitOfMeasureRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,17 +19,31 @@ public class PriceIndexService {
     private final PriceIndexRepository repository;
     private final CurrencyRepository currencyRepository;
     private final UnitOfMeasureRepository uomRepository;
+    private final MarketProductLinkRepository marketProductLinkRepository;
+    private final MarketRepository marketRepository;
+    private final ProductRepository productRepository;
 
     public PriceIndexService(PriceIndexRepository repository,
-                              CurrencyRepository currencyRepository, UnitOfMeasureRepository uomRepository) {
+                              CurrencyRepository currencyRepository, UnitOfMeasureRepository uomRepository,
+                              MarketProductLinkRepository marketProductLinkRepository,
+                              MarketRepository marketRepository, ProductRepository productRepository) {
         this.repository = repository;
         this.currencyRepository = currencyRepository;
         this.uomRepository = uomRepository;
+        this.marketProductLinkRepository = marketProductLinkRepository;
+        this.marketRepository = marketRepository;
+        this.productRepository = productRepository;
     }
 
     private PriceIndex hydrate(PriceIndex pi) {
         currencyRepository.findById(pi.getCurrencyId()).ifPresent(c -> pi.setCurrencyCode(c.getCurrencyCode()));
         uomRepository.findById(pi.getUomId()).ifPresent(u -> pi.setUomCode(u.getUomCode()));
+        if (pi.getMarketProductLinkId() != null) {
+            marketProductLinkRepository.findById(pi.getMarketProductLinkId()).ifPresent(mpl -> {
+                productRepository.findById(mpl.getProductId()).ifPresent(p -> pi.setProductCode(p.getProductCode()));
+                marketRepository.findById(mpl.getMarketId()).ifPresent(m -> pi.setMarketCode(m.getMarketCode()));
+            });
+        }
         return pi;
     }
 

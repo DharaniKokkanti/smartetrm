@@ -117,6 +117,22 @@ public class PriceIndex {
     @Column(name = "price_type", length = 2)
     private String priceType;
 
+    // V185 — direct listing FK for formula/quote-selection convenience,
+    // nullable (an index can genuinely be sourced from >1 listing, e.g.
+    // Dated Brent via ICE_BRENT and ICAP_BRENT_OTC — the full sourcing map
+    // stays on price_index_source; this is just the primary/quick-pick one,
+    // Dharani's explicit call over staying listing-agnostic).
+    @Column(name = "market_product_link_id")
+    private Integer marketProductLinkId;
+
+    @Transient
+    @JsonProperty
+    private String marketCode;
+
+    @Transient
+    @JsonProperty
+    private String productCode;
+
     @NotNull
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
@@ -263,6 +279,30 @@ public class PriceIndex {
 
     public void setPriceType(String priceType) {
         this.priceType = priceType;
+    }
+
+    public Integer getMarketProductLinkId() {
+        return marketProductLinkId;
+    }
+
+    public void setMarketProductLinkId(Integer marketProductLinkId) {
+        this.marketProductLinkId = marketProductLinkId;
+    }
+
+    public String getMarketCode() {
+        return marketCode;
+    }
+
+    public void setMarketCode(String marketCode) {
+        this.marketCode = marketCode;
+    }
+
+    public String getProductCode() {
+        return productCode;
+    }
+
+    public void setProductCode(String productCode) {
+        this.productCode = productCode;
     }
 
     public Boolean getIsActive() {
