@@ -24,6 +24,7 @@ export interface PriceIndexSource {
   effectiveFrom: string;
   effectiveTo: string | null;
   isActive: boolean;
+  rowVersion: number;
 }
 
 export type PriceIndexSourceInput = Omit<

@@ -60,6 +60,7 @@ export function PriceIndexSourcesPage() {
       ...values,
       effectiveFrom: v.effectiveFrom ? v.effectiveFrom.format('YYYY-MM-DD') : (values.effectiveFrom as unknown as string),
       effectiveTo: v.effectiveTo ? v.effectiveTo.format('YYYY-MM-DD') : null,
+      rowVersion: editing?.rowVersion ?? 0,
     };
     await save.mutateAsync({ id: editing?.pisId ?? null, input });
     if (closeAfter) setOpen(false); else setEditing(null);
