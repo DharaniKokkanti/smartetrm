@@ -9,6 +9,7 @@ import type {
   AddressAssignment,
   PolymorphicEntityType,
   TaxRegistration,
+  LicenseRegistration,
   SettlementInstruction,
   SettlementInstructionCreateInput,
 } from './types';
@@ -186,6 +187,36 @@ export async function saveTaxRegistrationAssignment(reg: TaxRegistration): Promi
 
 export async function deactivateTaxRegistrationAssignment(taxRegId: number): Promise<void> {
   await apiClient.patch(`/entity-tax-registrations/${taxRegId}/deactivate`);
+}
+
+// ── License registrations (dbo.license_registration, V187) ────────────────────
+// Polymorphic like tax registrations above — same shape, separate endpoint.
+
+export async function fetchEntityLicenseRegistrations(entityType: PolymorphicEntityType, entityId: number): Promise<LicenseRegistration[]> {
+  const { data } = await apiClient.get<LicenseRegistration[]>(
+    `/entity-license-registrations?entityType=${entityType}&entityId=${entityId}`,
+  );
+  return data;
+}
+
+/** Every license registration across every entity — used by the cross-entity
+ *  Licenses Directory page (not scoped to one entity). */
+export async function fetchAllLicenseRegistrations(): Promise<LicenseRegistration[]> {
+  const { data } = await apiClient.get<LicenseRegistration[]>('/entity-license-registrations');
+  return data;
+}
+
+export async function saveLicenseRegistrationAssignment(reg: LicenseRegistration): Promise<LicenseRegistration> {
+  if (reg.licenseRegId !== null) {
+    const { data } = await apiClient.put<LicenseRegistration>(`/entity-license-registrations/${reg.licenseRegId}`, reg);
+    return data;
+  }
+  const { data } = await apiClient.post<LicenseRegistration>('/entity-license-registrations', reg);
+  return data;
+}
+
+export async function deactivateLicenseRegistrationAssignment(licenseRegId: number): Promise<void> {
+  await apiClient.patch(`/entity-license-registrations/${licenseRegId}/deactivate`);
 }
 
 // ── Settlement instructions (dbo.settlement_instruction, V159) ────────────────

@@ -1,4 +1,4 @@
-import type { Counterparty, Address, AddressAssignment, Contact, ContactAssignment, BankAccount, TaxRegistration } from '@features/tier1/counterparty/types';
+import type { Counterparty, Address, AddressAssignment, Contact, ContactAssignment, BankAccount, TaxRegistration, LicenseRegistration } from '@features/tier1/counterparty/types';
 
 let nextCpId = 21;
 let nextContactId = 4;
@@ -7,6 +7,7 @@ let nextAddressId = 4;
 let nextAddressAssignmentId = 5;
 let nextContactAssignmentId = 5;
 let nextTaxRegId = 3;
+let nextLicenseRegId = 2;
 
 export const counterpartySeed: Counterparty[] = [
   {
@@ -471,10 +472,32 @@ export const taxRegistrationSeed: TaxRegistration[] = [
   },
 ];
 
+export const licenseRegistrationSeed: LicenseRegistration[] = [
+  {
+    licenseRegId: 1,
+    _localId: 'seed-lr1',
+    entityType: 'COUNTERPARTY',
+    entityId: 1,
+    licenseTypeId: 2,
+    licenseNumber: 'FERC-MBR-2019-0451',
+    countryId: 2, // US
+    regionState: 'Texas',
+    issuingAuthority: 'FERC',
+    issueDate: '2019-03-15',
+    validFrom: '2019-03-15',
+    validTo: null,
+    status: 'ACTIVE',
+    isPrimary: true,
+    isActive: true,
+    notes: null,
+  },
+];
+
 export function nextCounterpartyId(): number { return nextCpId++; }
 export function nextContactRecordId(): number { return nextContactId++; }
 export function nextBankAccountRecordId(): number { return nextBankAccountId++; }
 export function nextTaxRegistrationId(): number { return nextTaxRegId++; }
+export function nextLicenseRegistrationId(): number { return nextLicenseRegId++; }
 export function nextAddressId_(): number { return nextAddressId++; }
 export function nextAddressAssignmentId_(): number { return nextAddressAssignmentId++; }
 export function nextContactAssignmentId_(): number { return nextContactAssignmentId++; }

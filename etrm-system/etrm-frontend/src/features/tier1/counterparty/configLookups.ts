@@ -24,6 +24,7 @@ const GROUP_TO_TABLE: Record<string, string> = {
   STORAGE_FACILITY_TYPE: 'storage_facility_type',
   NETTING_AGREEMENT_TYPE:'netting_agreement_type',
   TAX_TYPE:              'tax_type',
+  LICENSE_TYPE:           'license_type',
   LEGAL_ENTITY_TYPE:     'legal_entity_type',
   DEAL_TYPE:             'deal_type',
 };
@@ -39,6 +40,7 @@ const GROUP_TO_PK: Record<string, string> = {
   STORAGE_FACILITY_TYPE: 'storageFacilityTypeId',
   NETTING_AGREEMENT_TYPE:'nettingAgreementTypeId',
   TAX_TYPE:              'taxTypeId',
+  LICENSE_TYPE:           'licenseTypeId',
   LEGAL_ENTITY_TYPE:     'legalEntityTypeId',
   DEAL_TYPE:             'dealTypeId',
 };

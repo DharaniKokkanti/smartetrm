@@ -7,14 +7,17 @@ import {
   fetchCounterpartyChildren,
   fetchAllContactAssignments,
   fetchAllTaxRegistrations,
+  fetchAllLicenseRegistrations,
   saveAddressAssignment,
   saveContactAssignment,
   saveTaxRegistrationAssignment,
+  saveLicenseRegistrationAssignment,
   deactivateContactAssignment,
   deactivateTaxRegistrationAssignment,
+  deactivateLicenseRegistrationAssignment,
   settlementInstructionApi,
 } from './api';
-import type { BankAccount, ContactAssignment, CounterpartyDraft, SettlementInstructionCreateInput, TaxRegistration } from './types';
+import type { BankAccount, ContactAssignment, CounterpartyDraft, SettlementInstructionCreateInput, TaxRegistration, LicenseRegistration } from './types';
 import type { ProblemDetail } from '@services/api';
 import { isOptimisticLockConflict, showOptimisticLockConflict } from '@components/smart/optimisticLock';
 
@@ -156,6 +159,7 @@ export function useSaveCounterpartyDraft() {
 
 const ALL_CONTACTS_KEY = ['entity-contacts', 'all'] as const;
 const ALL_TAX_REGISTRATIONS_KEY = ['entity-tax-registrations', 'all'] as const;
+const ALL_LICENSE_REGISTRATIONS_KEY = ['entity-license-registrations', 'all'] as const;
 const ALL_BANK_ACCOUNTS_KEY = ['bank-accounts', 'all'] as const;
 
 export function useAllContactAssignments() {
@@ -226,6 +230,42 @@ export function useDeactivateTaxRegistration() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ALL_TAX_REGISTRATIONS_KEY });
       message.success('Tax registration removed.');
+    },
+    onError: (err: ProblemDetail) => message.error(err.detail ?? err.title ?? 'Remove failed.'),
+  });
+}
+
+export function useAllLicenseRegistrations() {
+  return useQuery({ queryKey: ALL_LICENSE_REGISTRATIONS_KEY, queryFn: fetchAllLicenseRegistrations });
+}
+
+export function useSaveLicenseRegistration() {
+  const queryClient = useQueryClient();
+  const { message, notification } = AntApp.useApp();
+  return useMutation({
+    mutationFn: (reg: LicenseRegistration) => saveLicenseRegistrationAssignment(reg),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ALL_LICENSE_REGISTRATIONS_KEY });
+      message.success('License registration saved.');
+    },
+    onError: (err: ProblemDetail) => {
+      if (isOptimisticLockConflict(err)) {
+        showOptimisticLockConflict(notification);
+      } else {
+        message.error(err.detail ?? err.title ?? 'Save failed.');
+      }
+    },
+  });
+}
+
+export function useDeactivateLicenseRegistration() {
+  const queryClient = useQueryClient();
+  const { message } = AntApp.useApp();
+  return useMutation({
+    mutationFn: (licenseRegId: number) => deactivateLicenseRegistrationAssignment(licenseRegId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ALL_LICENSE_REGISTRATIONS_KEY });
+      message.success('License registration removed.');
     },
     onError: (err: ProblemDetail) => message.error(err.detail ?? err.title ?? 'Remove failed.'),
   });

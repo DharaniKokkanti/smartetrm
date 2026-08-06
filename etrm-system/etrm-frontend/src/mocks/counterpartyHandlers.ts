@@ -7,6 +7,7 @@ import {
   addressPoolSeed,
   addressAssignmentSeed,
   taxRegistrationSeed,
+  licenseRegistrationSeed,
   nextCounterpartyId,
   nextContactRecordId,
   nextBankAccountRecordId,
@@ -14,6 +15,7 @@ import {
   nextAddressAssignmentId_,
   nextContactAssignmentId_,
   nextTaxRegistrationId,
+  nextLicenseRegistrationId,
 } from './counterpartyData';
 import type {
   Counterparty,
@@ -24,6 +26,7 @@ import type {
   Address,
   AddressAssignment,
   TaxRegistration,
+  LicenseRegistration,
   SettlementInstruction,
   SettlementInstructionCreateInput,
 } from '@features/tier1/counterparty/types';
@@ -43,6 +46,7 @@ export const bankAccountStore: BankAccount[] = [...bankAccountSeed];
 const addressPool: Address[] = [...addressPoolSeed];
 const addressAssignments: AddressAssignment[] = [...addressAssignmentSeed];
 const taxRegistrationStore: TaxRegistration[] = [...taxRegistrationSeed];
+const licenseRegistrationStore: LicenseRegistration[] = [...licenseRegistrationSeed];
 
 // dbo.settlement_instruction (V159) — empty seed, exercised live via the UI.
 // Simplified relative to the real backend: mocks run as a single logged-in
@@ -356,6 +360,40 @@ export const counterpartyHandlers = [
   http.patch(`${API}/entity-tax-registrations/:id/deactivate`, ({ params }) => {
     const idx = taxRegistrationStore.findIndex((t) => t.taxRegId === Number(params.id));
     if (idx !== -1) taxRegistrationStore[idx] = { ...taxRegistrationStore[idx], isActive: false };
+    return new HttpResponse(null, { status: 204 });
+  }),
+
+  // ── License registrations (dbo.license_registration, V187) — polymorphic,
+  // no pool, mirrors tax registrations above exactly. ────────────────────────
+  http.get(`${API}/entity-license-registrations`, ({ request }) => {
+    const url = new URL(request.url);
+    const entityType = url.searchParams.get('entityType');
+    if (entityType === null) {
+      return HttpResponse.json(licenseRegistrationStore.filter((l) => l.isActive));
+    }
+    const entityId = Number(url.searchParams.get('entityId'));
+    return HttpResponse.json(
+      licenseRegistrationStore.filter(
+        (l) => l.entityType === entityType && l.entityId === entityId && l.isActive,
+      ),
+    );
+  }),
+  http.post(`${API}/entity-license-registrations`, async ({ request }) => {
+    const body = (await request.json()) as Omit<LicenseRegistration, 'licenseRegId' | '_localId'>;
+    const record: LicenseRegistration = { ...body, licenseRegId: nextLicenseRegistrationId(), _localId: '' };
+    licenseRegistrationStore.push(record);
+    return HttpResponse.json(record, { status: 201 });
+  }),
+  http.put(`${API}/entity-license-registrations/:id`, async ({ params, request }) => {
+    const idx = licenseRegistrationStore.findIndex((l) => l.licenseRegId === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', 'License registration not found.');
+    const body = (await request.json()) as Partial<LicenseRegistration>;
+    licenseRegistrationStore[idx] = { ...licenseRegistrationStore[idx], ...body };
+    return HttpResponse.json(licenseRegistrationStore[idx]);
+  }),
+  http.patch(`${API}/entity-license-registrations/:id/deactivate`, ({ params }) => {
+    const idx = licenseRegistrationStore.findIndex((l) => l.licenseRegId === Number(params.id));
+    if (idx !== -1) licenseRegistrationStore[idx] = { ...licenseRegistrationStore[idx], isActive: false };
     return new HttpResponse(null, { status: 204 });
   }),
 

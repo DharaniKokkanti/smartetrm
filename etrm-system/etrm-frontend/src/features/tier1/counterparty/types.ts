@@ -233,6 +233,40 @@ export interface TaxRegistration {
   rowVersion?: number;
 }
 
+// license_registration.license_type_id is a numeric FK id (license_type
+// parent table) — resolve a label via useCustomConfigOptions('LICENSE_TYPE').
+export type LicenseType = number;
+
+export type LicenseStatus = 'ACTIVE' | 'SUSPENDED' | 'REVOKED' | 'EXPIRED' | 'PENDING_RENEWAL';
+
+/** Mirrors TaxRegistration's shape (see above) — same polymorphic
+ *  entity_type/entity_id link and license_type FK pattern, plus a
+ *  regionState (state/province, free text — no state master table yet)
+ *  since license jurisdiction isn't always just country-level, and a
+ *  lifecycle status beyond isActive since licenses can be suspended/revoked
+ *  independent of the record simply being deactivated. */
+export interface LicenseRegistration {
+  licenseRegId: number | null;
+  _localId: string;
+  entityType: PolymorphicEntityType;
+  entityId: number;
+  licenseTypeId: LicenseType;
+  licenseNumber: string;
+  countryId: number; // FK -> dbo.country(country_id)
+  regionState: string | null;
+  issuingAuthority: string | null;
+  issueDate: string | null;
+  validFrom: string | null;
+  validTo: string | null;
+  status: LicenseStatus;
+  isPrimary: boolean;
+  isActive: boolean;
+  notes: string | null;
+  /** V187 — optimistic locking; echo back on update or the save 409s.
+   *  Absent on a brand-new (licenseRegId === null) row. */
+  rowVersion?: number;
+}
+
 /** Everything needed to render + save the counterparty form in one place. */
 export interface CounterpartyDraft {
   core: CounterpartyInput;

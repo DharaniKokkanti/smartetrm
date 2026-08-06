@@ -135,6 +135,7 @@ const VolatilityPointsPage = lazy1(() => import('@features/pricing/volatility-po
 // Directory pages (cross-entity, previously inline-only)
 const ContactsDirectoryPage = lazy1(() => import('@features/organization/contacts/ContactsDirectoryPage'), 'ContactsDirectoryPage');
 const TaxRegistrationsDirectoryPage = lazy1(() => import('@features/credit/tax-registrations/TaxRegistrationsDirectoryPage'), 'TaxRegistrationsDirectoryPage');
+const LicensesDirectoryPage = lazy1(() => import('@features/credit/licenses/LicensesDirectoryPage'), 'LicensesDirectoryPage');
 const BankAccountsDirectoryPage = lazy1(() => import('@features/finance/bank-accounts/BankAccountsDirectoryPage'), 'BankAccountsDirectoryPage');
 const PcgDirectoryPage = lazy1(() => import('@features/credit/pcg/PcgDirectoryPage'), 'PcgDirectoryPage');
 
@@ -252,6 +253,7 @@ export function AppRouter() {
         <Route path="/credit/limits" element={<S><CreditLimitsPage /></S>} />
         <Route path="/credit/letters-of-credit" element={<S><LettersOfCreditPage /></S>} />
         <Route path="/credit/tax" element={<S><TaxRegistrationsDirectoryPage /></S>} />
+        <Route path="/credit/licenses" element={<S><LicensesDirectoryPage /></S>} />
         <Route path="/credit/pcg" element={<S><PcgDirectoryPage /></S>} />
         <Route path="/finance/bank-accounts" element={<S><BankAccountsDirectoryPage /></S>} />
         <Route path="/org/contacts" element={<S><ContactsDirectoryPage /></S>} />

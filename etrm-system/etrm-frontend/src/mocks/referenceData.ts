@@ -244,6 +244,30 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
       { taxTypeId: 9, typeCode: 'OTHER', typeName: 'Other', description: 'Tax registration type not covered by standard codes',   sortOrder: 9, isActive: true },
     ],
   },
+  {
+    name: 'license_type', label: 'License Types', pk: 'licenseTypeId', group: 'Credit & Collateral', order: 9,
+    subGroup: 'Fiscal', description: 'Regulatory and trading license types held by legal entities and counterparties — broker licenses, market participant registrations, import/export licenses, environmental permits. Parent table for license_registration.licenseTypeId FK.',
+    rows: [
+      { licenseTypeId: 1, typeCode: 'BROKER',                typeName: 'Broker License',                 description: 'State/national license to broker energy or commodity trades',        sortOrder: 1, isActive: true },
+      { licenseTypeId: 2, typeCode: 'MARKET_PARTICIPANT',    typeName: 'Market Participant Registration', description: 'Registration to trade on an exchange/market (e.g. ISO/RTO, ICE, CME)', sortOrder: 2, isActive: true },
+      { licenseTypeId: 3, typeCode: 'WHOLESALE_TRADING',     typeName: 'Wholesale Trading License',       description: 'Physical wholesale commodity trading authorization',                  sortOrder: 3, isActive: true },
+      { licenseTypeId: 4, typeCode: 'IMPORT',                typeName: 'Import License',                  description: 'Authorization to import a regulated commodity',                       sortOrder: 4, isActive: true },
+      { licenseTypeId: 5, typeCode: 'EXPORT',                typeName: 'Export License',                  description: 'Authorization to export a regulated commodity',                       sortOrder: 5, isActive: true },
+      { licenseTypeId: 6, typeCode: 'ENVIRONMENTAL_PERMIT',  typeName: 'Environmental Permit',            description: 'Site/facility-level environmental or emissions permit',               sortOrder: 6, isActive: true },
+      { licenseTypeId: 7, typeCode: 'OTHER',                 typeName: 'Other',                           description: 'License type not covered by the above',                               sortOrder: 7, isActive: true },
+    ],
+  },
+  {
+    name: 'customs_movement_status', label: 'Customs Movement Status', pk: 'customsMovementStatusId', group: 'Finance & Settlement', order: 10,
+    subGroup: 'Tax & Duty Rules', description: 'T1/T2/T2L/EU/Non-T1 goods movement status — whether duty and import VAT have already been accounted for. Shared lookup for tax_rule and customs_duty_rule.',
+    rows: [
+      { customsMovementStatusId: 1, typeCode: 'T1',     typeName: 'T1 - Non-Union Transit',     description: 'Non-Community/non-EU goods in transit; duty and import VAT not yet accounted for', sortOrder: 1, isActive: true },
+      { customsMovementStatusId: 2, typeCode: 'T2',     typeName: 'T2 - Union Goods',           description: 'Community/EU goods in free circulation; duty and VAT already accounted for',       sortOrder: 2, isActive: true },
+      { customsMovementStatusId: 3, typeCode: 'T2L',    typeName: 'T2L - Proof of Union Status',description: 'Proof-of-Community-status document for goods not moving under a transit procedure', sortOrder: 3, isActive: true },
+      { customsMovementStatusId: 4, typeCode: 'EU',     typeName: 'EU / Intra-Community',       description: 'Intra-EU movement, no import formalities',                                         sortOrder: 4, isActive: true },
+      { customsMovementStatusId: 5, typeCode: 'NON_T1', typeName: 'Non-T1 (Domestic/Cleared)',  description: 'Goods already cleared/domestic; not subject to T1 transit control',                sortOrder: 5, isActive: true },
+    ],
+  },
   // ── Additional simple classification tables (non-V17, same shape) ──────────
   {
     name: 'mot_type', label: 'Modes of Transport', pk: 'motTypeId', group: 'Logistics & Delivery', order: 2,
@@ -1739,6 +1763,76 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('notes',            'Notes',           'string',      true,  false, 500),
     ],
   },
+  // V188 — resolves which tax_code applies to a trade, and whether a match
+  // should actually generate a bookable authority-cost line.
+  tax_rule: {
+    tableName: 'tax_rule', displayName: 'Tax Rules', primaryKeyColumn: 'taxRuleId', isTemporal: false,
+    columns: [
+      col('taxRuleId',                'ID',                  'number',      false, true,  null),
+      col('ruleName',                 'Rule Name',           'string',      false, false, 200),
+      col('loadLocationId',           'Load Location',       'foreign_key', true,  false, null, null, 'location'),
+      col('dischLocationId',          'Discharge Location',  'foreign_key', true,  false, null, null, 'location'),
+      col('countryId',                'Country',             'foreign_key', true,  false, null, null, 'country'),
+      col('legalEntityId',            'Legal Entity',        'foreign_key', true,  false, null, null, 'legal_entity'),
+      col('counterpartyId',           'Counterparty',        'foreign_key', true,  false, null, null, 'counterparty'),
+      col('productId',                'Product',             'foreign_key', true,  false, null, null, 'product'),
+      col('direction',                'Direction',           'enum',        false, false, null, ['BUY', 'SELL', 'BOTH']),
+      col('customsMovementStatusId',  'Movement Status',     'foreign_key', true,  false, null, null, 'customs_movement_status'),
+      col('incotermId',               'Incoterm',            'foreign_key', true,  false, null, null, 'incoterm'),
+      col('taxCodeId',                'Tax Code',            'foreign_key', false, false, null, null, 'tax_code'),
+      col('costApplicableInd',        'Generates Cost',      'boolean',     false, false, null),
+      col('issuingAuthority',         'Issuing Authority',   'string',      true,  false, 100),
+      col('priority',                 'Priority',            'number',      false, false, null),
+      col('validFrom',                'Valid From',          'date',        true,  false, null),
+      col('validTo',                  'Valid To',            'date',        true,  false, null),
+      col('isActive',                 'Active',              'boolean',     false, false, null),
+      col('notes',                    'Notes',               'string',      true,  false, 500),
+    ],
+  },
+  // V188 — import/export customs duty, keyed by origin/destination country
+  // pair + commodity, a materially different shape from tax_rule.
+  customs_duty_rule: {
+    tableName: 'customs_duty_rule', displayName: 'Customs Duty Rules', primaryKeyColumn: 'customsDutyRuleId', isTemporal: false,
+    columns: [
+      col('customsDutyRuleId',        'ID',                  'number',      false, true,  null),
+      col('ruleName',                 'Rule Name',           'string',      false, false, 200),
+      col('originCountryId',          'Origin Country',      'foreign_key', true,  false, null, null, 'country'),
+      col('destinationCountryId',     'Destination Country', 'foreign_key', true,  false, null, null, 'country'),
+      col('loadLocationId',           'Load Location',       'foreign_key', true,  false, null, null, 'location'),
+      col('dischLocationId',          'Discharge Location',  'foreign_key', true,  false, null, null, 'location'),
+      col('productId',                'Product',             'foreign_key', true,  false, null, null, 'product'),
+      col('legalEntityId',            'Legal Entity',        'foreign_key', true,  false, null, null, 'legal_entity'),
+      col('counterpartyId',           'Counterparty',        'foreign_key', true,  false, null, null, 'counterparty'),
+      col('direction',                'Direction',           'enum',        false, false, null, ['BUY', 'SELL', 'BOTH']),
+      col('customsMovementStatusId',  'Movement Status',     'foreign_key', true,  false, null, null, 'customs_movement_status'),
+      col('incotermId',               'Incoterm',            'foreign_key', true,  false, null, null, 'incoterm'),
+      col('productHsCodeId',          'HS Classification',   'foreign_key', true,  false, null, null, 'product_hs_code'),
+      col('dutyRatePercent',          'Duty Rate %',         'number',      true,  false, null, null, null, null, true),
+      col('dutyFlatAmount',           'Duty Flat Amount',    'number',      true,  false, null, null, null, null, true),
+      col('dutyFlatCurrencyId',       'Duty Flat Currency',  'foreign_key', true,  false, null, null, 'currency'),
+      col('costApplicableInd',        'Generates Cost',      'boolean',     false, false, null),
+      col('issuingAuthority',         'Issuing Authority',   'string',      true,  false, 100),
+      col('priority',                 'Priority',            'number',      false, false, null),
+      col('validFrom',                'Valid From',          'date',        true,  false, null),
+      col('validTo',                  'Valid To',            'date',        true,  false, null),
+      col('isActive',                 'Active',              'boolean',     false, false, null),
+      col('notes',                    'Notes',               'string',      true,  false, 500),
+    ],
+  },
+  // V189 — one product, many real-world HS/CN classifications (e.g. Copper
+  // spans cathode/wire-rod/concentrate, each dutied differently). Referenced
+  // from customs_duty_rule.productHsCodeId instead of a free-text hs_code.
+  product_hs_code: {
+    tableName: 'product_hs_code', displayName: 'Product HS Codes', primaryKeyColumn: 'productHsCodeId', isTemporal: false,
+    columns: [
+      col('productHsCodeId', 'ID',            'number',      false, true,  null),
+      col('productId',       'Product',       'foreign_key', false, false, null, null, 'product'),
+      col('hsCode',          'HS Code',       'string',      false, false, 20),
+      col('hsDescription',   'Description',   'string',      true,  false, 200),
+      col('isDefault',       'Default',       'boolean',     false, false, null),
+      col('isActive',        'Active',        'boolean',     false, false, null),
+    ],
+  },
 };
 
 // ─── Exports ──────────────────────────────────────────────────────────────────
@@ -1847,6 +1941,11 @@ export const registrySeed: RegistryEntry[] = [
   { registryId: 274, tableName: 'product_interface_rule',   displayName: 'Product Interface Rules',   moduleGroup: 'Supply & Distribution', description: 'Minimum flush volume and downgrade rules when switching incompatible products through a shared line or rack.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 7 },
   { registryId: 275, tableName: 'road_tariff',               displayName: 'Road (Truck) Tariffs',      moduleGroup: 'Supply & Distribution', description: 'Truck freight rates by route — flat per load, per km, per MT/BBL — with fuel surcharge and minimum charge. The road-transport analogue of pipeline_tariff.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 8 },
   { registryId: 276, tableName: 'book_level_type',           displayName: 'Book Level Types',          moduleGroup: 'Organization & Users',  description: 'Admin-definable hierarchy levels for the Book tree (Desk, Strategy, Trading Book, or a custom level such as Location/Region). Parent table for book.book_level_type_id FK.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 14 },
+  // V188 — resolves which tax_code applies to a trade + import/export customs duty
+  { registryId: 277, tableName: 'tax_rule',           displayName: 'Tax Rules',           moduleGroup: 'Finance & Settlement', subGroup: 'Tax & Duty Rules', description: 'Resolves which tax_code (VAT rate) applies to a trade — by location, jurisdiction, legal entity, counterparty, product, direction, and customs movement status — and whether a match should actually generate a bookable authority-cost line.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 11 },
+  { registryId: 278, tableName: 'customs_duty_rule', displayName: 'Customs Duty Rules', moduleGroup: 'Finance & Settlement', subGroup: 'Tax & Duty Rules', description: 'Import/export customs duty rules — origin/destination country pair, product, ad valorem % or flat rate, HS classification. Separate concept from VAT/tax_rule.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 12 },
+  // V189 — one product, many real HS/CN classifications, each dutied differently
+  { registryId: 279, tableName: 'product_hs_code', displayName: 'Product HS Codes', moduleGroup: 'Finance & Settlement', subGroup: 'Tax & Duty Rules', description: 'Harmonized System / Combined Nomenclature classifications for a product — one product can have multiple HS codes (e.g. copper cathode vs. wire rod), each dutied differently. Referenced from customs_duty_rule.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 13 },
   // V17 parent lookup tables — generated from the simple list above
   ...PARENT_LOOKUP_TABLES.map((t, i) => ({
     registryId:       10 + i,
@@ -2485,6 +2584,25 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { taxCodeId: 1, taxCode: 'VAT-GB-STD', description: 'UK standard-rate VAT',           ratePercent: 20.0, taxTypeId: 1, countryId: 1, isActive: true },
     { taxCodeId: 2, taxCode: 'VAT-NL-STD', description: 'Netherlands standard-rate VAT',  ratePercent: 21.0, taxTypeId: 1, countryId: 3, isActive: true },
     { taxCodeId: 3, taxCode: 'ZERO-RATED', description: 'Zero-rated / exempt',            ratePercent: 0.0,  taxTypeId: 1, countryId: null, isActive: true },
+  ],
+  // V188 — real DB has 0 rows in either table (built as a schema/design
+  // exercise, no live rules entered yet); these mock rows exist purely to
+  // demonstrate the shape in mock mode.
+  tax_rule: [
+    { taxRuleId: 1, ruleName: 'UK Standard VAT — GB Domestic', loadLocationId: null, dischLocationId: null, countryId: 1, legalEntityId: null, counterpartyId: null, productId: null, direction: 'BOTH', customsMovementStatusId: 5, incotermId: null, taxCodeId: 1, costApplicableInd: true, issuingAuthority: 'HMRC', priority: 0, validFrom: null, validTo: null, isActive: true, notes: null },
+    { taxRuleId: 2, ruleName: 'NL Standard VAT — NL Domestic',  loadLocationId: null, dischLocationId: null, countryId: 3, legalEntityId: null, counterpartyId: null, productId: null, direction: 'BOTH', customsMovementStatusId: 5, incotermId: null, taxCodeId: 2, costApplicableInd: true, issuingAuthority: 'Belastingdienst', priority: 0, validFrom: null, validTo: null, isActive: true, notes: null },
+    { taxRuleId: 3, ruleName: 'Intra-EU Reverse Charge — Zero-Rated', loadLocationId: null, dischLocationId: null, countryId: null, legalEntityId: null, counterpartyId: null, productId: null, direction: 'BOTH', customsMovementStatusId: 4, incotermId: null, taxCodeId: 3, costApplicableInd: false, issuingAuthority: null, priority: 10, validFrom: null, validTo: null, isActive: true, notes: 'B2B cross-border EU — VAT liability shifts to the customer, no authority cost booked here.' },
+    { taxRuleId: 4, ruleName: 'DDP Sale — Seller Pays Import VAT', loadLocationId: null, dischLocationId: null, countryId: 1, legalEntityId: null, counterpartyId: null, productId: null, direction: 'SELL', customsMovementStatusId: null, incotermId: 7, taxCodeId: 1, costApplicableInd: true, issuingAuthority: 'HMRC', priority: 5, validFrom: null, validTo: null, isActive: true, notes: 'DDP — seller is importer of record, bears the import VAT cost, not the buyer.' },
+  ],
+  product_hs_code: [
+    { productHsCodeId: 1, productId: 7,  hsCode: '7403.11', hsDescription: 'Refined copper cathodes', isDefault: true,  isActive: true },
+    { productHsCodeId: 2, productId: 7,  hsCode: '7408.11', hsDescription: 'Copper wire rod',          isDefault: false, isActive: true },
+    { productHsCodeId: 3, productId: 1,  hsCode: '2709.00', hsDescription: 'Crude petroleum oil',      isDefault: true,  isActive: true },
+  ],
+  customs_duty_rule: [
+    { customsDutyRuleId: 1, ruleName: 'US Import Duty — Crude Oil', originCountryId: 1, destinationCountryId: 2, loadLocationId: null, dischLocationId: null, productId: 1, productHsCodeId: 3, legalEntityId: null, counterpartyId: null, direction: 'BUY', customsMovementStatusId: 1, incotermId: 9, dutyRatePercent: 3.5, dutyFlatAmount: null, dutyFlatCurrencyId: null, costApplicableInd: true, issuingAuthority: 'US CBP', priority: 0, validFrom: null, validTo: null, isActive: true, notes: null },
+    { customsDutyRuleId: 2, ruleName: 'US Import Duty — Copper Cathode', originCountryId: 1, destinationCountryId: 2, loadLocationId: null, dischLocationId: null, productId: 7, productHsCodeId: 1, legalEntityId: null, counterpartyId: null, direction: 'BUY', customsMovementStatusId: 1, incotermId: 9, dutyRatePercent: 1.0, dutyFlatAmount: null, dutyFlatCurrencyId: null, costApplicableInd: true, issuingAuthority: 'US CBP', priority: 0, validFrom: null, validTo: null, isActive: true, notes: 'Same product as the wire-rod rule below, different HS classification and duty rate — this is exactly the case product_hs_code exists to model without duplicating every other rule dimension.' },
+    { customsDutyRuleId: 3, ruleName: 'US Import Duty — Copper Wire Rod', originCountryId: 1, destinationCountryId: 2, loadLocationId: null, dischLocationId: null, productId: 7, productHsCodeId: 2, legalEntityId: null, counterpartyId: null, direction: 'BUY', customsMovementStatusId: 1, incotermId: 9, dutyRatePercent: 2.5, dutyFlatAmount: null, dutyFlatCurrencyId: null, costApplicableInd: true, issuingAuthority: 'US CBP', priority: 0, validFrom: null, validTo: null, isActive: true, notes: null },
   ],
   // V123/V124 — DESK/STRATEGY/TRADING_BOOK, exact rows the migration itself seeds
   book_level_type: [
