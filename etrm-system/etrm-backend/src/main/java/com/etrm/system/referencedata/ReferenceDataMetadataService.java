@@ -79,7 +79,7 @@ public class ReferenceDataMetadataService {
 
             columns.add(new ColumnMetadata(
                     camelName,
-                    humanizeLabel(sqlColumnName),
+                    humanizeLabel(sqlColumnName, !isPk),
                     kind,
                     isPk,
                     nullable,
@@ -253,13 +253,62 @@ public class ReferenceDataMetadataService {
                 || dataType.contains("money");
     }
 
-    private String humanizeLabel(String snakeCaseColumn) {
+    /**
+     * Abbreviations used throughout this schema that a plain snake_case
+     * split/title-case can't expand on its own (e.g. "disch_location_id"
+     * would otherwise render as "Disch Location Id"). Keys are matched
+     * case-insensitively against each underscore-delimited token.
+     */
+    private static final Map<String, String> ABBREVIATIONS = Map.ofEntries(
+            Map.entry("disch", "Discharge"),
+            Map.entry("cp", "Counterparty"),
+            Map.entry("pct", "Percent"),
+            Map.entry("amt", "Amount"),
+            Map.entry("qty", "Quantity"),
+            Map.entry("num", "Number"),
+            Map.entry("desc", "Description"),
+            Map.entry("addr", "Address"),
+            Map.entry("curr", "Currency"),
+            Map.entry("loc", "Location")
+    );
+
+    /** Trailing tokens stripped from a label because the field's rendering
+     *  already conveys them without saying so — a picker for "id" (resolves
+     *  to the referenced/owning entity's name), a Yes/No tag or switch for
+     *  "ind" (this schema's boolean-flag naming convention, e.g.
+     *  "cost_applicable_ind", "parent_ind"). */
+    private static final Set<String> REDUNDANT_TRAILING_TOKENS = Set.of("id", "ind");
+
+    /**
+     * @param dropTrailingId drops a trailing "id"/"ind" token from the label.
+     *                       True for every non-PK column (PK columns are
+     *                       filtered out of the UI entirely, so their label
+     *                       is never rendered — see ReferenceDataTable.tsx's
+     *                       editableColumns filter). For an FK column the
+     *                       field renders as a picker resolving to the
+     *                       referenced entity's name, so "Id" is redundant
+     *                       (e.g. "disch_location_id" -> "Discharge Location").
+     *                       For a non-FK "*_id" column (polymorphic keys like
+     *                       "entity_id", or history-table snapshots that lost
+     *                       their live FK constraint like "counterparty_id"
+     *                       on trade_history), the same reasoning still
+     *                       applies — "Id" adds nothing "Entity"/"Counterparty"
+     *                       don't already say. "*_ind" boolean columns are the
+     *                       same class of redundancy for the same reason.
+     */
+    private String humanizeLabel(String snakeCaseColumn, boolean dropTrailingId) {
         String[] parts = snakeCaseColumn.split("_");
+        int lastIndex = parts.length - 1;
+        if (dropTrailingId && lastIndex >= 0 && REDUNDANT_TRAILING_TOKENS.contains(parts[lastIndex].toLowerCase())) {
+            lastIndex--;
+        }
         StringBuilder sb = new StringBuilder();
-        for (String part : parts) {
+        for (int i = 0; i <= lastIndex; i++) {
+            String part = parts[i];
             if (part.isEmpty()) continue;
+            String expanded = ABBREVIATIONS.getOrDefault(part.toLowerCase(), part);
             if (!sb.isEmpty()) sb.append(' ');
-            sb.append(Character.toUpperCase(part.charAt(0))).append(part.substring(1));
+            sb.append(Character.toUpperCase(expanded.charAt(0))).append(expanded.substring(1));
         }
         return sb.toString();
     }
