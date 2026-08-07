@@ -107,6 +107,33 @@ public class ReferenceDataCrudService {
                 || camelCaseName.equals("updatedAt") || camelCaseName.equals("updatedBy");
     }
 
+    /** created_source_system_id / updated_source_system_id (V194 rollout)
+     *  are server-managed the same way createdBy/updatedBy are — never trust
+     *  a client-supplied value for them here. */
+    private boolean isProvenanceColumn(String camelCaseName) {
+        return camelCaseName.equals("createdSourceSystemId") || camelCaseName.equals("updatedSourceSystemId");
+    }
+
+    // Every Tier 2 table's create/edit form is the same shared generic
+    // Static Data screen (ReferenceDataTable.tsx), so every write through
+    // this engine is stamped with the STATIC_DATA_ADMIN source_system row
+    // (seeded by V192) -- the interim bucket documented there until/unless
+    // per-table screen granularity is wanted. Resolved once and cached: this
+    // id is effectively immutable reference data, re-querying it on every
+    // single create/update/deactivate across ~294 tables would be wasteful.
+    private volatile Integer staticDataAdminSourceSystemId;
+
+    private int staticDataAdminSourceSystemId() {
+        Integer id = staticDataAdminSourceSystemId;
+        if (id == null) {
+            id = jdbc.queryForObject(
+                    "SELECT source_system_id FROM dbo.source_system WHERE source_code = ?",
+                    Integer.class, "STATIC_DATA_ADMIN");
+            staticDataAdminSourceSystemId = id;
+        }
+        return id;
+    }
+
     /**
      * Optimistic locking for the generic Tier 2 engine — this service bypasses
      * Hibernate entirely (raw JdbcTemplate SQL), so a table's @Version column
@@ -184,7 +211,7 @@ public class ReferenceDataCrudService {
             ColumnMetadata col = columnsByCamelName.get(entry.getKey());
             // rowVersion is never client-set on create — always start at the
             // column's own DB DEFAULT (0), same as every JPA @Version entity.
-            if (col == null || col.isPrimaryKey() || isAuditColumn(entry.getKey()) || "rowVersion".equals(entry.getKey())) continue;
+            if (col == null || col.isPrimaryKey() || isAuditColumn(entry.getKey()) || isProvenanceColumn(entry.getKey()) || "rowVersion".equals(entry.getKey())) continue;
             validateValue(col, entry.getValue());
             String snakeCaseColumn = NameUtils.toSnakeCase(entry.getKey());
             sqlColumns.add(snakeCaseColumn);
@@ -204,6 +231,16 @@ public class ReferenceDataCrudService {
         if (columnsByCamelName.containsKey("updatedBy")) {
             sqlColumns.add("updated_by");
             values.add(currentUser());
+        }
+        // created*/updated* start equal on create, same as V193's dbo.trade
+        // backfill convention — both mirror createdBy/updatedBy above.
+        if (columnsByCamelName.containsKey("createdSourceSystemId")) {
+            sqlColumns.add("created_source_system_id");
+            values.add(staticDataAdminSourceSystemId());
+        }
+        if (columnsByCamelName.containsKey("updatedSourceSystemId")) {
+            sqlColumns.add("updated_source_system_id");
+            values.add(staticDataAdminSourceSystemId());
         }
 
         String columnList = String.join(", ", sqlColumns);
@@ -256,7 +293,7 @@ public class ReferenceDataCrudService {
         List<Object> values = new ArrayList<>();
         for (Map.Entry<String, Object> entry : camelCaseRow.entrySet()) {
             ColumnMetadata col = columnsByCamelName.get(entry.getKey());
-            if (col == null || col.isPrimaryKey() || isAuditColumn(entry.getKey()) || "rowVersion".equals(entry.getKey())) continue;
+            if (col == null || col.isPrimaryKey() || isAuditColumn(entry.getKey()) || isProvenanceColumn(entry.getKey()) || "rowVersion".equals(entry.getKey())) continue;
             validateValue(col, entry.getValue());
             String snakeCaseColumn = NameUtils.toSnakeCase(entry.getKey());
             setClauses.add(snakeCaseColumn + " = ?");
@@ -268,6 +305,12 @@ public class ReferenceDataCrudService {
         }
         if (columnsByCamelName.containsKey("updatedAt")) {
             setClauses.add("updated_at = SYSUTCDATETIME()");
+        }
+        // Only updated* is re-stamped here — created_source_system_id is set
+        // once at creation and never changes, same as createdBy.
+        if (columnsByCamelName.containsKey("updatedSourceSystemId")) {
+            setClauses.add("updated_source_system_id = ?");
+            values.add(staticDataAdminSourceSystemId());
         }
         if (versioned) {
             setClauses.add("row_version = row_version + 1");
@@ -329,6 +372,12 @@ public class ReferenceDataCrudService {
         if (columnsByCamelName.containsKey("updatedAt")) {
             setClauses.add("updated_at = SYSUTCDATETIME()");
         }
+        // A deactivate is a write like any other — re-stamp updated* here
+        // too, exactly the scenario Dharani asked for explicitly ("if user
+        // inactivated cp... that action must be with source of the system").
+        if (columnsByCamelName.containsKey("updatedSourceSystemId")) {
+            setClauses.add("updated_source_system_id = ?");
+        }
         // Every table with a row_version column has the V153 guard trigger,
         // which rejects any UPDATE that doesn't explicitly bump row_version
         // (same as updateRow above) — this was previously omitted here, so
@@ -345,6 +394,9 @@ public class ReferenceDataCrudService {
         List<Object> params = new ArrayList<>();
         if (columnsByCamelName.containsKey("updatedBy")) {
             params.add(currentUser());
+        }
+        if (columnsByCamelName.containsKey("updatedSourceSystemId")) {
+            params.add(staticDataAdminSourceSystemId());
         }
         params.add(id);
 

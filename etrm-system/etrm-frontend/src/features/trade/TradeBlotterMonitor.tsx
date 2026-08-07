@@ -5,8 +5,8 @@ import type { ColDef } from 'ag-grid-community';
 import { PageHeader } from '@components/layout/PageHeader';
 import { SmartGrid } from '@components/smart/SmartGrid';
 import { useTrades } from './hooks';
-import type { Trade, SourceChannel } from './types';
-import { SOURCE_CHANNELS } from './types';
+import type { Trade, SourceSystemCode } from './types';
+import { SOURCE_SYSTEM_CODES } from './types';
 
 const { Text } = Typography;
 
@@ -21,31 +21,35 @@ const STATUS_COLOR: Record<string, string> = {
   CANCELLED: 'error', MATURED: 'blue', CLOSED: 'default',
 };
 
-// Manual entry reads as neutral; everything else is a non-human channel and
-// gets a distinct color so it's easy to scan a mixed blotter at a glance.
-const SOURCE_COLOR: Record<SourceChannel, string> = {
-  MANUAL: 'default',
-  EXCEL_UPLOAD: 'gold',
-  EXTERNAL_API: 'cyan',
+// Trade Capture entry reads as neutral; everything else is a non-interactive
+// channel and gets a distinct color so it's easy to scan a mixed blotter at
+// a glance. Keyed by source_system.source_code (V192/V193), not a hardcoded
+// enum — extend this map when a new source_system row is registered.
+const SOURCE_COLOR: Record<SourceSystemCode, string> = {
+  TRADE_CAPTURE_SCREEN: 'default',
+  BULK_EXCEL_UPLOAD: 'gold',
+  EXTERNAL_API_GENERIC: 'cyan',
   EXCHANGE_FEED_ICE: 'purple',
   EXCHANGE_FEED_NYMEX: 'geekblue',
-  SYSTEM: 'default',
+  SYSTEM_MIGRATION: 'default',
 };
-const SOURCE_LABEL: Record<SourceChannel, string> = {
-  MANUAL: 'Manual',
-  EXCEL_UPLOAD: 'Excel Upload',
-  EXTERNAL_API: 'External API',
+const SOURCE_LABEL: Record<SourceSystemCode, string> = {
+  TRADE_CAPTURE_SCREEN: 'Trade Capture',
+  BULK_EXCEL_UPLOAD: 'Excel Upload',
+  EXTERNAL_API_GENERIC: 'External API',
   EXCHANGE_FEED_ICE: 'ICE Feed',
   EXCHANGE_FEED_NYMEX: 'NYMEX Feed',
-  SYSTEM: 'System',
+  SYSTEM_MIGRATION: 'System',
 };
 
 export function TradeBlotterMonitor() {
-  const [activeSource, setActiveSource] = useState<SourceChannel | 'ALL'>('ALL');
+  const [activeSource, setActiveSource] = useState<SourceSystemCode | 'ALL'>('ALL');
   const { data: trades = [], isLoading, refetch } = useTrades();
 
+  // Filters on the origin (created) source — "show me everything that came
+  // in via Excel", not "everything last touched via Excel".
   const filteredTrades = useMemo(
-    () => (activeSource === 'ALL' ? trades : trades.filter((t) => t.sourceChannelCode === activeSource)),
+    () => (activeSource === 'ALL' ? trades : trades.filter((t) => t.createdSourceSystemCode === activeSource)),
     [trades, activeSource],
   );
 
@@ -53,10 +57,21 @@ export function TradeBlotterMonitor() {
     { field: 'tradeReference', headerName: 'Reference', width: 170, pinned: 'left', cellClass: 'cell-mono' },
     { field: 'tradeDate', headerName: 'Date', width: 100, cellClass: 'cell-mono' },
     {
-      field: 'sourceChannelCode', headerName: 'Source', width: 150,
-      cellRenderer: (p: { value: SourceChannel }) => (
+      field: 'createdSourceSystemCode', headerName: 'Source', width: 150,
+      cellRenderer: (p: { value: SourceSystemCode }) => (
         <Tag color={SOURCE_COLOR[p.value]} style={{ fontSize: 10 }}>{SOURCE_LABEL[p.value]}</Tag>
       ),
+    },
+    {
+      // Only rendered when the row was last touched through a different
+      // channel than it was created through — e.g. an Excel-uploaded trade
+      // later edited via Trade Capture. Blank otherwise, to avoid clutter on
+      // the common case where nothing has diverged from creation.
+      field: 'updatedSourceSystemCode', headerName: 'Last Updated Via', width: 150,
+      cellRenderer: (p: { value: SourceSystemCode; data: Trade }) =>
+        p.data.updatedSourceSystemCode === p.data.createdSourceSystemCode
+          ? null
+          : <Tag color={SOURCE_COLOR[p.value]} style={{ fontSize: 10 }}>{SOURCE_LABEL[p.value]}</Tag>,
     },
     { field: 'counterpartyName', headerName: 'Counterparty', flex: 1, minWidth: 160 },
     { field: 'traderCode', headerName: 'Trader', width: 72, cellClass: 'cell-mono' },
@@ -83,7 +98,7 @@ export function TradeBlotterMonitor() {
 
   const sourceBar = (
     <Space size={4} wrap style={{ padding: '0 16px 8px' }}>
-      {(['ALL', ...SOURCE_CHANNELS] as const).map((s) => (
+      {(['ALL', ...SOURCE_SYSTEM_CODES] as const).map((s) => (
         <Button
           key={s}
           size="small"

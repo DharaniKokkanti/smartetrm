@@ -1789,6 +1789,21 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('notes',                    'Notes',               'string',      true,  false, 500),
     ],
   },
+  // V192 — governed registry of data-provenance origins (screens/APIs/
+  // feeds/system). Not a PARENT_LOOKUP_TABLES entry because of the extra
+  // `category` enum column beyond the generic typeCode/typeName shape.
+  source_system: {
+    tableName: 'source_system', displayName: 'Source Systems', primaryKeyColumn: 'sourceSystemId', isTemporal: false,
+    columns: [
+      col('sourceSystemId', 'ID',          'number',  false, true,  null),
+      col('sourceCode',     'Code',        'string',  false, false, 50),
+      col('sourceName',     'Name',        'string',  false, false, 150),
+      col('category',       'Category',    'enum',    false, false, null, ['UI_SCREEN', 'BULK_LOAD', 'EXTERNAL_API', 'EXCHANGE_FEED', 'SYSTEM']),
+      col('description',    'Description', 'string',  true,  false, 500),
+      col('sortOrder',      'Sort Order',  'number',  false, false, null),
+      col('isActive',       'Active',      'boolean', false, false, null),
+    ],
+  },
   // V188 — import/export customs duty, keyed by origin/destination country
   // pair + commodity, a materially different shape from tax_rule.
   customs_duty_rule: {
@@ -2593,6 +2608,16 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { taxRuleId: 2, ruleName: 'NL Standard VAT — NL Domestic',  loadLocationId: null, dischLocationId: null, countryId: 3, legalEntityId: null, counterpartyId: null, productId: null, direction: 'BOTH', customsMovementStatusId: 5, incotermId: null, taxCodeId: 2, costApplicableInd: true, issuingAuthority: 'Belastingdienst', priority: 0, validFrom: null, validTo: null, isActive: true, notes: null },
     { taxRuleId: 3, ruleName: 'Intra-EU Reverse Charge — Zero-Rated', loadLocationId: null, dischLocationId: null, countryId: null, legalEntityId: null, counterpartyId: null, productId: null, direction: 'BOTH', customsMovementStatusId: 4, incotermId: null, taxCodeId: 3, costApplicableInd: false, issuingAuthority: null, priority: 10, validFrom: null, validTo: null, isActive: true, notes: 'B2B cross-border EU — VAT liability shifts to the customer, no authority cost booked here.' },
     { taxRuleId: 4, ruleName: 'DDP Sale — Seller Pays Import VAT', loadLocationId: null, dischLocationId: null, countryId: 1, legalEntityId: null, counterpartyId: null, productId: null, direction: 'SELL', customsMovementStatusId: null, incotermId: 7, taxCodeId: 1, costApplicableInd: true, issuingAuthority: 'HMRC', priority: 5, validFrom: null, validTo: null, isActive: true, notes: 'DDP — seller is importer of record, bears the import VAT cost, not the buyer.' },
+  ],
+  // V192 — mirrors the migration's seed exactly (see 192_source_system_registry.sql).
+  source_system: [
+    { sourceSystemId: 1, sourceCode: 'TRADE_CAPTURE_SCREEN', sourceName: 'Trade Capture Screen',     category: 'UI_SCREEN',     description: 'Manual single-trade entry via the Trade Capture workspace (/trade/capture).', sortOrder: 1, isActive: true },
+    { sourceSystemId: 2, sourceCode: 'STATIC_DATA_ADMIN',    sourceName: 'Static Data Admin Screen', category: 'UI_SCREEN',     description: 'Generic Tier2 Static Data CRUD screen shared by the ~302 reference-data tables under /static-data/*. Interim bucket until each table/screen gets its own dedicated source row.', sortOrder: 2, isActive: true },
+    { sourceSystemId: 3, sourceCode: 'BULK_EXCEL_UPLOAD',    sourceName: 'Bulk Excel Upload',        category: 'BULK_LOAD',     description: "Rows loaded via the Excel bulk-upload endpoint on a Static Data or Trade Capture screen, not typed by hand.", sortOrder: 3, isActive: true },
+    { sourceSystemId: 4, sourceCode: 'EXTERNAL_API_GENERIC', sourceName: 'External API (Generic)',   category: 'EXTERNAL_API',  description: "Row created by an external system calling this platform's API directly; source system not yet broken out into its own row.", sortOrder: 4, isActive: true },
+    { sourceSystemId: 5, sourceCode: 'EXCHANGE_FEED_ICE',    sourceName: 'ICE Exchange Feed',        category: 'EXCHANGE_FEED', description: 'Automated feed ingestion from ICE.', sortOrder: 5, isActive: true },
+    { sourceSystemId: 6, sourceCode: 'EXCHANGE_FEED_NYMEX',  sourceName: 'NYMEX Exchange Feed',      category: 'EXCHANGE_FEED', description: 'Automated feed ingestion from NYMEX/CME.', sortOrder: 6, isActive: true },
+    { sourceSystemId: 7, sourceCode: 'SYSTEM_MIGRATION',     sourceName: 'System / Migration',       category: 'SYSTEM',        description: 'Row created by a Flyway migration seed, backfill, or other system-internal process, not a user or external system.', sortOrder: 7, isActive: true },
   ],
   product_hs_code: [
     { productHsCodeId: 1, productId: 7,  hsCode: '7403.11', hsDescription: 'Refined copper cathodes', isDefault: true,  isActive: true },

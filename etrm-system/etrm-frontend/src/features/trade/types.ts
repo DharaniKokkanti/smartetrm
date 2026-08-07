@@ -44,13 +44,16 @@ export type TermType = (typeof TERM_TYPES)[number];
 export const DEAL_INDICATORS = ['INTERNAL', 'EXTERNAL'] as const;
 export type DealIndicator = (typeof DEAL_INDICATORS)[number];
 
-// Channel the trade row was captured through — set once at creation, never
+// Origin the trade row was captured through — set once at creation, never
 // editable via the capture form. Drives the Trade Blotter monitoring page's
-// Source column/filter, distinguishing manual entry from feeds/uploads/API.
-export const SOURCE_CHANNELS = [
-  'MANUAL', 'EXCEL_UPLOAD', 'EXTERNAL_API', 'EXCHANGE_FEED_ICE', 'EXCHANGE_FEED_NYMEX', 'SYSTEM',
+// Source column/filter. FK'd against the governed dbo.source_system registry
+// (V192/V193) rather than a hardcoded CHECK enum, since the whole point is
+// that new screens/integrations get a new registry row, not a schema change.
+export const SOURCE_SYSTEM_CODES = [
+  'TRADE_CAPTURE_SCREEN', 'BULK_EXCEL_UPLOAD', 'EXTERNAL_API_GENERIC',
+  'EXCHANGE_FEED_ICE', 'EXCHANGE_FEED_NYMEX', 'SYSTEM_MIGRATION',
 ] as const;
-export type SourceChannel = (typeof SOURCE_CHANNELS)[number];
+export type SourceSystemCode = (typeof SOURCE_SYSTEM_CODES)[number];
 
 export const RFP_FREQUENCIES = ['DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY'] as const;
 export type RfpFrequency = (typeof RFP_FREQUENCIES)[number];
@@ -406,7 +409,13 @@ export interface Trade {
   contractType: ContractType | null;
   instrumentType: InstrumentType | null; // financial structure — FUTURES, SWAP_*, OPTION_*, AGREEMENT, etc.
   status: TradeStatus;
-  sourceChannelCode: SourceChannel; // capture channel — manual entry, feed, upload, API (see SOURCE_CHANNELS)
+  // Mirrors createdBy/updatedBy exactly: created* is set once at creation and
+  // never changes; updated* is re-stamped on every subsequent write,
+  // including a status change like cancel/deactivate (see SOURCE_SYSTEM_CODES).
+  createdSourceSystemId: number;
+  createdSourceSystemCode: SourceSystemCode; // hydrated FK label, resolved from created_source_system_id
+  updatedSourceSystemId: number;
+  updatedSourceSystemCode: SourceSystemCode; // hydrated FK label, resolved from updated_source_system_id
   // Counterparty
   counterpartyId: number;
   counterpartyName: string;
@@ -439,10 +448,13 @@ export interface Trade {
   updatedAt: string;
 }
 
+// createdSourceSystemId/updatedSourceSystemId are omitted here the same way
+// createdBy/updatedBy already are — stamped server-side from request context
+// (which screen/endpoint is calling), not a form field the caller fills in.
 export type TradeInput = Omit<Trade,
   'tradeId' | 'tradeReference' | 'counterpartyName' | 'traderCode' |
   'orderCount' | 'amendmentNumber' | 'isLatestVersion' | 'createdAt' | 'updatedAt' |
-  'sourceChannelCode'
+  'createdSourceSystemId' | 'createdSourceSystemCode' | 'updatedSourceSystemId' | 'updatedSourceSystemCode'
 >;
 
 // ─── TradeOrder (one delivery leg per period) ─────────────────────────────────
