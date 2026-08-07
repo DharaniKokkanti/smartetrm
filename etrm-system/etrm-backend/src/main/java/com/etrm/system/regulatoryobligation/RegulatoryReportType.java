@@ -1,8 +1,11 @@
 package com.etrm.system.regulatoryobligation;
 
+import com.etrm.system.common.SourceSystemDefaults;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
 /**
@@ -26,6 +29,23 @@ public class RegulatoryReportType {
     @Column(name = "report_name", nullable = false, length = 200)
     private String reportName;
 
+    @Column(name = "created_src_id", nullable = false, updatable = false)
+    private Short createdSrcId;
+
+    @Column(name = "updated_src_id", nullable = false)
+    private Short updatedSrcId;
+
+    @PrePersist
+    private void onCreate() {
+        createdSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+        updatedSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+    }
+
+    @PreUpdate
+    private void onUpdate() {
+        updatedSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+    }
+
     public Integer getReportTypeId() {
         return reportTypeId;
     }
@@ -36,5 +56,17 @@ public class RegulatoryReportType {
 
     public String getReportName() {
         return reportName;
+    }
+
+    public Short getCreatedSrcId() {
+        return createdSrcId;
+    }
+
+    public void setCreatedSrcId(Short createdSrcId) {
+        this.createdSrcId = createdSrcId;
+    }
+
+    public Short getUpdatedSrcId() {
+        return updatedSrcId;
     }
 }

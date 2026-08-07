@@ -62,6 +62,7 @@ public class HolidayCalendarService {
         // them as null.
         input.setCreatedAt(existing.getCreatedAt());
         input.setCreatedBy(existing.getCreatedBy());
+        input.setCreatedSrcId(existing.getCreatedSrcId());
         return withHolidayCount(repository.save(input));
     }
 

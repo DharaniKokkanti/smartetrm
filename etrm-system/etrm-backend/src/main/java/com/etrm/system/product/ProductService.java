@@ -105,6 +105,7 @@ public class ProductService {
         input.setProductId(id);
         input.setCreatedAt(existing.getCreatedAt());
         input.setCreatedBy(existing.getCreatedBy());
+        input.setCreatedSrcId(existing.getCreatedSrcId());
         input.setUpdatedAt(LocalDateTime.now());
         return hydrate(repository.save(input));
     }

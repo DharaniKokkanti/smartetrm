@@ -68,6 +68,7 @@ public class UomConversionService {
         // would show them as null.
         input.setCreatedAt(existing.getCreatedAt());
         input.setCreatedBy(existing.getCreatedBy());
+        input.setCreatedSrcId(existing.getCreatedSrcId());
         resolveUomIds(input);
         return hydrate(repository.save(input));
     }

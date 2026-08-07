@@ -7,6 +7,8 @@ import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import com.etrm.system.common.SourceSystemDefaults;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -49,6 +51,23 @@ public class AppModule {
     @Column(name = "updated_by", nullable = false, length = 100)
     private String updatedBy;
 
+    @Column(name = "created_src_id", nullable = false, updatable = false)
+    private Short createdSrcId;
+
+    @Column(name = "updated_src_id", nullable = false)
+    private Short updatedSrcId;
+
+    @PrePersist
+    protected void onPrePersist() {
+        createdSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+        updatedSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+    }
+
+    @PreUpdate
+    protected void onPreUpdate() {
+        updatedSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+    }
+
     public Integer getModuleId() { return moduleId; }
     public void setModuleId(Integer moduleId) { this.moduleId = moduleId; }
     public String getModuleCode() { return moduleCode; }
@@ -69,4 +88,7 @@ public class AppModule {
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
     public String getUpdatedBy() { return updatedBy; }
     public void setUpdatedBy(String updatedBy) { this.updatedBy = updatedBy; }
+    public Short getCreatedSrcId() { return createdSrcId; }
+    public void setCreatedSrcId(Short createdSrcId) { this.createdSrcId = createdSrcId; }
+    public Short getUpdatedSrcId() { return updatedSrcId; }
 }

@@ -91,6 +91,7 @@ public class BolmoAgreementService {
         input.setBolmoId(id);
         input.setBolmoReference(existing.getBolmoReference());
         input.setCreatedAt(existing.getCreatedAt());
+        input.setCreatedSrcId(existing.getCreatedSrcId());
         input.setUpdatedAt(LocalDateTime.now());
         return hydrate(repository.save(input));
     }

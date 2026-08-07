@@ -5,8 +5,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
+import com.etrm.system.common.SourceSystemDefaults;
 import com.etrm.system.lookup.TypeCodeLookup;
 
 /**
@@ -32,6 +35,23 @@ public class LocationType extends TypeCodeLookup {
     // FK -> dbo.commodity_type(commodity_type_id).
     @Column(name = "commodity_type")
     private Integer commodityType;
+
+    @Column(name = "created_src_id", nullable = false, updatable = false)
+    private Short createdSrcId;
+
+    @Column(name = "updated_src_id", nullable = false)
+    private Short updatedSrcId;
+
+    @PrePersist
+    protected void onPrePersist() {
+        createdSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+        updatedSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+    }
+
+    @PreUpdate
+    protected void onPreUpdate() {
+        updatedSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+    }
 
     public Integer getLocationTypeId() {
         return locationTypeId;
@@ -63,5 +83,17 @@ public class LocationType extends TypeCodeLookup {
 
     public void setCommodityType(Integer commodityType) {
         this.commodityType = commodityType;
+    }
+
+    public Short getCreatedSrcId() {
+        return createdSrcId;
+    }
+
+    public void setCreatedSrcId(Short createdSrcId) {
+        this.createdSrcId = createdSrcId;
+    }
+
+    public Short getUpdatedSrcId() {
+        return updatedSrcId;
     }
 }

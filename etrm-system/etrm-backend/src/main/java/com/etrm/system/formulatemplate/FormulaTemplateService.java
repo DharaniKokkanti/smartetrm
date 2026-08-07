@@ -32,6 +32,7 @@ public class FormulaTemplateService {
         input.setTemplateId(id);
         input.setCreatedAt(existing.getCreatedAt());
         input.setCreatedBy(existing.getCreatedBy());
+        input.setCreatedSrcId(existing.getCreatedSrcId());
         return repository.save(input);
     }
 

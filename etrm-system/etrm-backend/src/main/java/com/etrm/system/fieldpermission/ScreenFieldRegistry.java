@@ -1,5 +1,6 @@
 package com.etrm.system.fieldpermission;
 
+import com.etrm.system.common.SourceSystemDefaults;
 import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
@@ -61,6 +62,23 @@ public class ScreenFieldRegistry {
     @Column(name = "updated_by", nullable = false, length = 100)
     private String updatedBy;
 
+    @Column(name = "created_src_id", nullable = false, updatable = false)
+    private Short createdSrcId;
+
+    @Column(name = "updated_src_id", nullable = false)
+    private Short updatedSrcId;
+
+    @PrePersist
+    void onCreate() {
+        createdSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+        updatedSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+    }
+
+    @PreUpdate
+    void onUpdate() {
+        updatedSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+    }
+
     public Integer getFieldId() { return fieldId; }
     public void setFieldId(Integer fieldId) { this.fieldId = fieldId; }
     public Integer getRowVersion() { return rowVersion; }
@@ -87,4 +105,7 @@ public class ScreenFieldRegistry {
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
     public String getUpdatedBy() { return updatedBy; }
     public void setUpdatedBy(String updatedBy) { this.updatedBy = updatedBy; }
+    public Short getCreatedSrcId() { return createdSrcId; }
+    public void setCreatedSrcId(Short createdSrcId) { this.createdSrcId = createdSrcId; }
+    public Short getUpdatedSrcId() { return updatedSrcId; }
 }

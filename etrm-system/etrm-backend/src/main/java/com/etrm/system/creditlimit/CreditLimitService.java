@@ -127,6 +127,7 @@ public class CreditLimitService {
         // them as null.
         input.setCreatedAt(existing.getCreatedAt());
         input.setCreatedBy(existing.getCreatedBy());
+        input.setCreatedSrcId(existing.getCreatedSrcId());
         CreditLimit saved = repository.save(input);
         saveLineItems(id, lineItems);
         return hydrate(saved);

@@ -1,6 +1,7 @@
 package com.etrm.system.rbac;
 
 import jakarta.persistence.*;
+import com.etrm.system.common.SourceSystemDefaults;
 import java.time.LocalDateTime;
 
 @Entity
@@ -58,6 +59,12 @@ public class UserRole {
     @Column(name = "updated_by", nullable = false, length = 100)
     private String updatedBy;
 
+    @Column(name = "created_src_id", nullable = false, updatable = false)
+    private Short createdSrcId;
+
+    @Column(name = "updated_src_id", nullable = false)
+    private Short updatedSrcId;
+
     @PrePersist
     void onCreate() {
         LocalDateTime now = LocalDateTime.now();
@@ -65,10 +72,15 @@ public class UserRole {
         updatedAt = now;
         if (createdBy == null) createdBy = "SYSTEM";
         if (updatedBy == null) updatedBy = "SYSTEM";
+        createdSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+        updatedSrcId = SourceSystemDefaults.tier1ApplicationScreen();
     }
 
     @PreUpdate
-    void onUpdate() { updatedAt = LocalDateTime.now(); }
+    void onUpdate() {
+        updatedAt = LocalDateTime.now();
+        updatedSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+    }
 
     public Integer getRoleId() { return roleId; }
     public void setRoleId(Integer roleId) { this.roleId = roleId; }
@@ -102,4 +114,7 @@ public class UserRole {
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
     public String getUpdatedBy() { return updatedBy; }
     public void setUpdatedBy(String updatedBy) { this.updatedBy = updatedBy; }
+    public Short getCreatedSrcId() { return createdSrcId; }
+    public void setCreatedSrcId(Short createdSrcId) { this.createdSrcId = createdSrcId; }
+    public Short getUpdatedSrcId() { return updatedSrcId; }
 }

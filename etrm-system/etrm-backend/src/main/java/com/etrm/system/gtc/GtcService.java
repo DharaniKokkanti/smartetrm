@@ -78,6 +78,7 @@ public class GtcService {
         // them as null.
         input.setCreatedAt(existing.getCreatedAt());
         input.setCreatedBy(existing.getCreatedBy());
+        input.setCreatedSrcId(existing.getCreatedSrcId());
         Gtc saved = repository.save(input);
 
         GtcVersion version = versionRepository.findByGtcIdAndIsCurrentTrue(id).orElseGet(() -> {

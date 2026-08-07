@@ -53,6 +53,7 @@ public class UnitOfMeasureService {
         // would show them as null.
         input.setCreatedAt(existing.getCreatedAt());
         input.setCreatedBy(existing.getCreatedBy());
+        input.setCreatedSrcId(existing.getCreatedSrcId());
         return hydrate(repository.save(input));
     }
 

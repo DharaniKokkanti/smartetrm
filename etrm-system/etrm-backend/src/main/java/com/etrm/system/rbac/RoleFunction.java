@@ -1,5 +1,6 @@
 package com.etrm.system.rbac;
 
+import com.etrm.system.common.SourceSystemDefaults;
 import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
@@ -51,6 +52,23 @@ public class RoleFunction {
     @Column(name = "updated_by", nullable = false, length = 100)
     private String updatedBy;
 
+    @Column(name = "created_src_id", nullable = false, updatable = false)
+    private Short createdSrcId;
+
+    @Column(name = "updated_src_id", nullable = false)
+    private Short updatedSrcId;
+
+    @PrePersist
+    protected void onCreateSrc() {
+        createdSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+        updatedSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+    }
+
+    @PreUpdate
+    protected void onUpdateSrc() {
+        updatedSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+    }
+
     public Integer getRoleFunctionId() { return roleFunctionId; }
     public void setRoleFunctionId(Integer roleFunctionId) { this.roleFunctionId = roleFunctionId; }
     public Integer getRowVersion() { return rowVersion; }
@@ -69,4 +87,7 @@ public class RoleFunction {
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
     public String getUpdatedBy() { return updatedBy; }
     public void setUpdatedBy(String updatedBy) { this.updatedBy = updatedBy; }
+    public Short getCreatedSrcId() { return createdSrcId; }
+    public void setCreatedSrcId(Short createdSrcId) { this.createdSrcId = createdSrcId; }
+    public Short getUpdatedSrcId() { return updatedSrcId; }
 }

@@ -1,5 +1,6 @@
 package com.etrm.system.fieldpermission;
 
+import com.etrm.system.common.SourceSystemDefaults;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
@@ -47,14 +48,25 @@ public class FieldPermissionProfile {
     @Column(name = "updated_by", nullable = false, length = 100)
     private String updatedBy = "SYSTEM";
 
+    @Column(name = "created_src_id", nullable = false, updatable = false)
+    private Short createdSrcId;
+
+    @Column(name = "updated_src_id", nullable = false)
+    private Short updatedSrcId;
+
     @PrePersist
     void onCreate() {
         if (createdAt == null) createdAt = LocalDateTime.now();
         if (updatedAt == null) updatedAt = LocalDateTime.now();
+        createdSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+        updatedSrcId = SourceSystemDefaults.tier1ApplicationScreen();
     }
 
     @PreUpdate
-    void onUpdate() { updatedAt = LocalDateTime.now(); }
+    void onUpdate() {
+        updatedAt = LocalDateTime.now();
+        updatedSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+    }
 
     public Integer getProfileId() { return profileId; }
     public void setProfileId(Integer profileId) { this.profileId = profileId; }
@@ -78,4 +90,7 @@ public class FieldPermissionProfile {
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
     public String getUpdatedBy() { return updatedBy; }
     public void setUpdatedBy(String updatedBy) { this.updatedBy = updatedBy; }
+    public Short getCreatedSrcId() { return createdSrcId; }
+    public void setCreatedSrcId(Short createdSrcId) { this.createdSrcId = createdSrcId; }
+    public Short getUpdatedSrcId() { return updatedSrcId; }
 }
