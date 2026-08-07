@@ -1877,8 +1877,8 @@ export function TradeBlotter() {
   return (
     <>
       <PageHeader
-        title="Trade Blotter"
-        description="Trade capture: header fields (counterparty, term type, deal indicator) apply to all legs. Click a trade to view and add delivery legs with product, pricing and commodity detail."
+        title="Trade Capture"
+        description="Header fields (counterparty, term type, deal indicator) apply to all legs. Click a trade to view and add delivery legs with product, pricing and commodity detail."
         moduleGroup="trade"
       />
 

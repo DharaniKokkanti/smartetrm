@@ -44,6 +44,14 @@ export type TermType = (typeof TERM_TYPES)[number];
 export const DEAL_INDICATORS = ['INTERNAL', 'EXTERNAL'] as const;
 export type DealIndicator = (typeof DEAL_INDICATORS)[number];
 
+// Channel the trade row was captured through — set once at creation, never
+// editable via the capture form. Drives the Trade Blotter monitoring page's
+// Source column/filter, distinguishing manual entry from feeds/uploads/API.
+export const SOURCE_CHANNELS = [
+  'MANUAL', 'EXCEL_UPLOAD', 'EXTERNAL_API', 'EXCHANGE_FEED_ICE', 'EXCHANGE_FEED_NYMEX', 'SYSTEM',
+] as const;
+export type SourceChannel = (typeof SOURCE_CHANNELS)[number];
+
 export const RFP_FREQUENCIES = ['DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY'] as const;
 export type RfpFrequency = (typeof RFP_FREQUENCIES)[number];
 
@@ -398,6 +406,7 @@ export interface Trade {
   contractType: ContractType | null;
   instrumentType: InstrumentType | null; // financial structure — FUTURES, SWAP_*, OPTION_*, AGREEMENT, etc.
   status: TradeStatus;
+  sourceChannelCode: SourceChannel; // capture channel — manual entry, feed, upload, API (see SOURCE_CHANNELS)
   // Counterparty
   counterpartyId: number;
   counterpartyName: string;
@@ -432,7 +441,8 @@ export interface Trade {
 
 export type TradeInput = Omit<Trade,
   'tradeId' | 'tradeReference' | 'counterpartyName' | 'traderCode' |
-  'orderCount' | 'amendmentNumber' | 'isLatestVersion' | 'createdAt' | 'updatedAt'
+  'orderCount' | 'amendmentNumber' | 'isLatestVersion' | 'createdAt' | 'updatedAt' |
+  'sourceChannelCode'
 >;
 
 // ─── TradeOrder (one delivery leg per period) ─────────────────────────────────

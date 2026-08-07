@@ -9,9 +9,9 @@
  * their parent and don't need their own dock entry.
  */
 export const DRAFT_META: Record<string, { route: string; label: string }> = {
-  'trade':                        { route: '/trade/blotter',              label: 'Trade' },
-  'trade-leg':                    { route: '/trade/blotter',              label: 'Trade Leg' },
-  'trade-item':                   { route: '/trade/blotter',              label: 'Trade Item' },
+  'trade':                        { route: '/trade/capture',              label: 'Trade' },
+  'trade-leg':                    { route: '/trade/capture',              label: 'Trade Leg' },
+  'trade-item':                   { route: '/trade/capture',              label: 'Trade Item' },
   'org-brokers':                  { route: '/org/brokers',                label: 'Broker' },
   'org-traders':                  { route: '/org/traders',                label: 'Trader' },
   'org-books':                    { route: '/org/books',                 label: 'Book' },

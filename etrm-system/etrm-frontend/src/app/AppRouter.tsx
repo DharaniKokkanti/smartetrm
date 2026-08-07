@@ -69,7 +69,8 @@ const BalmoDashboardPage = lazy1(() => import('@features/pricing/balmo/BalmoDash
 const BolmoAgreementsPage = lazy1(() => import('@features/bolmo/BolmoAgreementsPage'), 'BolmoAgreementsPage');
 
 // Trade
-const TradeBlotter = lazy1(() => import('@features/trade/TradeBlotter'), 'TradeBlotter');
+const TradeCapture = lazy1(() => import('@features/trade/TradeBlotter'), 'TradeBlotter');
+const TradeBlotterMonitor = lazy1(() => import('@features/trade/TradeBlotterMonitor'), 'TradeBlotterMonitor');
 const PositionPage = lazy1(() => import('@features/trade/positions/PositionPage'), 'PositionPage');
 
 // Master Data Hub
@@ -223,7 +224,8 @@ export function AppRouter() {
         <Route path="/operations/delivery-instructions" element={<S><DeliveryInstructionsPage /></S>} />
 
         {/* Trade */}
-        <Route path="/trade/blotter" element={<S><TradeBlotter /></S>} />
+        <Route path="/trade/capture" element={<S><TradeCapture /></S>} />
+        <Route path="/trade/blotter" element={<S><TradeBlotterMonitor /></S>} />
         <Route path="/position" element={<S><PositionPage /></S>} />
 
         {/* Master Data Hub */}

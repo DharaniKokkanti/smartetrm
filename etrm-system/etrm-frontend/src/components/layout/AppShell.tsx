@@ -1,7 +1,7 @@
 import { type ReactNode } from 'react';
 import { Layout, Typography, Space, Avatar, Button, Badge, Tooltip, Dropdown, Popover } from 'antd';
 import {
-  MenuFoldOutlined, MenuUnfoldOutlined, SwapOutlined, FundOutlined,
+  MenuFoldOutlined, MenuUnfoldOutlined, SwapOutlined, FundOutlined, EditOutlined,
   SunOutlined, MoonOutlined, BgColorsOutlined, CodeOutlined, LogoutOutlined, UserOutlined, HomeOutlined,
   BankOutlined, AppstoreOutlined, TableOutlined, TeamOutlined, SafetyCertificateOutlined,
   ControlOutlined, AlertOutlined, DollarOutlined, CloudOutlined, ApartmentOutlined,
@@ -25,7 +25,13 @@ const { Header, Sider, Content } = Layout;
 // NavGroupRow below) instead of a click-to-expand accordion.
 const NAV_ITEMS: NavEntry[] = [
   { key: '/',               icon: <HomeOutlined />,       label: 'Dashboard' },
-  { key: '/trade/blotter',  icon: <SwapOutlined />,       label: 'Trade Blotter' },
+  {
+    key: 'g-trade', icon: <SwapOutlined />, label: 'Trade Management',
+    children: [
+      { key: '/trade/capture', icon: <EditOutlined />, label: 'Trade Capture' },
+      { key: '/trade/blotter', icon: <SwapOutlined />, label: 'Trade Blotter' },
+    ],
+  },
   { key: '/position',       icon: <FundOutlined />,       label: 'Position & P&L' },
   { type: 'divider' as const },
   {
@@ -113,7 +119,7 @@ const NAV_ITEMS: NavEntry[] = [
 ];
 
 const ALL_KEYS = [
-  '/', '/trade/blotter', '/position', '/static-data', '/master-data',
+  '/', '/trade/capture', '/trade/blotter', '/position', '/static-data', '/master-data',
   '/tier1/counterparty', '/tier1/legal-entity',
   '/markets/products', '/markets/markets',
   '/org/books/hierarchy', '/org/books',
