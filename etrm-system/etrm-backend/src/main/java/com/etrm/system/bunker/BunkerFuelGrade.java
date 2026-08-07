@@ -1,8 +1,11 @@
 package com.etrm.system.bunker;
 
+import com.etrm.system.common.SourceSystemDefaults;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 
@@ -33,6 +36,23 @@ public class BunkerFuelGrade {
     @Column(name = "grade_name", nullable = false, length = 150)
     private String gradeName;
 
+    @Column(name = "created_src_id", nullable = false, updatable = false)
+    private Short createdSrcId;
+
+    @Column(name = "updated_src_id", nullable = false)
+    private Short updatedSrcId;
+
+    @PrePersist
+    private void onCreate() {
+        createdSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+        updatedSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+    }
+
+    @PreUpdate
+    private void onUpdate() {
+        updatedSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+    }
+
     public Integer getFuelGradeId() {
         return fuelGradeId;
     }
@@ -51,5 +71,13 @@ public class BunkerFuelGrade {
 
     public String getGradeName() {
         return gradeName;
+    }
+
+    public Short getCreatedSrcId() {
+        return createdSrcId;
+    }
+
+    public Short getUpdatedSrcId() {
+        return updatedSrcId;
     }
 }

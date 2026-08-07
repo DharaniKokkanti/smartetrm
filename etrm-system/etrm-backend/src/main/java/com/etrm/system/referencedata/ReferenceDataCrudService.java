@@ -107,11 +107,11 @@ public class ReferenceDataCrudService {
                 || camelCaseName.equals("updatedAt") || camelCaseName.equals("updatedBy");
     }
 
-    /** created_source_system_id / updated_source_system_id (V194 rollout)
+    /** created_src_id / updated_src_id (V194 rollout)
      *  are server-managed the same way createdBy/updatedBy are — never trust
      *  a client-supplied value for them here. */
     private boolean isProvenanceColumn(String camelCaseName) {
-        return camelCaseName.equals("createdSourceSystemId") || camelCaseName.equals("updatedSourceSystemId");
+        return camelCaseName.equals("createdSrcId") || camelCaseName.equals("updatedSrcId");
     }
 
     // Every Tier 2 table's create/edit form is the same shared generic
@@ -234,12 +234,12 @@ public class ReferenceDataCrudService {
         }
         // created*/updated* start equal on create, same as V193's dbo.trade
         // backfill convention — both mirror createdBy/updatedBy above.
-        if (columnsByCamelName.containsKey("createdSourceSystemId")) {
-            sqlColumns.add("created_source_system_id");
+        if (columnsByCamelName.containsKey("createdSrcId")) {
+            sqlColumns.add("created_src_id");
             values.add(staticDataAdminSourceSystemId());
         }
-        if (columnsByCamelName.containsKey("updatedSourceSystemId")) {
-            sqlColumns.add("updated_source_system_id");
+        if (columnsByCamelName.containsKey("updatedSrcId")) {
+            sqlColumns.add("updated_src_id");
             values.add(staticDataAdminSourceSystemId());
         }
 
@@ -306,10 +306,10 @@ public class ReferenceDataCrudService {
         if (columnsByCamelName.containsKey("updatedAt")) {
             setClauses.add("updated_at = SYSUTCDATETIME()");
         }
-        // Only updated* is re-stamped here — created_source_system_id is set
+        // Only updated* is re-stamped here — created_src_id is set
         // once at creation and never changes, same as createdBy.
-        if (columnsByCamelName.containsKey("updatedSourceSystemId")) {
-            setClauses.add("updated_source_system_id = ?");
+        if (columnsByCamelName.containsKey("updatedSrcId")) {
+            setClauses.add("updated_src_id = ?");
             values.add(staticDataAdminSourceSystemId());
         }
         if (versioned) {
@@ -375,8 +375,8 @@ public class ReferenceDataCrudService {
         // A deactivate is a write like any other — re-stamp updated* here
         // too, exactly the scenario Dharani asked for explicitly ("if user
         // inactivated cp... that action must be with source of the system").
-        if (columnsByCamelName.containsKey("updatedSourceSystemId")) {
-            setClauses.add("updated_source_system_id = ?");
+        if (columnsByCamelName.containsKey("updatedSrcId")) {
+            setClauses.add("updated_src_id = ?");
         }
         // Every table with a row_version column has the V153 guard trigger,
         // which rejects any UPDATE that doesn't explicitly bump row_version
@@ -395,7 +395,7 @@ public class ReferenceDataCrudService {
         if (columnsByCamelName.containsKey("updatedBy")) {
             params.add(currentUser());
         }
-        if (columnsByCamelName.containsKey("updatedSourceSystemId")) {
+        if (columnsByCamelName.containsKey("updatedSrcId")) {
             params.add(staticDataAdminSourceSystemId());
         }
         params.add(id);

@@ -90,6 +90,7 @@ public class NominationService {
                 .orElseThrow(() -> new NotFoundException("No nomination with id " + id + "."));
         input.setNominationId(id);
         input.setCreatedAt(existing.getCreatedAt());
+        input.setCreatedSrcId(existing.getCreatedSrcId());
         input.setUpdatedAt(LocalDateTime.now());
         return hydrate(repository.save(input));
     }

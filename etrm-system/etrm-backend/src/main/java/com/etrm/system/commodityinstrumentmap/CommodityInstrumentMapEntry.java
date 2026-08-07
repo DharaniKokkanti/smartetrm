@@ -1,8 +1,11 @@
 package com.etrm.system.commodityinstrumentmap;
 
+import com.etrm.system.common.SourceSystemDefaults;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 
@@ -38,6 +41,23 @@ public class CommodityInstrumentMapEntry {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
+    @Column(name = "created_src_id", nullable = false, updatable = false)
+    private Short createdSrcId;
+
+    @Column(name = "updated_src_id", nullable = false)
+    private Short updatedSrcId;
+
+    @PrePersist
+    private void onCreate() {
+        createdSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+        updatedSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+    }
+
+    @PreUpdate
+    private void onUpdate() {
+        updatedSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+    }
+
     public String getCommodityType() {
         return id.getCommodityType();
     }
@@ -56,5 +76,13 @@ public class CommodityInstrumentMapEntry {
 
     public Boolean getIsActive() {
         return isActive;
+    }
+
+    public Short getCreatedSrcId() {
+        return createdSrcId;
+    }
+
+    public Short getUpdatedSrcId() {
+        return updatedSrcId;
     }
 }

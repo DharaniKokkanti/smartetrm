@@ -1,8 +1,11 @@
 package com.etrm.system.lookup;
 
+import com.etrm.system.common.SourceSystemDefaults;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
 /**
@@ -30,6 +33,23 @@ public class LookupValue {
     @Column(name = "category_id", nullable = false)
     private Integer categoryId;
 
+    @Column(name = "created_src_id", nullable = false, updatable = false)
+    private Short createdSrcId;
+
+    @Column(name = "updated_src_id", nullable = false)
+    private Short updatedSrcId;
+
+    @PrePersist
+    private void onCreate() {
+        createdSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+        updatedSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+    }
+
+    @PreUpdate
+    private void onUpdate() {
+        updatedSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+    }
+
     public Integer getLookupId() {
         return lookupId;
     }
@@ -44,5 +64,13 @@ public class LookupValue {
 
     public Integer getCategoryId() {
         return categoryId;
+    }
+
+    public Short getCreatedSrcId() {
+        return createdSrcId;
+    }
+
+    public Short getUpdatedSrcId() {
+        return updatedSrcId;
     }
 }

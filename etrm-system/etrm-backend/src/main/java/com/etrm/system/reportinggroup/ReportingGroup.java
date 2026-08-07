@@ -1,8 +1,11 @@
 package com.etrm.system.reportinggroup;
 
+import com.etrm.system.common.SourceSystemDefaults;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
 /**
@@ -26,6 +29,23 @@ public class ReportingGroup {
     @Column(name = "classification_type_id", nullable = false)
     private Integer classificationTypeId;
 
+    @Column(name = "created_src_id", nullable = false, updatable = false)
+    private Short createdSrcId;
+
+    @Column(name = "updated_src_id", nullable = false)
+    private Short updatedSrcId;
+
+    @PrePersist
+    private void stampSourceSystemOnCreate() {
+        createdSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+        updatedSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+    }
+
+    @PreUpdate
+    private void stampSourceSystemOnUpdate() {
+        updatedSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+    }
+
     public Integer getReportingGroupId() {
         return reportingGroupId;
     }
@@ -36,5 +56,13 @@ public class ReportingGroup {
 
     public Integer getClassificationTypeId() {
         return classificationTypeId;
+    }
+
+    public Short getCreatedSrcId() {
+        return createdSrcId;
+    }
+
+    public Short getUpdatedSrcId() {
+        return updatedSrcId;
     }
 }

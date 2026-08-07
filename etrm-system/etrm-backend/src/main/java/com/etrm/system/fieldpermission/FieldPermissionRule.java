@@ -1,5 +1,6 @@
 package com.etrm.system.fieldpermission;
 
+import com.etrm.system.common.SourceSystemDefaults;
 import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
@@ -56,6 +57,23 @@ public class FieldPermissionRule {
     @Column(name = "updated_by", nullable = false, length = 100)
     private String updatedBy;
 
+    @Column(name = "created_src_id", nullable = false, updatable = false)
+    private Short createdSrcId;
+
+    @Column(name = "updated_src_id", nullable = false)
+    private Short updatedSrcId;
+
+    @PrePersist
+    private void stampSourceSystemOnCreate() {
+        createdSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+        updatedSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+    }
+
+    @PreUpdate
+    private void stampSourceSystemOnUpdate() {
+        updatedSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+    }
+
     public Integer getRuleId() { return ruleId; }
     public void setRuleId(Integer ruleId) { this.ruleId = ruleId; }
     public Integer getRowVersion() { return rowVersion; }
@@ -74,6 +92,8 @@ public class FieldPermissionRule {
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
     public String getUpdatedBy() { return updatedBy; }
     public void setUpdatedBy(String updatedBy) { this.updatedBy = updatedBy; }
+    public Short getCreatedSrcId() { return createdSrcId; }
+    public Short getUpdatedSrcId() { return updatedSrcId; }
 
     public AccessLevel getAccessLevel() {
         return AccessLevel.valueOf(fieldPermission);

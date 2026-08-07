@@ -395,13 +395,13 @@ export function ReferenceDataTable({ table }: Props) {
           !c.isPrimaryKey &&
           // rowVersion is server-managed optimistic-locking state (see
           // editingRowVersionRef/handleSave below) — never a user-editable
-          // field, same treatment as the other audit columns. createdSourceSystemId/
-          // updatedSourceSystemId (V194) are stamped server-side in
+          // field, same treatment as the other audit columns. createdSrcId/
+          // updatedSrcId (V194) are stamped server-side in
           // ReferenceDataCrudService the same way createdBy/updatedBy are —
           // without this exclusion they'd render as an editable FK Select
           // (they have a real FK to source_system), letting a user "pick"
           // their own provenance, which defeats the point.
-          !['createdAt', 'createdBy', 'updatedAt', 'updatedBy', 'rowVersion', 'createdSourceSystemId', 'updatedSourceSystemId'].includes(c.name),
+          !['createdAt', 'createdBy', 'updatedAt', 'updatedBy', 'rowVersion', 'createdSrcId', 'updatedSrcId'].includes(c.name),
       ),
     [metadata],
   );

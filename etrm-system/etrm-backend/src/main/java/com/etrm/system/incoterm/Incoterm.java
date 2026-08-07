@@ -1,5 +1,6 @@
 package com.etrm.system.incoterm;
 
+import com.etrm.system.common.SourceSystemDefaults;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -7,6 +8,8 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.persistence.Version;
@@ -100,6 +103,23 @@ public class Incoterm {
     @LastModifiedBy
     @Column(name = "updated_by", nullable = false, length = 100)
     private String updatedBy;
+
+    @Column(name = "created_src_id", nullable = false, updatable = false)
+    private Short createdSrcId;
+
+    @Column(name = "updated_src_id", nullable = false)
+    private Short updatedSrcId;
+
+    @PrePersist
+    private void stampSourceSystemOnCreate() {
+        createdSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+        updatedSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+    }
+
+    @PreUpdate
+    private void stampSourceSystemOnUpdate() {
+        updatedSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+    }
 
     public Integer getIncotermId() {
         return incotermId;
@@ -230,5 +250,19 @@ public class Incoterm {
 
     public void setUpdatedBy(String updatedBy) {
         this.updatedBy = updatedBy;
+    }
+
+    public Short getCreatedSrcId() {
+        return createdSrcId;
+    }
+
+    // Setter exists only so the service layer can copy the persisted value
+    // back onto the incoming update payload — same convention as setCreatedBy.
+    public void setCreatedSrcId(Short createdSrcId) {
+        this.createdSrcId = createdSrcId;
+    }
+
+    public Short getUpdatedSrcId() {
+        return updatedSrcId;
     }
 }

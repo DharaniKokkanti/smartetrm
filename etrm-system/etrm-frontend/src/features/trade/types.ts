@@ -412,10 +412,10 @@ export interface Trade {
   // Mirrors createdBy/updatedBy exactly: created* is set once at creation and
   // never changes; updated* is re-stamped on every subsequent write,
   // including a status change like cancel/deactivate (see SOURCE_SYSTEM_CODES).
-  createdSourceSystemId: number;
-  createdSourceSystemCode: SourceSystemCode; // hydrated FK label, resolved from created_source_system_id
-  updatedSourceSystemId: number;
-  updatedSourceSystemCode: SourceSystemCode; // hydrated FK label, resolved from updated_source_system_id
+  createdSrcId: number;
+  createdSourceSystemCode: SourceSystemCode; // hydrated FK label, resolved from created_src_id
+  updatedSrcId: number;
+  updatedSourceSystemCode: SourceSystemCode; // hydrated FK label, resolved from updated_src_id
   // Counterparty
   counterpartyId: number;
   counterpartyName: string;
@@ -448,13 +448,13 @@ export interface Trade {
   updatedAt: string;
 }
 
-// createdSourceSystemId/updatedSourceSystemId are omitted here the same way
+// createdSrcId/updatedSrcId are omitted here the same way
 // createdBy/updatedBy already are — stamped server-side from request context
 // (which screen/endpoint is calling), not a form field the caller fills in.
 export type TradeInput = Omit<Trade,
   'tradeId' | 'tradeReference' | 'counterpartyName' | 'traderCode' |
   'orderCount' | 'amendmentNumber' | 'isLatestVersion' | 'createdAt' | 'updatedAt' |
-  'createdSourceSystemId' | 'createdSourceSystemCode' | 'updatedSourceSystemId' | 'updatedSourceSystemCode'
+  'createdSrcId' | 'createdSourceSystemCode' | 'updatedSrcId' | 'updatedSourceSystemCode'
 >;
 
 // ─── TradeOrder (one delivery leg per period) ─────────────────────────────────

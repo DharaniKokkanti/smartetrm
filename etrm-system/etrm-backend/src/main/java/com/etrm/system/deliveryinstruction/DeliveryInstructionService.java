@@ -79,6 +79,7 @@ public class DeliveryInstructionService {
         input.setDeliveryInstructionId(id);
         input.setCreatedAt(existing.getCreatedAt());
         input.setUpdatedAt(LocalDateTime.now());
+        input.setCreatedSrcId(existing.getCreatedSrcId());
         return hydrate(repository.save(input));
     }
 }

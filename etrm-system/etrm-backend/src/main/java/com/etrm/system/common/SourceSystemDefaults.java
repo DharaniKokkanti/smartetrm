@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Resolves dbo.source_system ids for JPA entity provenance stamping
- * (created_source_system_id/updated_source_system_id, V194/V195) — a plain
+ * (created_src_id/updated_src_id, V194/V195) — a plain
  * {@code @MappedSuperclass} lifecycle callback (see AuditableEntity) can't
  * receive Spring-injected beans directly, so this component caches the
  * resolved id in a static field on startup instead, the standard escape
@@ -24,10 +24,15 @@ public class SourceSystemDefaults {
                 Integer.class, "TIER1_APPLICATION_SCREEN");
     }
 
-    public static int tier1ApplicationScreen() {
+    /** Returns {@code short} not {@code int} — dbo.source_system.source_system_id
+     *  is TINYINT (V197), and entity fields mapping it must be Short for
+     *  Hibernate's strict ddl-auto:validate type check to pass (found this
+     *  the hard way: an Integer-typed field fails validation against a
+     *  TINYINT column even though the value always fits). */
+    public static short tier1ApplicationScreen() {
         if (tier1ApplicationScreenId < 0) {
             throw new IllegalStateException("SourceSystemDefaults not yet initialized — accessed before Spring context startup completed.");
         }
-        return tier1ApplicationScreenId;
+        return (short) tier1ApplicationScreenId;
     }
 }

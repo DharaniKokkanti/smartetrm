@@ -72,6 +72,7 @@ public class CpGtcAgreementService {
         // keeps the DB value untouched but the response would show them as null.
         input.setCreatedAt(existing.getCreatedAt());
         input.setCreatedBy(existing.getCreatedBy());
+        input.setCreatedSrcId(existing.getCreatedSrcId());
         return hydrate(repository.save(input));
     }
 

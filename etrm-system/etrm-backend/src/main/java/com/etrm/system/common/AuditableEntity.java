@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
  * auditing (see JpaAuditingConfig) rather than manually set in every
  * service method.
  *
- * createdSourceSystemId/updatedSourceSystemId (V194/V195) mirror them
+ * createdSrcId/updatedSrcId (V194/V195) mirror them
  * exactly, but can't reuse Spring Data's @CreatedBy/@LastModifiedBy
  * mechanism (AuditorAware is typed to String, this is an int FK) — plain
  * JPA @PrePersist/@PreUpdate lifecycle callbacks on this shared superclass
@@ -50,22 +50,22 @@ public abstract class AuditableEntity {
     @Column(name = "updated_by", nullable = false, length = 100)
     private String updatedBy;
 
-    @Column(name = "created_source_system_id", nullable = false, updatable = false)
-    private Integer createdSourceSystemId;
+    @Column(name = "created_src_id", nullable = false, updatable = false)
+    private Short createdSrcId;
 
-    @Column(name = "updated_source_system_id", nullable = false)
-    private Integer updatedSourceSystemId;
+    @Column(name = "updated_src_id", nullable = false)
+    private Short updatedSrcId;
 
     @PrePersist
     private void stampSourceSystemOnCreate() {
-        createdSourceSystemId = SourceSystemDefaults.tier1ApplicationScreen();
-        updatedSourceSystemId = SourceSystemDefaults.tier1ApplicationScreen();
+        createdSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+        updatedSrcId = SourceSystemDefaults.tier1ApplicationScreen();
     }
 
     @PreUpdate
     private void stampSourceSystemOnUpdate() {
         // created* is set once and never changes, same as createdBy.
-        updatedSourceSystemId = SourceSystemDefaults.tier1ApplicationScreen();
+        updatedSrcId = SourceSystemDefaults.tier1ApplicationScreen();
     }
 
     public LocalDateTime getCreatedAt() {
@@ -100,11 +100,11 @@ public abstract class AuditableEntity {
         this.updatedBy = updatedBy;
     }
 
-    public Integer getCreatedSourceSystemId() {
-        return createdSourceSystemId;
+    public Short getCreatedSrcId() {
+        return createdSrcId;
     }
 
-    public Integer getUpdatedSourceSystemId() {
-        return updatedSourceSystemId;
+    public Short getUpdatedSrcId() {
+        return updatedSrcId;
     }
 }
