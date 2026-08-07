@@ -7,6 +7,8 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.persistence.Version;
@@ -17,6 +19,8 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import com.etrm.system.common.SourceSystemDefaults;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -141,6 +145,35 @@ public class MarketProductLink {
     @LastModifiedBy
     @Column(name = "updated_by", nullable = false, length = 100)
     private String updatedBy;
+
+    @Column(name = "created_src_id", nullable = false, updatable = false)
+    private Short createdSrcId;
+
+    @Column(name = "updated_src_id", nullable = false)
+    private Short updatedSrcId;
+
+    @PrePersist
+    private void onCreate() {
+        createdSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+        updatedSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+    }
+
+    @PreUpdate
+    private void onUpdate() {
+        updatedSrcId = SourceSystemDefaults.tier1ApplicationScreen();
+    }
+
+    public Short getCreatedSrcId() {
+        return createdSrcId;
+    }
+
+    public void setCreatedSrcId(Short createdSrcId) {
+        this.createdSrcId = createdSrcId;
+    }
+
+    public Short getUpdatedSrcId() {
+        return updatedSrcId;
+    }
 
     public Integer getMarketProductLinkId() {
         return marketProductLinkId;
