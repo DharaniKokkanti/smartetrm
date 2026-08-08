@@ -2658,6 +2658,18 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
   road_tariff: [
     { tariffId: 1, routeId: 1, operatorId: 1, productId: 1, tariffType: 'PER_MT', rate: 4.25, currencyId: 1, rateUomId: 3, minCharge: 500.0, fuelSurchargePct: 8.5, effectiveFrom: '2026-01-01', effectiveTo: null, isActive: true, notes: 'Standard tanker truck rate.' },
   ],
+  // V161/V164/V209 — real exchange futures specs, mirroring the backend's
+  // V209 seed so the Contract Margin Rates page has the same dropdown
+  // options under mocks as it does against the real backend.
+  derivative_contract_specification: [
+    { contractSpecId: 1, specCode: 'ICE-BRENT-FUT', specName: 'ICE Brent Crude Futures', instrumentType: 'FUTURE', listingExchangeId: 1, isActive: true },
+    { contractSpecId: 2, specCode: 'NYMEX-WTI-FUT', specName: 'NYMEX WTI Light Sweet Crude Oil Futures', instrumentType: 'FUTURE', listingExchangeId: 2, isActive: true },
+    { contractSpecId: 3, specCode: 'CBOT-CORN-FUT', specName: 'CBOT Corn Futures', instrumentType: 'FUTURE', listingExchangeId: 6, isActive: true },
+    { contractSpecId: 4, specCode: 'CBOT-SOY-FUT', specName: 'CBOT Soybean Futures', instrumentType: 'FUTURE', listingExchangeId: 6, isActive: true },
+    { contractSpecId: 5, specCode: 'CBOT-WHEAT-FUT', specName: 'CBOT Soft Red Winter Wheat Futures', instrumentType: 'FUTURE', listingExchangeId: 6, isActive: true },
+    { contractSpecId: 6, specCode: 'LME-COPPER-FUT', specName: 'LME Copper Futures (Grade A)', instrumentType: 'FUTURE', listingExchangeId: 4, isActive: true },
+    { contractSpecId: 7, specCode: 'LME-ALUMINIUM-FUT', specName: 'LME Primary Aluminium Futures', instrumentType: 'FUTURE', listingExchangeId: 4, isActive: true },
+  ],
   // V17 parent lookup tables — rows come from the simple list above
   ...Object.fromEntries(PARENT_LOOKUP_TABLES.map((t) => [t.name, t.rows])),
 };

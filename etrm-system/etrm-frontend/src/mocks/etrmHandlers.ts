@@ -627,6 +627,17 @@ function computeClearingAccountMarginRate(input: Record<string, unknown>): Recor
 }
 const clearingAccountMarginRatesStore: unknown[] = [];
 
+// ─── CREDIT — CONTRACT MARGIN RATES (exchange-published rates) ──────────────
+function computeContractMarginRate(input: Record<string, unknown>): Record<string, unknown> {
+  const ccy = (referenceRowSeed.currency as unknown as Array<Record<string, unknown>>).find((c) => c['currencyId'] === input['marginCurrencyId']);
+  return {
+    ...input,
+    contractSpecCode: (input['contractSpecCode'] as string | undefined) ?? null,
+    marginCurrencyCode: ccy?.['currencyCode'] ?? null,
+  };
+}
+const contractMarginRatesStore: unknown[] = [];
+
 // ─── CREDIT — MARGIN ACCOUNTS ─────────────────────────────────────────────────
 function computeMarginAccount(input: Record<string, unknown>): Record<string, unknown> {
   const ca = (clearingAccountsStore as Array<Record<string, unknown>>).find((c) => c['clearingAccountId'] === input['clearingAccountId']);
@@ -3697,6 +3708,31 @@ export const etrmHandlers = [
     return HttpResponse.json(s[idx]);
   }),
   ...crudHandlers('credit/clearing-account-margin-rates', clearingAccountMarginRatesStore as Array<Record<string, unknown>>, 'clearingAccountMarginRateId'),
+
+  // ─── CREDIT — Contract Margin Rates (exchange-published) ───────────────────────
+  http.get(`${API}/credit/contract-margin-rates`, ({ request }) => {
+    const url = new URL(request.url);
+    const contractSpecId = Number(url.searchParams.get('contractSpecId'));
+    const s = contractMarginRatesStore as Array<Record<string, unknown>>;
+    return HttpResponse.json(s.filter((r) => r['contractSpecId'] === contractSpecId));
+  }),
+  http.post(`${API}/credit/contract-margin-rates`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const s = contractMarginRatesStore as Array<Record<string, unknown>>;
+    const maxId = s.reduce((m, r) => Math.max(m, Number(r['contractMarginRateId'])), 0);
+    const row = { ...computeContractMarginRate(input), contractMarginRateId: maxId + 1, createdAt: now() };
+    s.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/credit/contract-margin-rates/:id`, async ({ params, request }) => {
+    const s = contractMarginRatesStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['contractMarginRateId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Contract margin rate ${String(params.id)} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    s[idx] = { ...s[idx], ...computeContractMarginRate({ ...s[idx], ...input }) };
+    return HttpResponse.json(s[idx]);
+  }),
+  ...crudHandlers('credit/contract-margin-rates', contractMarginRatesStore as Array<Record<string, unknown>>, 'contractMarginRateId'),
 
   // ─── CREDIT — Collateral ──────────────────────────────────────────────────────
   http.post(`${API}/credit/collateral`, async ({ request }) => {
