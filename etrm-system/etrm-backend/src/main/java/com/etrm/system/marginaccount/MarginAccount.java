@@ -34,6 +34,13 @@ import java.time.LocalDateTime;
  *
  * V147 — added updated_at/updated_by with matching @LastModifiedDate/
  * @LastModifiedBy annotations.
+ *
+ * V203 — legal_entity_id/clearing_broker_id/currency_id dropped in favor of
+ * clearing_account_id (see com.etrm.system.clearingaccount.ClearingAccount):
+ * those three were redundant once an account-level owner exists, since a
+ * clearing_account already fixes exactly one legal_entity/broker/currency.
+ * market_id stays — this table's remaining reason to exist is per-market
+ * allocation under one shared clearing account.
  */
 @Entity
 @Table(name = "margin_account")
@@ -51,12 +58,12 @@ public class MarginAccount {
     private Integer rowVersion;
 
     @NotNull
-    @Column(name = "legal_entity_id", nullable = false)
-    private Integer legalEntityId;
+    @Column(name = "clearing_account_id", nullable = false)
+    private Integer clearingAccountId;
 
     @Transient
     @JsonProperty
-    private String legalEntityName;
+    private String clearingAccountCode;
 
     @NotNull
     @Column(name = "market_id", nullable = false)
@@ -74,22 +81,6 @@ public class MarginAccount {
     @NotBlank
     @Column(name = "account_type", nullable = false, length = 20)
     private String accountType;
-
-    // FK -> dbo.counterparty(counterparty_id) — clearing brokers are modeled as counterparties.
-    @Column(name = "clearing_broker_id")
-    private Integer clearingBrokerId;
-
-    @Transient
-    @JsonProperty
-    private String clearingBrokerName;
-
-    @NotNull
-    @Column(name = "currency_id", nullable = false)
-    private Integer currencyId;
-
-    @Transient
-    @JsonProperty
-    private String currencyCode;
 
     @NotNull
     @Column(name = "initial_margin", nullable = false)
@@ -163,20 +154,20 @@ public class MarginAccount {
         this.rowVersion = rowVersion;
     }
 
-    public Integer getLegalEntityId() {
-        return legalEntityId;
+    public Integer getClearingAccountId() {
+        return clearingAccountId;
     }
 
-    public void setLegalEntityId(Integer legalEntityId) {
-        this.legalEntityId = legalEntityId;
+    public void setClearingAccountId(Integer clearingAccountId) {
+        this.clearingAccountId = clearingAccountId;
     }
 
-    public String getLegalEntityName() {
-        return legalEntityName;
+    public String getClearingAccountCode() {
+        return clearingAccountCode;
     }
 
-    public void setLegalEntityName(String legalEntityName) {
-        this.legalEntityName = legalEntityName;
+    public void setClearingAccountCode(String clearingAccountCode) {
+        this.clearingAccountCode = clearingAccountCode;
     }
 
     public Integer getMarketId() {
@@ -209,38 +200,6 @@ public class MarginAccount {
 
     public void setAccountType(String accountType) {
         this.accountType = accountType;
-    }
-
-    public Integer getClearingBrokerId() {
-        return clearingBrokerId;
-    }
-
-    public void setClearingBrokerId(Integer clearingBrokerId) {
-        this.clearingBrokerId = clearingBrokerId;
-    }
-
-    public String getClearingBrokerName() {
-        return clearingBrokerName;
-    }
-
-    public void setClearingBrokerName(String clearingBrokerName) {
-        this.clearingBrokerName = clearingBrokerName;
-    }
-
-    public Integer getCurrencyId() {
-        return currencyId;
-    }
-
-    public void setCurrencyId(Integer currencyId) {
-        this.currencyId = currencyId;
-    }
-
-    public String getCurrencyCode() {
-        return currencyCode;
-    }
-
-    public void setCurrencyCode(String currencyCode) {
-        this.currencyCode = currencyCode;
     }
 
     public BigDecimal getInitialMargin() {

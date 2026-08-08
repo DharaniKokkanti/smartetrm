@@ -600,22 +600,45 @@ const insurancePoliciesStore: unknown[] = [
   { policyId: 1, providerId: 1, providerName: "Lloyd's of London (Syndicate 2623)", legalEntityId: 1, legalEntityName: 'Acme Trading UK Limited', policyNumber: 'LLD-2026-CARGO-001', policyType: 'CARGO', insuredEntityType: null, insuredEntityId: null, currencyId: 1, currencyCode: 'USD', sumInsured: 50000000, deductible: 100000, premiumAmount: 125000, premiumCurrencyId: 1, premiumFrequency: 'ANNUAL', inceptionDate: '2026-01-01', expiryDate: '2026-12-31', policyStatus: 'ACTIVE', notes: 'Blanket cargo cover for physical crude/product cargoes.', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
 ];
 
-// ─── CREDIT — MARGIN ACCOUNTS ─────────────────────────────────────────────────
-function computeMarginAccount(input: Record<string, unknown>): Record<string, unknown> {
-  const le = (legalEntityStore as unknown as Array<Record<string, unknown>>).find((e) => e['legalEntityId'] === input['legalEntityId']);
-  const market = (marketsStore as Array<Record<string, unknown>>).find((m) => m['marketId'] === input['marketId']);
+// ─── CREDIT — CLEARING ACCOUNTS ───────────────────────────────────────────────
+function computeClearingAccount(input: Record<string, unknown>): Record<string, unknown> {
   const broker = (cpStore as unknown as Array<Record<string, unknown>>).find((c) => c['counterpartyId'] === input['clearingBrokerId']);
-  const ccy = (referenceRowSeed.currency as unknown as Array<Record<string, unknown>>).find((c) => c['currencyId'] === input['currencyId']);
+  const le = (legalEntityStore as unknown as Array<Record<string, unknown>>).find((e) => e['legalEntityId'] === input['legalEntityId']);
+  const ccy = (referenceRowSeed.currency as unknown as Array<Record<string, unknown>>).find((c) => c['currencyId'] === input['baseCurrencyId']);
   return {
     ...input,
-    legalEntityName: le?.['entityName'] ?? null,
-    marketName: market?.['marketName'] ?? null,
     clearingBrokerName: broker?.['legalName'] ?? null,
-    currencyCode: ccy?.['currencyCode'] ?? null,
+    legalEntityName: le?.['entityName'] ?? null,
+    baseCurrencyCode: ccy?.['currencyCode'] ?? null,
+  };
+}
+const clearingAccountsStore: unknown[] = [
+  { clearingAccountId: 1, accountCode: 'ICE-ACMEUK-01', accountName: 'ICE Brent House Account', clearingBrokerId: 1, clearingBrokerName: 'Marex Financial Ltd', legalEntityId: 1, legalEntityName: 'Acme Trading UK Limited', baseCurrencyId: 1, baseCurrencyCode: 'USD', marginCalcMethod: 'SPAN', targetCashBuffer: 500000, isActive: true, notes: null, createdAt: '2024-01-01T00:00:00Z' },
+];
+
+// ─── CREDIT — CLEARING ACCOUNT MARGIN RATES (house margin overrides) ─────────
+function computeClearingAccountMarginRate(input: Record<string, unknown>): Record<string, unknown> {
+  const ccy = (referenceRowSeed.currency as unknown as Array<Record<string, unknown>>).find((c) => c['currencyId'] === input['marginCurrencyId']);
+  return {
+    ...input,
+    contractSpecCode: (input['contractSpecCode'] as string | undefined) ?? null,
+    marginCurrencyCode: ccy?.['currencyCode'] ?? null,
+  };
+}
+const clearingAccountMarginRatesStore: unknown[] = [];
+
+// ─── CREDIT — MARGIN ACCOUNTS ─────────────────────────────────────────────────
+function computeMarginAccount(input: Record<string, unknown>): Record<string, unknown> {
+  const ca = (clearingAccountsStore as Array<Record<string, unknown>>).find((c) => c['clearingAccountId'] === input['clearingAccountId']);
+  const market = (marketsStore as Array<Record<string, unknown>>).find((m) => m['marketId'] === input['marketId']);
+  return {
+    ...input,
+    clearingAccountCode: ca?.['accountCode'] ?? null,
+    marketName: market?.['marketName'] ?? null,
   };
 }
 const marginAccountsStore: unknown[] = [
-  { marginAccountId: 1, legalEntityId: 1, legalEntityName: 'Acme Trading UK Limited', marketId: 1, marketName: 'ICE Brent', accountRef: 'ICE-ACMEUK-001', accountType: 'HOUSE', clearingBrokerId: null, clearingBrokerName: null, currencyId: 1, currencyCode: 'USD', initialMargin: 2500000, variationMargin: -180000, excessMargin: 320000, marginLimit: 10000000, isActive: true, notes: null, createdAt: '2024-01-01T00:00:00Z' },
+  { marginAccountId: 1, clearingAccountId: 1, clearingAccountCode: 'ICE-ACMEUK-01', marketId: 1, marketName: 'ICE Brent', accountRef: 'ICE-ACMEUK-001', accountType: 'HOUSE', initialMargin: 2500000, variationMargin: -180000, excessMargin: 320000, marginLimit: 10000000, isActive: true, notes: null, createdAt: '2024-01-01T00:00:00Z' },
 ];
 
 // ─── CREDIT — COLLATERAL ──────────────────────────────────────────────────────
@@ -3631,6 +3654,49 @@ export const etrmHandlers = [
     return HttpResponse.json(s[idx]);
   }),
   ...crudHandlers('credit/margin-accounts', marginAccountsStore as Array<Record<string, unknown>>, 'marginAccountId'),
+
+  // ─── CREDIT — Clearing Accounts ────────────────────────────────────────────────
+  http.post(`${API}/credit/clearing-accounts`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const maxId = (clearingAccountsStore as Array<Record<string, unknown>>).reduce((m, r) => Math.max(m, Number(r['clearingAccountId'])), 0);
+    const row = { ...computeClearingAccount(input), clearingAccountId: maxId + 1, createdAt: now() };
+    clearingAccountsStore.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/credit/clearing-accounts/:id`, async ({ params, request }) => {
+    const s = clearingAccountsStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['clearingAccountId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Clearing account ${String(params.id)} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    s[idx] = { ...s[idx], ...computeClearingAccount({ ...s[idx], ...input }) };
+    return HttpResponse.json(s[idx]);
+  }),
+  ...crudHandlers('credit/clearing-accounts', clearingAccountsStore as Array<Record<string, unknown>>, 'clearingAccountId'),
+
+  // ─── CREDIT — Clearing Account Margin Rates ────────────────────────────────────
+  http.get(`${API}/credit/clearing-account-margin-rates`, ({ request }) => {
+    const url = new URL(request.url);
+    const clearingAccountId = Number(url.searchParams.get('clearingAccountId'));
+    const s = clearingAccountMarginRatesStore as Array<Record<string, unknown>>;
+    return HttpResponse.json(s.filter((r) => r['clearingAccountId'] === clearingAccountId));
+  }),
+  http.post(`${API}/credit/clearing-account-margin-rates`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const s = clearingAccountMarginRatesStore as Array<Record<string, unknown>>;
+    const maxId = s.reduce((m, r) => Math.max(m, Number(r['clearingAccountMarginRateId'])), 0);
+    const row = { ...computeClearingAccountMarginRate(input), clearingAccountMarginRateId: maxId + 1, createdAt: now() };
+    s.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/credit/clearing-account-margin-rates/:id`, async ({ params, request }) => {
+    const s = clearingAccountMarginRatesStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['clearingAccountMarginRateId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Clearing account margin rate ${String(params.id)} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    s[idx] = { ...s[idx], ...computeClearingAccountMarginRate({ ...s[idx], ...input }) };
+    return HttpResponse.json(s[idx]);
+  }),
+  ...crudHandlers('credit/clearing-account-margin-rates', clearingAccountMarginRatesStore as Array<Record<string, unknown>>, 'clearingAccountMarginRateId'),
 
   // ─── CREDIT — Collateral ──────────────────────────────────────────────────────
   http.post(`${API}/credit/collateral`, async ({ request }) => {

@@ -1,9 +1,7 @@
 package com.etrm.system.marginaccount;
 
+import com.etrm.system.clearingaccount.ClearingAccountRepository;
 import com.etrm.system.common.NotFoundException;
-import com.etrm.system.counterparty.CounterpartyRepository;
-import com.etrm.system.currency.CurrencyRepository;
-import com.etrm.system.legalentity.LegalEntityRepository;
 import com.etrm.system.market.MarketRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,28 +13,19 @@ import java.util.List;
 public class MarginAccountService {
 
     private final MarginAccountRepository repository;
-    private final LegalEntityRepository legalEntityRepository;
+    private final ClearingAccountRepository clearingAccountRepository;
     private final MarketRepository marketRepository;
-    private final CounterpartyRepository counterpartyRepository;
-    private final CurrencyRepository currencyRepository;
 
-    public MarginAccountService(MarginAccountRepository repository, LegalEntityRepository legalEntityRepository,
-                                 MarketRepository marketRepository, CounterpartyRepository counterpartyRepository,
-                                 CurrencyRepository currencyRepository) {
+    public MarginAccountService(MarginAccountRepository repository, ClearingAccountRepository clearingAccountRepository,
+                                 MarketRepository marketRepository) {
         this.repository = repository;
-        this.legalEntityRepository = legalEntityRepository;
+        this.clearingAccountRepository = clearingAccountRepository;
         this.marketRepository = marketRepository;
-        this.counterpartyRepository = counterpartyRepository;
-        this.currencyRepository = currencyRepository;
     }
 
     private MarginAccount hydrate(MarginAccount ma) {
-        legalEntityRepository.findById(ma.getLegalEntityId()).ifPresent(le -> ma.setLegalEntityName(le.getEntityName()));
+        clearingAccountRepository.findById(ma.getClearingAccountId()).ifPresent(ca -> ma.setClearingAccountCode(ca.getAccountCode()));
         marketRepository.findById(ma.getMarketId()).ifPresent(m -> ma.setMarketName(m.getMarketName()));
-        if (ma.getClearingBrokerId() != null) {
-            counterpartyRepository.findById(ma.getClearingBrokerId()).ifPresent(cp -> ma.setClearingBrokerName(cp.getLegalName()));
-        }
-        currencyRepository.findById(ma.getCurrencyId()).ifPresent(c -> ma.setCurrencyCode(c.getCurrencyCode()));
         return ma;
     }
 

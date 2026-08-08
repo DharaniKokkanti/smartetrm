@@ -6,6 +6,7 @@ import type {
 } from './types';
 import type { Counterparty } from '@features/tier1/counterparty/types';
 import type { LegalEntity } from '@features/tier1/legal-entity/types';
+import { apiClient } from '@services/api';
 
 export type { Counterparty, LegalEntity };
 
@@ -254,13 +255,14 @@ export interface Incoterm { incotermId: number; incotermCode: string; incotermNa
 export interface BrokerRef { brokerId: number; brokerCode: string; brokerName: string; commodityType: CommodityTypeTrade | null; isActive: boolean; }
 export interface PipelineRef { pipelineId: number; pipelineCode: string; pipelineName: string; pipelineType: string; }
 
+// apiClient (not raw fetch) — these need the Authorization header against the
+// real backend (PERM_CP_VIEW-gated); raw fetch() only worked here because
+// MSW mocks intercept fetch() regardless of headers.
 export async function fetchCounterparties(): Promise<Counterparty[]> {
-  const res = await fetch(`${BASE}/counterparties`);
-  return res.json() as Promise<Counterparty[]>;
+  return apiClient.get<Counterparty[]>('/counterparties').then((r) => r.data);
 }
 export async function fetchLegalEntities(): Promise<LegalEntity[]> {
-  const res = await fetch(`${BASE}/legal-entities`);
-  return res.json() as Promise<LegalEntity[]>;
+  return apiClient.get<LegalEntity[]>('/legal-entities').then((r) => r.data);
 }
 export async function fetchIncoterms(): Promise<Incoterm[]> {
   const res = await fetch(`${BASE}/incoterms`);

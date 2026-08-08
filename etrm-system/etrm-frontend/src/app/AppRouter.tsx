@@ -86,6 +86,7 @@ const MarginAgreementsPage = lazy1(() => import('@features/credit/margin-agreeme
 const BankGuaranteesPage = lazy1(() => import('@features/credit/bank-guarantees/BankGuaranteesPage'), 'BankGuaranteesPage');
 const InsurancePoliciesPage = lazy1(() => import('@features/credit/insurance-policies/InsurancePoliciesPage'), 'InsurancePoliciesPage');
 const MarginAccountsPage = lazy1(() => import('@features/credit/margin-accounts/MarginAccountsPage'), 'MarginAccountsPage');
+const ClearingAccountsPage = lazy1(() => import('@features/credit/clearing-accounts/ClearingAccountsPage'), 'ClearingAccountsPage');
 const CollateralPage = lazy1(() => import('@features/credit/collateral/CollateralPage'), 'CollateralPage');
 const VesselCertificatesPage = lazy1(() => import('@features/logistics/vessel-certificates/VesselCertificatesPage'), 'VesselCertificatesPage');
 const RailcarsPage = lazy1(() => import('@features/logistics/railcars/RailcarsPage'), 'RailcarsPage');
@@ -244,6 +245,7 @@ export function AppRouter() {
         <Route path="/credit/bank-guarantees" element={<S><BankGuaranteesPage /></S>} />
         <Route path="/credit/insurance" element={<S><InsurancePoliciesPage /></S>} />
         <Route path="/credit/margin-accounts" element={<S><MarginAccountsPage /></S>} />
+        <Route path="/credit/clearing-accounts" element={<S><ClearingAccountsPage /></S>} />
         <Route path="/credit/collateral" element={<S><CollateralPage /></S>} />
         <Route path="/logistics/vessel-certs" element={<S><VesselCertificatesPage /></S>} />
         <Route path="/logistics/railcars" element={<S><RailcarsPage /></S>} />

@@ -6,16 +6,14 @@ export interface MarginAccount {
   /** V128 — optimistic-locking token. Must be echoed back unchanged on
    *  update — see @components/smart/optimisticLock. */
   rowVersion: number;
-  legalEntityId: number;
-  legalEntityName: string;
+  /** FK -> clearing_account (V203) — carries legal entity, clearing broker,
+   *  and currency; this table only adds per-market allocation on top. */
+  clearingAccountId: number;
+  clearingAccountCode: string;
   marketId: number;
   marketName: string;
   accountRef: string;
   accountType: MarginAccountType;
-  clearingBrokerId: number | null;
-  clearingBrokerName: string | null;
-  currencyId: number;
-  currencyCode: string;
   initialMargin: number;
   variationMargin: number;
   excessMargin: number;
@@ -27,5 +25,5 @@ export interface MarginAccount {
 
 export type MarginAccountInput = Omit<
   MarginAccount,
-  'marginAccountId' | 'legalEntityName' | 'marketName' | 'clearingBrokerName' | 'currencyCode' | 'createdAt'
+  'marginAccountId' | 'clearingAccountCode' | 'marketName' | 'createdAt'
 >;

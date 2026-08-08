@@ -8,10 +8,8 @@ import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AuditInfo } from '@components/smart/AuditInfo';
-import { useCounterparties } from '@features/trade/hooks';
-import { useLegalEntities } from '@features/tier1/legal-entity/hooks';
-import { useCurrencies } from '@features/reference/currencies/hooks';
 import { useMarkets } from '@features/markets/markets/hooks';
+import { useClearingAccounts } from '@features/credit/clearing-accounts/hooks';
 import { useMarginAccounts, useSaveMarginAccount, useDeactivateMarginAccount } from './hooks';
 import { MARGIN_ACCOUNT_TYPES, type MarginAccount, type MarginAccountInput } from './types';
 
@@ -21,10 +19,8 @@ export function MarginAccountsPage() {
   const { data = [], isLoading, refetch } = useMarginAccounts();
   const save = useSaveMarginAccount();
   const deactivate = useDeactivateMarginAccount();
-  const { data: legalEntities = [] } = useLegalEntities();
   const { data: markets = [] } = useMarkets();
-  const { data: counterparties = [] } = useCounterparties();
-  const { data: currencies = [] } = useCurrencies();
+  const { data: clearingAccounts = [] } = useClearingAccounts();
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<MarginAccount | null>(null);
@@ -53,37 +49,33 @@ export function MarginAccountsPage() {
     if (closeAfter) setOpen(false); else setEditing(saved);
   }
 
-  const leOpts = useMemo(
-    () => legalEntities.map((e) => ({ value: e.legalEntityId, label: `${e.entityCode} — ${e.entityName}` })),
-    [legalEntities],
-  );
   const marketOpts = useMemo(
     () => (markets as { marketId: number; marketCode: string; marketName: string }[])
       .map((m) => ({ value: m.marketId, label: `${m.marketCode} — ${m.marketName}` })),
     [markets],
   );
-  const cpOpts = useMemo(
-    () => counterparties.map((c) => ({ value: c.counterpartyId, label: `${c.cpCode} — ${c.legalName}` })),
-    [counterparties],
+  const clearingAccountOpts = useMemo(
+    () => clearingAccounts.map((ca) => ({ value: ca.clearingAccountId, label: `${ca.accountCode} — ${ca.accountName}` })),
+    [clearingAccounts],
   );
-  const currencyOpts = useMemo(
-    () => (currencies as { currencyId: number; currencyCode: string }[]).map((c) => ({ value: c.currencyId, label: c.currencyCode })),
-    [currencies],
+  const currencyByClearingAccount = useMemo(
+    () => new Map(clearingAccounts.map((ca) => [ca.clearingAccountId, ca.baseCurrencyCode])),
+    [clearingAccounts],
   );
 
   const colDefs = useMemo<ColDef<MarginAccount>[]>(() => [
     { field: 'accountRef', headerName: 'Account Ref', width: 150, pinned: 'left', cellClass: 'cell-mono' },
-    { field: 'legalEntityName', headerName: 'Legal Entity', flex: 1, minWidth: 140 },
+    { field: 'clearingAccountCode', headerName: 'Clearing Account', flex: 1, minWidth: 160, cellClass: 'cell-mono' },
     { field: 'marketName', headerName: 'Market', flex: 1, minWidth: 130 },
     { field: 'accountType', headerName: 'Type', width: 100, cellRenderer: (p: { value: string }) => <Tag color={TYPE_COLOR[p.value] ?? 'default'} style={{ fontSize: 10 }}>{p.value}</Tag> },
     {
       headerName: 'Initial Margin', width: 140,
-      valueGetter: (p) => `${p.data?.currencyCode} ${(p.data?.initialMargin ?? 0).toLocaleString()}`,
+      valueGetter: (p) => `${currencyByClearingAccount.get(p.data?.clearingAccountId ?? -1) ?? ''} ${(p.data?.initialMargin ?? 0).toLocaleString()}`,
       cellClass: 'cell-mono',
     },
     {
       headerName: 'Variation Margin', width: 150,
-      valueGetter: (p) => `${p.data?.currencyCode} ${(p.data?.variationMargin ?? 0).toLocaleString()}`,
+      valueGetter: (p) => `${currencyByClearingAccount.get(p.data?.clearingAccountId ?? -1) ?? ''} ${(p.data?.variationMargin ?? 0).toLocaleString()}`,
       cellClass: 'cell-mono',
     },
     {
@@ -103,13 +95,13 @@ export function MarginAccountsPage() {
         </Space>
       ),
     },
-  ], [deactivate]);
+  ], [deactivate, currencyByClearingAccount]);
 
   return (
     <>
       <PageHeader
         title="Margin Accounts"
-        description="Exchange margin accounts for cleared trades — initial and variation margin tracking per legal entity per market."
+        description="Exchange margin accounts for cleared trades — initial and variation margin tracking per market, allocated under a clearing account."
         moduleGroup="credit"
       />
       <SmartGrid
@@ -136,8 +128,8 @@ export function MarginAccountsPage() {
         }
       >
         <Form form={form} layout="vertical">
-          <Form.Item name="legalEntityId" label="Legal Entity" rules={[{ required: true }]}>
-            <Select options={leOpts} showSearch optionFilterProp="label" />
+          <Form.Item name="clearingAccountId" label={hint('Clearing Account', 'The FCM-level account this per-market balance is allocated under — carries legal entity, clearing broker, and currency.')} rules={[{ required: true }]}>
+            <Select options={clearingAccountOpts} showSearch optionFilterProp="label" />
           </Form.Item>
           <Form.Item name="marketId" label="Market" rules={[{ required: true }]}>
             <Select options={marketOpts} showSearch optionFilterProp="label" />
@@ -147,12 +139,6 @@ export function MarginAccountsPage() {
           </Form.Item>
           <Form.Item name="accountType" label={hint('Account Type', 'HOUSE = proprietary trading account. CLIENT = client segregated account. OMNIBUS = pooled client account.')} rules={[{ required: true }]}>
             <Select options={MARGIN_ACCOUNT_TYPES.map((t) => ({ value: t, label: t }))} />
-          </Form.Item>
-          <Form.Item name="clearingBrokerId" label="Clearing Broker">
-            <Select options={cpOpts} allowClear showSearch optionFilterProp="label" />
-          </Form.Item>
-          <Form.Item name="currencyId" label="Currency" rules={[{ required: true }]}>
-            <Select options={currencyOpts} />
           </Form.Item>
           <Form.Item
             name="initialMargin"
