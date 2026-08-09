@@ -3716,6 +3716,12 @@ export const etrmHandlers = [
     clearingAccountsStore.push(row);
     return HttpResponse.json(row, { status: 201 });
   }),
+  http.get(`${API}/credit/clearing-accounts/:id`, ({ params }) => {
+    const s = clearingAccountsStore as Array<Record<string, unknown>>;
+    const row = s.find((r) => r['clearingAccountId'] === Number(params.id));
+    if (!row) return problem(404, 'Not Found', `Clearing account ${String(params.id)} not found.`);
+    return HttpResponse.json(row);
+  }),
   http.put(`${API}/credit/clearing-accounts/:id`, async ({ params, request }) => {
     const s = clearingAccountsStore as Array<Record<string, unknown>>;
     const idx = s.findIndex((r) => r['clearingAccountId'] === Number(params.id));

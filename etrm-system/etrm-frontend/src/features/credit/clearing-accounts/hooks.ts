@@ -11,6 +11,14 @@ export function useClearingAccounts() {
   return useQuery({ queryKey: KEY, queryFn: clearingAccountsApi.list, staleTime: 5 * 60 * 1000 });
 }
 
+export function useClearingAccount(id: number | null) {
+  return useQuery({
+    queryKey: [...KEY, id],
+    queryFn: () => clearingAccountsApi.get(id as number),
+    enabled: id !== null,
+  });
+}
+
 export function useSaveClearingAccount() {
   const qc = useQueryClient();
   const { message, notification } = AntApp.useApp();

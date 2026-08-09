@@ -35,6 +35,11 @@ public class ClearingAccountController {
         return service.list();
     }
 
+    @GetMapping("/{id}")
+    public ClearingAccount get(@PathVariable Integer id) {
+        return service.get(id);
+    }
+
     @PostMapping
     public ResponseEntity<ClearingAccount> create(@Valid @RequestBody ClearingAccount input) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(input));
