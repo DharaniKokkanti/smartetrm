@@ -24,6 +24,7 @@ const TYPE_COLOR: Record<PolymorphicEntityType, string> = {
   LEGAL_ENTITY: 'geekblue',
   COUNTERPARTY: 'cyan',
   BROKER: 'gold',
+  CLEARING_ACCOUNT: 'purple',
 };
 
 /** Cross-entity directory of every Parent Company Guarantee in the system —

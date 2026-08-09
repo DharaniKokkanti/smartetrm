@@ -37,7 +37,9 @@ public class Address extends AuditableEntity {
 
     // address_type became an INT FK to dbo.address_type (V-era code-to-id
     // conversion sweep) — was VARCHAR(20) at this entity's original authoring.
-    @Column(name = "address_type", nullable = false)
+    // Vestigial like entityType/entityId above (V214: made nullable) — real
+    // address-type semantics live on entity_address.address_type instead.
+    @Column(name = "address_type")
     private Integer addressType;
 
     @Column(name = "is_primary")

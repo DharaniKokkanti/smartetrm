@@ -1,6 +1,6 @@
 import type { Counterparty, Address, AddressAssignment, Contact, ContactAssignment, BankAccount, TaxRegistration, LicenseRegistration } from '@features/tier1/counterparty/types';
 
-let nextCpId = 21;
+let nextCpId = 22;
 let nextContactId = 4;
 let nextBankAccountId = 3;
 let nextAddressId = 4;
@@ -191,6 +191,17 @@ export const counterpartySeed: Counterparty[] = [
     parentInd: false, parentCounterpartyId: null, isActive: true, kycStatus: 2, kycApprovedDate: '2026-01-10',
     kycExpiryDate: '2027-01-10', onboardedDate: '2026-01-10', deactivatedDate: null, notes: null,
     createdAt: '2026-01-10T09:00:00Z', createdBy: 'SYSTEM', updatedAt: '2026-01-10T09:00:00Z', updatedBy: 'SYSTEM',
+  },
+  {
+    // V213 — real FCM-typed counterparty so the Clearing Accounts broker
+    // picker (filtered to cpType FCM) has at least one mock option; none of
+    // the prior 20 seed rows were FCM-typed.
+    counterpartyId: 21, rowVersion: 0, cpCode: 'MAREX-FCM', legalName: 'Marex Financial Ltd', shortName: 'Marex',
+    leiCode: null, jurisdictionId: 1, cpType: 10, creditRatingId: 2, creditLimit: 0, creditLimitCurrencyId: 1,
+    creditReviewDate: '2026-01-01', settlementDays: 2, defaultCurrencyId: 1, isIntercompany: false, internalEntityId: null,
+    parentInd: false, parentCounterpartyId: null, isActive: true, kycStatus: 2, kycApprovedDate: '2026-01-01',
+    kycExpiryDate: '2027-01-01', onboardedDate: '2026-01-01', deactivatedDate: null, notes: 'FCM / clearing broker for exchange-listed derivatives.',
+    createdAt: '2026-01-01T09:00:00Z', createdBy: 'SYSTEM', updatedAt: '2026-01-01T09:00:00Z', updatedBy: 'SYSTEM',
   },
 ];
 

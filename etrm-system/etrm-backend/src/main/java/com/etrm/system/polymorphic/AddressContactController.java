@@ -80,6 +80,13 @@ public class AddressContactController {
             Address addr = addressRepo.findById(addrId)
                     .orElseThrow(() -> new NotFoundException("Address " + addrId + " not found"));
             link.setAddress(addr);
+        } else if (link.getAddress() != null) {
+            // Brand-new pool record (not linking an existing one) -- must be
+            // persisted first, otherwise EntityAddress.address's not-null FK
+            // references a transient instance and the save throws
+            // TransientPropertyValueException.
+            link.getAddress().setAddressId(null);
+            link.setAddress(addressRepo.save(link.getAddress()));
         }
         return entityAddressRepo.save(link);
     }

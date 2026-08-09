@@ -3,5 +3,6 @@ package com.etrm.system.polymorphic;
 public enum EntityType {
     LEGAL_ENTITY,
     COUNTERPARTY,
-    BROKER
+    BROKER,
+    CLEARING_ACCOUNT
 }

@@ -6,7 +6,9 @@
  */
 import { http, HttpResponse } from 'msw';
 import { legalEntityStore } from './handlers';
-import { cpStore } from './counterpartyHandlers';
+import { cpStore, bankAccountStore } from './counterpartyHandlers';
+import { nextBankAccountRecordId } from './counterpartyData';
+import type { BankAccount } from '@features/tier1/counterparty/types';
 import { rowSeed as referenceRowSeed } from './referenceData';
 import { rolesStore, assignmentsStore, nextAssignmentId_ } from './rbacData';
 
@@ -605,15 +607,17 @@ function computeClearingAccount(input: Record<string, unknown>): Record<string, 
   const broker = (cpStore as unknown as Array<Record<string, unknown>>).find((c) => c['counterpartyId'] === input['clearingBrokerId']);
   const le = (legalEntityStore as unknown as Array<Record<string, unknown>>).find((e) => e['legalEntityId'] === input['legalEntityId']);
   const ccy = (referenceRowSeed.currency as unknown as Array<Record<string, unknown>>).find((c) => c['currencyId'] === input['baseCurrencyId']);
+  const primaryBank = (bankAccountStore as unknown as Array<Record<string, unknown>>).find((b) => b['bankAccountId'] === input['primaryBankAccountId']);
   return {
     ...input,
     clearingBrokerName: broker?.['legalName'] ?? null,
     legalEntityName: le?.['entityName'] ?? null,
     baseCurrencyCode: ccy?.['currencyCode'] ?? null,
+    primaryBankAccountLabel: primaryBank ? `${primaryBank['accountName']} — ${primaryBank['bankName']}` : null,
   };
 }
 const clearingAccountsStore: unknown[] = [
-  { clearingAccountId: 1, accountCode: 'ICE-ACMEUK-01', accountName: 'ICE Brent House Account', clearingBrokerId: 1, clearingBrokerName: 'Marex Financial Ltd', legalEntityId: 1, legalEntityName: 'Acme Trading UK Limited', baseCurrencyId: 1, baseCurrencyCode: 'USD', marginCalcMethod: 'SPAN', targetCashBuffer: 500000, isActive: true, notes: null, createdAt: '2024-01-01T00:00:00Z' },
+  { clearingAccountId: 1, accountCode: 'ICE-ACMEUK-01', accountName: 'ICE Brent House Account', clearingBrokerId: 21, clearingBrokerName: 'Marex Financial Ltd', legalEntityId: 1, legalEntityName: 'Acme Trading UK Limited', baseCurrencyId: 1, baseCurrencyCode: 'USD', primaryBankAccountId: null, primaryBankAccountLabel: null, marginCalcMethod: 'SPAN', targetCashBuffer: 500000, isActive: true, notes: null, createdAt: '2024-01-01T00:00:00Z' },
 ];
 
 // ─── CREDIT — CLEARING ACCOUNT MARGIN RATES (house margin overrides) ─────────
@@ -3721,6 +3725,26 @@ export const etrmHandlers = [
     return HttpResponse.json(s[idx]);
   }),
   ...crudHandlers('credit/clearing-accounts', clearingAccountsStore as Array<Record<string, unknown>>, 'clearingAccountId'),
+
+  // ── Clearing Account — Bank Accounts sub-resource (V213) ─────────────────
+  // Shares bankAccountStore with counterpartyHandlers.ts / legal-entities'
+  // own bank-account routes, matching the real polymorphic bank_account table.
+  http.get(`${API}/credit/clearing-accounts/:id/bank-accounts`, ({ params }) =>
+    HttpResponse.json(bankAccountStore.filter((b) => b.entityType === 'CLEARING_ACCOUNT' && b.entityId === Number(params.id))),
+  ),
+  http.post(`${API}/credit/clearing-accounts/:id/bank-accounts`, async ({ params, request }) => {
+    const body = (await request.json()) as Omit<BankAccount, 'bankAccountId' | '_localId'>;
+    const record: BankAccount = { ...body, bankAccountId: nextBankAccountRecordId(), _localId: '', entityType: 'CLEARING_ACCOUNT', entityId: Number(params.id) };
+    bankAccountStore.push(record);
+    return HttpResponse.json(record, { status: 201 });
+  }),
+  http.put(`${API}/credit/clearing-accounts/:id/bank-accounts/:bankAccountId`, async ({ params, request }) => {
+    const idx = bankAccountStore.findIndex((b) => b.bankAccountId === Number(params.bankAccountId));
+    if (idx === -1) return problem(404, 'Not Found', 'Bank account not found.');
+    const body = (await request.json()) as Omit<BankAccount, 'bankAccountId' | '_localId'>;
+    bankAccountStore[idx] = { ...bankAccountStore[idx], ...body };
+    return HttpResponse.json(bankAccountStore[idx]);
+  }),
 
   // ─── CREDIT — Clearing Account Margin Rates ────────────────────────────────────
   http.get(`${API}/credit/clearing-account-margin-rates`, ({ request }) => {

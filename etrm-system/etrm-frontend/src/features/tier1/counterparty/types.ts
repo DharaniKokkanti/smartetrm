@@ -1,5 +1,5 @@
 /** Shared by every polymorphic child table (address, contact, bank_account, tax_registration). */
-export type PolymorphicEntityType = 'LEGAL_ENTITY' | 'COUNTERPARTY' | 'BROKER';
+export type PolymorphicEntityType = 'LEGAL_ENTITY' | 'COUNTERPARTY' | 'BROKER' | 'CLEARING_ACCOUNT';
 
 // ── Counterparty ──────────────────────────────────────────────────────────
 

@@ -1,6 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button, Space, Popconfirm, Tag, Drawer, Form, Input, Select, InputNumber, Switch, Tabs, Table, Typography, DatePicker } from 'antd';
-import { EditOutlined, StopOutlined, PlusOutlined, BankOutlined, PercentageOutlined, CalculatorOutlined } from '@ant-design/icons';
+import { App as AntApp } from 'antd';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { EditOutlined, StopOutlined, PlusOutlined, BankOutlined, PercentageOutlined, CalculatorOutlined, ContactsOutlined, EnvironmentOutlined } from '@ant-design/icons';
 import type { ColDef } from 'ag-grid-community';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
@@ -12,11 +14,13 @@ import { useFormDraft } from '@components/smart/formDraft';
 import { AuditInfo } from '@components/smart/AuditInfo';
 import { color } from '@theme/tokens';
 import { useCounterparties } from '@features/trade/hooks';
+import { useCustomConfigOptions } from '@features/tier1/counterparty/configLookups';
 import { useLegalEntities } from '@features/tier1/legal-entity/hooks';
 import { useCurrencies } from '@features/reference/currencies/hooks';
 import { useTableRows } from '@features/tier2/hooks';
 import { useClearingAccounts, useSaveClearingAccount, useDeactivateClearingAccount } from './hooks';
 import { MARGIN_CALC_METHODS, type ClearingAccount, type ClearingAccountInput } from './types';
+import { clearingAccountsApi } from './api';
 import {
   useClearingAccountMarginRates, useSaveClearingAccountMarginRate, useDeactivateClearingAccountMarginRate,
 } from './marginRates/hooks';
@@ -26,6 +30,10 @@ import {
   MARGIN_VALUATION_RUN_TYPES, RECONCILIATION_STATUSES,
   type MarginValuation, type MarginValuationInput,
 } from '@features/credit/margin-valuations/types';
+import { BankAccountsSection } from '@features/tier1/counterparty/BankAccountsSection';
+import { AddressesSection } from '@features/tier1/counterparty/AddressesSection';
+import { fetchEntityAddresses, saveAddressAssignment, deactivateAddressAssignment } from '@features/tier1/counterparty/api';
+import type { BankAccount, AddressAssignment } from '@features/tier1/counterparty/types';
 
 const METHOD_COLOR: Record<string, string> = { SPAN: 'blue', VAR: 'green', GRID_FLAT: 'purple' };
 
@@ -256,6 +264,134 @@ function MarginValuationsTab({ clearingAccountId }: { clearingAccountId: number 
   );
 }
 
+function ClearingAccountBankAccountsTab({ clearingAccountId }: { clearingAccountId: number }) {
+  const qc = useQueryClient();
+  const { message } = AntApp.useApp();
+  const queryKey = ['clearing-account-bank-accounts', clearingAccountId] as const;
+  const { data, isLoading } = useQuery({
+    queryKey,
+    queryFn: () => clearingAccountsApi.bankAccounts.list(clearingAccountId),
+  });
+  const [items, setItems] = useState<BankAccount[]>([]);
+  const [dirty, setDirty] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  // `data` is undefined (a referentially-stable literal) until the query
+  // resolves, then react-query only produces a new array reference when the
+  // server data actually changes -- guarding on it (rather than defaulting
+  // to `[]` in the destructure, which creates a new array every render and
+  // re-fires this effect in an infinite loop) keeps this a one-shot sync.
+  useEffect(() => {
+    if (data) {
+      setItems(data.map((b) => ({ ...b, _localId: `srv-ba-${b.bankAccountId}` })));
+      setDirty(false);
+    }
+  }, [data]);
+
+  async function handleSave() {
+    setSaving(true);
+    try {
+      for (const item of items) {
+        const { _localId, bankAccountId, ...rest } = item;
+        if (bankAccountId === null) {
+          await clearingAccountsApi.bankAccounts.create(clearingAccountId, rest);
+        } else {
+          await clearingAccountsApi.bankAccounts.update(clearingAccountId, bankAccountId, rest);
+        }
+      }
+      await qc.invalidateQueries({ queryKey });
+      await qc.invalidateQueries({ queryKey: ['clearing-accounts'] });
+      message.success('Bank accounts saved.');
+      setDirty(false);
+    } catch {
+      message.error('Save failed.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div>
+      <Typography.Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 12 }}>
+        Settlement bank accounts used to wire margin payments to/from this clearing account's FCM.
+        Pick one as the account's primary settlement account on the Account Details tab.
+      </Typography.Text>
+      {isLoading ? null : (
+        <>
+          <BankAccountsSection items={items} onChange={(next) => { setItems(next); setDirty(true); }} entityType="CLEARING_ACCOUNT" />
+          <Button type="primary" style={{ marginTop: 12 }} onClick={() => { void handleSave(); }} loading={saving} disabled={!dirty}>
+            Save Bank Accounts
+          </Button>
+        </>
+      )}
+    </div>
+  );
+}
+
+function ClearingAccountAddressesTab({ clearingAccountId }: { clearingAccountId: number }) {
+  const qc = useQueryClient();
+  const { message } = AntApp.useApp();
+  const queryKey = ['clearing-account-addresses', clearingAccountId] as const;
+  const { data, isLoading } = useQuery({
+    queryKey,
+    queryFn: () => fetchEntityAddresses('CLEARING_ACCOUNT', clearingAccountId),
+  });
+  const [items, setItems] = useState<AddressAssignment[]>([]);
+  const [dirty, setDirty] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (data) {
+      setItems(data.map((a) => ({ ...a, _localId: `srv-ea-${a.entityAddressId}` })));
+      setDirty(false);
+    }
+  }, [data]);
+
+  async function handleSave() {
+    setSaving(true);
+    try {
+      for (const item of items) {
+        if (item.entityAddressId === null && !item.isActive) continue; // never-saved + removed — nothing to do
+        // AddressesSection.tsx hardcodes entityId: 0 on freshly-built items
+        // (relies on the caller to patch it in before persisting — normally
+        // done server-side by CounterpartyFormPage's draft-save endpoint,
+        // which this direct client call bypasses) — patch it here or every
+        // new address saves against entityId 0 instead of this account.
+        await saveAddressAssignment({ ...item, entityType: 'CLEARING_ACCOUNT', entityId: clearingAccountId });
+      }
+      // Deactivations of already-saved links go through the dedicated
+      // endpoint (soft-delete), not a PUT with isActive=false embedded,
+      // since deactivateAddressAssignment is the documented convention.
+      for (const item of data ?? []) {
+        const stillPresent = items.find((i) => i.entityAddressId === item.entityAddressId);
+        if (item.entityAddressId !== null && stillPresent && !stillPresent.isActive) {
+          await deactivateAddressAssignment(item.entityAddressId);
+        }
+      }
+      await qc.invalidateQueries({ queryKey });
+      message.success('Addresses saved.');
+      setDirty(false);
+    } catch {
+      message.error('Save failed.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div>
+      {isLoading ? null : (
+        <>
+          <AddressesSection items={items} onChange={(next) => { setItems(next); setDirty(true); }} entityType="CLEARING_ACCOUNT" />
+          <Button type="primary" style={{ marginTop: 12 }} onClick={() => { void handleSave(); }} loading={saving} disabled={!dirty}>
+            Save Addresses
+          </Button>
+        </>
+      )}
+    </div>
+  );
+}
+
 export function ClearingAccountsPage() {
   const { data = [], isLoading, refetch } = useClearingAccounts();
   const save = useSaveClearingAccount();
@@ -263,6 +399,10 @@ export function ClearingAccountsPage() {
   const { data: counterparties = [] } = useCounterparties();
   const { data: legalEntities = [] } = useLegalEntities();
   const { data: currencies = [] } = useCurrencies();
+  // V213 — clearing brokers must be FCM-typed counterparties, not any
+  // counterparty; BROKER is a deprecated type_code kept only for legacy rows.
+  const { data: cpTypeOptions = [] } = useCustomConfigOptions('COUNTERPARTY_TYPE');
+  const fcmTypeId = cpTypeOptions.find((o) => o.label === 'FCM — Clearing Broker')?.value;
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<ClearingAccount | null>(null);
@@ -293,8 +433,10 @@ export function ClearingAccountsPage() {
   }
 
   const cpOpts = useMemo(
-    () => counterparties.map((c) => ({ value: c.counterpartyId, label: `${c.cpCode} — ${c.legalName}` })),
-    [counterparties],
+    () => counterparties
+      .filter((c) => fcmTypeId === undefined || c.cpType === fcmTypeId)
+      .map((c) => ({ value: c.counterpartyId, label: `${c.cpCode} — ${c.legalName}` })),
+    [counterparties, fcmTypeId],
   );
   const leOpts = useMemo(
     () => legalEntities.map((e) => ({ value: e.legalEntityId, label: `${e.entityCode} — ${e.entityName}` })),
@@ -303,6 +445,15 @@ export function ClearingAccountsPage() {
   const currencyOpts = useMemo(
     () => (currencies as { currencyId: number; currencyCode: string }[]).map((c) => ({ value: c.currencyId, label: c.currencyCode })),
     [currencies],
+  );
+  const { data: editingBankAccounts = [] } = useQuery({
+    queryKey: ['clearing-account-bank-accounts', editing?.clearingAccountId ?? -1],
+    queryFn: () => clearingAccountsApi.bankAccounts.list(editing!.clearingAccountId),
+    enabled: editing !== null,
+  });
+  const bankAccountOpts = useMemo(
+    () => editingBankAccounts.map((b) => ({ value: b.bankAccountId, label: `${b.accountName} — ${b.bankName}` })),
+    [editingBankAccounts],
   );
 
   const colDefs = useMemo<ColDef<ClearingAccount>[]>(() => [
@@ -352,6 +503,12 @@ export function ClearingAccountsPage() {
           <Form.Item name="baseCurrencyId" label="Base Currency" rules={[{ required: true }]}>
             <Select options={currencyOpts} />
           </Form.Item>
+          <Form.Item
+            name="primaryBankAccountId"
+            label={hint('Primary Settlement Bank Account', 'The account margin payments to/from the FCM are wired through. Add bank accounts on the Bank Accounts tab first, then pick one here.')}
+          >
+            <Select options={bankAccountOpts} allowClear placeholder={editing ? 'Select a bank account added on the Bank Accounts tab' : 'Save the account first, then add a bank account'} disabled={editing === null} />
+          </Form.Item>
           <Form.Item name="marginCalcMethod" label={hint('Margin Calc Method', 'SPAN = exchange scanning-range methodology. VAR = value-at-risk based. GRID_FLAT = flat per-lot grid.')} rules={[{ required: true }]}>
             <Select options={MARGIN_CALC_METHODS.map((m) => ({ value: m, label: m }))} />
           </Form.Item>
@@ -379,6 +536,18 @@ export function ClearingAccountsPage() {
       label: <Space><CalculatorOutlined />Margin Valuations</Space>,
       disabled: editing === null,
       children: editing ? <MarginValuationsTab clearingAccountId={editing.clearingAccountId} /> : null,
+    },
+    {
+      key: 'bank-accounts',
+      label: <Space><ContactsOutlined />Bank Accounts</Space>,
+      disabled: editing === null,
+      children: editing ? <ClearingAccountBankAccountsTab clearingAccountId={editing.clearingAccountId} /> : null,
+    },
+    {
+      key: 'addresses',
+      label: <Space><EnvironmentOutlined />Addresses</Space>,
+      disabled: editing === null,
+      children: editing ? <ClearingAccountAddressesTab clearingAccountId={editing.clearingAccountId} /> : null,
     },
   ];
 

@@ -56,6 +56,13 @@ public class ClearingAccount {
     @Column(name = "account_name", nullable = false, length = 100)
     private String accountName;
 
+    @Column(name = "primary_bank_account_id")
+    private Integer primaryBankAccountId;
+
+    @Transient
+    @JsonProperty
+    private String primaryBankAccountLabel;
+
     @NotNull
     @Column(name = "clearing_broker_id", nullable = false)
     private Integer clearingBrokerId;
@@ -159,6 +166,22 @@ public class ClearingAccount {
 
     public void setAccountName(String accountName) {
         this.accountName = accountName;
+    }
+
+    public Integer getPrimaryBankAccountId() {
+        return primaryBankAccountId;
+    }
+
+    public void setPrimaryBankAccountId(Integer primaryBankAccountId) {
+        this.primaryBankAccountId = primaryBankAccountId;
+    }
+
+    public String getPrimaryBankAccountLabel() {
+        return primaryBankAccountLabel;
+    }
+
+    public void setPrimaryBankAccountLabel(String primaryBankAccountLabel) {
+        this.primaryBankAccountLabel = primaryBankAccountLabel;
     }
 
     public Integer getClearingBrokerId() {

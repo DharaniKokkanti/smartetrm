@@ -13,6 +13,8 @@ export interface ClearingAccount {
   legalEntityName: string;
   baseCurrencyId: number;
   baseCurrencyCode: string;
+  primaryBankAccountId: number | null;
+  primaryBankAccountLabel: string | null;
   marginCalcMethod: MarginCalcMethod;
   targetCashBuffer: number;
   isActive: boolean;
@@ -22,5 +24,5 @@ export interface ClearingAccount {
 
 export type ClearingAccountInput = Omit<
   ClearingAccount,
-  'clearingAccountId' | 'clearingBrokerName' | 'legalEntityName' | 'baseCurrencyCode' | 'createdAt'
+  'clearingAccountId' | 'clearingBrokerName' | 'legalEntityName' | 'baseCurrencyCode' | 'primaryBankAccountLabel' | 'createdAt'
 >;
