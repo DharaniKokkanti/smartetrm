@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Button, Space, Popconfirm, Tag, Drawer, Form, Input, Select, InputNumber, Switch, Tabs, Table, Typography, DatePicker } from 'antd';
-import { EditOutlined, StopOutlined, PlusOutlined, BankOutlined, PercentageOutlined } from '@ant-design/icons';
+import { EditOutlined, StopOutlined, PlusOutlined, BankOutlined, PercentageOutlined, CalculatorOutlined } from '@ant-design/icons';
 import type { ColDef } from 'ag-grid-community';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
@@ -21,6 +21,11 @@ import {
   useClearingAccountMarginRates, useSaveClearingAccountMarginRate, useDeactivateClearingAccountMarginRate,
 } from './marginRates/hooks';
 import { TENOR_BUCKETS, MARGIN_UNIT_TYPES, type ClearingAccountMarginRate, type ClearingAccountMarginRateInput } from './marginRates/types';
+import { useMarginValuations, useSaveMarginValuation } from '@features/credit/margin-valuations/hooks';
+import {
+  MARGIN_VALUATION_RUN_TYPES, RECONCILIATION_STATUSES,
+  type MarginValuation, type MarginValuationInput,
+} from '@features/credit/margin-valuations/types';
 
 const METHOD_COLOR: Record<string, string> = { SPAN: 'blue', VAR: 'green', GRID_FLAT: 'purple' };
 
@@ -128,6 +133,116 @@ function MarginRatesTab({ clearingAccountId }: { clearingAccountId: number }) {
               </Form.Item>
               <Form.Item name="effectiveTo" label="Effective To" style={{ width: 150 }}>
                 <DatePicker style={{ width: '100%' }} />
+              </Form.Item>
+            </Space>
+            <Space style={{ marginTop: 8 }}>
+              <Button size="small" onClick={() => { setAddOpen(false); form.resetFields(); }}>Cancel</Button>
+              <Button size="small" type="primary" onClick={() => { void submit(); }} loading={save.isPending}>Add</Button>
+            </Space>
+          </Form>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MarginValuationsTab({ clearingAccountId }: { clearingAccountId: number }) {
+  const { data = [], isLoading } = useMarginValuations(clearingAccountId);
+  const save = useSaveMarginValuation(clearingAccountId);
+  const [addOpen, setAddOpen] = useState(false);
+  const [form] = Form.useForm();
+
+  async function submit() {
+    const v = await form.validateFields();
+    const input: MarginValuationInput = {
+      ...v,
+      clearingAccountId,
+      valuationDate: v.valuationDate.format('YYYY-MM-DD'),
+      spreadOffsetDiscount: v.spreadOffsetDiscount ?? 0,
+      optionPremiumAmount: v.optionPremiumAmount ?? 0,
+      fxRateToAccountBase: v.fxRateToAccountBase ?? 1,
+      discrepancyWithFcm: v.discrepancyWithFcm ?? 0,
+      rowVersion: 0,
+    };
+    await save.mutateAsync({ id: null, input });
+    setAddOpen(false);
+    form.resetFields();
+  }
+
+  const cols: ColumnsType<MarginValuation> = [
+    { title: 'Date', dataIndex: 'valuationDate', width: 110 },
+    { title: 'Run', dataIndex: 'runType', width: 100 },
+    { title: 'Gross IM', dataIndex: 'grossInitialMargin', width: 120, align: 'right' as const, render: (v: number) => v.toLocaleString() },
+    { title: 'Net Required IM', dataIndex: 'netRequiredIm', width: 130, align: 'right' as const, render: (v: number) => v.toLocaleString() },
+    { title: 'VM P&L', dataIndex: 'variationMarginPnl', width: 110, align: 'right' as const, render: (v: number) => v.toLocaleString() },
+    { title: 'Net Call Amount', dataIndex: 'netMarginCallAmount', width: 130, align: 'right' as const, render: (v: number) => v.toLocaleString() },
+    { title: 'Discrepancy', dataIndex: 'discrepancyWithFcm', width: 110, align: 'right' as const, render: (v: number) => v.toLocaleString() },
+    { title: 'Reconciliation', dataIndex: 'reconciliationStatus', width: 130 },
+  ];
+
+  return (
+    <div>
+      <Typography.Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 12 }}>
+        Daily/intraday EOD margin computation and FCM-statement-reconciliation runs for this clearing
+        account — the calculation that produces the numbers a Margin Call gets issued from.
+      </Typography.Text>
+      <Table
+        size="small"
+        columns={cols}
+        dataSource={data}
+        loading={isLoading}
+        rowKey="marginValuationId"
+        pagination={false}
+        locale={{ emptyText: 'No valuation runs recorded yet.' }}
+        footer={() => (
+          <Button size="small" icon={<PlusOutlined />} onClick={() => setAddOpen(true)}>Add Valuation Run</Button>
+        )}
+      />
+      {addOpen && (
+        <div style={{ marginTop: 12, padding: 16, border: `1px solid ${color.border}`, borderRadius: 6 }}>
+          <Form form={form} layout="vertical" initialValues={{ runType: 'EOD', reconciliationStatus: 'CALCULATED', totalOpenLots: 0, spreadOffsetDiscount: 0, optionPremiumAmount: 0, fxRateToAccountBase: 1, fcmCashBalance: 0, fcmCollateralNoncash: 0, discrepancyWithFcm: 0 }}>
+            <Space style={{ width: '100%', gap: 12 }} wrap>
+              <Form.Item name="valuationDate" label="Valuation Date" rules={[{ required: true }]} initialValue={dayjs()} style={{ width: 150 }}>
+                <DatePicker style={{ width: '100%' }} />
+              </Form.Item>
+              <Form.Item name="runType" label="Run Type" style={{ width: 130 }}>
+                <Select options={MARGIN_VALUATION_RUN_TYPES.map((t) => ({ value: t, label: t }))} />
+              </Form.Item>
+              <Form.Item name="totalOpenLots" label="Total Open Lots" rules={[{ required: true }]} style={{ width: 140 }}>
+                <InputNumber style={{ width: '100%' }} />
+              </Form.Item>
+              <Form.Item name="grossInitialMargin" label="Gross IM" rules={[{ required: true }]} style={{ width: 140 }}>
+                <InputNumber style={{ width: '100%' }} />
+              </Form.Item>
+              <Form.Item name="spreadOffsetDiscount" label="Spread Offset Discount" style={{ width: 160 }}>
+                <InputNumber style={{ width: '100%' }} />
+              </Form.Item>
+              <Form.Item name="netRequiredIm" label="Net Required IM" rules={[{ required: true }]} style={{ width: 140 }}>
+                <InputNumber style={{ width: '100%' }} />
+              </Form.Item>
+              <Form.Item name="variationMarginPnl" label="VM P&L" rules={[{ required: true }]} style={{ width: 130 }}>
+                <InputNumber style={{ width: '100%' }} />
+              </Form.Item>
+              <Form.Item name="optionPremiumAmount" label="Option Premium" style={{ width: 140 }}>
+                <InputNumber style={{ width: '100%' }} />
+              </Form.Item>
+              <Form.Item name="fcmCashBalance" label="FCM Cash Balance" rules={[{ required: true }]} style={{ width: 150 }}>
+                <InputNumber style={{ width: '100%' }} />
+              </Form.Item>
+              <Form.Item name="fcmCollateralNoncash" label="FCM Non-Cash Collateral" rules={[{ required: true }]} style={{ width: 170 }}>
+                <InputNumber style={{ width: '100%' }} />
+              </Form.Item>
+              <Form.Item name="fxRateToAccountBase" label="FX Rate to Base" style={{ width: 140 }}>
+                <InputNumber style={{ width: '100%' }} min={0} step={0.0001} />
+              </Form.Item>
+              <Form.Item name="netMarginCallAmount" label="Net Margin Call Amount" rules={[{ required: true }]} style={{ width: 170 }}>
+                <InputNumber style={{ width: '100%' }} />
+              </Form.Item>
+              <Form.Item name="discrepancyWithFcm" label="Discrepancy vs FCM" style={{ width: 150 }}>
+                <InputNumber style={{ width: '100%' }} />
+              </Form.Item>
+              <Form.Item name="reconciliationStatus" label="Reconciliation" style={{ width: 150 }}>
+                <Select options={RECONCILIATION_STATUSES.map((s) => ({ value: s, label: s }))} />
               </Form.Item>
             </Space>
             <Space style={{ marginTop: 8 }}>
@@ -258,6 +373,12 @@ export function ClearingAccountsPage() {
       label: <Space><PercentageOutlined />House Margin Rates</Space>,
       disabled: editing === null,
       children: editing ? <MarginRatesTab clearingAccountId={editing.clearingAccountId} /> : null,
+    },
+    {
+      key: 'margin-valuations',
+      label: <Space><CalculatorOutlined />Margin Valuations</Space>,
+      disabled: editing === null,
+      children: editing ? <MarginValuationsTab clearingAccountId={editing.clearingAccountId} /> : null,
     },
   ];
 

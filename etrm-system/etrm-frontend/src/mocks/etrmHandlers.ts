@@ -638,6 +638,32 @@ function computeContractMarginRate(input: Record<string, unknown>): Record<strin
 }
 const contractMarginRatesStore: unknown[] = [];
 
+// ─── CREDIT — MARGIN OFFSET RULES (spark/dark/crack spread IM discounts) ────
+function computeMarginOffsetRule(input: Record<string, unknown>): Record<string, unknown> {
+  const ex = (exchangesStore as Array<Record<string, unknown>>).find((e) => e['exchangeId'] === input['exchangeId']);
+  const links = marketProductsStore as Array<Record<string, unknown>>;
+  const leg1 = links.find((l) => l['marketProductLinkId'] === input['leg1MarketProductLinkId']);
+  const leg2 = links.find((l) => l['marketProductLinkId'] === input['leg2MarketProductLinkId']);
+  return {
+    ...input,
+    exchangeCode: ex?.['exchangeCode'] ?? null,
+    leg1Label: leg1?.['ticker'] ?? null,
+    leg2Label: leg2?.['ticker'] ?? null,
+  };
+}
+const marginOffsetRulesStore: unknown[] = [];
+
+// ─── CREDIT — MARGIN VALUATIONS (EOD margin computation runs) ───────────────
+function computeMarginValuation(input: Record<string, unknown>): Record<string, unknown> {
+  const ca = (clearingAccountsStore as unknown as Array<Record<string, unknown>>).find((c) => c['clearingAccountId'] === input['clearingAccountId']);
+  return {
+    ...input,
+    clearingAccountCode: ca?.['accountCode'] ?? null,
+    volumeUomCode: null,
+  };
+}
+const marginValuationsStore: unknown[] = [];
+
 // ─── CREDIT — MARGIN ACCOUNTS ─────────────────────────────────────────────────
 function computeMarginAccount(input: Record<string, unknown>): Record<string, unknown> {
   const ca = (clearingAccountsStore as Array<Record<string, unknown>>).find((c) => c['clearingAccountId'] === input['clearingAccountId']);
@@ -651,6 +677,18 @@ function computeMarginAccount(input: Record<string, unknown>): Record<string, un
 const marginAccountsStore: unknown[] = [
   { marginAccountId: 1, clearingAccountId: 1, clearingAccountCode: 'ICE-ACMEUK-01', marketId: 1, marketName: 'ICE Brent', accountRef: 'ICE-ACMEUK-001', accountType: 'HOUSE', initialMargin: 2500000, variationMargin: -180000, excessMargin: 320000, marginLimit: 10000000, isActive: true, notes: null, createdAt: '2024-01-01T00:00:00Z' },
 ];
+
+// ─── CREDIT — MARGIN CALLS (per-margin-account pay/receive demand ledger) ───
+function computeMarginCall(input: Record<string, unknown>): Record<string, unknown> {
+  const ma = (marginAccountsStore as unknown as Array<Record<string, unknown>>).find((a) => a['marginAccountId'] === input['marginAccountId']);
+  const ccy = (referenceRowSeed.currency as unknown as Array<Record<string, unknown>>).find((c) => c['currencyId'] === input['currencyId']);
+  return {
+    ...input,
+    marginAccountCode: ma?.['accountRef'] ?? null,
+    currencyCode: ccy?.['currencyCode'] ?? null,
+  };
+}
+const marginCallsStore: unknown[] = [];
 
 // ─── CREDIT — COLLATERAL ──────────────────────────────────────────────────────
 function computeCollateral(input: Record<string, unknown>): Record<string, unknown> {
@@ -3733,6 +3771,85 @@ export const etrmHandlers = [
     return HttpResponse.json(s[idx]);
   }),
   ...crudHandlers('credit/contract-margin-rates', contractMarginRatesStore as Array<Record<string, unknown>>, 'contractMarginRateId'),
+
+  // ─── CREDIT — Margin Offset Rules (spark/dark/crack spread IM discounts) ───────
+  http.get(`${API}/credit/margin-offset-rules`, ({ request }) => {
+    const url = new URL(request.url);
+    const exchangeId = Number(url.searchParams.get('exchangeId'));
+    const s = marginOffsetRulesStore as Array<Record<string, unknown>>;
+    return HttpResponse.json(s.filter((r) => r['exchangeId'] === exchangeId));
+  }),
+  http.post(`${API}/credit/margin-offset-rules`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const s = marginOffsetRulesStore as Array<Record<string, unknown>>;
+    const maxId = s.reduce((m, r) => Math.max(m, Number(r['marginOffsetRuleId'])), 0);
+    const row = { ...computeMarginOffsetRule(input), marginOffsetRuleId: maxId + 1, createdAt: now() };
+    s.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/credit/margin-offset-rules/:id`, async ({ params, request }) => {
+    const s = marginOffsetRulesStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['marginOffsetRuleId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Margin offset rule ${String(params.id)} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    s[idx] = { ...s[idx], ...computeMarginOffsetRule({ ...s[idx], ...input }) };
+    return HttpResponse.json(s[idx]);
+  }),
+  ...crudHandlers('credit/margin-offset-rules', marginOffsetRulesStore as Array<Record<string, unknown>>, 'marginOffsetRuleId'),
+
+  // ─── CREDIT — Margin Valuations (EOD margin computation runs) ──────────────────
+  http.get(`${API}/credit/margin-valuations`, ({ request }) => {
+    const url = new URL(request.url);
+    const clearingAccountId = Number(url.searchParams.get('clearingAccountId'));
+    const s = marginValuationsStore as Array<Record<string, unknown>>;
+    return HttpResponse.json(
+      s.filter((r) => r['clearingAccountId'] === clearingAccountId)
+        .sort((a, b) => String(b['valuationDate']).localeCompare(String(a['valuationDate']))),
+    );
+  }),
+  http.post(`${API}/credit/margin-valuations`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const s = marginValuationsStore as Array<Record<string, unknown>>;
+    const maxId = s.reduce((m, r) => Math.max(m, Number(r['marginValuationId'])), 0);
+    const row = { ...computeMarginValuation(input), marginValuationId: maxId + 1, createdAt: now() };
+    s.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/credit/margin-valuations/:id`, async ({ params, request }) => {
+    const s = marginValuationsStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['marginValuationId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Margin valuation ${String(params.id)} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    s[idx] = { ...s[idx], ...computeMarginValuation({ ...s[idx], ...input }) };
+    return HttpResponse.json(s[idx]);
+  }),
+
+  // ─── CREDIT — Margin Calls (per-margin-account pay/receive demand ledger) ──────
+  http.get(`${API}/credit/margin-calls`, ({ request }) => {
+    const url = new URL(request.url);
+    const marginAccountId = Number(url.searchParams.get('marginAccountId'));
+    const s = marginCallsStore as Array<Record<string, unknown>>;
+    return HttpResponse.json(
+      s.filter((r) => r['marginAccountId'] === marginAccountId)
+        .sort((a, b) => String(b['callDate']).localeCompare(String(a['callDate']))),
+    );
+  }),
+  http.post(`${API}/credit/margin-calls`, async ({ request }) => {
+    const input = (await request.json()) as Record<string, unknown>;
+    const s = marginCallsStore as Array<Record<string, unknown>>;
+    const maxId = s.reduce((m, r) => Math.max(m, Number(r['callId'])), 0);
+    const row = { ...computeMarginCall(input), callId: maxId + 1, createdAt: now() };
+    s.push(row);
+    return HttpResponse.json(row, { status: 201 });
+  }),
+  http.put(`${API}/credit/margin-calls/:id`, async ({ params, request }) => {
+    const s = marginCallsStore as Array<Record<string, unknown>>;
+    const idx = s.findIndex((r) => r['callId'] === Number(params.id));
+    if (idx === -1) return problem(404, 'Not Found', `Margin call ${String(params.id)} not found.`);
+    const input = (await request.json()) as Record<string, unknown>;
+    s[idx] = { ...s[idx], ...computeMarginCall({ ...s[idx], ...input }) };
+    return HttpResponse.json(s[idx]);
+  }),
 
   // ─── CREDIT — Collateral ──────────────────────────────────────────────────────
   http.post(`${API}/credit/collateral`, async ({ request }) => {

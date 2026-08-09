@@ -74,6 +74,7 @@ const NAV_ITEMS: NavEntry[] = [
       { key: '/credit/clearing-accounts',      icon: <BankOutlined />,              label: 'Clearing Accounts' },
       { key: '/credit/margin-accounts',        icon: <PercentageOutlined />,        label: 'Margin Accounts' },
       { key: '/credit/contract-margin-rates',  icon: <PercentageOutlined />,        label: 'Contract Margin Rates' },
+      { key: '/credit/margin-offset-rules',    icon: <SwapOutlined />,              label: 'Margin Offset Rules' },
     ],
   },
   {
@@ -128,7 +129,7 @@ const ALL_KEYS = [
   '/markets/products', '/markets/markets',
   '/org/books/hierarchy', '/org/books',
   '/credit/margin-agreements', '/credit/limits', '/credit/letters-of-credit',
-  '/credit/clearing-accounts', '/credit/margin-accounts', '/credit/contract-margin-rates',
+  '/credit/clearing-accounts', '/credit/margin-accounts', '/credit/contract-margin-rates', '/credit/margin-offset-rules',
   '/pricing/settlement-prices', '/pricing/tas', '/pricing/pricing-rules', '/pricing/price-sources',
   '/pricing/balmo-products', '/pricing/balmo',
   '/bolmo',

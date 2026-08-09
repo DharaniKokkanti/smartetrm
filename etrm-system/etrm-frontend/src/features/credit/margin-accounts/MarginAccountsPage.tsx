@@ -1,19 +1,124 @@
 import { useMemo, useState } from 'react';
-import { Button, Space, Popconfirm, Tag, Drawer, Form, Input, Select, InputNumber, Switch } from 'antd';
-import { EditOutlined, StopOutlined } from '@ant-design/icons';
+import { Button, Space, Popconfirm, Tag, Drawer, Form, Input, Select, InputNumber, Switch, Tabs, Table, Typography, DatePicker } from 'antd';
+import { EditOutlined, StopOutlined, PlusOutlined, BankOutlined, DollarOutlined } from '@ant-design/icons';
 import type { ColDef } from 'ag-grid-community';
+import type { ColumnsType } from 'antd/es/table';
+import dayjs from 'dayjs';
 import { PageHeader } from '@components/layout/PageHeader';
 import { SmartGrid } from '@components/smart/SmartGrid';
 import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AuditInfo } from '@components/smart/AuditInfo';
+import { color } from '@theme/tokens';
 import { useMarkets } from '@features/markets/markets/hooks';
 import { useClearingAccounts } from '@features/credit/clearing-accounts/hooks';
+import { useCurrencies } from '@features/reference/currencies/hooks';
 import { useMarginAccounts, useSaveMarginAccount, useDeactivateMarginAccount } from './hooks';
 import { MARGIN_ACCOUNT_TYPES, type MarginAccount, type MarginAccountInput } from './types';
+import { useMarginCalls, useSaveMarginCall } from '@features/credit/margin-calls/hooks';
+import {
+  MARGIN_CALL_TYPES, MARGIN_CALL_DIRECTIONS, MARGIN_CALL_STATUSES,
+  type MarginCall, type MarginCallInput,
+} from '@features/credit/margin-calls/types';
 
 const TYPE_COLOR: Record<string, string> = { HOUSE: 'blue', CLIENT: 'green', OMNIBUS: 'purple' };
+
+function MarginCallsTab({ marginAccountId }: { marginAccountId: number }) {
+  const { data = [], isLoading } = useMarginCalls(marginAccountId);
+  const { data: currencies = [] } = useCurrencies();
+  const save = useSaveMarginCall(marginAccountId);
+  const [addOpen, setAddOpen] = useState(false);
+  const [form] = Form.useForm();
+
+  const currencyOpts = useMemo(
+    () => (currencies as { currencyId: number; currencyCode: string }[]).map((c) => ({ value: c.currencyId, label: c.currencyCode })),
+    [currencies],
+  );
+
+  async function submit() {
+    const v = await form.validateFields();
+    const input: MarginCallInput = {
+      ...v,
+      marginAccountId,
+      callDate: v.callDate.format('YYYY-MM-DD'),
+      dueDate: v.dueDate.format('YYYY-MM-DD'),
+      paidAmount: null,
+      paidDate: null,
+      marginValuationId: null,
+      rowVersion: 0,
+    };
+    await save.mutateAsync({ id: null, input });
+    setAddOpen(false);
+    form.resetFields();
+  }
+
+  const cols: ColumnsType<MarginCall> = [
+    { title: 'Call Date', dataIndex: 'callDate', width: 110 },
+    { title: 'Type', dataIndex: 'callType', width: 120 },
+    { title: 'Direction', dataIndex: 'callDirection', width: 90 },
+    {
+      title: 'Amount', dataIndex: 'callAmount', width: 130, align: 'right' as const,
+      render: (v: number, r) => `${r.currencyCode ?? ''} ${v.toLocaleString()}`,
+    },
+    { title: 'Due Date', dataIndex: 'dueDate', width: 110 },
+    { title: 'Status', dataIndex: 'status', width: 100 },
+  ];
+
+  return (
+    <div>
+      <Typography.Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 12 }}>
+        Pay-or-receive margin demand ledger entries for this margin account — initial, variation,
+        intraday calls, and excess-margin returns.
+      </Typography.Text>
+      <Table
+        size="small"
+        columns={cols}
+        dataSource={data}
+        loading={isLoading}
+        rowKey="callId"
+        pagination={false}
+        locale={{ emptyText: 'No margin calls recorded yet.' }}
+        footer={() => (
+          <Button size="small" icon={<PlusOutlined />} onClick={() => setAddOpen(true)}>Add Margin Call</Button>
+        )}
+      />
+      {addOpen && (
+        <div style={{ marginTop: 12, padding: 16, border: `1px solid ${color.border}`, borderRadius: 6 }}>
+          <Form form={form} layout="vertical" initialValues={{ callType: 'VARIATION', callDirection: 'PAY', status: 'PENDING' }}>
+            <Space style={{ width: '100%', gap: 12 }} wrap>
+              <Form.Item name="callDate" label="Call Date" rules={[{ required: true }]} initialValue={dayjs()} style={{ width: 150 }}>
+                <DatePicker style={{ width: '100%' }} />
+              </Form.Item>
+              <Form.Item name="callType" label="Type" style={{ width: 140 }}>
+                <Select options={MARGIN_CALL_TYPES.map((t) => ({ value: t, label: t }))} />
+              </Form.Item>
+              <Form.Item name="callDirection" label="Direction" style={{ width: 120 }}>
+                <Select options={MARGIN_CALL_DIRECTIONS.map((d) => ({ value: d, label: d }))} />
+              </Form.Item>
+              <Form.Item name="currencyId" label="Currency" rules={[{ required: true }]} style={{ width: 110 }}>
+                <Select options={currencyOpts} />
+              </Form.Item>
+              <Form.Item name="callAmount" label="Amount" rules={[{ required: true }]} style={{ width: 140 }}>
+                <InputNumber style={{ width: '100%' }} min={0} />
+              </Form.Item>
+              <Form.Item name="dueDate" label="Due Date" rules={[{ required: true }]} initialValue={dayjs()} style={{ width: 150 }}>
+                <DatePicker style={{ width: '100%' }} />
+              </Form.Item>
+              <Form.Item name="status" label="Status" style={{ width: 130 }}>
+                <Select options={MARGIN_CALL_STATUSES.map((s) => ({ value: s, label: s }))} />
+              </Form.Item>
+            </Space>
+            <Space style={{ marginTop: 8 }}>
+              <Button size="small" onClick={() => { setAddOpen(false); form.resetFields(); }}>Cancel</Button>
+              <Button size="small" type="primary" onClick={() => { void submit(); }} loading={save.isPending}>Add</Button>
+            </Space>
+          </Form>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function MarginAccountsPage() {
   const { data = [], isLoading, refetch } = useMarginAccounts();
@@ -24,11 +129,13 @@ export function MarginAccountsPage() {
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<MarginAccount | null>(null);
+  const [activeTab, setActiveTab] = useState('details');
   const [form] = Form.useForm<MarginAccountInput>();
   useFormDraft('margin-accounts', { form, open, setOpen, editing, setEditing });
 
   function openNew() {
     setEditing(null);
+    setActiveTab('details');
     form.resetFields();
     form.setFieldsValue({ accountType: 'HOUSE', initialMargin: 0, variationMargin: 0, excessMargin: 0, isActive: true } as unknown as MarginAccountInput);
     setOpen(true);
@@ -36,6 +143,7 @@ export function MarginAccountsPage() {
 
   function openEdit(r: MarginAccount) {
     setEditing(r);
+    setActiveTab('details');
     form.setFieldsValue(r as unknown as MarginAccountInput);
     setOpen(true);
   }
@@ -97,36 +205,11 @@ export function MarginAccountsPage() {
     },
   ], [deactivate, currencyByClearingAccount]);
 
-  return (
-    <>
-      <PageHeader
-        title="Margin Accounts"
-        description="Exchange margin accounts for cleared trades — initial and variation margin tracking per market, allocated under a clearing account."
-        moduleGroup="credit"
-      />
-      <SmartGrid
-        columnDefs={colDefs}
-        rowData={data}
-        loading={isLoading}
-        onAdd={openNew}
-        addLabel="New Margin Account"
-        onRefresh={() => { void refetch(); }}
-        getRowId={(p) => String(p.data.marginAccountId)}
-      />
-
-      <Drawer mask={false} forceRender
-        title={editing ? `Edit Margin Account — ${editing.accountRef}` : 'New Margin Account'}
-        open={open}
-        onClose={() => setOpen(false)}
-        width={480}
-        footer={
-          <Space style={{ justifyContent: 'flex-end', display: 'flex' }}>
-            <Button onClick={() => setOpen(false)}>Cancel</Button>
-            <Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button>
-            <Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button>
-          </Space>
-        }
-      >
+  const tabItems = [
+    {
+      key: 'details',
+      label: <Space><BankOutlined />Account Details</Space>,
+      children: (
         <Form form={form} layout="vertical">
           <Form.Item name="clearingAccountId" label={hint('Clearing Account', 'The FCM-level account this per-market balance is allocated under — carries legal entity, clearing broker, and currency.')} rules={[{ required: true }]}>
             <Select options={clearingAccountOpts} showSearch optionFilterProp="label" />
@@ -162,8 +245,58 @@ export function MarginAccountsPage() {
           <Form.Item name="isActive" label="Active" valuePropName="checked">
             <Switch />
           </Form.Item>
+          <AuditInfo createdAt={editing?.createdAt} />
         </Form>
-        <AuditInfo createdAt={editing?.createdAt} />
+      ),
+    },
+    {
+      key: 'margin-calls',
+      label: <Space><DollarOutlined />Margin Calls</Space>,
+      disabled: editing === null,
+      children: editing ? <MarginCallsTab marginAccountId={editing.marginAccountId} /> : null,
+    },
+  ];
+
+  return (
+    <>
+      <PageHeader
+        title="Margin Accounts"
+        description="Exchange margin accounts for cleared trades — initial and variation margin tracking per market, allocated under a clearing account."
+        moduleGroup="credit"
+      />
+      <SmartGrid
+        columnDefs={colDefs}
+        rowData={data}
+        loading={isLoading}
+        onAdd={openNew}
+        addLabel="New Margin Account"
+        onRefresh={() => { void refetch(); }}
+        getRowId={(p) => String(p.data.marginAccountId)}
+      />
+
+      <Drawer mask={false} forceRender
+        title={editing ? `Edit Margin Account — ${editing.accountRef}` : 'New Margin Account'}
+        open={open}
+        onClose={() => setOpen(false)}
+        width={560}
+        footer={
+          activeTab === 'details' ? (
+            <Space style={{ justifyContent: 'flex-end', display: 'flex' }}>
+              <Button onClick={() => setOpen(false)}>Cancel</Button>
+              <Button onClick={() => { void submit(false); }} loading={save.isPending}>Save</Button>
+              <Button type="primary" onClick={() => { void submit(true); }} loading={save.isPending}>Save & Close</Button>
+            </Space>
+          ) : null
+        }
+        styles={{ body: { padding: 0 } }}
+      >
+        <Tabs
+          activeKey={activeTab}
+          onChange={setActiveTab}
+          items={tabItems}
+          style={{ padding: '0 24px 24px' }}
+          tabBarStyle={{ marginBottom: 16, paddingTop: 12 }}
+        />
       </Drawer>
     </>
   );

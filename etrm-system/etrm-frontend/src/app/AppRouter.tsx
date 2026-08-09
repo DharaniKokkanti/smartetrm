@@ -88,6 +88,7 @@ const InsurancePoliciesPage = lazy1(() => import('@features/credit/insurance-pol
 const MarginAccountsPage = lazy1(() => import('@features/credit/margin-accounts/MarginAccountsPage'), 'MarginAccountsPage');
 const ClearingAccountsPage = lazy1(() => import('@features/credit/clearing-accounts/ClearingAccountsPage'), 'ClearingAccountsPage');
 const ContractMarginRatesPage = lazy1(() => import('@features/credit/contract-margin-rates/ContractMarginRatesPage'), 'ContractMarginRatesPage');
+const MarginOffsetRulesPage = lazy1(() => import('@features/credit/margin-offset-rules/MarginOffsetRulesPage'), 'MarginOffsetRulesPage');
 const CollateralPage = lazy1(() => import('@features/credit/collateral/CollateralPage'), 'CollateralPage');
 const VesselCertificatesPage = lazy1(() => import('@features/logistics/vessel-certificates/VesselCertificatesPage'), 'VesselCertificatesPage');
 const RailcarsPage = lazy1(() => import('@features/logistics/railcars/RailcarsPage'), 'RailcarsPage');
@@ -248,6 +249,7 @@ export function AppRouter() {
         <Route path="/credit/margin-accounts" element={<S><MarginAccountsPage /></S>} />
         <Route path="/credit/clearing-accounts" element={<S><ClearingAccountsPage /></S>} />
         <Route path="/credit/contract-margin-rates" element={<S><ContractMarginRatesPage /></S>} />
+        <Route path="/credit/margin-offset-rules" element={<S><MarginOffsetRulesPage /></S>} />
         <Route path="/credit/collateral" element={<S><CollateralPage /></S>} />
         <Route path="/logistics/vessel-certs" element={<S><VesselCertificatesPage /></S>} />
         <Route path="/logistics/railcars" element={<S><RailcarsPage /></S>} />
