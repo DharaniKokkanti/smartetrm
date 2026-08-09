@@ -11,7 +11,7 @@ import { useFormDraft } from '@components/smart/formDraft';
 import { hint } from '@components/smart/FieldHint';
 import { usePipelines } from '@features/trade/hooks';
 import { useHolidayCalendars } from '@features/calendar/holiday-calendars/hooks';
-import { useTableRows } from '@features/tier2/hooks';
+import { useProducts } from '@features/markets/products/hooks';
 import { usePipelineCycles, useSavePipelineCycle, useDeactivatePipelineCycle } from './hooks';
 import { CYCLE_TYPES, APPLIES_TO_DAYS, type PipelineCycle, type PipelineCycleInput } from './types';
 
@@ -28,7 +28,7 @@ export function PipelineCyclesPage() {
   const deactivate = useDeactivatePipelineCycle();
   const { data: pipelines = [] } = usePipelines();
   const { data: calendars = [] } = useHolidayCalendars();
-  const { data: productRows = [] } = useTableRows<{ productId: number; productCode: string; productName: string }>('product');
+  const { data: productRows = [] } = useProducts();
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<PipelineCycle | null>(null);

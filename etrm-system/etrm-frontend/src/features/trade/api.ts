@@ -10,239 +10,176 @@ import { apiClient } from '@services/api';
 
 export type { Counterparty, LegalEntity };
 
-const BASE = '/api/v1';
+// All calls in this file go through apiClient (not raw fetch) — they need
+// the Authorization header against the real backend. Raw fetch() used to
+// work here because MSW mocks intercept fetch() regardless of headers, but
+// silently 403s against the real backend (confirmed for /pipelines et al.
+// during the 2026-08-09 master-data audit — see handoff doc §0).
 
 // ─── Trades ───────────────────────────────────────────────────────────────────
 
 export async function fetchTrades(filter: TradeFilter = {}): Promise<Trade[]> {
-  const params = new URLSearchParams();
-  if (filter.commodityType) params.set('commodityType', filter.commodityType);
-  if (filter.status) params.set('status', filter.status);
-  if (filter.direction) params.set('direction', filter.direction);
-  const qs = params.toString();
-  const res = await fetch(`${BASE}/trades${qs ? `?${qs}` : ''}`);
-  if (!res.ok) throw new Error('Failed to fetch trades');
-  return res.json() as Promise<Trade[]>;
+  const params: Record<string, string> = {};
+  if (filter.commodityType) params.commodityType = filter.commodityType;
+  if (filter.status) params.status = filter.status;
+  if (filter.direction) params.direction = filter.direction;
+  return apiClient.get<Trade[]>('/trades', { params }).then((r) => r.data);
 }
 
 export async function fetchTrade(id: number): Promise<Trade> {
-  const res = await fetch(`${BASE}/trades/${id}`);
-  if (!res.ok) throw new Error('Trade not found');
-  return res.json() as Promise<Trade>;
+  return apiClient.get<Trade>(`/trades/${id}`).then((r) => r.data);
 }
 
 export async function createTrade(input: TradeInput): Promise<Trade> {
-  const res = await fetch(`${BASE}/trades`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
-  if (!res.ok) throw new Error('Failed to create trade');
-  return res.json() as Promise<Trade>;
+  return apiClient.post<Trade>('/trades', input).then((r) => r.data);
 }
 
 export async function updateTrade(id: number, input: Partial<TradeInput>): Promise<Trade> {
-  const res = await fetch(`${BASE}/trades/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
-  if (!res.ok) throw new Error('Failed to update trade');
-  return res.json() as Promise<Trade>;
+  return apiClient.put<Trade>(`/trades/${id}`, input).then((r) => r.data);
 }
 
 export async function cancelTrade(id: number): Promise<Trade> {
-  const res = await fetch(`${BASE}/trades/${id}/cancel`, { method: 'PATCH' });
-  if (!res.ok) throw new Error('Failed to cancel trade');
-  return res.json() as Promise<Trade>;
+  return apiClient.patch<Trade>(`/trades/${id}/cancel`).then((r) => r.data);
 }
 
 export async function confirmTrade(id: number): Promise<Trade> {
-  const res = await fetch(`${BASE}/trades/${id}/confirm`, { method: 'PATCH' });
-  if (!res.ok) throw new Error('Failed to confirm trade');
-  return res.json() as Promise<Trade>;
+  return apiClient.patch<Trade>(`/trades/${id}/confirm`).then((r) => r.data);
 }
 
 // ─── Trade Orders ─────────────────────────────────────────────────────────────
 
 export async function fetchTradeOrders(tradeId: number): Promise<TradeOrder[]> {
-  const res = await fetch(`${BASE}/trade-orders?tradeId=${tradeId}`);
-  if (!res.ok) throw new Error('Failed to fetch orders');
-  return res.json() as Promise<TradeOrder[]>;
+  return apiClient.get<TradeOrder[]>('/trade-orders', { params: { tradeId } }).then((r) => r.data);
 }
 
 export async function createTradeOrder(input: TradeOrderInput): Promise<TradeOrder> {
-  const res = await fetch(`${BASE}/trade-orders`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
-  if (!res.ok) throw new Error('Failed to create order');
-  return res.json() as Promise<TradeOrder>;
+  return apiClient.post<TradeOrder>('/trade-orders', input).then((r) => r.data);
 }
 
 export async function updateTradeOrder(id: number, input: Partial<TradeOrderInput>): Promise<TradeOrder> {
-  const res = await fetch(`${BASE}/trade-orders/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
-  if (!res.ok) throw new Error('Failed to update order');
-  return res.json() as Promise<TradeOrder>;
+  return apiClient.put<TradeOrder>(`/trade-orders/${id}`, input).then((r) => r.data);
 }
 
 export async function cancelTradeOrder(id: number): Promise<TradeOrder> {
-  const res = await fetch(`${BASE}/trade-orders/${id}/cancel`, { method: 'PATCH' });
-  if (!res.ok) throw new Error('Failed to cancel order');
-  return res.json() as Promise<TradeOrder>;
+  return apiClient.patch<TradeOrder>(`/trade-orders/${id}/cancel`).then((r) => r.data);
 }
 
 export async function confirmTradeOrder(id: number): Promise<TradeOrder> {
-  const res = await fetch(`${BASE}/trade-orders/${id}/confirm`, { method: 'PATCH' });
-  if (!res.ok) throw new Error('Failed to confirm order');
-  return res.json() as Promise<TradeOrder>;
+  return apiClient.patch<TradeOrder>(`/trade-orders/${id}/confirm`).then((r) => r.data);
 }
 
 // ─── Trade Items ──────────────────────────────────────────────────────────────
 
 export async function fetchTradeItems(orderId: number): Promise<TradeItem[]> {
-  const res = await fetch(`${BASE}/trade-items?orderId=${orderId}`);
-  if (!res.ok) throw new Error('Failed to fetch items');
-  return res.json() as Promise<TradeItem[]>;
+  return apiClient.get<TradeItem[]>('/trade-items', { params: { orderId } }).then((r) => r.data);
 }
 
 export async function createTradeItem(input: TradeItemInput): Promise<TradeItem> {
-  const res = await fetch(`${BASE}/trade-items`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
-  if (!res.ok) throw new Error('Failed to create item');
-  return res.json() as Promise<TradeItem>;
+  return apiClient.post<TradeItem>('/trade-items', input).then((r) => r.data);
 }
 
 export async function updateTradeItem(id: number, input: Partial<TradeItemInput>): Promise<TradeItem> {
-  const res = await fetch(`${BASE}/trade-items/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
-  if (!res.ok) throw new Error('Failed to update item');
-  return res.json() as Promise<TradeItem>;
+  return apiClient.put<TradeItem>(`/trade-items/${id}`, input).then((r) => r.data);
 }
 
 export async function deleteTradeItem(id: number): Promise<void> {
-  const res = await fetch(`${BASE}/trade-items/${id}`, { method: 'DELETE' });
-  if (!res.ok) throw new Error('Failed to delete item');
+  await apiClient.delete(`/trade-items/${id}`);
 }
 
 // ─── Trade Costs (trade-level secondary costs, V88) ──────────────────────────
 
 export async function fetchTradeCosts(tradeId: number): Promise<TradeCost[]> {
-  const res = await fetch(`${BASE}/trade-costs?tradeId=${tradeId}`);
-  if (!res.ok) throw new Error('Failed to fetch trade costs');
-  return res.json() as Promise<TradeCost[]>;
+  return apiClient.get<TradeCost[]>('/trade-costs', { params: { tradeId } }).then((r) => r.data);
 }
 
 export async function createTradeCost(input: TradeCostInput): Promise<TradeCost> {
-  const res = await fetch(`${BASE}/trade-costs`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
-  if (!res.ok) throw new Error('Failed to create trade cost');
-  return res.json() as Promise<TradeCost>;
+  return apiClient.post<TradeCost>('/trade-costs', input).then((r) => r.data);
 }
 
 export async function updateTradeCost(id: number, input: Partial<TradeCostInput>): Promise<TradeCost> {
-  const res = await fetch(`${BASE}/trade-costs/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
-  if (!res.ok) throw new Error('Failed to update trade cost');
-  return res.json() as Promise<TradeCost>;
+  return apiClient.put<TradeCost>(`/trade-costs/${id}`, input).then((r) => r.data);
 }
 
 export async function deleteTradeCost(id: number): Promise<void> {
-  const res = await fetch(`${BASE}/trade-costs/${id}`, { method: 'DELETE' });
-  if (!res.ok) throw new Error('Failed to delete trade cost');
+  await apiClient.delete(`/trade-costs/${id}`);
 }
 
 // ─── Leg Costs (order-level secondary costs, V88) ────────────────────────────
 
 export async function fetchLegCosts(orderId: number): Promise<TradeOrderCost[]> {
-  const res = await fetch(`${BASE}/trade-order-costs?orderId=${orderId}`);
-  if (!res.ok) throw new Error('Failed to fetch leg costs');
-  return res.json() as Promise<TradeOrderCost[]>;
+  return apiClient.get<TradeOrderCost[]>('/trade-order-costs', { params: { orderId } }).then((r) => r.data);
 }
 
 export async function createLegCost(input: TradeOrderCostInput): Promise<TradeOrderCost> {
-  const res = await fetch(`${BASE}/trade-order-costs`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
-  if (!res.ok) throw new Error('Failed to create leg cost');
-  return res.json() as Promise<TradeOrderCost>;
+  return apiClient.post<TradeOrderCost>('/trade-order-costs', input).then((r) => r.data);
 }
 
 export async function updateLegCost(id: number, input: Partial<TradeOrderCostInput>): Promise<TradeOrderCost> {
-  const res = await fetch(`${BASE}/trade-order-costs/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
-  if (!res.ok) throw new Error('Failed to update leg cost');
-  return res.json() as Promise<TradeOrderCost>;
+  return apiClient.put<TradeOrderCost>(`/trade-order-costs/${id}`, input).then((r) => r.data);
 }
 
 export async function deleteLegCost(id: number): Promise<void> {
-  const res = await fetch(`${BASE}/trade-order-costs/${id}`, { method: 'DELETE' });
-  if (!res.ok) throw new Error('Failed to delete leg cost');
+  await apiClient.delete(`/trade-order-costs/${id}`);
 }
 
 // ─── Assay Results (physical-leg quality results, V88) ───────────────────────
 
 export async function fetchAssayResults(orderId: number): Promise<TradeAssayResult[]> {
-  const res = await fetch(`${BASE}/trade-order-assay-results?orderId=${orderId}`);
-  if (!res.ok) throw new Error('Failed to fetch assay results');
-  return res.json() as Promise<TradeAssayResult[]>;
+  return apiClient.get<TradeAssayResult[]>('/trade-order-assay-results', { params: { orderId } }).then((r) => r.data);
 }
 
 export async function createAssayResult(input: TradeAssayResultInput): Promise<TradeAssayResult> {
-  const res = await fetch(`${BASE}/trade-order-assay-results`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
-  if (!res.ok) throw new Error('Failed to create assay result');
-  return res.json() as Promise<TradeAssayResult>;
+  return apiClient.post<TradeAssayResult>('/trade-order-assay-results', input).then((r) => r.data);
 }
 
 export async function updateAssayResult(id: number, input: Partial<TradeAssayResultInput>): Promise<TradeAssayResult> {
-  const res = await fetch(`${BASE}/trade-order-assay-results/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
-  if (!res.ok) throw new Error('Failed to update assay result');
-  return res.json() as Promise<TradeAssayResult>;
+  return apiClient.put<TradeAssayResult>(`/trade-order-assay-results/${id}`, input).then((r) => r.data);
 }
 
 export async function deleteAssayResult(id: number): Promise<void> {
-  const res = await fetch(`${BASE}/trade-order-assay-results/${id}`, { method: 'DELETE' });
-  if (!res.ok) throw new Error('Failed to delete assay result');
+  await apiClient.delete(`/trade-order-assay-results/${id}`);
 }
 
 // ─── Custom field definitions (governed registry, V89) ────────────────────────
 
 export async function fetchCustomFieldDefinitions(): Promise<CustomFieldDefinition[]> {
-  const res = await fetch(`${BASE}/custom-field-definitions`);
-  if (!res.ok) throw new Error('Failed to fetch custom field definitions');
-  return res.json() as Promise<CustomFieldDefinition[]>;
+  return apiClient.get<CustomFieldDefinition[]>('/custom-field-definitions').then((r) => r.data);
 }
 
 export async function createCustomFieldDefinition(input: CustomFieldDefinitionInput): Promise<CustomFieldDefinition> {
-  const res = await fetch(`${BASE}/custom-field-definitions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
-  if (!res.ok) throw new Error('Failed to create custom field definition');
-  return res.json() as Promise<CustomFieldDefinition>;
+  return apiClient.post<CustomFieldDefinition>('/custom-field-definitions', input).then((r) => r.data);
 }
 
 export async function updateCustomFieldDefinition(id: number, input: Partial<CustomFieldDefinitionInput>): Promise<CustomFieldDefinition> {
-  const res = await fetch(`${BASE}/custom-field-definitions/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
-  if (!res.ok) throw new Error('Failed to update custom field definition');
-  return res.json() as Promise<CustomFieldDefinition>;
+  return apiClient.put<CustomFieldDefinition>(`/custom-field-definitions/${id}`, input).then((r) => r.data);
 }
 
 // ─── Trade-level custom field values (V89) ────────────────────────────────────
 
 export async function fetchTradeCustomFieldValues(tradeId: number): Promise<TradeCustomFieldValue[]> {
-  const res = await fetch(`${BASE}/trade-custom-field-values?tradeId=${tradeId}`);
-  if (!res.ok) throw new Error('Failed to fetch trade custom field values');
-  return res.json() as Promise<TradeCustomFieldValue[]>;
+  return apiClient.get<TradeCustomFieldValue[]>('/trade-custom-field-values', { params: { tradeId } }).then((r) => r.data);
 }
 
 export async function saveTradeCustomFieldValue(input: TradeCustomFieldValueInput): Promise<TradeCustomFieldValue> {
-  const res = await fetch(`${BASE}/trade-custom-field-values`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
-  if (!res.ok) throw new Error('Failed to save trade custom field value');
-  return res.json() as Promise<TradeCustomFieldValue>;
+  return apiClient.post<TradeCustomFieldValue>('/trade-custom-field-values', input).then((r) => r.data);
 }
 
 export async function deleteTradeCustomFieldValue(id: number): Promise<void> {
-  const res = await fetch(`${BASE}/trade-custom-field-values/${id}`, { method: 'DELETE' });
-  if (!res.ok) throw new Error('Failed to delete trade custom field value');
+  await apiClient.delete(`/trade-custom-field-values/${id}`);
 }
 
 // ─── Leg-level custom field values (V89) ──────────────────────────────────────
 
 export async function fetchLegCustomFieldValues(orderId: number): Promise<TradeOrderCustomFieldValue[]> {
-  const res = await fetch(`${BASE}/trade-order-custom-field-values?orderId=${orderId}`);
-  if (!res.ok) throw new Error('Failed to fetch leg custom field values');
-  return res.json() as Promise<TradeOrderCustomFieldValue[]>;
+  return apiClient.get<TradeOrderCustomFieldValue[]>('/trade-order-custom-field-values', { params: { orderId } }).then((r) => r.data);
 }
 
 export async function saveLegCustomFieldValue(input: TradeOrderCustomFieldValueInput): Promise<TradeOrderCustomFieldValue> {
-  const res = await fetch(`${BASE}/trade-order-custom-field-values`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
-  if (!res.ok) throw new Error('Failed to save leg custom field value');
-  return res.json() as Promise<TradeOrderCustomFieldValue>;
+  return apiClient.post<TradeOrderCustomFieldValue>('/trade-order-custom-field-values', input).then((r) => r.data);
 }
 
 export async function deleteLegCustomFieldValue(id: number): Promise<void> {
-  const res = await fetch(`${BASE}/trade-order-custom-field-values/${id}`, { method: 'DELETE' });
-  if (!res.ok) throw new Error('Failed to delete leg custom field value');
+  await apiClient.delete(`/trade-order-custom-field-values/${id}`);
 }
 
 // ─── Reference data dropdowns ─────────────────────────────────────────────────
@@ -255,9 +192,6 @@ export interface Incoterm { incotermId: number; incotermCode: string; incotermNa
 export interface BrokerRef { brokerId: number; brokerCode: string; brokerName: string; commodityType: CommodityTypeTrade | null; isActive: boolean; }
 export interface PipelineRef { pipelineId: number; pipelineCode: string; pipelineName: string; pipelineType: string; }
 
-// apiClient (not raw fetch) — these need the Authorization header against the
-// real backend (PERM_CP_VIEW-gated); raw fetch() only worked here because
-// MSW mocks intercept fetch() regardless of headers.
 export async function fetchCounterparties(): Promise<Counterparty[]> {
   return apiClient.get<Counterparty[]>('/counterparties').then((r) => r.data);
 }
@@ -265,14 +199,11 @@ export async function fetchLegalEntities(): Promise<LegalEntity[]> {
   return apiClient.get<LegalEntity[]>('/legal-entities').then((r) => r.data);
 }
 export async function fetchIncoterms(): Promise<Incoterm[]> {
-  const res = await fetch(`${BASE}/incoterms`);
-  return res.json() as Promise<Incoterm[]>;
+  return apiClient.get<Incoterm[]>('/incoterms').then((r) => r.data);
 }
 export async function fetchBrokers(): Promise<BrokerRef[]> {
-  const res = await fetch(`${BASE}/brokers`);
-  return res.json() as Promise<BrokerRef[]>;
+  return apiClient.get<BrokerRef[]>('/brokers').then((r) => r.data);
 }
 export async function fetchPipelines(): Promise<PipelineRef[]> {
-  const res = await fetch(`${BASE}/pipelines`);
-  return res.json() as Promise<PipelineRef[]>;
+  return apiClient.get<PipelineRef[]>('/pipelines').then((r) => r.data);
 }

@@ -113,15 +113,15 @@ export function StoragePage() {
     },
     {
       headerName: 'Capacity', width: 150,
-      valueGetter: (p) => p.data ? `${p.data.capacity.toLocaleString()} ${p.data.capacityUomCode}` : '',
+      valueGetter: (p) => p.data?.capacity != null ? `${p.data.capacity.toLocaleString()} ${p.data.capacityUomCode}` : '',
     },
     { field: 'operatorName', headerName: 'Operator', flex: 1 },
     { field: 'countryCode', headerName: 'Country', width: 90 },
     {
       field: 'statusCode', headerName: 'Status', width: 140,
-      cellRenderer: (p: { value: StorageStatusCode }) => (
+      cellRenderer: (p: { value: StorageStatusCode | null }) => p.value ? (
         <Tag color={STATUS_COLOR[p.value] ?? 'default'}>{p.value.replace(/_/g, ' ')}</Tag>
-      ),
+      ) : '—',
     },
     { field: 'isActive', headerName: 'Active', width: 90, cellRenderer: (p: { value: boolean }) => <ActiveTag active={p.value} /> },
     {

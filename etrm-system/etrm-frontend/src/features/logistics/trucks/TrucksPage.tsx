@@ -100,14 +100,14 @@ export function TrucksPage() {
     { field: 'licensePlate', headerName: 'License Plate', width: 140, cellClass: 'cell-mono' },
     {
       field: 'vehicleType', headerName: 'Type', width: 140,
-      cellRenderer: (p: { value: VehicleType }) => (
+      cellRenderer: (p: { value: VehicleType | null }) => p.value ? (
         <Tag color={TYPE_COLOR[p.value] ?? 'default'}>{p.value.replace(/_/g, ' ')}</Tag>
-      ),
+      ) : '—',
     },
     { field: 'operatorName', headerName: 'Operator', flex: 1 },
     {
       headerName: 'Capacity', width: 130,
-      valueGetter: (p) => p.data ? `${p.data.capacity.toLocaleString()} ${p.data.capacityUomCode}` : '',
+      valueGetter: (p) => p.data?.capacity != null ? `${p.data.capacity.toLocaleString()} ${p.data.capacityUomCode}` : '',
     },
     { field: 'countryId', headerName: 'Country', width: 130, valueFormatter: (p) => countryLabelById.get(p.value) ?? String(p.value) },
     {
@@ -122,9 +122,9 @@ export function TrucksPage() {
     },
     {
       field: 'statusCode', headerName: 'Status', width: 120,
-      cellRenderer: (p: { value: VehicleStatusCode }) => (
+      cellRenderer: (p: { value: VehicleStatusCode | null }) => p.value ? (
         <Tag color={STATUS_COLOR[p.value] ?? 'default'}>{p.value.replace(/_/g, ' ')}</Tag>
-      ),
+      ) : '—',
     },
     { field: 'isActive', headerName: 'Active', width: 90, cellRenderer: (p: { value: boolean }) => <ActiveTag active={p.value} /> },
     {

@@ -8,7 +8,8 @@ import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AuditInfo } from '@components/smart/AuditInfo';
-import { useTableRows } from '@features/tier2/hooks';
+import { useStorageFacilities } from '@features/logistics/storage/hooks';
+import { useProducts } from '@features/markets/products/hooks';
 import { COMMODITY_TYPES_TRADE } from '@features/trade/types';
 import { useTanks, useSaveTank, useDeactivateTank } from './hooks';
 import { TANK_TYPES, TANK_STATUSES, type Tank, type TankInput } from './types';
@@ -21,8 +22,8 @@ export function TanksPage() {
   const { data = [], isLoading, refetch } = useTanks();
   const save = useSaveTank();
   const deactivate = useDeactivateTank();
-  const { data: facilityRows = [] } = useTableRows<{ facilityId: number; facilityCode: string; facilityName: string }>('storage_facility');
-  const { data: productRows = [] } = useTableRows<{ productId: number; productCode: string; productName: string }>('product');
+  const { data: facilityRows = [] } = useStorageFacilities();
+  const { data: productRows = [] } = useProducts();
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Tank | null>(null);
@@ -50,7 +51,7 @@ export function TanksPage() {
   }
 
   const facilityOpts = useMemo(
-    () => facilityRows.map((f) => ({ value: f.facilityId, label: `${f.facilityCode} — ${f.facilityName}` })),
+    () => facilityRows.map((f) => ({ value: f.storageId, label: `${f.storageCode} — ${f.storageName}` })),
     [facilityRows],
   );
   const productOpts = useMemo(

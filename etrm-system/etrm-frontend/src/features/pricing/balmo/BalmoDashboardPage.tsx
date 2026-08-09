@@ -4,6 +4,7 @@ import { SyncOutlined, LineChartOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { PageHeader } from '@components/layout/PageHeader';
 import { color } from '@theme/tokens';
+import { apiClient } from '@services/api';
 
 const { Text } = Typography;
 
@@ -45,15 +46,19 @@ function pctElapsed(pos: BalmoPosition): number {
 export function BalmoDashboardPage() {
   const [updatingId, setUpdatingId] = useState<number | null>(null);
 
+  // No real backend controller exists for this yet (flagged, deliberately
+  // deferred — BOLMO is out of Master Data scope). Fixed to use apiClient
+  // (was raw fetch(), no auth header) and the correct path relative to
+  // apiClient's /api/v1 baseURL, matching the MSW mock's registered path.
   const { data: positions = [], isLoading, refetch } = useQuery<BalmoPosition[]>({
     queryKey: ['balmo-positions'],
-    queryFn: () => fetch('/api/pricing/balmo-positions').then((r) => r.json() as Promise<BalmoPosition[]>),
+    queryFn: () => apiClient.get<BalmoPosition[]>('/pricing/balmo-positions').then((r) => r.data),
   });
 
   async function refreshAvg(orderId: number) {
     setUpdatingId(orderId);
     try {
-      await fetch(`/api/pricing/balmo-positions/${orderId}/update-avg`, { method: 'PATCH' });
+      await apiClient.patch(`/pricing/balmo-positions/${orderId}/update-avg`);
       await refetch();
     } finally {
       setUpdatingId(null);

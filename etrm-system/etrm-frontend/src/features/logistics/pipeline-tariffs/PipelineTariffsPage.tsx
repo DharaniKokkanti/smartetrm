@@ -12,7 +12,7 @@ import dayjs, { type Dayjs } from 'dayjs';
 import { usePipelines } from '@features/trade/hooks';
 import { useCurrencies } from '@features/reference/currencies/hooks';
 import { useUom } from '@features/reference/uom/hooks';
-import { useTableRows } from '@features/tier2/hooks';
+import { useProducts } from '@features/markets/products/hooks';
 import { usePipelineTariffs, useSavePipelineTariff, useDeactivatePipelineTariff } from './hooks';
 import { TARIFF_TYPES, CAPACITY_TYPES, TARIFF_SEASONS, type PipelineTariff, type PipelineTariffInput } from './types';
 
@@ -27,7 +27,7 @@ export function PipelineTariffsPage() {
   const { data: pipelines = [] } = usePipelines();
   const { data: currencies = [] } = useCurrencies();
   const { data: uoms = [] } = useUom();
-  const { data: productRows = [] } = useTableRows<{ productId: number; productCode: string; productName: string }>('product');
+  const { data: productRows = [] } = useProducts();
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<PipelineTariff | null>(null);

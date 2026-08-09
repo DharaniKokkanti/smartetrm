@@ -39,6 +39,9 @@ import { useStorageFacilities } from '@features/logistics/storage/hooks';
 import { useVessels } from '@features/logistics/vessels/hooks';
 import { useMarketProductLinkOptions } from '@features/calendar/periods/hooks';
 import { useUom } from '@features/reference/uom/hooks';
+import { useExchanges } from '@features/markets/exchanges/hooks';
+import { usePaymentTerms } from '@features/contracts/payment-terms/hooks';
+import { useTransportRoutes } from '@features/logistics/transport-routes/hooks';
 import { ExcelUploadModal } from './ExcelUploadModal';
 import { useAuthStore } from '@store/authStore';
 import { color } from '@theme/tokens';
@@ -119,6 +122,7 @@ const ISO_3166_COLS = new Set(['countryCode', 'jurisdictionCode', 'incorporation
  *  generic /reference-data/:table mechanism every other foreign_key column uses. */
 const DEDICATED_ENTITY_FK_TABLES = new Set([
   'counterparty', 'location', 'holiday_calendar', 'legal_entity', 'product', 'storage_facility', 'vessel', 'market_product_link', 'unit_of_measure',
+  'exchange', 'payment_term', 'transport_route',
 ]);
 
 /** Extra validation rules injected for globally-standardised codes */
@@ -496,6 +500,9 @@ export function ReferenceDataTable({ table }: Props) {
   const { data: vesselRows = [] } = useVessels();
   const { data: marketProductLinkRows = [] } = useMarketProductLinkOptions();
   const { data: uomRows = [] } = useUom();
+  const { data: exchangeRows = [] } = useExchanges();
+  const { data: paymentTermRows = [] } = usePaymentTerms();
+  const { data: transportRouteRows = [] } = useTransportRoutes();
   const dedicatedEntityFkOptions = useMemo<Record<string, { value: number; label: string }[]>>(() => ({
     counterparty: counterpartyRows.map((c) => ({ value: c.counterpartyId, label: c.legalName })),
     location: locationRows.map((l) => ({ value: l.locationId, label: l.locationName })),
@@ -509,7 +516,13 @@ export function ReferenceDataTable({ table }: Props) {
       label: `${m.marketCode ?? '—'} / ${m.productCode ?? '—'}`,
     })),
     unit_of_measure: uomRows.map((u) => ({ value: u.uomId, label: `${u.uomCode} — ${u.uomName}` })),
-  }), [counterpartyRows, locationRows, holidayCalendarRows, legalEntityRows, productRows, storageFacilityRows, vesselRows, marketProductLinkRows, uomRows]);
+    exchange: exchangeRows.map((e) => ({ value: e.exchangeId, label: `${e.exchangeCode} — ${e.exchangeName}` })),
+    payment_term: paymentTermRows.map((p) => ({ value: p.paymentTermId, label: `${p.termCode} — ${p.termName}` })),
+    transport_route: transportRouteRows.map((r) => ({ value: r.routeId, label: `${r.routeCode} — ${r.routeName}` })),
+  }), [
+    counterpartyRows, locationRows, holidayCalendarRows, legalEntityRows, productRows, storageFacilityRows, vesselRows, marketProductLinkRows, uomRows,
+    exchangeRows, paymentTermRows, transportRouteRows,
+  ]);
 
   const fkOptions = useMemo(() => {
     const map: Record<string, { value: number; label: string }[]> = {};
