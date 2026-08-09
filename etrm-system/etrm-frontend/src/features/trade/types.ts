@@ -1,4 +1,4 @@
-export const COMMODITY_TYPES_TRADE = ['OIL', 'GAS', 'POWER', 'LNG', 'AGRICULTURAL', 'METALS', 'FREIGHT', 'RINS', 'ENVIRONMENTAL'] as const;
+export const COMMODITY_TYPES_TRADE = ['OIL', 'GAS', 'POWER', 'LNG', 'AGRICULTURAL', 'METALS', 'FREIGHT', 'RINS', 'ENVIRONMENTAL', 'FX'] as const;
 export type CommodityTypeTrade = (typeof COMMODITY_TYPES_TRADE)[number];
 
 // V78: trade.trade_type is now a numeric FK id (deal_type parent table) —
@@ -301,6 +301,29 @@ export interface OptionDetail {
   exercisedPrice: number | null;
 }
 
+// ─── FX detail (FX commodity type) ────────────────────────────────────────────
+// Dealt leg reuses trade_order's own quantity/currencyId/price fields
+// (quantity = dealt amount, currencyId = dealt currency, price = FX rate) —
+// see docs/fx_trade_capture_gap_pending_09.md's design-question #1 for why
+// this was chosen over duplicating those fields here the way trade_swap_detail
+// does. SWAP (near+far leg) deliberately deferred — see that doc's #2.
+export const FX_DEAL_TYPES = ['SPOT', 'FORWARD', 'NDF'] as const;
+export type FxDealType = (typeof FX_DEAL_TYPES)[number];
+
+export const FX_RATE_VALUE_TYPES = ['OUTRIGHT', 'POINTS'] as const;
+export type FxRateValueType = (typeof FX_RATE_VALUE_TYPES)[number];
+
+export interface FxDetail {
+  dealType: FxDealType | null;
+  contraCurrencyId: number | null;
+  contraAmount: number | null;       // dealt amount (order.quantity) × rate, stored explicitly
+  rateValueType: FxRateValueType | null;
+  valueDate: string | null;          // settlement / due date
+  isNdf: boolean;
+  fixingDate: string | null;         // NDF only
+  fixingSource: string | null;       // NDF only — free text rate-source reference
+}
+
 // ─── Storage agreement detail (STORAGE_AGREEMENT instrument type) ─────────────
 export const STORAGE_AGREEMENT_TYPES = [
   'TANK_LEASE',       // fixed capacity lease — pay for reserved space regardless of use
@@ -529,6 +552,7 @@ export interface TradeOrder {
   balmoDetail?: BalmoDetail | null;
   swapDetail?: SwapDetail | null;
   optionDetail?: OptionDetail | null;
+  fxDetail?: FxDetail | null;
   storageAgreementDetail?: StorageAgreementDetail | null;
   transportAgreementDetail?: TransportAgreementDetail | null;
   notes: string | null;

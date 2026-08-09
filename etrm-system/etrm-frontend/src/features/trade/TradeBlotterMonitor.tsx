@@ -13,7 +13,7 @@ const { Text } = Typography;
 const COMMODITY_COLOR: Record<string, string> = {
   OIL: 'volcano', GAS: 'blue', POWER: 'gold', LNG: 'cyan',
   AGRICULTURAL: 'green', METALS: 'purple', FREIGHT: 'orange',
-  RINS: 'lime', ENVIRONMENTAL: 'geekblue',
+  RINS: 'lime', ENVIRONMENTAL: 'geekblue', FX: 'magenta',
 };
 const DIRECTION_COLOR: Record<string, string> = { BUY: 'green', SELL: 'red' };
 const STATUS_COLOR: Record<string, string> = {

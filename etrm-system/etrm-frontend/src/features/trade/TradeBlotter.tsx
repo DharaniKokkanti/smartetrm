@@ -43,6 +43,7 @@ import {
   INSTRUMENT_TYPES, PRICE_ADJUSTMENT_TYPES, DEMURRAGE_BASIS_TYPES,
   RIN_ASSIGNMENT_STATUSES, ENV_PRODUCT_TYPES, TRADE_COST_TYPES,
   CUSTOM_FIELD_DATA_TYPES, CUSTOM_FIELD_APPLIES_TO,
+  FX_DEAL_TYPES, FX_RATE_VALUE_TYPES,
 } from './types';
 import { useTraders } from '@features/organization/traders/hooks';
 import { useBooks } from '@features/organization/books/hooks';
@@ -103,7 +104,7 @@ function detailFromForm<T extends object>(obj: T | null | undefined, dateFields:
 const COMMODITY_COLOR: Record<string, string> = {
   OIL: 'volcano', GAS: 'blue', POWER: 'gold', LNG: 'cyan',
   AGRICULTURAL: 'green', METALS: 'purple', FREIGHT: 'orange',
-  RINS: 'lime', ENVIRONMENTAL: 'geekblue',
+  RINS: 'lime', ENVIRONMENTAL: 'geekblue', FX: 'magenta',
 };
 const DIRECTION_COLOR: Record<string, string> = { BUY: 'green', SELL: 'red' };
 const STATUS_COLOR: Record<string, string> = {
@@ -589,6 +590,69 @@ function EnvironmentalSection() {
   );
 }
 
+// ─── FX detail section ─────────────────────────────────────────────────────
+// Dealt leg (buy/sell amount, dealt currency, rate) reuses the order's own
+// Quantity/Currency/Price fields shown above this section — quantity = dealt
+// amount, currencyId = dealt currency, price = FX rate. This section only
+// carries the contra leg + FX-specific fields. See
+// docs/fx_trade_capture_gap_pending_09.md for the full design rationale.
+function FxSection({ currencyOpts }: { currencyOpts: SelectOpt[] }) {
+  const isNdf = Form.useWatch(['fxDetail', 'isNdf']);
+  return (
+    <>
+      {sectionTitle('FX Deal Details')}
+      <Row gutter={16}>
+        <Col span={8}>
+          <Form.Item name={['fxDetail', 'dealType']} label={hint('Deal Type', 'SPOT = T+1/T+2 value date. FORWARD = fixed outright rate for a future value date. NDF = non-deliverable forward, cash-settled against a fixing rate.')} rules={[{ required: true }]}>
+            <Select options={FX_DEAL_TYPES.map((t) => ({ value: t, label: t }))} placeholder="FORWARD" />
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item name={['fxDetail', 'contraCurrencyId']} label={hint('Contra Currency', 'The other side of the pair — e.g. buy 100 EUR / sell contra USD.')} rules={[{ required: true }]}>
+            <Select options={currencyOpts} showSearch />
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item name={['fxDetail', 'contraAmount']} label={hint('Contra Amount', 'Dealt amount × rate — stored explicitly rather than always recomputed, for audit and rounding.')} rules={[{ required: true }]}>
+            <InputNumber placeholder="108500" style={{ width: '100%' }} precision={2} />
+          </Form.Item>
+        </Col>
+      </Row>
+      <Row gutter={16}>
+        <Col span={8}>
+          <Form.Item name={['fxDetail', 'rateValueType']} label={hint('Rate Value Type', 'OUTRIGHT = the full rate as agreed. POINTS = forward points added to a separately-known spot rate.')} rules={[{ required: true }]}>
+            <Select options={FX_RATE_VALUE_TYPES.map((t) => ({ value: t, label: t }))} placeholder="OUTRIGHT" />
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item name={['fxDetail', 'valueDate']} label={hint('Value Date', 'Settlement / due date — when the two currencies actually exchange.')} rules={[{ required: true }]}>
+            <AppDatePicker />
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item name={['fxDetail', 'isNdf']} label={hint('Non-Deliverable (NDF)', 'ON = cash-settled in one currency against a fixing rate — the non-deliverable currency never actually moves.')} valuePropName="checked">
+            <Switch />
+          </Form.Item>
+        </Col>
+      </Row>
+      {isNdf && (
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item name={['fxDetail', 'fixingDate']} label={hint('Fixing Date', 'When the settlement rate is observed against the published fixing source.')}>
+              <AppDatePicker />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item name={['fxDetail', 'fixingSource']} label={hint('Fixing Source', 'Published rate reference used to settle — e.g. a central bank fixing or PRA-published rate.')}>
+              <Input placeholder="e.g. central bank reference rate" />
+            </Form.Item>
+          </Col>
+        </Row>
+      )}
+    </>
+  );
+}
+
 // ─── Price adjustments (physical legs) ───────────────────────────────────────
 /** A product's published grade differential schedule (dbo.commodity_grade_standard,
  *  V67/V69) — scoped per product/contract, since real exchange schedules are
@@ -897,6 +961,7 @@ function DeliveryFields({
       {commodityType === 'FREIGHT'       && <FreightSection locations={locationOpts} />}
       {commodityType === 'RINS'          && <RinSection />}
       {commodityType === 'ENVIRONMENTAL' && <EnvironmentalSection />}
+      {commodityType === 'FX'            && <FxSection currencyOpts={currencyOpts} />}
       {isTas && <TasSection />}
       {isBalmo && <BalmoSection balmoProducts={balmoProducts} />}
 
@@ -1604,14 +1669,14 @@ export function TradeBlotter() {
     setEditingOrder(null);
     setOrderCommodity(selectedTrade.commodityType);
     orderForm.resetFields();
-    const defaultUomCode: Record<string, string> = { OIL: 'BBL', GAS: 'MWH', POWER: 'MWH', LNG: 'MMBTU', METALS: 'MT', AGRICULTURAL: 'MT', FREIGHT: 'MT', RINS: 'GAL', ENVIRONMENTAL: 'MT' };
+    const defaultUomCode: Record<string, string> = { OIL: 'BBL', GAS: 'MWH', POWER: 'MWH', LNG: 'MMBTU', METALS: 'MT', AGRICULTURAL: 'MT', FREIGHT: 'MT', RINS: 'GAL', ENVIRONMENTAL: 'MT', FX: 'CCY' };
     const wantedUomCode = defaultUomCode[selectedTrade.commodityType] ?? 'BBL';
     const defaultUomRow = (uomRows as Uom[]).find((r) => r.uomCode === wantedUomCode);
     orderForm.setFieldsValue({
       tradeId: selectedTrade.tradeId,
       isTemplate: false,
       status: 'WORKING',
-      settlementType: 'PHYSICAL',
+      settlementType: selectedTrade.commodityType === 'FX' ? 'FINANCIAL' : 'PHYSICAL',
       currencyId: 1,
       uomId: defaultUomRow?.uomId,
       toleranceForScheduling: false,
@@ -1637,6 +1702,7 @@ export function TradeBlotter() {
       freightDetail: detailToForm(o.freightDetail, ['laycanStart', 'laycanEnd']),
       tasDetail:     detailToForm(o.tasDetail,     ['tasSettlementDate']),
       balmoDetail:   detailToForm(o.balmoDetail,   ['pricingStartDate', 'pricingEndDate']),
+      fxDetail:      detailToForm(o.fxDetail,      ['valueDate', 'fixingDate']),
       riskStartDate: o.riskStartDate ? dayjs(o.riskStartDate) : undefined,
       riskEndDate:   o.riskEndDate   ? dayjs(o.riskEndDate) : undefined,
     } as unknown as TradeOrderInput);
@@ -1663,6 +1729,7 @@ export function TradeBlotter() {
       freightDetail: detailFromForm(values.freightDetail, ['laycanStart', 'laycanEnd']),
       balmoDetail:   detailFromForm(values.balmoDetail,   ['pricingStartDate', 'pricingEndDate']),
       tasDetail:     detailFromForm(values.tasDetail,     ['tasSettlementDate']),
+      fxDetail:      detailFromForm(values.fxDetail,      ['valueDate', 'fixingDate']),
       riskStartDate: riskStartDate ? riskStartDate.format('YYYY-MM-DD') : values.riskStartDate,
       riskEndDate: riskEndDate ? riskEndDate.format('YYYY-MM-DD') : values.riskEndDate,
     } as unknown as TradeOrderInput;
