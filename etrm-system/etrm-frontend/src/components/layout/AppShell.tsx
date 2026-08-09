@@ -9,6 +9,7 @@ import {
   AuditOutlined, TagsOutlined, IdcardOutlined, InboxOutlined,
   LineChartOutlined, StockOutlined, ScheduleOutlined, ReconciliationOutlined, CalendarOutlined,
   DatabaseOutlined, SettingOutlined, DoubleLeftOutlined, DoubleRightOutlined, ShopOutlined,
+  PercentageOutlined,
 } from '@ant-design/icons';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useUiStore } from '@store/uiStore';
@@ -65,11 +66,14 @@ const NAV_ITEMS: NavEntry[] = [
     ],
   },
   {
-    key: 'g-credit', icon: <SafetyCertificateOutlined />, label: 'Credit & Risk',
+    key: 'g-credit', icon: <SafetyCertificateOutlined />, label: 'Credit, Risk & Margin Management',
     children: [
-      { key: '/credit/margin-agreements',   icon: <DollarOutlined />,            label: 'Margin Agreements' },
-      { key: '/credit/limits',              icon: <AlertOutlined />,             label: 'Credit Limits' },
-      { key: '/credit/letters-of-credit',   icon: <BankOutlined />,              label: 'Letters of Credit' },
+      { key: '/credit/margin-agreements',      icon: <DollarOutlined />,            label: 'Margin Agreements' },
+      { key: '/credit/limits',                 icon: <AlertOutlined />,             label: 'Credit Limits' },
+      { key: '/credit/letters-of-credit',      icon: <BankOutlined />,              label: 'Letters of Credit' },
+      { key: '/credit/clearing-accounts',      icon: <BankOutlined />,              label: 'Clearing Accounts' },
+      { key: '/credit/margin-accounts',        icon: <PercentageOutlined />,        label: 'Margin Accounts' },
+      { key: '/credit/contract-margin-rates',  icon: <PercentageOutlined />,        label: 'Contract Margin Rates' },
     ],
   },
   {
@@ -124,6 +128,7 @@ const ALL_KEYS = [
   '/markets/products', '/markets/markets',
   '/org/books/hierarchy', '/org/books',
   '/credit/margin-agreements', '/credit/limits', '/credit/letters-of-credit',
+  '/credit/clearing-accounts', '/credit/margin-accounts', '/credit/contract-margin-rates',
   '/pricing/settlement-prices', '/pricing/tas', '/pricing/pricing-rules', '/pricing/price-sources',
   '/pricing/balmo-products', '/pricing/balmo',
   '/bolmo',
