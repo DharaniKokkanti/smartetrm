@@ -1,5 +1,5 @@
 import { apiClient } from '@services/api';
-import type { Location, LocationInput } from './types';
+import type { Location, LocationInput, LocationRoleAssignment, LocationRoleAssignmentInput } from './types';
 
 export const locationsApi = {
   list: () => apiClient.get<Location[]>('/locations').then((r) => r.data),
@@ -7,4 +7,10 @@ export const locationsApi = {
   update: (id: number, input: LocationInput) => apiClient.put<Location>(`/locations/${id}`, input).then((r) => r.data),
   deactivate: (id: number) => apiClient.patch(`/locations/${id}/deactivate`),
   listTradingDesks: () => apiClient.get<Location[]>('/locations/trading-desks').then((r) => r.data),
+  roles: {
+    list: (locationId: number) => apiClient.get<LocationRoleAssignment[]>(`/locations/${locationId}/roles`).then((r) => r.data),
+    create: (locationId: number, input: LocationRoleAssignmentInput) =>
+      apiClient.post<LocationRoleAssignment>(`/locations/${locationId}/roles`, input).then((r) => r.data),
+    remove: (locationId: number, roleId: number) => apiClient.delete(`/locations/${locationId}/roles/${roleId}`),
+  },
 };

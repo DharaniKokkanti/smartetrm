@@ -39,14 +39,43 @@ future session.
 ## Confirmed real gaps
 
 ### 1. No commodity forward-curve / vol-surface / yield-curve master (Item A)
-Only `dbo.fx_period` (V56) exists — an FX tenor/forward-curve table, scoped
-to FX rates only. There is no `price_curve_master` equivalent for
-commodity forward curves (needed to bind MTM/VaR consistently across
-commodities with a declared granularity — Daily/Monthly/Seasonal — and
-interpolation method), no volatility-surface table for options, and no
-generic discount/yield-curve registry. `interest_rate_index` (V5) defines
-named indices (SOFR, etc.) but not a curve of tenor→rate points.
-**Real gap, not yet scoped.**
+
+**CORRECTED 2026-08-11 — mostly resolved, or never actually missing; original
+framing below was wrong.** Re-reviewed after Dharani directly questioned why
+a new `price_curve` table would be needed when `price_index` already exists
+and is period-linked.
+
+- **Forward curve — NOT missing, no new table needed.** `dbo.price_index`
+  (the series definition) + `dbo.period` (the tenor bucket — `period_start`/
+  `period_end`, `curve_label`, `price_index_id` FK) + `dbo.settlement_price`
+  (`price_index_id` + `period_id` + `settle_date` + `settle_price`/bid/ask)
+  together already **are** a forward curve: every `settlement_price` row for
+  one `price_index_id` as of one `settle_date`, across every linked
+  `period_id`, is a curve point. `SettlementPricesPage.tsx`'s own field hint
+  says this explicitly ("lets a forward curve be assembled from stored
+  settlement prices") — the design already anticipated this, it just isn't
+  labeled "curve" anywhere. **Real, narrow remaining gaps**: (1) no
+  interpolation-method field on `price_index`/`period` (linear/flat-forward/
+  log-linear — needed to value a position whose date falls between two known
+  period points, not just on a period boundary), (2) no dedicated "assemble
+  and view the curve" report/API — today you can only see one
+  `settlement_price` row at a time, not "the whole Brent curve as of
+  2026-08-11" as a single view. Both are small, additive — not a schema
+  redesign.
+- **Volatility surface — already built, not missing.** `dbo.volatility_point`
+  (`option_index_link_id`, `period_id`, `moneyness_label`, `strike_price`,
+  `quote_date`, `implied_volatility`) + `dbo.option_index_link`, both with
+  real Java controllers (`VolatilityPointController`, `OptionIndexLinkController`)
+  and a real live page (`/pricing/volatility-points`). The original
+  "no schema exists for a strike×expiry×as-of-date vol surface" claim in the
+  handoff doc (§0, 2026-07-27) is stale — this was built in a later session
+  and the earlier doc entry never got corrected. Nothing to do here.
+- **Discount/yield curve — genuinely still missing**, unchanged from the
+  original finding: `interest_rate_index` (V5) defines named rate indices
+  but there's no curve-of-tenor→rate-points table and zero code consumes it
+  for PV/discounting. See `discount_premium_interest_rate_gaps_pending_08.md`
+  and handoff §12 for this one specifically — it's the one piece of this
+  original three-part gap that's actually still open.
 
 ### 2. No reusable derivative-contract specification master (Item B)
 `dbo.trade_option_detail` (V44) captures option economics **per trade**
@@ -92,6 +121,99 @@ counterparty back to an internal `legal_entity` when it's really us, which
 covers the review's core "segregate intercompany vs. external" concern —
 the missing piece is specifically external-party-to-external-party grouping.
 **Real, narrow gap.**
+
+### 6. `location.location_type_id` is single-valued — BUILT 2026-08-11 (V216)
+
+**Status: DONE, full-stack, live-verified.** Design below was reviewed and approved by
+Dharani ("go ahead and fix this... drop me final version before you build"); built exactly
+as drafted after confirming the design against real-world exchange-warehouse structure
+(GKEML's public "dual-commodity delivery qualification" case — a single facility holding
+independent exchange approvals layered on top of its base classification, matching the
+`location_role_assignment` link-table shape below, not a boolean-flag alternative).
+
+**What was built**: `dbo.location_role_assignment` (V216) — `location_id` + `location_type_id`
+(reused FK) + `approval_reference`/`effective_date`/`expiry_date`/`notes`, unique on
+`(location_id, location_type_id)`, full row_version guard trigger. `location.location_type_id`
+itself untouched (still the primary/default role, zero blast radius). Java:
+`LocationRoleAssignment`/`LocationRoleAssignmentRepository`/`LocationRoleAssignmentService`,
+new sub-resource endpoints on `LocationController` (`GET/POST/PUT/DELETE
+/api/v1/locations/{id}/roles`). Frontend: `LocationRolesSection.tsx` — an "Additional Roles"
+table + Add Role modal embedded in the existing Locations edit Drawer, live CRUD (no staging),
+duplicate-role add correctly 409s. MSW mock seeded with `LME-WAREHOUSE` (location 7) holding an
+`EXCHANGE` role (`LME-WH-00412`) as the worked example.
+
+**Live-verified**: `mvn compile` clean, real backend boot applied V216 with zero Hibernate
+validation errors, full curl round-trip against the real DB (create → hydrated
+`locationTypeCode` → duplicate 409 → update bumps `rowVersion` 0→1, guard trigger confirmed
+working → delete → unauthenticated request 403s). `npx tsc -b --noEmit` clean. Real end-to-end
+UI pass via Playwright against the live dev server + real backend: opened an existing
+location, added a role through the modal, confirmed it appears in the table, removed it,
+confirmed it's gone — no console/page errors. Backend stopped after verification.
+
+Original research/design record follows, kept for context:
+
+### 6a. Original gap record (now resolved above)
+
+Confirmed live (`V1__master_data_foundation.sql`): `dbo.location` has exactly one
+`location_type_id INT NOT NULL` FK to `dbo.location_type` (values: `PORT`,
+`PIPELINE_HUB`, `GAS_HUB`, `GAS_PIPELINE`, `GRID_NODE`, `POWER_PLANT`,
+`WAREHOUSE`, `EXCHANGE`, `REFINERY`, `LNG_TERMINAL`, `OTHER`) — a location can
+only ever be classified as one of these. Real-world counter-example: an
+LME-approved warehouse is simultaneously a `WAREHOUSE` (physical storage,
+capacity/operator attributes) and an `EXCHANGE` delivery point (eligible for
+exchange-warrant delivery against a futures contract) — today's schema can't
+express both on the same row, forcing either a duplicate row (breaks
+`uq_location_code`/data integrity) or a wrong single classification.
+
+**How LME actually structures this (research, not vendor precedent):** LME
+does not treat "warehouse" and "exchange delivery point" as mutually exclusive
+categories at all — the real hierarchy is **Delivery Point → (one or more)
+approved Warehousing Companies → individual Warehouses**, and a single
+physical warehouse can hold LME-approved status for multiple metals/brands
+independently. The "exchange-ness" is an *approval/role*, layered onto a
+warehouse, not a replacement classification for it.
+Source: [LME — Warehousing](https://www.lme.com/en/Warehousing), [LME approved warehouse list & structure](https://www.lme.com/en/warehousing/lme-warehouses).
+
+**Proposed shape (draft, not built):** same pattern already used elsewhere in
+this schema for multi-role tagging (`book_classification`'s dimension+value
+rows, and `location`'s own existing `office_loc_ind`/`trading_desk_ind`
+boolean flags, which are a narrow precedent for "one location, multiple
+roles"). Two options, in order of preference:
+1. **`location_role_assignment`** (new link table): `location_id` +
+   `location_type_id` (reused FK, now many-per-location) + optional
+   role-specific attributes (e.g. `is_primary`, `effective_date`,
+   `approval_reference` for the exchange-approval case) — `location_type_id`
+   moves from a column on `location` to rows in this table. `location` keeps
+   one attribute set (address, coordinates, operator) since the physical
+   place doesn't change; only its *roles* multiply.
+2. Cheaper/narrower alternative if a full remodel isn't wanted yet: add
+   targeted boolean flags to `location` itself, following the
+   `office_loc_ind`/`trading_desk_ind` precedent already in the table (e.g.
+   `is_exchange_approved_ind`) — works for the specific warehouse+exchange
+   case but doesn't generalize to arbitrary N-role combinations the way
+   option 1 does.
+
+**Not proposing to build either without review** — option 1 is a real schema
+change touching every place that currently reads `location.location_type_id`
+as a single value (filters, FK dropdowns, `physical_asset` backref logic).
+Flagging as a real, scoped gap for a future session.
+
+### 7. `dbo.physical_asset` — clarification, not a new gap (re: "schema-only stub")
+
+Re-confirmed against the V161 record above (§ "V161 implementation record"):
+`physical_asset` having no Java entity/controller and not appearing in the
+Master Data Hub **is deliberate, not an oversight** — it was built
+`is_enabled=0`/all-write-flags-0 on purpose, as a **derived catalog index**
+over `storage_facility`/`generation_asset` (one row per real asset, backfilled
+automatically), not a source-of-truth table anyone edits directly. The actual
+editable full-stack pages for the underlying assets already exist and are
+real (`StoragePage.tsx`/`StorageFacility.java` etc.) — `physical_asset` exists
+purely so cross-asset-class queries/governance sweeps have one table to join
+against, per its own migration comment. If a real cross-asset-class *view*
+(e.g. "all physical assets I own, storage or generation, in one grid") is
+wanted, that's a new read-only page/endpoint over the existing
+`physical_asset` table — not a full CRUD build-out, since the table was never
+meant to be edited directly.
 
 ## Claims that do NOT hold — already covered, do not re-flag
 

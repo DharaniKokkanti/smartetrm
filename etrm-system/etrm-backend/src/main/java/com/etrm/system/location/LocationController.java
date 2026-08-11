@@ -16,9 +16,11 @@ import java.util.List;
 public class LocationController {
 
     private final LocationService service;
+    private final LocationRoleAssignmentService roleService;
 
-    public LocationController(LocationService service) {
+    public LocationController(LocationService service, LocationRoleAssignmentService roleService) {
         this.service = service;
+        this.roleService = roleService;
     }
 
     @GetMapping
@@ -44,6 +46,27 @@ public class LocationController {
     @PatchMapping("/{id}/deactivate")
     public ResponseEntity<Void> deactivate(@PathVariable Integer id) {
         service.deactivate(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/roles")
+    public List<LocationRoleAssignment> listRoles(@PathVariable Integer id) {
+        return roleService.listForLocation(id);
+    }
+
+    @PostMapping("/{id}/roles")
+    public ResponseEntity<LocationRoleAssignment> createRole(@PathVariable Integer id, @Valid @RequestBody LocationRoleAssignment input) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(roleService.create(id, input));
+    }
+
+    @PutMapping("/{id}/roles/{roleId}")
+    public LocationRoleAssignment updateRole(@PathVariable Integer id, @PathVariable Integer roleId, @Valid @RequestBody LocationRoleAssignment input) {
+        return roleService.update(id, roleId, input);
+    }
+
+    @DeleteMapping("/{id}/roles/{roleId}")
+    public ResponseEntity<Void> deleteRole(@PathVariable Integer id, @PathVariable Integer roleId) {
+        roleService.delete(id, roleId);
         return ResponseEntity.noContent().build();
     }
 }

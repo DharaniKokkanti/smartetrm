@@ -26,7 +26,55 @@ Two entry points into the same underlying record, confirmed live in the code:
 Both write to the same `market_product_link` row either way — confirmed by the
 in-app hint text in `MarketsTab`.
 
-## 2. Discount/premium functionality — gap confirmed, metals specifically missing
+## 2. Discount/premium functionality — CORRECTED 2026-08-11, no new schema needed
+
+**This section's original framing (below) was wrong** — written before `formula_template`/
+`formula_component` and `metal_assay_component_rule` (V96) existed/were noticed. Re-reviewed
+after Dharani asked directly how OpenLink/Bloomberg-class systems handle metals premium/
+discount and whether a separate daily-loaded index is needed for it.
+
+**Corrected finding: the mechanism already exists, fully generic, nothing to build.**
+- `dbo.formula_template` (45 real rows, live at `/pricing/formula-templates`) +
+  `dbo.formula_component` (0 rows, but real schema: `component_role` + `price_index_id` +
+  `weight` per component, FK'd to the template) is a generic price-composition engine —
+  "final price = base index component(s) ± premium/discount component(s)" is exactly what
+  `component_role` distinguishes. A metals premium is priced the same way a Platts/Argus
+  regional premium actually works in the real world (see research below): **as its own
+  published, dated `price_index`**, wired in as a second `formula_component` row alongside
+  the LME base-metal component. No new table — this *is* "linked price index" from the
+  original question 1 below, already built.
+- Grade/quality deviation: `dbo.metal_assay_component_rule` (V96, `is_enabled=1`, 0 rows) —
+  per-element ppm-band penalty/premium formula, metals-specific (not moisture-style banding),
+  already answers original question 2 below in favor of "own metals-specific parameter set."
+  `dbo.commodity_grade_standard` remains available for the generic case.
+- Trade-level override (original question 3): same `formula_template`/`formula_component`
+  layering the platform already uses everywhere else (product-level default template,
+  trade-level pricing schedule can reference/override it) — no new mechanism needed.
+
+**Real-world confirmation (Platts):** the CME/Comex "Midwest Premium" (US aluminum) is
+published as its own **standalone daily index**, quoted independently and then added on
+top of the LME cash settlement to get the all-in delivered price — not a static lookup
+table. This is exactly the `price_index` + `formula_component(component_role='PREMIUM')`
+shape above, confirming "daily-loaded premium index, summed against base index" is the
+correct, industry-standard pattern (not something specific to this platform).
+Source: [S&P Global Platts — Midwest Premium methodology](https://www.spglobal.com/commodityinsights/en/our-methodology/price-assessments/metals/us-midwest-premium-aluminum).
+
+**What's actually still missing — data population, not schema:**
+1. `formula_component` has 0 rows — no template has actually been composed yet (no product
+   currently has "LME 3M + Midwest Premium" wired as two components of one template).
+2. `metal_assay_component_rule` has 0 rows — no grade-penalty bands defined for any metal
+   product yet.
+3. No metals regional-premium `price_index`/`price_index_source` rows exist yet (e.g. a
+   `MW-PREM` index fed by a Platts source) to be referenced as a formula component.
+
+None of this needs a design decision or a migration — it's the same "build the template,
+add the components, seed the index" workflow every other `formula_template`-backed product
+already uses. Flagging as a data/config task, not an open design question, unlike the
+original framing below.
+
+---
+
+## 2a. Original (superseded) framing — gap confirmed, metals specifically missing
 
 **Research finding (LME, industry-standard framing):** physical metal contracts price
 as *reference price ± premium/discount*, where the adjustment is driven by:

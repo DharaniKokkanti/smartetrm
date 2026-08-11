@@ -32,7 +32,7 @@ import type {
   Trade, TradeInput, TradeOrder, TradeOrderInput, TradeItem, TradeItemInput,
   TradeCost, TradeCostInput, TradeOrderCost, TradeOrderCostInput,
   TradeAssayResult, TradeAssayResultInput, CommodityTypeTrade,
-  CustomFieldDefinition, CustomFieldDataType,
+  CustomFieldDefinition, CustomFieldDataType, Direction, FxDetail,
 } from './types';
 import {
   COMMODITY_TYPES_TRADE, DIRECTIONS, TRADE_STATUSES, ORDER_STATUSES,
@@ -64,6 +64,7 @@ import { useCommodityInstrumentMap } from '@features/reference/commodity-instrum
 import { useTableRows } from '@features/tier2/hooks';
 import { useCustomConfigOptions } from '@features/tier1/counterparty/configLookups';
 import { useCountries } from '@features/reference/countries/hooks';
+import { useCurrencies } from '@features/reference/currencies/hooks';
 import { useHolidayCalendars } from '@features/calendar/holiday-calendars/hooks';
 import { useUiStore } from '@store/uiStore';
 import { useFormDraft } from '@components/smart/formDraft';
@@ -590,60 +591,88 @@ function EnvironmentalSection() {
   );
 }
 
-// ─── FX detail section ─────────────────────────────────────────────────────
-// Dealt leg (buy/sell amount, dealt currency, rate) reuses the order's own
-// Quantity/Currency/Price fields shown above this section — quantity = dealt
-// amount, currencyId = dealt currency, price = FX rate. This section only
-// carries the contra leg + FX-specific fields. See
-// docs/fx_trade_capture_gap_pending_09.md for the full design rationale.
-function FxSection({ currencyOpts }: { currencyOpts: SelectOpt[] }) {
+// ─── FX deal ticket ────────────────────────────────────────────────────────
+// FX is a treasury/financial instrument, not a physical commodity — this is
+// deliberately a standalone deal-ticket layout (Bought/Sold/Rate/Value Date),
+// not a "commodity detail" bolted onto the physical Product & Market /
+// Quantity & Pricing / Delivery blocks every other section here extends
+// (those blocks are hidden entirely for FX — see DeliveryFields' `isFx`
+// branch). Researched against standard FX deal-capture field sets (dealt/
+// contra currency+amount, outright vs. forward-points rate, value date
+// distinct from trade date, NDF fixing date/source) rather than reusing the
+// physical-trade shape. See docs/fx_trade_capture_gap_pending_09.md.
+function FxSection({ currencyOpts, direction }: { currencyOpts: SelectOpt[]; direction: Direction | undefined }) {
   const isNdf = Form.useWatch(['fxDetail', 'isNdf']);
+  const dealType = Form.useWatch(['fxDetail', 'dealType']);
+  const actionWord = direction === 'SELL' ? 'Sell' : 'Buy';
+  const contraActionWord = direction === 'SELL' ? 'Buy' : 'Sell';
   return (
     <>
-      {sectionTitle('FX Deal Details')}
+      {sectionTitle(`FX Deal Ticket — ${actionWord} / ${contraActionWord}`)}
       <Row gutter={16}>
-        <Col span={8}>
-          <Form.Item name={['fxDetail', 'dealType']} label={hint('Deal Type', 'SPOT = T+1/T+2 value date. FORWARD = fixed outright rate for a future value date. NDF = non-deliverable forward, cash-settled against a fixing rate.')} rules={[{ required: true }]}>
+        <Col span={6}>
+          <Form.Item name={['fxDetail', 'dealType']} label={hint('Deal Type', 'SPOT = T+1/T+2 value date. FORWARD = fixed outright rate for a future value date. NDF = non-deliverable forward, cash-settled against a fixing rate — no physical exchange.')} rules={[{ required: true }]}>
             <Select options={FX_DEAL_TYPES.map((t) => ({ value: t, label: t }))} placeholder="FORWARD" />
           </Form.Item>
         </Col>
-        <Col span={8}>
-          <Form.Item name={['fxDetail', 'contraCurrencyId']} label={hint('Contra Currency', 'The other side of the pair — e.g. buy 100 EUR / sell contra USD.')} rules={[{ required: true }]}>
-            <Select options={currencyOpts} showSearch />
+        <Col span={9}>
+          <Form.Item name={['fxDetail', 'dealtCurrencyId']} label={hint(`${actionWord} Currency (dealt)`, 'The currency whose amount was specified when the deal was struck — e.g. "buy 100 EUR" makes EUR the dealt currency.')} rules={[{ required: true }]}>
+            <Select options={currencyOpts} showSearch placeholder="e.g. EUR" />
           </Form.Item>
         </Col>
-        <Col span={8}>
-          <Form.Item name={['fxDetail', 'contraAmount']} label={hint('Contra Amount', 'Dealt amount × rate — stored explicitly rather than always recomputed, for audit and rounding.')} rules={[{ required: true }]}>
-            <InputNumber placeholder="108500" style={{ width: '100%' }} precision={2} />
+        <Col span={9}>
+          <Form.Item name={['fxDetail', 'dealtAmount']} label={`${actionWord} Amount`} rules={[{ required: true }]}>
+            <InputNumber placeholder="1000000" style={{ width: '100%' }} precision={2} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} parser={(v) => v?.replace(/,/g, '') as unknown as number} />
           </Form.Item>
         </Col>
       </Row>
       <Row gutter={16}>
-        <Col span={8}>
-          <Form.Item name={['fxDetail', 'rateValueType']} label={hint('Rate Value Type', 'OUTRIGHT = the full rate as agreed. POINTS = forward points added to a separately-known spot rate.')} rules={[{ required: true }]}>
-            <Select options={FX_RATE_VALUE_TYPES.map((t) => ({ value: t, label: t }))} placeholder="OUTRIGHT" />
+        <Col span={6}>
+          <Form.Item name={['fxDetail', 'fxRate']} label={hint('FX Rate', 'The agreed exchange rate — contra amount = dealt amount × rate.')} rules={[{ required: true }]}>
+            <InputNumber placeholder="1.0850" style={{ width: '100%' }} precision={4} min={0} />
           </Form.Item>
         </Col>
-        <Col span={8}>
-          <Form.Item name={['fxDetail', 'valueDate']} label={hint('Value Date', 'Settlement / due date — when the two currencies actually exchange.')} rules={[{ required: true }]}>
+        <Col span={9}>
+          <Form.Item name={['fxDetail', 'contraCurrencyId']} label={hint(`${contraActionWord} Currency (contra)`, 'The other side of the pair.')} rules={[{ required: true }]}>
+            <Select options={currencyOpts} showSearch placeholder="e.g. USD" />
+          </Form.Item>
+        </Col>
+        <Col span={9}>
+          <Form.Item name={['fxDetail', 'contraAmount']} label={hint(`${contraActionWord} Amount (contra)`, 'Dealt amount × rate — stored explicitly rather than always recomputed, for audit and rounding.')} rules={[{ required: true }]}>
+            <InputNumber placeholder="1085000" style={{ width: '100%' }} precision={2} formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} parser={(v) => v?.replace(/,/g, '') as unknown as number} />
+          </Form.Item>
+        </Col>
+      </Row>
+      <Row gutter={16}>
+        {dealType !== 'SPOT' && (
+          <Col span={6}>
+            <Form.Item name={['fxDetail', 'rateValueType']} label={hint('Rate Value Type', 'OUTRIGHT = the full rate as agreed. POINTS = forward points added to a separately-known spot rate.')} rules={[{ required: true }]}>
+              <Select options={FX_RATE_VALUE_TYPES.map((t) => ({ value: t, label: t }))} placeholder="OUTRIGHT" />
+            </Form.Item>
+          </Col>
+        )}
+        <Col span={6}>
+          <Form.Item name={['fxDetail', 'valueDate']} label={hint('Value Date', 'Settlement / due date — when the two currencies actually exchange. Distinct from the trade date on the header above.')} rules={[{ required: true }]}>
             <AppDatePicker />
           </Form.Item>
         </Col>
-        <Col span={8}>
-          <Form.Item name={['fxDetail', 'isNdf']} label={hint('Non-Deliverable (NDF)', 'ON = cash-settled in one currency against a fixing rate — the non-deliverable currency never actually moves.')} valuePropName="checked">
-            <Switch />
-          </Form.Item>
-        </Col>
+        {dealType === 'NDF' && (
+          <Col span={6}>
+            <Form.Item name={['fxDetail', 'isNdf']} label={hint('Non-Deliverable', 'Cash-settled in one currency against a fixing rate — the non-deliverable currency never actually moves.')} valuePropName="checked">
+              <Switch />
+            </Form.Item>
+          </Col>
+        )}
       </Row>
       {isNdf && (
         <Row gutter={16}>
           <Col span={12}>
-            <Form.Item name={['fxDetail', 'fixingDate']} label={hint('Fixing Date', 'When the settlement rate is observed against the published fixing source.')}>
+            <Form.Item name={['fxDetail', 'fixingDate']} label={hint('Fixing Date', 'When the settlement rate is observed against the published fixing source.')} rules={[{ required: true }]}>
               <AppDatePicker />
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item name={['fxDetail', 'fixingSource']} label={hint('Fixing Source', 'Published rate reference used to settle — e.g. a central bank fixing or PRA-published rate.')}>
+            <Form.Item name={['fxDetail', 'fixingSource']} label={hint('Fixing Source', 'Published rate reference used to settle — e.g. a central bank fixing or PRA-published rate.')} rules={[{ required: true }]}>
               <Input placeholder="e.g. central bank reference rate" />
             </Form.Item>
           </Col>
@@ -813,7 +842,7 @@ function DemurrageSection({ currencyOpts }: { currencyOpts: SelectOpt[] }) {
 // ─── Delivery fields (legs only) ──────────────────────────────────────────────
 function DeliveryFields({
   commodityType, locationOpts, vesselOpts, uomOpts, currencyOpts, countryOpts, incoterms, productOpts, marketOpts, pricingRules, periods,
-  crudeGradeOpts, metalShapeOpts, gasDayTypeOpts, nominationOpts, lngPriceOpts, powerLoadOpts, pipelineOpts, isTas, isBalmo, balmoProducts,
+  crudeGradeOpts, metalShapeOpts, gasDayTypeOpts, nominationOpts, lngPriceOpts, powerLoadOpts, pipelineOpts, isTas, isBalmo, balmoProducts, direction,
 }: {
   commodityType: CommodityTypeTrade;
   locationOpts: SelectOpt[]; vesselOpts: SelectOpt[]; uomOpts: SelectOpt[]; currencyOpts: SelectOpt[]; countryOpts: SelectOpt[];
@@ -823,6 +852,7 @@ function DeliveryFields({
   isTas: boolean;
   isBalmo: boolean;
   balmoProducts: BalmoProduct[];
+  direction: Direction | undefined;
 }) {
   const settlementType = Form.useWatch('settlementType');
   const isPhysical = settlementType === 'PHYSICAL';
@@ -830,6 +860,33 @@ function DeliveryFields({
   const hasVesselPhysical = isPhysical && ['OIL', 'LNG', 'AGRICULTURAL', 'METALS'].includes(commodityType);
   // commodities that can have price quality adjustments
   const hasPriceAdj = isPhysical && ['OIL', 'GAS', 'LNG', 'AGRICULTURAL', 'METALS'].includes(commodityType);
+
+  // FX is a treasury/financial instrument, not a physical commodity — none of
+  // Product & Market, the generic Quantity/UoM/Price/Currency block, or
+  // Delivery (incoterm/location/origin country) apply. Its own deal ticket
+  // (FxSection) is the entire content, full width, not squeezed into the
+  // right-hand "commodity detail" column the physical types use.
+  if (commodityType === 'FX') {
+    return (
+      <>
+        {sectionTitle('Risk Period')}
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item name="riskStartDate" label={hint('Risk Start', 'First day this leg carries FX exposure — typically the trade date.')} rules={[{ required: true, message: 'Required for position engine' }]}>
+              <AppDatePicker />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item name="riskEndDate" label={hint('Risk End', 'Last day this leg carries FX exposure — typically the value date.')} rules={[{ required: true, message: 'Required for position engine' }]}>
+              <AppDatePicker />
+            </Form.Item>
+          </Col>
+        </Row>
+        <FxSection currencyOpts={currencyOpts} direction={direction} />
+      </>
+    );
+  }
+
   return (
     <>
       {/* Two-column layout: product/pricing/delivery left, commodity detail right */}
@@ -961,7 +1018,6 @@ function DeliveryFields({
       {commodityType === 'FREIGHT'       && <FreightSection locations={locationOpts} />}
       {commodityType === 'RINS'          && <RinSection />}
       {commodityType === 'ENVIRONMENTAL' && <EnvironmentalSection />}
-      {commodityType === 'FX'            && <FxSection currencyOpts={currencyOpts} />}
       {isTas && <TasSection />}
       {isBalmo && <BalmoSection balmoProducts={balmoProducts} />}
 
@@ -1416,7 +1472,15 @@ export function TradeBlotter() {
   // Capture drawers span the full content area — flush to the nav sidebar edge
   const { sidebarCollapsed } = useUiStore();
   const fullDrawerWidth = `calc(100vw - ${sidebarCollapsed ? 80 : 210}px)`;
-  const { data: currencyRows = [] }       = useTableRows<{ currencyId: number; currencyCode: string; currencyName: string }>('currency');
+  // useCurrencies() (dedicated /currencies endpoint), NOT useTableRows('currency')
+  // (generic Tier2 /reference-data/currency) — the two mock currency stores
+  // diverge in id-to-code mapping (e.g. currencyId 2/3 = EUR/GBP in one,
+  // GBP/EUR in the other), a real pre-existing bug surfaced while verifying
+  // the FX rebuild: order.currencyId is saved and later re-resolved through
+  // the /currencies-backed denormalizeOrder() on the backend/mock side, so
+  // the dropdown populating that id must draw from the same table or the
+  // wrong currency code displays after save. See handoff doc §0/§12.
+  const { data: currencyRows = [] }       = useCurrencies();
   const { data: countries = [] }          = useCountries();
   const { data: holidayCalendars = [] }   = useHolidayCalendars();
   const { data: crudeGradeRows = [] }     = useTableRows<{ typeCode: string; typeName: string }>('crude_grade_type');
@@ -1597,6 +1661,7 @@ export function TradeBlotter() {
     pricingRules, periods, crudeGradeOpts, metalShapeOpts, gasDayTypeOpts,
     nominationOpts, lngPriceOpts, powerLoadOpts, pipelineOpts,
     balmoProducts: balmoProducts as BalmoProduct[],
+    direction: selectedTrade?.direction,
   };
 
   // ── Trade actions ──
@@ -1715,6 +1780,13 @@ export function TradeBlotter() {
     const riskEndDate = v.riskEndDate as Dayjs | undefined;
     const rawOilDetail = v.oilDetail as { norsTenderedDate?: Dayjs } | undefined;
     const oilDetail = detailFromForm(values.oilDetail, ['laycanStart', 'laycanEnd', 'blDate']);
+    const fxDetail = detailFromForm(values.fxDetail, ['valueDate', 'fixingDate']) as FxDetail | null | undefined;
+    // FX has no Product & Market / Quantity & Pricing / Delivery fields in the
+    // form (see DeliveryFields' isFx branch) — quantity/currencyId/price/uomId
+    // still exist on trade_order and are NOT NULL, so they're synthesized here
+    // from the FX deal ticket's own dealt-leg fields rather than shown to the
+    // user as separate, redundant inputs. See docs/fx_trade_capture_gap_pending_09.md.
+    const fxUomId = (uomRows as Uom[]).find((r) => r.uomCode === 'CCY')?.uomId;
     const input = {
       ...values,
       oilDetail: oilDetail ? {
@@ -1729,9 +1801,16 @@ export function TradeBlotter() {
       freightDetail: detailFromForm(values.freightDetail, ['laycanStart', 'laycanEnd']),
       balmoDetail:   detailFromForm(values.balmoDetail,   ['pricingStartDate', 'pricingEndDate']),
       tasDetail:     detailFromForm(values.tasDetail,     ['tasSettlementDate']),
-      fxDetail:      detailFromForm(values.fxDetail,      ['valueDate', 'fixingDate']),
+      fxDetail,
       riskStartDate: riskStartDate ? riskStartDate.format('YYYY-MM-DD') : values.riskStartDate,
       riskEndDate: riskEndDate ? riskEndDate.format('YYYY-MM-DD') : values.riskEndDate,
+      ...(orderCommodity === 'FX' && fxDetail ? {
+        quantity: fxDetail.dealtAmount,
+        currencyId: fxDetail.dealtCurrencyId,
+        price: fxDetail.fxRate,
+        uomId: fxUomId,
+        settlementType: 'FINANCIAL',
+      } : {}),
     } as unknown as TradeOrderInput;
     const saved = await saveOrder.mutateAsync({ id: editingOrder?.orderId ?? null, input });
     if (closeAfter) setOrderOpen(false); else setEditingOrder(saved);
@@ -2567,49 +2646,53 @@ export function TradeBlotter() {
 
           <DeliveryFields commodityType={orderCommodity} {...deliveryFieldProps} isTas={isTasPricing} isBalmo={isBalmoPricing} />
 
-          {sectionTitle('Tolerance')}
-          <Row gutter={16}>
-            <Col span={6}>
-              <Form.Item name="toleranceType" label={hint('Tolerance Type', 'RATE = percentage of contracted qty. FLAT = fixed absolute volume above/below contract qty.')}>
-                <Select options={TOLERANCE_TYPES.map((t) => ({ value: t, label: t === 'RATE' ? 'RATE (%)' : 'FLAT (volume)' }))} allowClear placeholder="None" />
-              </Form.Item>
-            </Col>
-            <Col span={6}>
-              <Form.Item name="tolerancePlus" label={hint('+Tolerance', 'Maximum overdelivery — % if RATE, absolute volume if FLAT. e.g. 5% or 25,000 BBL.')}>
-                <InputNumber
-                  placeholder={watchedToleranceType === 'RATE' ? '5' : '25000'}
-                  precision={watchedToleranceType === 'RATE' ? 2 : 0}
-                  suffix={watchedToleranceType === 'RATE' ? '%' : undefined}
-                  style={{ width: '100%' }}
-                  formatter={(v) => watchedToleranceType !== 'RATE' ? `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : String(v ?? '')}
-                  parser={(v) => v?.replace(/,/g, '') as unknown as number}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={6}>
-              <Form.Item name="toleranceMinus" label={hint('−Tolerance', 'Maximum underdelivery — % if RATE, absolute volume if FLAT.')}>
-                <InputNumber
-                  placeholder={watchedToleranceType === 'RATE' ? '5' : '25000'}
-                  precision={watchedToleranceType === 'RATE' ? 2 : 0}
-                  suffix={watchedToleranceType === 'RATE' ? '%' : undefined}
-                  style={{ width: '100%' }}
-                  formatter={(v) => watchedToleranceType !== 'RATE' ? `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : String(v ?? '')}
-                  parser={(v) => v?.replace(/,/g, '') as unknown as number}
-                />
-              </Form.Item>
-            </Col>
-            {watchedToleranceType && (
-              <Col span={6}>
-                <Form.Item
-                  name="toleranceForScheduling"
-                  label={hint('Apply to Scheduling', 'ON = schedulable qty can exceed contract qty by tolerance. Risk position always uses contract qty only — tolerance never affects risk.')}
-                  valuePropName="checked"
-                >
-                  <Switch />
-                </Form.Item>
-              </Col>
-            )}
-          </Row>
+          {orderCommodity !== 'FX' && (
+            <>
+              {sectionTitle('Tolerance')}
+              <Row gutter={16}>
+                <Col span={6}>
+                  <Form.Item name="toleranceType" label={hint('Tolerance Type', 'RATE = percentage of contracted qty. FLAT = fixed absolute volume above/below contract qty.')}>
+                    <Select options={TOLERANCE_TYPES.map((t) => ({ value: t, label: t === 'RATE' ? 'RATE (%)' : 'FLAT (volume)' }))} allowClear placeholder="None" />
+                  </Form.Item>
+                </Col>
+                <Col span={6}>
+                  <Form.Item name="tolerancePlus" label={hint('+Tolerance', 'Maximum overdelivery — % if RATE, absolute volume if FLAT. e.g. 5% or 25,000 BBL.')}>
+                    <InputNumber
+                      placeholder={watchedToleranceType === 'RATE' ? '5' : '25000'}
+                      precision={watchedToleranceType === 'RATE' ? 2 : 0}
+                      suffix={watchedToleranceType === 'RATE' ? '%' : undefined}
+                      style={{ width: '100%' }}
+                      formatter={(v) => watchedToleranceType !== 'RATE' ? `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : String(v ?? '')}
+                      parser={(v) => v?.replace(/,/g, '') as unknown as number}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={6}>
+                  <Form.Item name="toleranceMinus" label={hint('−Tolerance', 'Maximum underdelivery — % if RATE, absolute volume if FLAT.')}>
+                    <InputNumber
+                      placeholder={watchedToleranceType === 'RATE' ? '5' : '25000'}
+                      precision={watchedToleranceType === 'RATE' ? 2 : 0}
+                      suffix={watchedToleranceType === 'RATE' ? '%' : undefined}
+                      style={{ width: '100%' }}
+                      formatter={(v) => watchedToleranceType !== 'RATE' ? `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : String(v ?? '')}
+                      parser={(v) => v?.replace(/,/g, '') as unknown as number}
+                    />
+                  </Form.Item>
+                </Col>
+                {watchedToleranceType && (
+                  <Col span={6}>
+                    <Form.Item
+                      name="toleranceForScheduling"
+                      label={hint('Apply to Scheduling', 'ON = schedulable qty can exceed contract qty by tolerance. Risk position always uses contract qty only — tolerance never affects risk.')}
+                      valuePropName="checked"
+                    >
+                      <Switch />
+                    </Form.Item>
+                  </Col>
+                )}
+              </Row>
+            </>
+          )}
 
           {sectionTitle('Notes')}
           <Form.Item name="notes">

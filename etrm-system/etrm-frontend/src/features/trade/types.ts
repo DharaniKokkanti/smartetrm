@@ -302,11 +302,15 @@ export interface OptionDetail {
 }
 
 // ─── FX detail (FX commodity type) ────────────────────────────────────────────
-// Dealt leg reuses trade_order's own quantity/currencyId/price fields
-// (quantity = dealt amount, currencyId = dealt currency, price = FX rate) —
-// see docs/fx_trade_capture_gap_pending_09.md's design-question #1 for why
-// this was chosen over duplicating those fields here the way trade_swap_detail
-// does. SWAP (near+far leg) deliberately deferred — see that doc's #2.
+// Self-contained — FX is a treasury/financial instrument, not a physical
+// commodity, so it does NOT reuse trade_order's physical-trade fields
+// (quantity/uomId/price/currencyId map onto volume × price-per-unit, which
+// has no real meaning for a currency pair). All FX economics live here;
+// order.quantity/currencyId/price/uomId are still populated under the hood
+// on submit (dealtAmount/dealtCurrencyId/fxRate + a placeholder UoM) purely
+// to satisfy trade_order's existing NOT NULL columns — never shown to the
+// user. SWAP (near+far leg) deliberately deferred — see
+// docs/fx_trade_capture_gap_pending_09.md's design-question #2.
 export const FX_DEAL_TYPES = ['SPOT', 'FORWARD', 'NDF'] as const;
 export type FxDealType = (typeof FX_DEAL_TYPES)[number];
 
@@ -315,8 +319,11 @@ export type FxRateValueType = (typeof FX_RATE_VALUE_TYPES)[number];
 
 export interface FxDetail {
   dealType: FxDealType | null;
-  contraCurrencyId: number | null;
-  contraAmount: number | null;       // dealt amount (order.quantity) × rate, stored explicitly
+  dealtCurrencyId: number | null;    // the currency whose amount was specified — "buy 100 EUR"
+  dealtAmount: number | null;
+  contraCurrencyId: number | null;   // the other side of the pair
+  contraAmount: number | null;       // dealt amount × rate, stored explicitly
+  fxRate: number | null;
   rateValueType: FxRateValueType | null;
   valueDate: string | null;          // settlement / due date
   isNdf: boolean;

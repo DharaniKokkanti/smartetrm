@@ -8,6 +8,7 @@ import { ActiveTag } from '@components/smart/StatusTag';
 import { hint } from '@components/smart/FieldHint';
 import { useLocations, useSaveLocation, useDeactivateLocation } from './hooks';
 import { LOCATION_TYPE_CODES, type Location, type LocationInput, type LocationTypeCode } from './types';
+import { LocationRolesSection } from './LocationRolesSection';
 import { COMMODITY_TYPES, type CommodityType } from '@features/reference/commodity-types/types';
 import { useFormDraft } from '@components/smart/formDraft';
 import { AuditInfo } from '@components/smart/AuditInfo';
@@ -131,6 +132,7 @@ export function LocationsPage() {
           </Space>
           <Form.Item name="isActive" label="Active" valuePropName="checked"><Switch /></Form.Item>
         </Form>
+        {editing && <LocationRolesSection locationId={editing.locationId} primaryTypeCode={editing.locationTypeCode} />}
         <AuditInfo createdAt={editing?.createdAt} />
       </Drawer>
     </>

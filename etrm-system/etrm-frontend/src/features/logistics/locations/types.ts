@@ -29,3 +29,20 @@ export interface Location {
 }
 
 export type LocationInput = Omit<Location, 'locationId' | 'createdAt'>;
+
+/** V216 — an EXTRA role a location holds on top of its primary locationTypeCode
+ *  (e.g. a WAREHOUSE that's also an exchange-approved delivery point). See
+ *  docs/masterdata_curve_derivative_asset_gaps_pending_06.md gap #6. */
+export interface LocationRoleAssignment {
+  locationRoleAssignmentId: number;
+  rowVersion: number;
+  locationId: number;
+  locationTypeCode: LocationTypeCode;
+  approvalReference: string | null;
+  effectiveDate: string | null;
+  expiryDate: string | null;
+  notes: string | null;
+  createdAt: string;
+}
+
+export type LocationRoleAssignmentInput = Omit<LocationRoleAssignment, 'locationRoleAssignmentId' | 'locationId' | 'createdAt'>;

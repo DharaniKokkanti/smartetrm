@@ -265,6 +265,16 @@ const locationsStore: unknown[] = [
   { locationId: 8, locationCode: 'FREEPORT-LNG', locationName: 'Freeport LNG Terminal', locationTypeCode: 'LNG_TERMINAL', commodityType: 'GAS', countryId: 2, portCode: null, unlocode: 'USFPT', operator: 'Freeport LNG Development', capacity: 15000000, capacityUomCode: 'MMBTU', latitude: 28.9000, longitude: -95.3700, officeLocInd: false, tradingDeskInd: false, isActive: true, createdAt: '2024-01-01T00:00:00Z' },
 ];
 
+// V216 — extra roles a location holds beyond its primary locationTypeCode
+// above (see docs/masterdata_curve_derivative_asset_gaps_pending_06.md gap
+// #6). Seeded example: the LME Rotterdam warehouse (location 7) is also an
+// EXCHANGE-approved delivery point, layered on top of its WAREHOUSE type.
+const locationRoleAssignmentsStore: Array<Record<string, unknown>> = [
+  { locationRoleAssignmentId: 1, rowVersion: 0, locationId: 7, locationTypeCode: 'EXCHANGE', approvalReference: 'LME-WH-00412', effectiveDate: '2020-03-01', expiryDate: null, notes: 'LME-approved delivery point, layered on the base warehouse facility.', createdAt: '2024-01-01T00:00:00Z' },
+];
+let nextLocationRoleAssignmentIdCounter = 2;
+function nextLocationRoleAssignmentId() { return nextLocationRoleAssignmentIdCounter++; }
+
 // ─── TRANSPORT ROUTES ───────────────────────────────────────────────────────────
 // mot_type_id values reuse the real dbo.mot_type parent-lookup seed (referenceRowSeed.mot_type):
 // 1=Sea, 2=Pipeline, 3=Road, 4=Rail, 5=Barge, 6=Air, 7=Certificate.
@@ -1580,7 +1590,10 @@ const tradeOrdersStore: unknown[] = [
   { orderId: 17, tradeId: 15, orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00015-01', status: 'CONFIRMED', legalEntityId: 1, legalEntityName: 'NonameETRM Trading Ltd', bookId: 5, bookCode: 'POWER-CLIENT', brokerId: 2, brokerCode: 'GFI', brokerName: 'GFI Group Commodities', brokerFeeType: 'FIXED', brokerFee: 0.01, brokerFeeCurrencyId: 2, periodCode: 'M2026-12',  riskStartDate: '2026-12-01', riskEndDate: '2026-12-31', productId: null, productCode: null,            productName: null,                        marketId: null, marketCode: null,          pricingRuleId: null, pricingRuleCode: null,               quantity: 50000,   uomId: 2, uomCode: 'MT',   price: 72.50, currencyId: 2, currencyCode: 'EUR', incotermCode: null,   deliveryLocationId: null, deliveryLocationName: null,          settlementType: 'PHYSICAL',   toleranceType: null,   tolerancePlus: null, toleranceMinus: null, toleranceForScheduling: false, originCountryId: null, demurrageRate: null, demurrageCurrencyId: null, demurrageBasis: null, allowedLaytimeHours: null, despatchRate: null, priceAdjustments: [], notes: 'EUA Dec26 @ EUR72.50/t — delivery to Union Registry at expiry', environmentalDetail: { envProductType: 'ALLOWANCE', schemeCode: 'EU_ETS', registryCode: 'EU-UNION-REG', vintageYear: 2026, projectCode: null, serialNumberRange: null, retirementFlag: false }, createdAt: '2026-07-02T09:45:00Z', updatedAt: '2026-07-02T09:45:00Z' },
   // FX — dealt leg (quantity/currencyId/price) = buy EUR 1,000,000 @ 1.0850 outright forward;
   // contra leg (sell USD 1,085,000) lives in fxDetail. See docs/fx_trade_capture_gap_pending_09.md.
-  { orderId: 18, tradeId: 16, orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00016-01', status: 'CONFIRMED', legalEntityId: 1, legalEntityName: 'NonameETRM Trading Ltd', bookId: 2, bookCode: 'CRUDE-HEDGE', brokerId: null, brokerCode: null, brokerName: null, brokerFeeType: null, brokerFee: null, brokerFeeCurrencyId: null, periodCode: null, riskStartDate: '2026-07-03', riskEndDate: '2026-09-15', productId: null, productCode: null, productName: null, marketId: null, marketCode: null, pricingRuleId: null, pricingRuleCode: null, quantity: 1000000, uomId: 20, uomCode: 'CCY', price: 1.0850, currencyId: 3, currencyCode: 'EUR', incotermCode: null, deliveryLocationId: null, deliveryLocationName: null, settlementType: 'FINANCIAL', toleranceType: null, tolerancePlus: null, toleranceMinus: null, toleranceForScheduling: false, originCountryId: null, demurrageRate: null, demurrageCurrencyId: null, demurrageBasis: null, allowedLaytimeHours: null, despatchRate: null, priceAdjustments: [], notes: 'Buy EUR 1,000,000 / Sell USD, outright forward, value 2026-09-15', fxDetail: { dealType: 'FORWARD', contraCurrencyId: 1, contraAmount: 1085000, rateValueType: 'OUTRIGHT', valueDate: '2026-09-15', isNdf: false, fixingDate: null, fixingSource: null }, createdAt: '2026-07-03T09:15:00Z', updatedAt: '2026-07-03T09:15:00Z' },
+  // currencyId 2/1 here matches currenciesStore's scheme (USD=1, EUR=2, GBP=3)
+  // — the /currencies-backed store the FX form's currency dropdown now reads
+  // from (useCurrencies(), not the differently-ordered generic Tier2 seed).
+  { orderId: 18, tradeId: 16, orderSequence: 1, isTemplate: true,  orderReference: 'TRD-2026-00016-01', status: 'CONFIRMED', legalEntityId: 1, legalEntityName: 'NonameETRM Trading Ltd', bookId: 2, bookCode: 'CRUDE-HEDGE', brokerId: null, brokerCode: null, brokerName: null, brokerFeeType: null, brokerFee: null, brokerFeeCurrencyId: null, periodCode: null, riskStartDate: '2026-07-03', riskEndDate: '2026-09-15', productId: null, productCode: null, productName: null, marketId: null, marketCode: null, pricingRuleId: null, pricingRuleCode: null, quantity: 1000000, uomId: 20, uomCode: 'CCY', price: 1.0850, currencyId: 2, currencyCode: 'EUR', incotermCode: null, deliveryLocationId: null, deliveryLocationName: null, settlementType: 'FINANCIAL', toleranceType: null, tolerancePlus: null, toleranceMinus: null, toleranceForScheduling: false, originCountryId: null, demurrageRate: null, demurrageCurrencyId: null, demurrageBasis: null, allowedLaytimeHours: null, despatchRate: null, priceAdjustments: [], notes: 'Buy EUR 1,000,000 / Sell USD, outright forward, value 2026-09-15', fxDetail: { dealType: 'FORWARD', dealtCurrencyId: 2, dealtAmount: 1000000, contraCurrencyId: 1, contraAmount: 1085000, fxRate: 1.0850, rateValueType: 'OUTRIGHT', valueDate: '2026-09-15', isNdf: false, fixingDate: null, fixingSource: null }, createdAt: '2026-07-03T09:15:00Z', updatedAt: '2026-07-03T09:15:00Z' },
 ];
 
 // ─── TRADE ITEMS (line items within orders) ───────────────────────────────────
@@ -3037,6 +3050,33 @@ export const etrmHandlers = [
   http.get(`${API}/locations/trading-desks`, () =>
     HttpResponse.json((locationsStore as Array<Record<string, unknown>>).filter((l) => l['tradingDeskInd'] === true && l['isActive'] === true))),
   ...crudHandlers('locations', locationsStore as Array<Record<string, unknown>>, 'locationId'),
+
+  // ── Location — Roles sub-resource (V216) ──────────────────────────────────
+  http.get(`${API}/locations/:id/roles`, ({ params }) =>
+    HttpResponse.json(locationRoleAssignmentsStore.filter((r) => r.locationId === Number(params.id)))),
+  http.post(`${API}/locations/:id/roles`, async ({ params, request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    const record = {
+      locationRoleAssignmentId: nextLocationRoleAssignmentId(),
+      rowVersion: 0,
+      locationId: Number(params.id),
+      locationTypeCode: body['locationTypeCode'],
+      approvalReference: body['approvalReference'] ?? null,
+      effectiveDate: body['effectiveDate'] ?? null,
+      expiryDate: body['expiryDate'] ?? null,
+      notes: body['notes'] ?? null,
+      createdAt: new Date().toISOString(),
+    };
+    locationRoleAssignmentsStore.push(record);
+    return HttpResponse.json(record, { status: 201 });
+  }),
+  http.delete(`${API}/locations/:id/roles/:roleId`, ({ params }) => {
+    const idx = locationRoleAssignmentsStore.findIndex((r) => r.locationRoleAssignmentId === Number(params.roleId));
+    if (idx === -1) return problem(404, 'Not Found', 'Role assignment not found.');
+    locationRoleAssignmentsStore.splice(idx, 1);
+    return new HttpResponse(null, { status: 204 });
+  }),
+
   ...crudHandlers('vessels', vesselsStore as Array<Record<string, unknown>>, 'vesselId'),
 
   // ─── FREIGHT — Transport Routes (dbo.transport_route) ────────────────────────

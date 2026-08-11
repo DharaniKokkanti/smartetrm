@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { App as AntApp } from 'antd';
 import { locationsApi } from './api';
-import type { LocationInput } from './types';
+import type { LocationInput, LocationRoleAssignmentInput } from './types';
 import type { ProblemDetail } from '@services/api';
 import { isOptimisticLockConflict, showOptimisticLockConflict } from '@components/smart/optimisticLock';
 
@@ -36,5 +36,33 @@ export function useDeactivateLocation() {
     mutationFn: locationsApi.deactivate,
     onSuccess: () => { qc.invalidateQueries({ queryKey: KEY }); message.success('Location deactivated.'); },
     onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Deactivate failed.'),
+  });
+}
+
+export function useLocationRoles(locationId: number | null) {
+  return useQuery({
+    queryKey: ['locations', locationId, 'roles'],
+    queryFn: () => locationsApi.roles.list(locationId as number),
+    enabled: locationId !== null,
+  });
+}
+
+export function useSaveLocationRole(locationId: number | null) {
+  const qc = useQueryClient();
+  const { message } = AntApp.useApp();
+  return useMutation({
+    mutationFn: (input: LocationRoleAssignmentInput) => locationsApi.roles.create(locationId as number, input),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['locations', locationId, 'roles'] }); message.success('Role added.'); },
+    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Save failed.'),
+  });
+}
+
+export function useDeleteLocationRole(locationId: number | null) {
+  const qc = useQueryClient();
+  const { message } = AntApp.useApp();
+  return useMutation({
+    mutationFn: (roleId: number) => locationsApi.roles.remove(locationId as number, roleId),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['locations', locationId, 'roles'] }); message.success('Role removed.'); },
+    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Remove failed.'),
   });
 }
