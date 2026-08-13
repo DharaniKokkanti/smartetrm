@@ -5,5 +5,6 @@ public record LoginResponse(
         Long userId,
         String username,
         String fullName,
-        boolean isSystemAdmin
+        boolean isSystemAdmin,
+        long sessionTimeoutSeconds
 ) {}

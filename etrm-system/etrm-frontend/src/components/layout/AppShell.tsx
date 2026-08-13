@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react';
-import { Layout, Typography, Space, Avatar, Button, Badge, Tooltip, Dropdown, Popover } from 'antd';
+import { Layout, Typography, Space, Avatar, Button, Badge, Tooltip, Dropdown, Popover, message } from 'antd';
 import {
   MenuFoldOutlined, MenuUnfoldOutlined, SwapOutlined, FundOutlined, EditOutlined,
   SunOutlined, MoonOutlined, BgColorsOutlined, CodeOutlined, LogoutOutlined, UserOutlined, HomeOutlined,
@@ -16,9 +16,11 @@ import { useUiStore } from '@store/uiStore';
 import { useThemeStore } from '@store/themeStore';
 import { useApiLogStore } from '@store/apiLogStore';
 import { useAuthStore } from '@store/authStore';
+import { authApi } from '@features/auth/api';
 import { paletteFor } from '@theme/tokens';
 import { ApiLogDrawer } from './ApiLogDrawer';
 import { MinimizedDraftsDock } from './MinimizedDraftsDock';
+import { useIdleLogout } from './useIdleLogout';
 
 const { Header, Sider, Content } = Layout;
 
@@ -230,7 +232,7 @@ export function AppShell() {
   const { sidebarCollapsed, toggleSidebar } = useUiStore();
   const { mode, toggle: toggleTheme, monochrome, toggleMonochrome } = useThemeStore();
   const { entries, toggle: toggleApiLog } = useApiLogStore();
-  const { user, clearAuth } = useAuthStore();
+  const { user, clearAuth, sessionTimeoutSeconds } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
   const color = paletteFor(mode);
@@ -240,7 +242,20 @@ export function AppShell() {
   const itemSelectedBg = mode === 'dark' ? '#2A2750' : '#EEEDFE';
   const itemHoverBg = mode === 'dark' ? '#26262B' : '#F2F1EC';
 
-  function handleLogout() { clearAuth(); navigate('/login', { replace: true }); }
+  function handleLogout() {
+    // Best-effort — the user_audit_log LOGOUT row is a nice-to-have, not a gate;
+    // don't block sign-out on it if the request fails (token already expired, network blip, etc).
+    void authApi.logout().catch(() => {});
+    clearAuth();
+    navigate('/login', { replace: true });
+  }
+
+  // Idle-session timeout — server-configured (etrm.security.session-timeout-seconds,
+  // default 120s), reported in the login response and stored in authStore.
+  useIdleLogout(sessionTimeoutSeconds, () => {
+    message.warning('You have been signed out due to inactivity.');
+    handleLogout();
+  });
 
   const activeKey =
     ALL_KEYS.find((k) => k !== '/' && location.pathname.startsWith(k)) ??

@@ -33,12 +33,16 @@ export function LoginPage() {
         username: values.username.trim(),
         password: values.password,
       });
-      setAuth(res.token, {
-        userId: res.userId,
-        username: res.username,
-        fullName: res.fullName,
-        isSystemAdmin: res.isSystemAdmin,
-      });
+      setAuth(
+        res.token,
+        {
+          userId: res.userId,
+          username: res.username,
+          fullName: res.fullName,
+          isSystemAdmin: res.isSystemAdmin,
+        },
+        res.sessionTimeoutSeconds,
+      );
       navigate(from, { replace: true });
     } catch (err) {
       const pd = err as ProblemDetail;

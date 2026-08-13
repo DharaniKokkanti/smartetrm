@@ -11,11 +11,16 @@ export interface LoginResponse {
   username: string;
   fullName: string;
   isSystemAdmin: boolean;
+  /** Idle-session timeout in seconds, server-configured (etrm.security.session-timeout-seconds, default 120). */
+  sessionTimeoutSeconds: number;
 }
 
 export const authApi = {
   login: async (req: LoginRequest): Promise<LoginResponse> => {
     const { data } = await apiClient.post<LoginResponse>('/auth/login', req);
     return data;
+  },
+  logout: async (): Promise<void> => {
+    await apiClient.post('/auth/logout');
   },
 };

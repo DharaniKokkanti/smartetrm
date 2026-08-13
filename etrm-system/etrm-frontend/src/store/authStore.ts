@@ -17,7 +17,9 @@ interface AuthState {
   token: string | null;
   user: AuthUser | null;
   isAuthenticated: boolean;
-  setAuth: (token: string, user: AuthUser) => void;
+  /** Idle-session timeout in seconds, from the login response (server-configured, default 120). */
+  sessionTimeoutSeconds: number;
+  setAuth: (token: string, user: AuthUser, sessionTimeoutSeconds: number) => void;
   clearAuth: () => void;
 }
 
@@ -39,12 +41,13 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       user: null,
       isAuthenticated: false,
+      sessionTimeoutSeconds: 120,
 
-      setAuth: (token, user) => {
+      setAuth: (token, user, sessionTimeoutSeconds) => {
         // Keep sessionStorage.etrm_token in sync so the existing Axios
         // interceptor picks it up without any changes to api.ts
         sessionStorage.setItem('etrm_token', token);
-        set({ token, user, isAuthenticated: true });
+        set({ token, user, isAuthenticated: true, sessionTimeoutSeconds });
       },
 
       clearAuth: () => {

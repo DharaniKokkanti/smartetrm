@@ -42,6 +42,9 @@ export const authHandlers = [
       // (which really does hold ADMIN) rather than silently hiding the
       // ADMIN-only Static Data override behind mocks.
       isSystemAdmin: true,
+      sessionTimeoutSeconds: 120,
     });
   }),
+
+  http.post(`${API}/auth/logout`, () => new HttpResponse(null, { status: 200 })),
 ];
