@@ -16,7 +16,7 @@ import com.etrm.system.common.SourceSystemDefaults;
  * resolve fleet_id -> its code/name for display.
  */
 @Entity
-@Table(name = "fleet")
+@Table(name = "ref_fleet")
 public class Fleet {
 
     @Id

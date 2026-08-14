@@ -17,7 +17,7 @@ export function TransportRoutesPage() {
   const { data = [], isLoading, refetch } = useTransportRoutes();
   const save = useSaveTransportRoute();
   const { data: locations = [] } = useLocations();
-  const { data: motTypes = [] } = useTableRows<{ motTypeId: number; typeName: string }>('mot_type');
+  const { data: motTypes = [] } = useTableRows<{ motTypeId: number; typeName: string }>('mst_mot_type');
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<TransportRoute | null>(null);

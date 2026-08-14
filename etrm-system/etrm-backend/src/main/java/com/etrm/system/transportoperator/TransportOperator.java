@@ -21,7 +21,7 @@ import jakarta.validation.constraints.Size;
  * operatorName for display. No controller in this batch.
  */
 @Entity
-@Table(name = "transport_operator")
+@Table(name = "ref_transport_operator")
 public class TransportOperator extends AuditableEntity {
 
     @Id

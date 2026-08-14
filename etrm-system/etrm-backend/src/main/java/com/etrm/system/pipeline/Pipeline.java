@@ -33,7 +33,7 @@ import java.time.LocalDate;
  * it — the real value is exposed instead as diameterMm.
  */
 @Entity
-@Table(name = "pipeline")
+@Table(name = "ref_pipeline")
 public class Pipeline extends AuditableEntity {
 
     @Id

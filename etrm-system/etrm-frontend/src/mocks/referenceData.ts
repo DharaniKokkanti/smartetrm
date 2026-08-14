@@ -199,7 +199,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'storage_facility_type', label: 'Storage Facility Types', pk: 'storageFacilityTypeId', group: 'Logistics & Delivery', order: 1,
+    name: 'mst_storage_facility_type', label: 'Storage Facility Types', pk: 'storageFacilityTypeId', group: 'Logistics & Delivery', order: 1,
     subGroup: 'Facilities', description: 'Classifies physical storage facilities — tanks, warehouses, LNG terminals, grain silos, refineries, underground caverns, and vaults. Used on logistics legs and inventory positions.',
     rows: [
       { storageFacilityTypeId: 1,  typeCode: 'TANK_FARM',            typeName: 'Tank Farm',            description: 'Fixed or floating-roof above-ground tanks (crude, refined products)',   sortOrder: 1,  isActive: true },
@@ -271,7 +271,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
   },
   // ── Additional simple classification tables (non-V17, same shape) ──────────
   {
-    name: 'mot_type', label: 'Modes of Transport', pk: 'motTypeId', group: 'Logistics & Delivery', order: 2,
+    name: 'mst_mot_type', label: 'Modes of Transport', pk: 'motTypeId', group: 'Logistics & Delivery', order: 2,
     subGroup: 'Transport', description: 'Physical transport modes used to move commodity from origin to destination — sea vessel, pipeline, road tanker, rail car, barge, or air freight. Drives logistics leg type, Incoterm compatibility, and inspection rules.',
     rows: [
       { motTypeId: 1, typeCode: 'SEA',         typeName: 'Sea',         description: 'Ocean vessel — tanker, bulker, or LNG carrier',                         sortOrder: 1, isActive: true },
@@ -284,7 +284,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'location_type', label: 'Location Types', pk: 'locationTypeId', group: 'Logistics & Delivery', order: 3,
+    name: 'mst_location_type', label: 'Location Types', pk: 'locationTypeId', group: 'Logistics & Delivery', order: 3,
     subGroup: 'Locations', description: 'Types of delivery and trading locations used on trades and logistics legs — marine ports, gas hubs, LNG terminals, pipeline hubs, power grid nodes, storage facilities, and refineries.',
     rows: [
       { locationTypeId: 1, typeCode: 'PORT',             typeName: 'Port',             description: 'Marine loading or discharge port',                        sortOrder: 1, isActive: true },
@@ -312,7 +312,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'inspection_type', label: 'Inspection Types', pk: 'inspectionTypeId', group: 'Logistics & Delivery', order: 4,
+    name: 'mst_inspection_type', label: 'Inspection Types', pk: 'inspectionTypeId', group: 'Logistics & Delivery', order: 4,
     subGroup: 'Inspection', description: 'Types of independent cargo and vessel inspections that can be arranged for a shipment — quantity survey, quality survey, tank calibration, ullage, and draught surveys.',
     rows: [
       { inspectionTypeId: 1, typeCode: 'QUANTITY',         typeName: 'Quantity Survey',    description: 'Independent inspector for cargo quantity / weight survey',   sortOrder: 1, isActive: true },
@@ -324,7 +324,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'vessel_type', label: 'Vessel Types', pk: 'vesselTypeId', group: 'Logistics & Delivery', order: 22,
+    name: 'ref_vessel_type', label: 'Vessel Types', pk: 'vesselTypeId', group: 'Logistics & Delivery', order: 22,
     subGroup: 'Vessels', description: 'Vessel class classification — VLCC, Suezmax, Aframax, MR Tanker, LNG/LPG Carrier, Bulk Carrier. Parent table for vessel.vessel_type_id FK (V111 — converted from a hardcoded CHECK constraint).',
     rows: [
       { vesselTypeId: 1,  typeCode: 'VLCC',            typeName: 'Very Large Crude Carrier (200-320k DWT)', description: null, sortOrder: 1,  isActive: true },
@@ -839,8 +839,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
     ],
   },
   // V110 — Maritime Execution Platform phase 2 lookups.
-  fleet_group: {
-    tableName: 'fleet_group', displayName: 'Fleet Groups', primaryKeyColumn: 'fleetGroupId', isTemporal: false,
+  ref_fleet_group: {
+    tableName: 'ref_fleet_group', displayName: 'Fleet Groups', primaryKeyColumn: 'fleetGroupId', isTemporal: false,
     columns: [
       col('fleetGroupId', 'ID',          'number',  false, true,  null),
       col('groupCode',    'Code',        'string',  false, false, 30),
@@ -849,14 +849,14 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',     'Active',      'boolean', false, false, null),
     ],
   },
-  fleet: {
-    tableName: 'fleet', displayName: 'Fleets', primaryKeyColumn: 'fleetId', isTemporal: false,
+  ref_fleet: {
+    tableName: 'ref_fleet', displayName: 'Fleets', primaryKeyColumn: 'fleetId', isTemporal: false,
     columns: [
       col('fleetId',         'ID',              'number',      false, true,  null),
       col('fleetCode',       'Code',            'string',      false, false, 30),
       col('fleetName',       'Name',            'string',      false, false, 150),
-      col('fleetGroupId',    'Fleet Group',     'foreign_key', true,  false, null, null, 'fleet_group'),
-      col('ownerOperatorId', 'Owner Operator',  'foreign_key', true,  false, null, null, 'transport_operator'),
+      col('fleetGroupId',    'Fleet Group',     'foreign_key', true,  false, null, null, 'ref_fleet_group'),
+      col('ownerOperatorId', 'Owner Operator',  'foreign_key', true,  false, null, null, 'ref_transport_operator'),
       col('description',     'Description',     'string',      true,  false, 500),
       col('isActive',        'Active',          'boolean',     false, false, null),
     ],
@@ -884,7 +884,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('templateId',      'ID',            'number',      false, true,  null),
       col('templateCode',    'Code',          'string',      false, false, 30),
       col('templateName',    'Name',          'string',      false, false, 150),
-      col('portLocationId',  'Port',          'foreign_key', true,  false, null, null, 'location'),
+      col('portLocationId',  'Port',          'foreign_key', true,  false, null, null, 'ref_location'),
       col('commodityTypeId', 'Commodity Type', 'foreign_key', true,  false, null, null, 'ref_commodity_type'),
       col('description',     'Description',   'string',      true,  false, 500),
       col('isActive',        'Active',        'boolean',     false, false, null),
@@ -1101,8 +1101,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
   // dedicated Storage Facilities page's own store calls it `storageId` —
   // this mirror exists only so lng_terminal_detail.facility_id resolves to a
   // real label, not to duplicate that page.
-  storage_facility: {
-    tableName: 'storage_facility', displayName: 'Storage Facilities', primaryKeyColumn: 'facilityId', isTemporal: false,
+  ref_storage_facility: {
+    tableName: 'ref_storage_facility', displayName: 'Storage Facilities', primaryKeyColumn: 'facilityId', isTemporal: false,
     columns: [
       col('facilityId',   'ID',   'number', false, true,  null),
       col('facilityCode', 'Code', 'string', false, false, 30),
@@ -1115,7 +1115,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
   ref_lng_terminal_detail: {
     tableName: 'ref_lng_terminal_detail', displayName: 'LNG Terminal Detail', primaryKeyColumn: 'facilityId', isTemporal: false,
     columns: [
-      col('facilityId',               'Storage Facility',        'foreign_key', false, true,  null, null, 'storage_facility'),
+      col('facilityId',               'Storage Facility',        'foreign_key', false, true,  null, null, 'ref_storage_facility'),
       col('terminalType',             'Terminal Type',           'enum',        false, false, null, ['IMPORT_REGAS', 'EXPORT_LIQUEFACTION', 'FSRU', 'DUAL']),
       col('regasCapacityMmscmd',      'Regas Capacity (mmscm/d)', 'number',     true,  false, null, null, null, null, true),
       col('liquefactionCapacityMtpa', 'Liquefaction Capacity (MTPA)', 'number', true,  false, null, null, null, null, true),
@@ -1249,8 +1249,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
   // Locations has its own dedicated page/store in etrmHandlers.ts
   // (locationId 1 = SULLOM-VOE); exists purely so V96's
   // payment_calendar_assignment.location_id resolves to a real label.
-  location: {
-    tableName: 'location', displayName: 'Locations', primaryKeyColumn: 'locationId', isTemporal: false,
+  ref_location: {
+    tableName: 'ref_location', displayName: 'Locations', primaryKeyColumn: 'locationId', isTemporal: false,
     columns: [
       col('locationId',   'ID',   'number', false, true,  null),
       col('locationCode', 'Code', 'string', false, false, 30),
@@ -1309,14 +1309,14 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('description',                'Description',         'string',  true,  false, 500),
     ],
   },
-  transport_operator: {
-    tableName: 'transport_operator', displayName: 'Transport Operators', primaryKeyColumn: 'operatorId', isTemporal: false,
+  ref_transport_operator: {
+    tableName: 'ref_transport_operator', displayName: 'Transport Operators', primaryKeyColumn: 'operatorId', isTemporal: false,
     columns: [
       col('operatorId',      'ID',            'number',      false, true,  null),
       col('operatorCode',    'Code',          'string',      false, false, 20),
       col('operatorName',    'Name',          'string',      false, false, 200),
       col('operatorType',    'Operator Type', 'foreign_key', false, false, null, null, 'ref_lookup_value', 'OPERATOR_TYPE'),
-      col('motTypeId',       'MOT Type',      'foreign_key', true,  false, null, null, 'mot_type'),
+      col('motTypeId',       'MOT Type',      'foreign_key', true,  false, null, null, 'mst_mot_type'),
       col('countryId',       'Country',       'foreign_key', true,  false, null, null, 'country'),
       col('counterpartyId',  'Counterparty',  'foreign_key', true,  false, null, null, 'ref_counterparty'),
       col('isActive',        'Active',        'boolean',     false, false, null),
@@ -1485,7 +1485,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
     columns: [
       col('warrantId',            'ID',                  'number',      false, true,  null),
       col('warrantNumber',        'Warrant Number',      'string',      false, false, 50),
-      col('facilityId',           'Vault Facility',      'foreign_key', false, false, null, null, 'storage_facility'),
+      col('facilityId',           'Vault Facility',      'foreign_key', false, false, null, null, 'ref_storage_facility'),
       col('productId',            'Product',             'foreign_key', false, false, null, null, 'ref_product'),
       col('metalBrandId',         'Brand',               'foreign_key', false, false, null, null, 'ref_metal_brand'),
       col('metalShapeId',         'Shape',               'foreign_key', false, false, null, null, 'ref_metal_shape'),
@@ -1522,7 +1522,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('ruleCode',                    'Code',                      'string',      false, false, 30),
       col('ruleName',                     'Name',                      'string',      false, false, 150),
       col('vesselId',                      'Vessel',                    'foreign_key', true,  false, null, null, 'vessel'),
-      col('facilityId',                     'Storage Facility',          'foreign_key', true,  false, null, null, 'storage_facility'),
+      col('facilityId',                     'Storage Facility',          'foreign_key', true,  false, null, null, 'ref_storage_facility'),
       col('dailyBoilOffRatePct',              'Daily Boil-Off Rate (%)',   'number',      false, false, null, null, null, null, true),
       col('isForcingBoilOffAllowed',           'Forcing Boil-Off Allowed',  'boolean',     false, false, null),
       col('effectiveFrom',                       'Effective From',           'date',        true,  false, null),
@@ -1603,7 +1603,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('assignmentId',                   'ID',                     'number',      false, true,  null),
       col('paymentTermId',                    'Payment Term',           'foreign_key', false, false, null, null, 'payment_term'),
       col('currencyId',                         'Currency',               'foreign_key', false, false, null, null, 'currency'),
-      col('locationId',                           'Location',               'foreign_key', true,  false, null, null, 'location'),
+      col('locationId',                           'Location',               'foreign_key', true,  false, null, null, 'ref_location'),
       col('primaryHolidayCalendarId',                'Primary Calendar',       'foreign_key', false, false, null, null, 'mst_holiday_calendar'),
       col('secondaryHolidayCalendarId',                 'Secondary Calendar',     'foreign_key', true,  false, null, null, 'mst_holiday_calendar'),
       col('isActive',                                      'Active',                 'boolean',     false, false, null),
@@ -1672,7 +1672,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
     tableName: 'ref_loading_rack', displayName: 'Loading Racks', primaryKeyColumn: 'rackId', isTemporal: false,
     columns: [
       col('rackId',               'ID',                  'number',      false, true,  null),
-      col('facilityId',           'Storage Facility',    'foreign_key', false, false, null, null, 'storage_facility'),
+      col('facilityId',           'Storage Facility',    'foreign_key', false, false, null, null, 'ref_storage_facility'),
       col('rackNumber',           'Rack Number',         'string',      false, false, 30),
       col('meterType',            'Meter Type',          'enum',        false, false, null, ['POSITIVE_DISPLACEMENT', 'TURBINE', 'CORIOLIS', 'ULTRASONIC', 'OTHER']),
       col('proverType',           'Prover Type',         'enum',        true,  false, null, ['SMALL_VOLUME_PROVER', 'PIPE_PROVER', 'MASTER_METER', 'TANK_PROVER']),
@@ -1681,7 +1681,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('nextCalibrationDate',  'Next Calibration',    'date',        true,  false, null),
       col('maxFlowRateM3h',       'Max Flow Rate (m³/h)','number',      true,  false, null, null, null, null, true),
       col('productId',            'Product',             'foreign_key', true,  false, null, null, 'ref_product'),
-      col('motTypeId',            'Mode of Transport',   'foreign_key', true,  false, null, null, 'mot_type'),
+      col('motTypeId',            'Mode of Transport',   'foreign_key', true,  false, null, null, 'mst_mot_type'),
       col('isActive',             'Active',              'boolean',     false, false, null),
       col('notes',                'Notes',               'string',      true,  false, 500),
     ],
@@ -1718,14 +1718,14 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('agreementId',      'ID',                 'number',      false, true,  null),
       col('agreementCode',    'Agreement Code',     'string',      false, false, 30),
       col('counterpartyId',   'Counterparty',       'foreign_key', false, false, null, null, 'ref_counterparty'),
-      col('facilityId',       'Storage Facility',   'foreign_key', false, false, null, null, 'storage_facility'),
+      col('facilityId',       'Storage Facility',   'foreign_key', false, false, null, null, 'ref_storage_facility'),
       col('agreementType',    'Agreement Type',     'enum',        false, false, null, ['STORAGE', 'THROUGHPUT', 'BOTH']),
       col('contractedCapacity','Contracted Capacity','number',     false, false, null, null, null, null, true),
       col('capacityUomId',    'Capacity UoM',       'foreign_key', false, false, null, null, 'unit_of_measure'),
       col('tariffRate',       'Tariff Rate',        'number',      true,  false, null, null, null, null, true),
       col('tariffCurrencyId', 'Tariff Currency',    'foreign_key', true,  false, null, null, 'currency'),
       col('tariffUomId',      'Tariff UoM',         'foreign_key', true,  false, null, null, 'unit_of_measure'),
-      col('motTypeId',        'Mode of Transport',  'foreign_key', true,  false, null, null, 'mot_type'),
+      col('motTypeId',        'Mode of Transport',  'foreign_key', true,  false, null, null, 'mst_mot_type'),
       col('effectiveFrom',    'Effective From',     'date',        false, false, null),
       col('effectiveTo',      'Effective To',       'date',        true,  false, null),
       col('isActive',         'Active',             'boolean',     false, false, null),
@@ -1749,8 +1749,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
     tableName: 'ref_road_tariff', displayName: 'Road (Truck) Tariffs', primaryKeyColumn: 'tariffId', isTemporal: false,
     columns: [
       col('tariffId',         'ID',              'number',      false, true,  null),
-      col('routeId',          'Transport Route', 'foreign_key', false, false, null, null, 'transport_route'),
-      col('operatorId',       'Operator',        'foreign_key', true,  false, null, null, 'transport_operator'),
+      col('routeId',          'Transport Route', 'foreign_key', false, false, null, null, 'ref_transport_route'),
+      col('operatorId',       'Operator',        'foreign_key', true,  false, null, null, 'ref_transport_operator'),
       col('productId',        'Product',         'foreign_key', true,  false, null, null, 'ref_product'),
       col('tariffType',       'Tariff Type',     'enum',        false, false, null, ['FLAT_PER_LOAD', 'PER_KM', 'PER_MT', 'PER_BBL', 'PER_HOUR']),
       col('rate',             'Rate',            'number',      false, false, null, null, null, null, true),
@@ -1771,8 +1771,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
     columns: [
       col('taxRuleId',                'ID',                  'number',      false, true,  null),
       col('ruleName',                 'Rule Name',           'string',      false, false, 200),
-      col('loadLocationId',           'Load Location',       'foreign_key', true,  false, null, null, 'location'),
-      col('dischLocationId',          'Discharge Location',  'foreign_key', true,  false, null, null, 'location'),
+      col('loadLocationId',           'Load Location',       'foreign_key', true,  false, null, null, 'ref_location'),
+      col('dischLocationId',          'Discharge Location',  'foreign_key', true,  false, null, null, 'ref_location'),
       col('countryId',                'Country',             'foreign_key', true,  false, null, null, 'country'),
       col('legalEntityId',            'Legal Entity',        'foreign_key', true,  false, null, null, 'ref_legal_entity'),
       col('counterpartyId',           'Counterparty',        'foreign_key', true,  false, null, null, 'ref_counterparty'),
@@ -1814,8 +1814,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('ruleName',                 'Rule Name',           'string',      false, false, 200),
       col('originCountryId',          'Origin Country',      'foreign_key', true,  false, null, null, 'country'),
       col('destinationCountryId',     'Destination Country', 'foreign_key', true,  false, null, null, 'country'),
-      col('loadLocationId',           'Load Location',       'foreign_key', true,  false, null, null, 'location'),
-      col('dischLocationId',          'Discharge Location',  'foreign_key', true,  false, null, null, 'location'),
+      col('loadLocationId',           'Load Location',       'foreign_key', true,  false, null, null, 'ref_location'),
+      col('dischLocationId',          'Discharge Location',  'foreign_key', true,  false, null, null, 'ref_location'),
       col('productId',                'Product',             'foreign_key', true,  false, null, null, 'ref_product'),
       col('legalEntityId',            'Legal Entity',        'foreign_key', true,  false, null, null, 'ref_legal_entity'),
       col('counterpartyId',           'Counterparty',        'foreign_key', true,  false, null, null, 'ref_counterparty'),
@@ -1888,8 +1888,8 @@ export const registrySeed: RegistryEntry[] = [
   { registryId: 262, tableName: 'emission_factor',                displayName: 'Emission Factors',                moduleGroup: 'Voyage & Charter Ops', description: 'Per-fuel-grade CO2/SOx/NOx/CH4/N2O emission factors.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 6 },
   { registryId: 263, tableName: 'vessel_operational_status_type', displayName: 'Vessel Operational Status Types', moduleGroup: 'Voyage & Charter Ops', description: 'Real-time operational state vocabulary.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 7 },
   { registryId: 264, tableName: 'delay_reason_type',              displayName: 'Delay Reason Types',              moduleGroup: 'Voyage & Charter Ops', description: 'Voyage-level underway/transit delay attribution.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 8 },
-  { registryId: 265, tableName: 'fleet_group',                    displayName: 'Fleet Groups',                    moduleGroup: 'Logistics & Delivery', description: 'Top-level portfolio grouping above individual fleets.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 20 },
-  { registryId: 266, tableName: 'fleet',                          displayName: 'Fleets',                          moduleGroup: 'Logistics & Delivery', description: 'Vessel groupings under an owner/operator and fleet group.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 21 },
+  { registryId: 265, tableName: 'ref_fleet_group',                    displayName: 'Fleet Groups',                    moduleGroup: 'Logistics & Delivery', description: 'Top-level portfolio grouping above individual fleets.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 20 },
+  { registryId: 266, tableName: 'ref_fleet',                          displayName: 'Fleets',                          moduleGroup: 'Logistics & Delivery', description: 'Vessel groupings under an owner/operator and fleet group.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 21 },
   // V56 — dedicated FX tenor/period master, linked from fx_rate (not a lookup_value category — needs to scale to 1000+ daily-forward rows)
   { registryId: 209, tableName: 'ref_fx_period',              displayName: 'FX Periods / Tenors',       moduleGroup: 'Pricing & Rates',    subGroup: 'FX',      description: 'Standard FX tenors (SPOT, 1M-2Y) plus individual daily-forward periods used to build a full FX forward curve. Linked from fx_rate.fx_period_id — scales to 1000+ daily delivery days without bloating the generic lookup table.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: true, isEnabled: true, displayOrder: 6 },
   // V59 — commodity_family: the missing middle tier between commodity (sector) and product (instrument), replacing product.product_family's raw unconstrained string
@@ -1913,7 +1913,7 @@ export const registrySeed: RegistryEntry[] = [
   { registryId: 220, tableName: 'insurance_provider',       displayName: 'Insurance Providers',        moduleGroup: 'Credit & Collateral',   subGroup: 'Insurance',   description: 'Insurance companies, P&I clubs, and underwriters — Lloyd\'s syndicates, AIG, Zurich, Euler Hermes — with contact and credit rating, for cargo/credit/political-risk coverage.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 8 },
   { registryId: 221, tableName: 'ref_interest_rate_index',      displayName: 'Interest Rate Indices',      moduleGroup: 'Pricing & Rates',       subGroup: 'FX',          description: 'Reference rate indices (SOFR, EURIBOR, SONIA) with day-count/compounding conventions — used for financing costs, late-payment interest, and commodity-linked structures.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 7 },
   { registryId: 222, tableName: 'mst_regulatory_report_type',   displayName: 'Regulatory Report Types',    moduleGroup: 'Sanctions & Regulatory Reporting', subGroup: 'Reporting', description: 'Regulatory report type definitions — EMIR, REMIT, CFTC, MiFID II — with submission target and reporting deadline, driving which reports a trade requires.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
-  { registryId: 223, tableName: 'transport_operator',       displayName: 'Transport Operators',        moduleGroup: 'Logistics & Delivery',  subGroup: 'Transport',   description: 'Haulage companies, rail/pipeline operators, ship managers, and terminal operators — coverage area, primary transport mode, and commodity approvals.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 9 },
+  { registryId: 223, tableName: 'ref_transport_operator',       displayName: 'Transport Operators',        moduleGroup: 'Logistics & Delivery',  subGroup: 'Transport',   description: 'Haulage companies, rail/pipeline operators, ship managers, and terminal operators — coverage area, primary transport mode, and commodity approvals.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 9 },
   // V71 — collateral_type (connects to a known margin_agreement gap), event_category/event_type and external_system (real schema, no consumer built yet)
   { registryId: 224, tableName: 'collateral_type', displayName: 'Collateral Types', moduleGroup: 'Credit & Collateral',   subGroup: 'Collateral', description: 'Eligible collateral asset classes and their standard haircut % — cash, government/corporate bonds, letters of credit, bank guarantees. Reference for margin agreement collateral eligibility.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 10 },
   { registryId: 225, tableName: 'event_category',  displayName: 'Event Categories', moduleGroup: 'Organization & Users', subGroup: 'System',     description: 'Top-level classification for system workflow/lifecycle events — Trade, Delivery, Settlement, Risk, Credit, Market Data, Regulatory.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 10 },
@@ -2250,12 +2250,12 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { offHireReasonTypeId: 6, reasonCode: 'INSPECTION',            reasonName: 'Vetting / Port State Inspection',      description: null, isActive: true },
     { offHireReasonTypeId: 7, reasonCode: 'OTHER',                  reasonName: 'Other',                                 description: null, isActive: true },
   ],
-  fleet_group: [
+  ref_fleet_group: [
     { fleetGroupId: 1, groupCode: 'TANKERS',    groupName: 'Tanker Division',    description: null, isActive: true },
     { fleetGroupId: 2, groupCode: 'DRY_BULK',   groupName: 'Dry Bulk Division',  description: null, isActive: true },
     { fleetGroupId: 3, groupCode: 'GAS',        groupName: 'Gas Carrier Division', description: null, isActive: true },
   ],
-  fleet: [
+  ref_fleet: [
     { fleetId: 1, fleetCode: 'CRUDE-FLEET',  fleetName: 'Crude Tanker Fleet',   fleetGroupId: 1, ownerOperatorId: 1, description: null, isActive: true },
     { fleetId: 2, fleetCode: 'PRODUCT-FLEET', fleetName: 'Product Tanker Fleet', fleetGroupId: 1, ownerOperatorId: 1, description: null, isActive: true },
     { fleetId: 3, fleetCode: 'BULK-FLEET',    fleetName: 'Dry Bulk Fleet',       fleetGroupId: 2, ownerOperatorId: 2, description: null, isActive: true },
@@ -2382,7 +2382,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
   ],
   // Lightweight storage_facility mirror — real facilityId 4 = GATE-LNG-RTM (the
   // only LNG_TANK-type row in the dedicated Storage Facilities store).
-  storage_facility: [
+  ref_storage_facility: [
     { facilityId: 1, facilityCode: 'CUSHING-T1',     facilityName: 'Cushing Tank Farm T-1' },
     { facilityId: 2, facilityCode: 'HUMBLY-GROVE',   facilityName: 'Humbly Grove Gas Storage' },
     { facilityId: 3, facilityCode: 'BERGERMEER-NL',  facilityName: 'Bergermeer Gas Storage' },
@@ -2427,7 +2427,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { reportTypeId: 3, reportCode: 'UK_EMIR_TRADE', reportName: 'UK EMIR Trade Report',               regulation: 'UK_EMIR', jurisdictionId: 1,  submissionTarget: 'UK Trade Repository', reportingDeadline: 'T+1 business day', reportFormat: 'XML', isMandatory: true, isActive: true, description: 'UK post-Brexit EMIR-equivalent trade report.' },
     { reportTypeId: 4, reportCode: 'CFTC_SWAP',     reportName: 'CFTC Swap Data Report',              regulation: 'CFTC',    jurisdictionId: 2,  submissionTarget: 'DTCC SDR',          reportingDeadline: 'T+1 business day', reportFormat: 'XML', isMandatory: true, isActive: true, description: 'US CFTC swap data reporting to a registered swap data repository.' },
   ],
-  transport_operator: [
+  ref_transport_operator: [
     { operatorId: 1, operatorCode: 'MAERSK-TANKERS', operatorName: 'Maersk Tankers',        operatorType: 4, motTypeId: 1, countryId: 23, counterpartyId: null, isActive: true, notes: 'Product/chemical tanker owner-operator.' },
     { operatorId: 2, operatorCode: 'NORTHWARD-RAIL',  operatorName: 'Northward Rail Freight', operatorType: 7, motTypeId: 4, countryId: 2, counterpartyId: null, isActive: true, notes: 'Unit-train bulk rail operator for grain and refined products.' },
     { operatorId: 3, operatorCode: 'RHINE-BARGE',     operatorName: 'Rhine Barge Logistics',  operatorType: 6, motTypeId: 5, countryId: 3, counterpartyId: null, isActive: true, notes: 'Inland waterway barge operator, ARA region.' },
@@ -2537,7 +2537,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { paymentTermId: 10, termCode: 'NOR_PLUS_7_BIZ', termName: 'NOR Tendered +7 Business Days' },
   ],
   // Lightweight location mirror — real ids from etrmHandlers.ts (locationId 1 = SULLOM-VOE).
-  location: [
+  ref_location: [
     { locationId: 1, locationCode: 'SULLOM-VOE', locationName: 'Sullom Voe Terminal' },
   ],
 

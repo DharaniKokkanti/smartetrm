@@ -53,7 +53,7 @@ import java.time.LocalDateTime;
  *    bridging technique used for PipelinePoint's fromPointCode/toPointCode.
  */
 @Entity
-@Table(name = "truck")
+@Table(name = "ref_truck")
 @EntityListeners(AuditingEntityListener.class)
 public class Truck {
 

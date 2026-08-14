@@ -18,7 +18,7 @@ import com.etrm.system.lookup.TypeCodeLookup;
  * built in this batch (per brief, skip building one).
  */
 @Entity
-@Table(name = "location_type")
+@Table(name = "mst_location_type")
 public class LocationType extends TypeCodeLookup {
 
     @Id

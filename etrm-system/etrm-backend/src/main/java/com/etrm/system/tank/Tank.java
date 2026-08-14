@@ -17,7 +17,7 @@ import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "tank")
+@Table(name = "ref_tank")
 public class Tank extends AuditableEntity {
 
     @Id

@@ -49,7 +49,7 @@ import java.time.LocalDateTime;
  * to the new real columns instead of introducing new field names.
  */
 @Entity
-@Table(name = "storage_facility")
+@Table(name = "ref_storage_facility")
 @EntityListeners(AuditingEntityListener.class)
 public class StorageFacility {
 

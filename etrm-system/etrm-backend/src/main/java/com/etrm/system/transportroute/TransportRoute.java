@@ -36,7 +36,7 @@ import java.time.LocalDateTime;
  * TransportRouteService); updated_at/updated_by added fresh.
  */
 @Entity
-@Table(name = "transport_route")
+@Table(name = "ref_transport_route")
 @EntityListeners(AuditingEntityListener.class)
 public class TransportRoute {
 

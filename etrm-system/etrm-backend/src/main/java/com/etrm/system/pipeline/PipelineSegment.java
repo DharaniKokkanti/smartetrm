@@ -33,7 +33,7 @@ import java.time.LocalDateTime;
  * resolves them via PipelinePointRepository.findByPointCodeIgnoreCase.
  */
 @Entity
-@Table(name = "pipeline_segment")
+@Table(name = "ref_pipeline_segment")
 @EntityListeners(AuditingEntityListener.class)
 public class PipelineSegment {
 

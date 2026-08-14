@@ -37,7 +37,7 @@ import java.time.LocalDateTime;
  * LocationService).
  */
 @Entity
-@Table(name = "location")
+@Table(name = "ref_location")
 @EntityListeners(AuditingEntityListener.class)
 public class Location {
 

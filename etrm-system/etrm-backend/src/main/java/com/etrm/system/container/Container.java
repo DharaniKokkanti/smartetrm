@@ -37,7 +37,7 @@ import java.time.LocalDateTime;
  * @LastModifiedDate/@LastModifiedBy, matching GlAccount's shape.
  */
 @Entity
-@Table(name = "container")
+@Table(name = "ref_container")
 @EntityListeners(AuditingEntityListener.class)
 public class Container {
 

@@ -34,7 +34,7 @@ import java.time.LocalTime;
  * @CreatedBy/@LastModifiedDate/@LastModifiedBy JPA-auditing annotations.
  */
 @Entity
-@Table(name = "pipeline_cycle")
+@Table(name = "ref_pipeline_cycle")
 @EntityListeners(AuditingEntityListener.class)
 public class PipelineCycle {
 

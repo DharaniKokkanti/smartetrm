@@ -18,7 +18,7 @@ import com.etrm.system.common.SourceSystemDefaults;
  * transport_route.mot_type_id -> motTypeName.
  */
 @Entity
-@Table(name = "mot_type")
+@Table(name = "mst_mot_type")
 public class MotType {
 
     @Id

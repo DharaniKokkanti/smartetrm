@@ -38,7 +38,7 @@ import java.time.LocalDateTime;
  * insert/flush time is the only wiring needed.
  */
 @Entity
-@Table(name = "pipeline_point")
+@Table(name = "ref_pipeline_point")
 @EntityListeners(AuditingEntityListener.class)
 public class PipelinePoint {
 

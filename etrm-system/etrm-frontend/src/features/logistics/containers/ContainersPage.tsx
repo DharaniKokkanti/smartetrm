@@ -18,7 +18,7 @@ export function ContainersPage() {
   const { data = [], isLoading, refetch } = useContainers();
   const save = useSaveContainer();
   const deactivate = useDeactivateContainer();
-  const { data: operatorRows = [] } = useTableRows<{ operatorId: number; operatorCode: string; operatorName: string }>('transport_operator');
+  const { data: operatorRows = [] } = useTableRows<{ operatorId: number; operatorCode: string; operatorName: string }>('ref_transport_operator');
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Container | null>(null);

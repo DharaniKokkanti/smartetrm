@@ -35,7 +35,7 @@ import java.time.LocalDateTime;
  * PipelineSegment's (no dropdown was ever built against pipeline_point).
  */
 @Entity
-@Table(name = "pipeline_tariff")
+@Table(name = "ref_pipeline_tariff")
 @EntityListeners(AuditingEntityListener.class)
 public class PipelineTariff {
 

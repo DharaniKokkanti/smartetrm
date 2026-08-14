@@ -17,7 +17,7 @@ import com.etrm.system.common.SourceSystemDefaults;
  * book_type/connection_type precedent.
  */
 @Entity
-@Table(name = "vessel_type")
+@Table(name = "ref_vessel_type")
 public class VesselType {
 
     @Id

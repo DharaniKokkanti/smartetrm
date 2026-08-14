@@ -23,7 +23,7 @@ import java.time.LocalDateTime;
  * generic Tier 2 mechanism).
  */
 @Entity
-@Table(name = "storage_facility_type")
+@Table(name = "mst_storage_facility_type")
 public class StorageFacilityType extends TypeCodeLookup {
 
     @Id

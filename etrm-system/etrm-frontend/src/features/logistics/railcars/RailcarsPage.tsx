@@ -116,7 +116,7 @@ export function RailcarsPage() {
   const { data = [], isLoading, refetch } = useRailcars();
   const save = useSaveRailcar();
   const deactivate = useDeactivateRailcar();
-  const { data: operatorRows = [] } = useTableRows<{ operatorId: number; operatorCode: string; operatorName: string }>('transport_operator');
+  const { data: operatorRows = [] } = useTableRows<{ operatorId: number; operatorCode: string; operatorName: string }>('ref_transport_operator');
   const { data: countries = [] } = useCountries();
 
   const [open, setOpen] = useState(false);

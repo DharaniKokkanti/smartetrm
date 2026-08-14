@@ -34,7 +34,7 @@ import java.time.LocalDateTime;
  * (unlike Vessel.buildYear which is SMALLINT).
  */
 @Entity
-@Table(name = "railcar")
+@Table(name = "ref_railcar")
 @EntityListeners(AuditingEntityListener.class)
 public class Railcar {
 
