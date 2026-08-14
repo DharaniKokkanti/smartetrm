@@ -63,6 +63,19 @@ Informed by ComTech industry roundtables on ETRM/commodity-trading AI vendor pra
 - Governance/legal → maps to entitlement/access control layered onto the event and streaming systems.
 - Cost/talent → organizational/roadmap concern, not architecture.
 
+## 4a. Table Naming Convention — `mst_`/`ref_`/`tran_`/`usr_` prefixes (REAL, in progress — not aspirational like §1-3 above)
+
+Unlike the event-architecture layer above, this is live, currently being rolled out table-by-table. Every physical table name carries a category prefix, decided before the DDL is written, no exceptions for new tables:
+
+- **`mst_`** — master data, only platform admins add/edit (system-controlled code lists, the existing SYSTEM-locked `allow_create/edit=0` set)
+- **`ref_`** — reference data, business users manage through the app (counterparties, products, markets, legal entities — done, 62 tables, 2026-08-14)
+- **`tran_`** — transaction data, real business events (trade capture — done, 25 tables, 2026-08-14; position/P&L/pricing/costs as those get built)
+- **`usr_`** — system users/security/admin infrastructure (accounts, roles, permissions, audit — not yet started)
+
+**Why**: `master_data_table_registry.module_group` already recorded this classification and was found silently wrong for 26 tables the same session this rule was introduced — a metadata row can drift with nothing forcing it into view, a table's own name cannot. It's also what makes the schema legible to future AI/MCP tooling reading it cold: an agent sees `tran_trade` vs `ref_counterparty` vs `mst_currency` and gets the mutability/governance category for free, without an extra lookup or risk of trusting a stale row — the same "explicit, inspectable rule over opaque classification" principle §4 above already calls for, just applied directly in the identifier.
+
+Full definition, exact criteria, candidate table lists per category, and live rollout status: [`etrm-system/docs/MASTER_DATA_ARCHITECTURE.md`](etrm-system/docs/MASTER_DATA_ARCHITECTURE.md) §8. Session-by-session build record: [`etrm-system/docs/ETRM_Project_Handoff_v1_0.md`](etrm-system/docs/ETRM_Project_Handoff_v1_0.md) §0.
+
 ## 5. Misc Debugging Notes (carry over, may still be relevant to platform build)
 
 - **SQL Server Msg 3930** ("current transaction cannot be committed...") on `INSERT INTO #temp EXEC some_proc`: first check for a column name/order/type mismatch between the target temp table and the SELECT(s) inside the called proc — check **all branches**, not just the one being tested. Don't jump to transaction/XACT_ABORT/tempdb theories first.

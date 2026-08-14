@@ -4,6 +4,7 @@
 
 ## 1. Design questions to answer first
 
+- **What category prefix does the physical table name get — `mst_`, `ref_`, `tran_`, or `usr_`?** Standing rule, no exceptions, decided before any DDL is written — see `../../MASTER_DATA_ARCHITECTURE.md` §8 for the full definition and criteria. This is not cosmetic: it's the one classification signal that can't silently drift the way a registry row can (found live, 2026-08-14 — `master_data_table_registry.module_group` was wrong for 26 tables and nobody noticed), and it's what makes the schema legible to any future AI/MCP tooling reading it cold (`../architecture/04-ai-governance.md`).
 - What is this table's `data_domain`? (trade, position, logistics, risk, reference, etc.)
 - What is its `mutability`? (mutable / append-only / immutable-after-post)
 - What is its `source_type`? (Java service layer, external batch load, direct SQL, CDC-captured)
@@ -13,7 +14,7 @@ If you can't answer these, stop and clarify before writing DDL — these answers
 
 ## 2. Schema
 
-- [ ] Write the DDL (naming conventions, keys, indexes per existing schema standards).
+- [ ] Write the DDL — table name carries its category prefix from §1 (naming conventions, keys, indexes per existing schema standards).
 - [ ] Add a migration script in the standard migrations location, following existing naming/versioning convention.
 
 ## 3. Metadata registration (do not skip)
