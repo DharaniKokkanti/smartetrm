@@ -13,7 +13,7 @@ import jakarta.persistence.Table;
  * table (type_code/type_name) that environmental_product.product_type points at.
  */
 @Entity
-@Table(name = "environmental_product_type")
+@Table(name = "mst_environmental_product_type")
 public class EnvironmentalProductType {
 
     @Id

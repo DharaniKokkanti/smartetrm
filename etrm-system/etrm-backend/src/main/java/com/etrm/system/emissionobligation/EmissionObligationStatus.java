@@ -13,7 +13,7 @@ import jakarta.persistence.Table;
  * table (type_code/type_name) that emission_obligation.status points at.
  */
 @Entity
-@Table(name = "emission_obligation_status")
+@Table(name = "mst_emission_obligation_status")
 public class EmissionObligationStatus {
 
     @Id

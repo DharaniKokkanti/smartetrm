@@ -34,7 +34,7 @@ import java.time.LocalDateTime;
  * here — see HolidayCalendarService.createHoliday/deleteHoliday.
  */
 @Entity
-@Table(name = "calendar_holiday")
+@Table(name = "mst_calendar_holiday")
 @EntityListeners(AuditingEntityListener.class)
 public class CalendarHoliday {
 

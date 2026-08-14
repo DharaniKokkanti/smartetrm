@@ -18,7 +18,7 @@ export function EmissionSchemesPage() {
   const { data = [], isLoading, refetch } = useEmissionSchemes();
   const save       = useSaveEmissionScheme();
   const deactivate = useDeactivateEmissionScheme();
-  const { data: schemeTypeRows = [] } = useTableRows<{ typeCode: string; typeName: string }>('emission_scheme_type');
+  const { data: schemeTypeRows = [] } = useTableRows<{ typeCode: string; typeName: string }>('mst_emission_scheme_type');
   const schemeTypeOpts = schemeTypeRows.map((r) => ({ value: r.typeCode, label: r.typeName }));
 
   const [open, setOpen]       = useState(false);

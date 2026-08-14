@@ -18,7 +18,7 @@ export function CarbonRegistriesPage() {
   const { data = [], isLoading, refetch } = useCarbonRegistries();
   const save       = useSaveCarbonRegistry();
   const deactivate = useDeactivateCarbonRegistry();
-  const { data: registryTypeRows = [] } = useTableRows<{ typeCode: string; typeName: string }>('carbon_registry_type');
+  const { data: registryTypeRows = [] } = useTableRows<{ typeCode: string; typeName: string }>('mst_carbon_registry_type');
   const registryTypeOpts = registryTypeRows.map((r) => ({ value: r.typeCode, label: r.typeName }));
 
   const [open, setOpen]       = useState(false);

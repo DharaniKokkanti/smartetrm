@@ -121,7 +121,7 @@ const ISO_3166_COLS = new Set(['countryCode', 'jurisdictionCode', 'incorporation
  *  comment below for why these need a real /api/v1/... fetch instead of the
  *  generic /reference-data/:table mechanism every other foreign_key column uses. */
 const DEDICATED_ENTITY_FK_TABLES = new Set([
-  'ref_counterparty', 'location', 'holiday_calendar', 'ref_legal_entity', 'ref_product', 'storage_facility', 'vessel', 'market_product_link', 'unit_of_measure',
+  'ref_counterparty', 'location', 'mst_holiday_calendar', 'ref_legal_entity', 'ref_product', 'storage_facility', 'vessel', 'market_product_link', 'unit_of_measure',
   'exchange', 'payment_term', 'transport_route',
 ]);
 
@@ -506,7 +506,7 @@ export function ReferenceDataTable({ table }: Props) {
   const dedicatedEntityFkOptions = useMemo<Record<string, { value: number; label: string }[]>>(() => ({
     ref_counterparty: counterpartyRows.map((c) => ({ value: c.counterpartyId, label: c.legalName })),
     location: locationRows.map((l) => ({ value: l.locationId, label: l.locationName })),
-    holiday_calendar: holidayCalendarRows.map((h) => ({ value: h.calendarId, label: h.calendarName })),
+    mst_holiday_calendar: holidayCalendarRows.map((h) => ({ value: h.calendarId, label: h.calendarName })),
     ref_legal_entity: legalEntityRows.map((e) => ({ value: e.legalEntityId, label: e.entityName })),
     ref_product: productRows.map((p) => ({ value: p.productId, label: p.productName })),
     storage_facility: storageFacilityRows.map((s) => ({ value: s.storageId, label: s.storageName })),

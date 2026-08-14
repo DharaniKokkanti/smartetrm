@@ -67,7 +67,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'payment_method', label: 'Payment Methods', pk: 'paymentMethodId', group: 'Contract & Legal', order: 1,
+    name: 'mst_payment_method', label: 'Payment Methods', pk: 'paymentMethodId', group: 'Contract & Legal', order: 1,
     subGroup: 'Settlement', description: 'Valid mechanisms for settling payment obligations — wire transfers, LCs, bank guarantees, and netting. Drives payment term configuration and bank account type requirements.',
     rows: [
       { paymentMethodId: 1, typeCode: 'WIRE',             typeName: 'Wire Transfer',    description: 'Bank-to-bank SWIFT wire transfer',              sortOrder: 1, isActive: true },
@@ -344,7 +344,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'transport_document_type', label: 'Transport Document Types', pk: 'transportDocumentTypeId', group: 'Contract & Legal', order: 3,
+    name: 'mst_transport_document_type', label: 'Transport Document Types', pk: 'transportDocumentTypeId', group: 'Contract & Legal', order: 3,
     subGroup: 'Documentation', description: 'Title and consignment documents produced when commodity is moved — Bills of Lading, CMR/CIM consignment notes, air waybills, pipeline batch tickets, and delivery notes.',
     rows: [
       { transportDocumentTypeId: 1, typeCode: 'BOL',                   typeName: 'Bill of Lading',          description: 'Maritime bill of lading — title document for sea cargo',          sortOrder: 1, isActive: true },
@@ -363,7 +363,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
   // TCC) — see the full TABLE_DEFS entry further down instead.
   // ── Payment Term calculation lookups ──────────────────────────────────────
   {
-    name: 'base_date_event_type', label: 'Base Date Event Types', pk: 'baseDateEventTypeId', group: 'Contract & Legal', order: 4,
+    name: 'ref_base_date_event_type', label: 'Base Date Event Types', pk: 'baseDateEventTypeId', group: 'Contract & Legal', order: 4,
     subGroup: 'Payment Terms', description: 'The trade event that anchors payment date calculation — invoice date, Bill of Lading, end of delivery month, pricing date, etc. Referenced by Payment Terms to drive the payment date formula. Each commodity type typically uses a different anchor event.',
     rows: [
       { baseDateEventTypeId:  1, typeCode: 'INVOICE_DATE',            typeName: 'Invoice Date',              description: 'Payment date calculated from the date the invoice is issued. Standard for most commercial trades.',                                                  applicableCommodity: 'All commodities',                    sortOrder:  10, isActive: true },
@@ -380,7 +380,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'business_day_convention_type', label: 'Business Day Conventions', pk: 'bdcTypeId', group: 'Contract & Legal', order: 5,
+    name: 'ref_business_day_convention_type', label: 'Business Day Conventions', pk: 'bdcTypeId', group: 'Contract & Legal', order: 5,
     subGroup: 'Payment Terms', description: 'Defines how to roll a calculated payment date when it falls on a weekend or public holiday. Modified Following is the market standard for most commodity trades. The convention is applied using the associated holiday calendar.',
     rows: [
       { bdcTypeId: 1, typeCode: 'UNADJUSTED',    typeName: 'Unadjusted',           description: 'No adjustment — payment falls on the calculated date even if it is a holiday or weekend. Rare in practice.',                                                                                  sortOrder: 10, isActive: true },
@@ -514,7 +514,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'emission_scheme_type', label: 'Emission Scheme Types', pk: 'emissionSchemeTypeId', group: 'Carbon & Environmental', order: 11,
+    name: 'mst_emission_scheme_type', label: 'Emission Scheme Types', pk: 'emissionSchemeTypeId', group: 'Carbon & Environmental', order: 11,
     subGroup: 'Carbon & Environmental', description: 'Classification of emission trading schemes. Compliance schemes are mandatory (EU ETS, UK ETS, CA Cap-and-Trade, RGGI). Voluntary schemes are market-driven (VCS, Gold Standard).',
     rows: [
       { emissionSchemeTypeId: 1, typeCode: 'COMPLIANCE', typeName: 'Compliance', description: 'Mandatory cap-and-trade scheme imposed by law. Participants must surrender allowances equal to verified emissions.', sortOrder: 10, isActive: true },
@@ -522,7 +522,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'environmental_product_type', label: 'Environmental Product Types', pk: 'environmentalProductTypeId', group: 'Carbon & Environmental', order: 12,
+    name: 'mst_environmental_product_type', label: 'Environmental Product Types', pk: 'environmentalProductTypeId', group: 'Carbon & Environmental', order: 12,
     subGroup: 'Carbon & Environmental', description: 'Classification of tradeable environmental instruments. Allowances represent the right to emit one tonne CO2e. Certificates prove renewable energy generation. Offsets represent verified emission reductions from projects.',
     rows: [
       { environmentalProductTypeId: 1, typeCode: 'ALLOWANCE',   typeName: 'Allowance',   description: 'Cap-and-trade permit conferring the right to emit one unit (typically one tonne CO2e). EUA, UKA, CCA and EUAA are allowances.', sortOrder: 10, isActive: true },
@@ -531,7 +531,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'carbon_registry_type', label: 'Carbon Registry Types', pk: 'carbonRegistryTypeId', group: 'Carbon & Environmental', order: 13,
+    name: 'mst_carbon_registry_type', label: 'Carbon Registry Types', pk: 'carbonRegistryTypeId', group: 'Carbon & Environmental', order: 13,
     subGroup: 'Carbon & Environmental', description: 'Classification of carbon registries. Compliance registries are established by law to track mandatory allowance holdings and transfers. Voluntary registries operate privately to issue and retire voluntary carbon credits.',
     rows: [
       { carbonRegistryTypeId: 1, typeCode: 'COMPLIANCE', typeName: 'Compliance', description: 'Registry mandated by a regulator to issue, transfer and cancel compliance allowances — EU Union Registry, UK Registry, CITSS (California).', sortOrder: 10, isActive: true },
@@ -539,7 +539,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'emission_obligation_status', label: 'Emission Obligation Statuses', pk: 'emissionObligationStatusId', group: 'Carbon & Environmental', order: 14,
+    name: 'mst_emission_obligation_status', label: 'Emission Obligation Statuses', pk: 'emissionObligationStatusId', group: 'Carbon & Environmental', order: 14,
     subGroup: 'Carbon & Environmental', description: 'Lifecycle status of an annual surrender obligation for a legal entity under a specific emission scheme.',
     rows: [
       { emissionObligationStatusId: 1, typeCode: 'OPEN',                  typeName: 'Open',                  description: 'Obligation is active and not yet settled. Verified emissions and/or allowances held may still be incomplete.', sortOrder: 10, isActive: true },
@@ -703,8 +703,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',       'Active',        'boolean', false, false, null),
     ],
   },
-  incoterm: {
-    tableName: 'incoterm', displayName: 'Incoterms', primaryKeyColumn: 'incotermId', isTemporal: false,
+  mst_incoterm: {
+    tableName: 'mst_incoterm', displayName: 'Incoterms', primaryKeyColumn: 'incotermId', isTemporal: false,
     columns: [
       col('incotermId',     'ID',             'number',  false, true,  null),
       col('code',           'Code',           'string',  false, false, 10),
@@ -714,8 +714,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',       'Active',         'boolean', false, false, null),
     ],
   },
-  charter_party_type: {
-    tableName: 'charter_party_type', displayName: 'Charter Party Types', primaryKeyColumn: 'charterPartyTypeId', isTemporal: false,
+  ref_charter_party_type: {
+    tableName: 'ref_charter_party_type', displayName: 'Charter Party Types', primaryKeyColumn: 'charterPartyTypeId', isTemporal: false,
     columns: [
       col('charterPartyTypeId',    'ID',                      'number',  false, true,  null),
       col('typeCode',              'Type Code',               'string',  false, false, 20),
@@ -738,8 +738,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',    'Active',      'boolean', false, false, null),
     ],
   },
-  freight_rate_index: {
-    tableName: 'freight_rate_index', displayName: 'Freight Rate Indices', primaryKeyColumn: 'freightRateIndexId', isTemporal: false,
+  mst_freight_rate_index: {
+    tableName: 'mst_freight_rate_index', displayName: 'Freight Rate Indices', primaryKeyColumn: 'freightRateIndexId', isTemporal: false,
     columns: [
       col('freightRateIndexId',   'ID',                   'number',      false, true,  null),
       col('indexCode',            'Index Code',           'string',      false, false, 30),
@@ -756,8 +756,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',             'Active',               'boolean',     false, false, null),
     ],
   },
-  laytime_term_template: {
-    tableName: 'laytime_term_template', displayName: 'Laytime Term Templates', primaryKeyColumn: 'laytimeTermId', isTemporal: false,
+  ref_laytime_term_template: {
+    tableName: 'ref_laytime_term_template', displayName: 'Laytime Term Templates', primaryKeyColumn: 'laytimeTermId', isTemporal: false,
     columns: [
       col('laytimeTermId',     'ID',                  'number',  false, true,  null),
       col('termCode',          'Term Code',           'string',  false, false, 20),
@@ -774,12 +774,12 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',          'Active',              'boolean', false, false, null),
     ],
   },
-  demurrage_dispatch_rate: {
-    tableName: 'demurrage_dispatch_rate', displayName: 'Demurrage & Dispatch Rates', primaryKeyColumn: 'demurrageRateId', isTemporal: false,
+  ref_demurrage_dispatch_rate: {
+    tableName: 'ref_demurrage_dispatch_rate', displayName: 'Demurrage & Dispatch Rates', primaryKeyColumn: 'demurrageRateId', isTemporal: false,
     columns: [
       col('demurrageRateId',     'ID',                  'number',      false, true,  null),
       col('vesselType',          'Vessel Type',         'string',      true,  false, 30),
-      col('charterPartyTypeId',  'Charter Party Type',  'foreign_key', true,  false, null, null, 'charter_party_type'),
+      col('charterPartyTypeId',  'Charter Party Type',  'foreign_key', true,  false, null, null, 'ref_charter_party_type'),
       col('demurrageRatePerDay', 'Demurrage $/Day',     'number',      false, false, null, null, null, null, true),
       col('dispatchRatePerDay',  'Dispatch $/Day',      'number',      true,  false, null, null, null, null, true),
       col('currencyId',          'Currency',            'foreign_key', false, false, null, null, 'currency'),
@@ -792,8 +792,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',            'Active',              'boolean',     false, false, null),
     ],
   },
-  laytime_exception_type: {
-    tableName: 'laytime_exception_type', displayName: 'Laytime Exception Types', primaryKeyColumn: 'exceptionTypeId', isTemporal: false,
+  mst_laytime_exception_type: {
+    tableName: 'mst_laytime_exception_type', displayName: 'Laytime Exception Types', primaryKeyColumn: 'exceptionTypeId', isTemporal: false,
     columns: [
       col('exceptionTypeId',              'ID',                    'number',  false, true,  null),
       col('exceptionCode',                'Code',                  'string',  false, false, 30),
@@ -867,8 +867,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('templateId',                      'ID',                          'number',      false, true,  null),
       col('templateCode',                     'Code',                        'string',      false, false, 30),
       col('templateName',                     'Name',                        'string',      false, false, 150),
-      col('charterPartyTypeId',               'Charter Party Type',          'foreign_key', false, false, null, null, 'charter_party_type'),
-      col('defaultLaytimeTermId',             'Default Laytime Term',        'foreign_key', true,  false, null, null, 'laytime_term_template'),
+      col('charterPartyTypeId',               'Charter Party Type',          'foreign_key', false, false, null, null, 'ref_charter_party_type'),
+      col('defaultLaytimeTermId',             'Default Laytime Term',        'foreign_key', true,  false, null, null, 'ref_laytime_term_template'),
       col('defaultDemurrageRatePerDay',       'Default Demurrage Rate/Day',  'number',      true,  false, null, null, null, null, true),
       col('defaultDispatchRatePerDay',        'Default Dispatch Rate/Day',   'number',      true,  false, null, null, null, null, true),
       col('defaultBunkerClauseBasis',         'Default Bunker Clause Basis', 'enum',        true,  false, null, ['SAME_QUANTITY_PCT', 'AS_ON_DELIVERY', 'FIXED_PRICE']),
@@ -1112,8 +1112,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
 
   // V66 — LNG terminal capacity detail, 1:1 extension of storage_facility
   // (only populated for facility_type = 'LNG_TANK' rows).
-  lng_terminal_detail: {
-    tableName: 'lng_terminal_detail', displayName: 'LNG Terminal Detail', primaryKeyColumn: 'facilityId', isTemporal: false,
+  ref_lng_terminal_detail: {
+    tableName: 'ref_lng_terminal_detail', displayName: 'LNG Terminal Detail', primaryKeyColumn: 'facilityId', isTemporal: false,
     columns: [
       col('facilityId',               'Storage Facility',        'foreign_key', false, true,  null, null, 'storage_facility'),
       col('terminalType',             'Terminal Type',           'enum',        false, false, null, ['IMPORT_REGAS', 'EXPORT_LIQUEFACTION', 'FSRU', 'DUAL']),
@@ -1293,8 +1293,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('description',                  'Description',         'string',      true,  false, 300),
     ],
   },
-  regulatory_report_type: {
-    tableName: 'regulatory_report_type', displayName: 'Regulatory Report Types', primaryKeyColumn: 'reportTypeId', isTemporal: false,
+  mst_regulatory_report_type: {
+    tableName: 'mst_regulatory_report_type', displayName: 'Regulatory Report Types', primaryKeyColumn: 'reportTypeId', isTemporal: false,
     columns: [
       col('reportTypeId',       'ID',                 'number',  false, true,  null),
       col('reportCode',         'Code',               'string',  false, false, 30),
@@ -1425,8 +1425,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
   // Lightweight holiday_calendar mirror — same FK-resolution-only rationale
   // as product/storage_facility/counterparty above (has its own dedicated
   // HolidayCalendarsPage.tsx, not registered here).
-  holiday_calendar: {
-    tableName: 'holiday_calendar', displayName: 'Holiday Calendars', primaryKeyColumn: 'calendarId', isTemporal: false,
+  mst_holiday_calendar: {
+    tableName: 'mst_holiday_calendar', displayName: 'Holiday Calendars', primaryKeyColumn: 'calendarId', isTemporal: false,
     columns: [
       col('calendarId',   'ID',   'number', false, true,  null),
       col('calendarCode', 'Code', 'string', false, false, 20),
@@ -1448,12 +1448,12 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('source',          'Source',          'string',      true,  false, 50),
     ],
   },
-  settlement_calendar: {
-    tableName: 'settlement_calendar', displayName: 'Settlement Calendars', primaryKeyColumn: 'scId', isTemporal: false,
+  ref_settlement_calendar: {
+    tableName: 'ref_settlement_calendar', displayName: 'Settlement Calendars', primaryKeyColumn: 'scId', isTemporal: false,
     columns: [
       col('scId',        'ID',              'number',      false, true,  null),
       col('productId',   'Product',         'foreign_key', false, false, null, null, 'ref_product'),
-      col('calendarId',  'Holiday Calendar','foreign_key', false, false, null, null, 'holiday_calendar'),
+      col('calendarId',  'Holiday Calendar','foreign_key', false, false, null, null, 'mst_holiday_calendar'),
       col('priority',    'Priority',        'number',      false, false, null),
       col('isActive',    'Active',          'boolean',     false, false, null),
     ],
@@ -1515,8 +1515,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('notes',                               'Notes',             'string',      true,  false, 500),
     ],
   },
-  lng_boil_off_rule: {
-    tableName: 'lng_boil_off_rule', displayName: 'LNG Boil-Off Rules', primaryKeyColumn: 'ruleId', isTemporal: false,
+  ref_lng_boil_off_rule: {
+    tableName: 'ref_lng_boil_off_rule', displayName: 'LNG Boil-Off Rules', primaryKeyColumn: 'ruleId', isTemporal: false,
     columns: [
       col('ruleId',                     'ID',                        'number',      false, true,  null),
       col('ruleCode',                    'Code',                      'string',      false, false, 30),
@@ -1597,15 +1597,15 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('notes',                                         'Notes',                   'string',      true,  false, 500),
     ],
   },
-  payment_calendar_assignment: {
-    tableName: 'payment_calendar_assignment', displayName: 'Payment Calendar Assignments', primaryKeyColumn: 'assignmentId', isTemporal: false,
+  ref_payment_calendar_assignment: {
+    tableName: 'ref_payment_calendar_assignment', displayName: 'Payment Calendar Assignments', primaryKeyColumn: 'assignmentId', isTemporal: false,
     columns: [
       col('assignmentId',                   'ID',                     'number',      false, true,  null),
       col('paymentTermId',                    'Payment Term',           'foreign_key', false, false, null, null, 'payment_term'),
       col('currencyId',                         'Currency',               'foreign_key', false, false, null, null, 'currency'),
       col('locationId',                           'Location',               'foreign_key', true,  false, null, null, 'location'),
-      col('primaryHolidayCalendarId',                'Primary Calendar',       'foreign_key', false, false, null, null, 'holiday_calendar'),
-      col('secondaryHolidayCalendarId',                 'Secondary Calendar',     'foreign_key', true,  false, null, null, 'holiday_calendar'),
+      col('primaryHolidayCalendarId',                'Primary Calendar',       'foreign_key', false, false, null, null, 'mst_holiday_calendar'),
+      col('secondaryHolidayCalendarId',                 'Secondary Calendar',     'foreign_key', true,  false, null, null, 'mst_holiday_calendar'),
       col('isActive',                                      'Active',                 'boolean',     false, false, null),
       col('notes',                                           'Notes',                  'string',      true,  false, 500),
     ],
@@ -1779,7 +1779,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('productId',                'Product',             'foreign_key', true,  false, null, null, 'ref_product'),
       col('direction',                'Direction',           'enum',        false, false, null, ['BUY', 'SELL', 'BOTH']),
       col('customsMovementStatusId',  'Movement Status',     'foreign_key', true,  false, null, null, 'customs_movement_status'),
-      col('incotermId',               'Incoterm',            'foreign_key', true,  false, null, null, 'incoterm'),
+      col('incotermId',               'Incoterm',            'foreign_key', true,  false, null, null, 'mst_incoterm'),
       col('taxCodeId',                'Tax Code',            'foreign_key', false, false, null, null, 'tax_code'),
       col('costApplicableInd',        'Generates Cost',      'boolean',     false, false, null),
       col('issuingAuthority',         'Issuing Authority',   'string',      true,  false, 100),
@@ -1821,7 +1821,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('counterpartyId',           'Counterparty',        'foreign_key', true,  false, null, null, 'ref_counterparty'),
       col('direction',                'Direction',           'enum',        false, false, null, ['BUY', 'SELL', 'BOTH']),
       col('customsMovementStatusId',  'Movement Status',     'foreign_key', true,  false, null, null, 'customs_movement_status'),
-      col('incotermId',               'Incoterm',            'foreign_key', true,  false, null, null, 'incoterm'),
+      col('incotermId',               'Incoterm',            'foreign_key', true,  false, null, null, 'mst_incoterm'),
       col('productHsCodeId',          'HS Classification',   'foreign_key', true,  false, null, null, 'product_hs_code'),
       col('dutyRatePercent',          'Duty Rate %',         'number',      true,  false, null, null, null, null, true),
       col('dutyFlatAmount',           'Duty Flat Amount',    'number',      true,  false, null, null, null, null, true),
@@ -1863,8 +1863,8 @@ export const registrySeed: RegistryEntry[] = [
   { registryId: 1, tableName: 'currency',            displayName: 'Currencies',           moduleGroup: 'Finance & Settlement', subGroup: 'Global Codes',      description: 'ISO 4217 currency codes used across all monetary fields. The 3-letter alphabetic code (e.g. USD, EUR, GBP) is enforced. Reference: iso.org/iso-4217-currency-codes.html', allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: true,  isEnabled: true, displayOrder: 1 },
   { registryId: 2, tableName: 'ref_commodity',           displayName: 'Commodities',          moduleGroup: 'Products & Markets', subGroup: 'Classification',    description: 'Top-level commodity classification — Oil, Gas, Power, Agricultural, Metals, and Other. Drives product group assignment, applicable trade types, and pricing curve linkage.',                                allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
   { registryId: 3, tableName: 'ref_credit_rating',       displayName: 'Credit Ratings',       moduleGroup: 'Counterparties & Agreements', subGroup: 'Classification',    description: 'S&P, Moody\'s, and Fitch credit rating scales with numeric equivalents. Used to derive credit exposure limits and margin requirements for each counterparty.',                                                   allowCreate: true,  allowEdit: true,  allowDelete: true,  allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
-  { registryId: 4, tableName: 'incoterm',            displayName: 'Incoterms',            moduleGroup: 'Contract & Legal', subGroup: 'Global Codes',      description: 'ICC Incoterms® 2020 rules that define the point at which risk and cost transfer from seller to buyer. Reference: iccwbo.org/resources-for-business/incoterms-rules',                            allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 4 },
-  { registryId: 5, tableName: 'charter_party_type',  displayName: 'Charter Party Types',  moduleGroup: 'Freight & Shipping',   subGroup: 'Charter',           description: 'Types of vessel charter arrangements — Voyage Charter (fixed route, per tonne) or Time Charter (per day, operator controls routing). Determines freight cost calculation and demurrage liability.',     allowCreate: true,  allowEdit: true,  allowDelete: true,  allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
+  { registryId: 4, tableName: 'mst_incoterm',            displayName: 'Incoterms',            moduleGroup: 'Contract & Legal', subGroup: 'Global Codes',      description: 'ICC Incoterms® 2020 rules that define the point at which risk and cost transfer from seller to buyer. Reference: iccwbo.org/resources-for-business/incoterms-rules',                            allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 4 },
+  { registryId: 5, tableName: 'ref_charter_party_type',  displayName: 'Charter Party Types',  moduleGroup: 'Freight & Shipping',   subGroup: 'Charter',           description: 'Types of vessel charter arrangements — Voyage Charter (fixed route, per tonne) or Time Charter (per day, operator controls routing). Determines freight cost calculation and demurrage liability.',     allowCreate: true,  allowEdit: true,  allowDelete: true,  allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
   { registryId: 6, tableName: 'load_shape_template', displayName: 'Load Shape Templates', moduleGroup: 'Power & Energy',     subGroup: 'Markets',           description: 'Standard electricity delivery profiles — Baseload (7×24), Peak (5×16 or 6×16), Off-peak, and user-defined shapes. Templates constrain the hours delivered under a power supply contract.',               allowCreate: true,  allowEdit: true,  allowDelete: true,  allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
   { registryId: 7, tableName: 'balancing_authority', displayName: 'Balancing Authorities',moduleGroup: 'Power & Energy',     subGroup: 'Markets',           description: 'Grid operators (ISOs/RTOs and utilities) responsible for maintaining real-time balance between supply and demand within their control area — PJM, ERCOT, CAISO, and others.',                        allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
   { registryId: 8, tableName: 'transmission_zone',   displayName: 'Transmission Zones',   moduleGroup: 'Power & Energy',     subGroup: 'Grid',              description: 'Pricing and scheduling zones within a balancing authority area — hubs, load zones, and LMP nodes. Each zone has its own congestion and loss components for locational marginal pricing.',            allowCreate: true,  allowEdit: true,  allowDelete: true,  allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
@@ -1874,10 +1874,10 @@ export const registrySeed: RegistryEntry[] = [
   { registryId: 203, tableName: 'energy_footprint',      displayName: 'Energy Footprints',      moduleGroup: 'Power & Energy', subGroup: 'Assets',  description: 'Distributed asset portfolios and networks traded as one unit — solar portfolios, EV charging networks, battery fleets, demand-response aggregations.',                     allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 6 },
   { registryId: 204, tableName: 'energy_footprint_site', displayName: 'Energy Footprint Sites', moduleGroup: 'Power & Energy', subGroup: 'Assets',  description: 'Member sites of an energy footprint — per-site location, settlement zone, capacity, and technology detail (solar array, EV charging hub, battery unit).',                  allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 7 },
   // V53 — freight/demurrage master data enhancement (works across oil, LNG, dry-bulk/metals — NOT power, which doesn't move by vessel)
-  { registryId: 205, tableName: 'freight_rate_index',     displayName: 'Freight Rate Indices',      moduleGroup: 'Freight & Shipping', subGroup: 'Charter', description: 'Freight benchmarks — Baltic dry-bulk indices (any dry cargo: ore, coal, grain), Worldscale tanker flat rates, and Spark30S for LNG. Used to set/escalate time charter hire or benchmark voyage freight.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
-  { registryId: 206, tableName: 'laytime_term_template',  displayName: 'Laytime Term Templates',    moduleGroup: 'Freight & Shipping', subGroup: 'Charter', description: 'Standard laytime clauses — which days count (SHINC/SHEX/WWD), whether laytime is reversible, and the NOR-tendering basis (WIPON/WIBON/WIFPON/WCCON) that determines when laytime starts counting.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
-  { registryId: 207, tableName: 'demurrage_dispatch_rate',displayName: 'Demurrage & Dispatch Rates',moduleGroup: 'Freight & Shipping', subGroup: 'Charter', description: 'Standard demurrage/dispatch rates by vessel class and commodity — includes the claim time-bar (days to submit with supporting docs) and despatch basis (all time saved vs. working time only).', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 4 },
-  { registryId: 208, tableName: 'laytime_exception_type', displayName: 'Laytime Exception Types',   moduleGroup: 'Freight & Shipping', subGroup: 'Charter', description: 'Standard reasons time is excepted from (or counted against) laytime — weather, strikes, breakdowns, port congestion — used in laytime calculations and demurrage disputes across any vessel-carried commodity.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 5 },
+  { registryId: 205, tableName: 'mst_freight_rate_index',     displayName: 'Freight Rate Indices',      moduleGroup: 'Freight & Shipping', subGroup: 'Charter', description: 'Freight benchmarks — Baltic dry-bulk indices (any dry cargo: ore, coal, grain), Worldscale tanker flat rates, and Spark30S for LNG. Used to set/escalate time charter hire or benchmark voyage freight.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
+  { registryId: 206, tableName: 'ref_laytime_term_template',  displayName: 'Laytime Term Templates',    moduleGroup: 'Freight & Shipping', subGroup: 'Charter', description: 'Standard laytime clauses — which days count (SHINC/SHEX/WWD), whether laytime is reversible, and the NOR-tendering basis (WIPON/WIBON/WIFPON/WCCON) that determines when laytime starts counting.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
+  { registryId: 207, tableName: 'ref_demurrage_dispatch_rate',displayName: 'Demurrage & Dispatch Rates',moduleGroup: 'Freight & Shipping', subGroup: 'Charter', description: 'Standard demurrage/dispatch rates by vessel class and commodity — includes the claim time-bar (days to submit with supporting docs) and despatch basis (all time saved vs. working time only).', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 4 },
+  { registryId: 208, tableName: 'mst_laytime_exception_type', displayName: 'Laytime Exception Types',   moduleGroup: 'Freight & Shipping', subGroup: 'Charter', description: 'Standard reasons time is excepted from (or counted against) laytime — weather, strikes, breakdowns, port congestion — used in laytime calculations and demurrage disputes across any vessel-carried commodity.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 5 },
   // V108 — Voyage & Charter Ops backbone lookups
   { registryId: 250, tableName: 'bunker_fuel_grade',    displayName: 'Bunker Fuel Grades',    moduleGroup: 'Voyage & Charter Ops', description: 'VLSFO/HSFO/LSMGO/MGO plus alternative fuels (methanol, LNG boil-off, biofuel blend) — parent table for bunker_stem and the ROB ledger.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
   { registryId: 251, tableName: 'sof_event_type',       displayName: 'SOF Event Types',       moduleGroup: 'Voyage & Charter Ops', description: 'Standard Statement of Facts event codes (NOR tendered, all fast, hoses connected, commenced/completed loading-discharging) — parent table for voyage_sof_event.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
@@ -1904,7 +1904,7 @@ export const registrySeed: RegistryEntry[] = [
   { registryId: 215, tableName: 'power_product_detail',   displayName: 'Power Product Detail',      moduleGroup: 'Power & Energy',     subGroup: 'Markets',        description: '1:1 power-specific extension of a product — default load shape, voltage level, settlement point type (node/zone/hub/system), and whether it is an ancillary-service product.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 10 },
   { registryId: 216, tableName: 'transmission_right_type',displayName: 'Transmission Right Types',  moduleGroup: 'Power & Energy',     subGroup: 'Grid',           description: 'Regional terminology for the same financial transmission-right instrument — FTR (PJM/MISO), CRR (CAISO/ERCOT), TCC (NYISO) — with its settlement basis and allocation method.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 11 },
   // V66 — lng_terminal_detail: 1:1 LNG extension of storage_facility (send-out/liquefaction capacity, berths, cargo lot size range)
-  { registryId: 217, tableName: 'lng_terminal_detail',    displayName: 'LNG Terminal Detail',       moduleGroup: 'Freight & Shipping', subGroup: 'Charter',        description: 'Terminal-level LNG capacity data — regasification send-out rate (import) or liquefaction nameplate (export) in MTPA, storage tank/berth count, and the acceptable cargo-lot size range for scheduling.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 6 },
+  { registryId: 217, tableName: 'ref_lng_terminal_detail',    displayName: 'LNG Terminal Detail',       moduleGroup: 'Freight & Shipping', subGroup: 'Charter',        description: 'Terminal-level LNG capacity data — regasification send-out rate (import) or liquefaction nameplate (export) in MTPA, storage tank/berth count, and the acceptable cargo-lot size range for scheduling.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 6 },
   // V67 — commodity_grade_standard: named grade tiers (e.g. USDA No. 2 Yellow Corn) with a discount/premium schedule vs. the contract par grade
   { registryId: 218, tableName: 'ref_commodity_grade_standard', displayName: 'Commodity Grade Standards', moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Named grade tiers for a specific product/contract (e.g. CBOT Corn\'s USDA No. 2 Yellow par grade) and the flat price adjustment vs. par for delivering an alternate grade. Scoped per product, not per commodity family — real exchange differential schedules are contract-specific (Corn\'s schedule differs from Wheat\'s). Selectable per order in the Trade Blotter to auto-populate a price adjustment.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 6 },
   // V68 — metal_brand: LME-style approved brand register (producer + metal form) — the real mechanism determining what physical metal is deliverable
@@ -1912,7 +1912,7 @@ export const registrySeed: RegistryEntry[] = [
   // V70 — genuine registry orphans found via a whole-project master-data review (all four already in MasterDataHub.tsx's live:false backlog)
   { registryId: 220, tableName: 'insurance_provider',       displayName: 'Insurance Providers',        moduleGroup: 'Credit & Collateral',   subGroup: 'Insurance',   description: 'Insurance companies, P&I clubs, and underwriters — Lloyd\'s syndicates, AIG, Zurich, Euler Hermes — with contact and credit rating, for cargo/credit/political-risk coverage.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 8 },
   { registryId: 221, tableName: 'interest_rate_index',      displayName: 'Interest Rate Indices',      moduleGroup: 'Pricing & Rates',       subGroup: 'FX',          description: 'Reference rate indices (SOFR, EURIBOR, SONIA) with day-count/compounding conventions — used for financing costs, late-payment interest, and commodity-linked structures.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 7 },
-  { registryId: 222, tableName: 'regulatory_report_type',   displayName: 'Regulatory Report Types',    moduleGroup: 'Sanctions & Regulatory Reporting', subGroup: 'Reporting', description: 'Regulatory report type definitions — EMIR, REMIT, CFTC, MiFID II — with submission target and reporting deadline, driving which reports a trade requires.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
+  { registryId: 222, tableName: 'mst_regulatory_report_type',   displayName: 'Regulatory Report Types',    moduleGroup: 'Sanctions & Regulatory Reporting', subGroup: 'Reporting', description: 'Regulatory report type definitions — EMIR, REMIT, CFTC, MiFID II — with submission target and reporting deadline, driving which reports a trade requires.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
   { registryId: 223, tableName: 'transport_operator',       displayName: 'Transport Operators',        moduleGroup: 'Logistics & Delivery',  subGroup: 'Transport',   description: 'Haulage companies, rail/pipeline operators, ship managers, and terminal operators — coverage area, primary transport mode, and commodity approvals.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 9 },
   // V71 — collateral_type (connects to a known margin_agreement gap), event_category/event_type and external_system (real schema, no consumer built yet)
   { registryId: 224, tableName: 'collateral_type', displayName: 'Collateral Types', moduleGroup: 'Credit & Collateral',   subGroup: 'Collateral', description: 'Eligible collateral asset classes and their standard haircut % — cash, government/corporate bonds, letters of credit, bank guarantees. Reference for margin agreement collateral eligibility.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 10 },
@@ -1926,7 +1926,7 @@ export const registrySeed: RegistryEntry[] = [
   { registryId: 228, tableName: 'ref_credit_term', displayName: 'Credit Terms', moduleGroup: 'Counterparties & Agreements', subGroup: 'Terms', description: 'Reusable credit facility terms — credit period, required collateral type, margin call threshold, netting eligibility. Assigned to a counterparty via CP Commercial Terms.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
   // V73 — fx_rate, settlement_calendar, trade_repository
   { registryId: 229, tableName: 'fx_rate',             displayName: 'FX Rates',             moduleGroup: 'Pricing & Rates',                  subGroup: 'FX',        description: 'Daily FX rates per currency pair — EOD, intraday, settlement, fixing, or mid. Used for P&L revaluation and cross-currency settlement.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: true, isEnabled: true, displayOrder: 8 },
-  { registryId: 230, tableName: 'settlement_calendar', displayName: 'Settlement Calendars', moduleGroup: 'Products & Markets',                subGroup: 'Classification', description: 'Which holiday calendars apply to a product\'s settlement date calculation — a product may use multiple (e.g. UK + US bank holidays), with a priority order.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 8 },
+  { registryId: 230, tableName: 'ref_settlement_calendar', displayName: 'Settlement Calendars', moduleGroup: 'Products & Markets',                subGroup: 'Classification', description: 'Which holiday calendars apply to a product\'s settlement date calculation — a product may use multiple (e.g. UK + US bank holidays), with a priority order.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 8 },
   { registryId: 231, tableName: 'trade_repository',    displayName: 'Trade Repositories',   moduleGroup: 'Sanctions & Regulatory Reporting', subGroup: 'Reporting', description: 'Approved trade repositories for regulatory reporting submission — DTCC, REGIS-TR, ICE TVEL — by regime with submission format and endpoint.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
   // V85 — lookup_category: the category master lookup_value.categoryId now points at
   { registryId: 232, tableName: 'ref_lookup_category',     displayName: 'Lookup Categories',    moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Category master for Lookup Values — add a category here first, then add its code/display-name rows under Lookup Values to introduce a new managed picklist.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 8 },
@@ -1935,13 +1935,13 @@ export const registrySeed: RegistryEntry[] = [
   // multi-country intercompany/payment-calendar guardrails)
   { registryId: 233, tableName: 'ref_metal_warrant', displayName: 'Metal Warrants', moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Securitized title document for a specific, discrete physical lot in an exchange-approved vault (LME/CME) — distinct from generic volumetric storage capacity.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 20 },
   { registryId: 234, tableName: 'ref_metal_assay_component_rule', displayName: 'Metal Assay Component Rules', moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Financial scaling rules applied to concentrate actualizations to calculate premiums/penalties from lab assays (payable/penalty/impurity elements vs. a base content %).', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 21 },
-  { registryId: 235, tableName: 'lng_boil_off_rule', displayName: 'LNG Boil-Off Rules', moduleGroup: 'Freight & Shipping', subGroup: 'Charter', description: 'Cryogenic transit/storage vaporization loss curves, scoped to a vessel and/or storage facility, used by the risk and actualization engines to model standard LNG inventory degradation.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 20 },
+  { registryId: 235, tableName: 'ref_lng_boil_off_rule', displayName: 'LNG Boil-Off Rules', moduleGroup: 'Freight & Shipping', subGroup: 'Charter', description: 'Cryogenic transit/storage vaporization loss curves, scoped to a vessel and/or storage facility, used by the risk and actualization engines to model standard LNG inventory degradation.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 20 },
   { registryId: 236, tableName: 'power_pnode', displayName: 'Power Pricing Nodes', moduleGroup: 'Power & Energy', subGroup: 'Grid', description: 'Low-level LMP settlement granularity — physical grid injection/withdrawal nodes (ISO/RTO standard) under a balancing authority, optionally mapped to a transmission zone.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 10 },
   { registryId: 237, tableName: 'power_ancillary_service_type', displayName: 'Power Ancillary Service Types', moduleGroup: 'Power & Energy', subGroup: 'Markets', description: 'Grid-reliability products traded alongside standard MWh power blocks — spinning reserve, regulation up/down, voltage support — per balancing authority.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 11 },
   { registryId: 238, tableName: 'ref_agri_moisture_discount_scale', displayName: 'Agri Moisture Discount Scales', moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Weighbridge actualization scale — automatic financial weight shrinkage and pricing discount based on grain moisture content, banded off a commodity grade standard.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 22 },
   { registryId: 239, tableName: 'ref_agri_crop_year_lifecycle', displayName: 'Agri Crop Year Lifecycle', moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Hard time boundaries for old-crop vs. new-crop futures and physical cash market spreads, per commodity and country.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 23 },
   { registryId: 240, tableName: 'ref_intercompany_transfer_rule', displayName: 'Intercompany Transfer Rules', moduleGroup: 'Counterparties & Agreements', subGroup: 'Terms', description: 'Automates the matching back-to-back internal transfer deal and its transfer-pricing markup whenever the central desk passes position/risk to a country business unit.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
-  { registryId: 241, tableName: 'payment_calendar_assignment', displayName: 'Payment Calendar Assignments', moduleGroup: 'Calendar & Periods', subGroup: 'Calendars', description: 'Junction matrix mapping multi-currency cash obligations to the right holiday-calendar pair, preventing settlement date miscalculations across payment term, currency, and location.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 5 },
+  { registryId: 241, tableName: 'ref_payment_calendar_assignment', displayName: 'Payment Calendar Assignments', moduleGroup: 'Calendar & Periods', subGroup: 'Calendars', description: 'Junction matrix mapping multi-currency cash obligations to the right holiday-calendar pair, preventing settlement date miscalculations across payment term, currency, and location.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 5 },
   // V142 — chart of accounts: profit_center -> cost_center -> gl_account, plus tax_code
   { registryId: 267, tableName: 'profit_center', displayName: 'Profit Centers', moduleGroup: 'Finance & Settlement', subGroup: 'Chart of Accounts', description: 'Scoped to one booking company (legal entity) — the top of the profit-attribution chain that cost centers roll up into, following standard company-code-scoped profit center conventions.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
   { registryId: 268, tableName: 'cost_center', displayName: 'Cost Centers', moduleGroup: 'Finance & Settlement', subGroup: 'Chart of Accounts', description: 'Every cost center rolls up to exactly one profit center — the profit center is assigned in the cost center master data. Linked from gl_account.cost_center_id.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
@@ -2146,12 +2146,12 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { creditRatingId: 2, agency: 'S&P', rating: 'AA',  numericScore: 2, riskCategory: 'INVESTMENT_GRADE', isActive: true },
     { creditRatingId: 3, agency: 'S&P', rating: 'BBB', numericScore: 4, riskCategory: 'INVESTMENT_GRADE', isActive: true },
   ],
-  incoterm: [
+  mst_incoterm: [
     { incotermId: 1, code: 'FOB', name: 'Free On Board',              transportMode: 'SEA_INLAND_WATERWAY', versionYear: 2020, isActive: true },
     { incotermId: 2, code: 'CIF', name: 'Cost, Insurance & Freight',  transportMode: 'SEA_INLAND_WATERWAY', versionYear: 2020, isActive: true },
     { incotermId: 3, code: 'DDP', name: 'Delivered Duty Paid',        transportMode: 'ANY',                 versionYear: 2020, isActive: true },
   ],
-  charter_party_type: [
+  ref_charter_party_type: [
     { charterPartyTypeId: 1, typeCode: 'VOYAGE',    typeName: 'Voyage Charter',             rateBasis: 'PER_TONNE',  durationBasis: 'SINGLE_VOYAGE',   standardFormReference: 'ASBATANKVOY / GENCON / LNGVOY (BIMCO)', description: 'Single voyage, freight per tonne or lumpsum, owner bears voyage costs and risk.',                                              isActive: true },
     { charterPartyTypeId: 2, typeCode: 'TC',        typeName: 'Time Charter',               rateBasis: 'PER_DAY',    durationBasis: 'TIME_PERIOD',     standardFormReference: 'SHELLTIME4 / NYPE',                     description: 'Vessel hired for a fixed period; charterer directs voyages and pays bunkers/port costs; owner paid daily hire.',                isActive: true },
     { charterPartyTypeId: 3, typeCode: 'BAREBOAT',  typeName: 'Bareboat / Demise Charter',  rateBasis: 'PER_DAY',    durationBasis: 'BAREBOAT_PERIOD', standardFormReference: 'BARECON',                               description: 'Charterer takes full operational control including crewing; owner provides vessel only.',                                      isActive: true },
@@ -2176,7 +2176,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
   // mock table yet (a pre-existing gap: the frontend has no unit_of_measure
   // mock at all), so these numbers aren't cross-referenced against anything;
   // they only need to be non-null to satisfy chk_fri_pricing_rules's intent.
-  freight_rate_index: [
+  mst_freight_rate_index: [
     { freightRateIndexId: 1, indexCode: 'BDTI',         indexName: 'Baltic Dirty Tanker Index',                  indexType: 'BALTIC',   vesselType: null,           routeDescription: null,                    commodityType: 1, currencyId: 1, uomId: 102, publicationSource: 'Baltic Exchange',      publicationFrequency: 'DAILY',  description: 'Composite index tracking crude/dirty product tanker freight rates across major routes.',            isActive: true },
     { freightRateIndexId: 2, indexCode: 'BCTI',         indexName: 'Baltic Clean Tanker Index',                  indexType: 'BALTIC',   vesselType: null,           routeDescription: null,                    commodityType: 1, currencyId: 1, uomId: 102, publicationSource: 'Baltic Exchange',      publicationFrequency: 'DAILY',  description: 'Composite index tracking clean petroleum product tanker freight rates.',                              isActive: true },
     { freightRateIndexId: 3, indexCode: 'BDI',          indexName: 'Baltic Dry Index',                           indexType: 'BALTIC',   vesselType: 'BULK_CARRIER', routeDescription: null,                    commodityType: null,  currencyId: 1, uomId: 101, publicationSource: 'Baltic Exchange',      publicationFrequency: 'DAILY',  description: 'Composite dry bulk freight index (Capesize/Panamax/Supramax/Handysize) — prices any dry-bulk cargo (ore, coal, grain), not agriculture-specific.', isActive: true },
@@ -2186,7 +2186,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { freightRateIndexId: 7, indexCode: 'WS_FLAT_TD3C', indexName: 'Worldscale Flat Rate — TD3C (AG-China VLCC)', indexType: 'WORLDSCALE', vesselType: 'VLCC',       routeDescription: 'Arabian Gulf to China',  commodityType: 1, currencyId: null, uomId: null, publicationSource: 'Worldscale Association', publicationFrequency: 'ANNUAL', description: 'Annually published Worldscale 100 (WS100) flat rate in USD/tonne for the AG-China VLCC benchmark route.', isActive: true },
     { freightRateIndexId: 8, indexCode: 'SPARK30S',     indexName: 'Spark30S — LNG Freight Assessment (Atlantic)', indexType: 'ASSESSED', vesselType: 'LNG_CARRIER', routeDescription: 'US Gulf-Continent / Atlantic LNG routes', commodityType: 4, currencyId: 1, uomId: 101, publicationSource: 'Spark Commodities', publicationFrequency: 'DAILY', description: 'Daily-assessed LNG spot freight rate in USD/day for a 174,000cbm 2-stroke LNG carrier — the LNG market\'s equivalent of a Baltic index.', isActive: true },
   ],
-  laytime_term_template: [
+  ref_laytime_term_template: [
     { laytimeTermId: 1, termCode: 'SHINC',     termName: 'Sundays/Holidays Included',             exclusionBasis: 'SHINC',     isReversible: false, norWiponAllowed: false, norWibonAllowed: false, norWifponAllowed: false, norWcconAllowed: false, noticeOfReadinessTurnTimeMins: 360, commodityType: null,  description: 'All days count against laytime regardless of Sundays or holidays.',                                                            isActive: true },
     { laytimeTermId: 2, termCode: 'SHEX',      termName: 'Sundays/Holidays Excluded',             exclusionBasis: 'SHEX',      isReversible: false, norWiponAllowed: true,  norWibonAllowed: true,  norWifponAllowed: true,  norWcconAllowed: true,  noticeOfReadinessTurnTimeMins: 360, commodityType: null,  description: 'Sundays and holidays do not count against laytime.',                                                                            isActive: true },
     { laytimeTermId: 3, termCode: 'SHEXEIU',   termName: 'SHEX Even If Used',                     exclusionBasis: 'SHEXEIU',   isReversible: false, norWiponAllowed: true,  norWibonAllowed: true,  norWifponAllowed: true,  norWcconAllowed: true,  noticeOfReadinessTurnTimeMins: 360, commodityType: null,  description: 'Sundays/holidays excluded from laytime even if cargo work actually takes place.',                                               isActive: true },
@@ -2196,7 +2196,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { laytimeTermId: 7, termCode: 'WWD_REV',   termName: 'Weather Working Days — Reversible',     exclusionBasis: 'WWD',       isReversible: true,  norWiponAllowed: true,  norWibonAllowed: true,  norWifponAllowed: true,  norWcconAllowed: true,  noticeOfReadinessTurnTimeMins: 360, commodityType: null,  description: 'Weather working days with load and discharge laytime allowances pooled (reversible).',                                          isActive: true },
     { laytimeTermId: 8, termCode: 'LNG_SHINC', termName: 'LNG Standard — SHINC, Non-Reversible',  exclusionBasis: 'SHINC',     isReversible: false, norWiponAllowed: true,  norWibonAllowed: true,  norWifponAllowed: true,  norWcconAllowed: true,  noticeOfReadinessTurnTimeMins: 360, commodityType: 4, description: 'Standard LNG carrier laytime convention: continuous SHINC counting (LNG terminals operate 24/7) with the full NOR bundle. Laytime/demurrage must additionally account for boil-off gas during port stays.', isActive: true },
   ],
-  demurrage_dispatch_rate: [
+  ref_demurrage_dispatch_rate: [
     { demurrageRateId: 1, vesselType: 'VLCC',         charterPartyTypeId: 1, demurrageRatePerDay: 45000, dispatchRatePerDay: 22500, currencyId: 1, commodityType: 1,    claimTimeBarDays: 90, despatchBasis: 'ALL_TIME_SAVED', effectiveFrom: '2026-01-01', effectiveTo: null, notes: 'Indicative default — confirm against fixture recap before use.', isActive: true },
     { demurrageRateId: 2, vesselType: 'SUEZMAX',      charterPartyTypeId: 1, demurrageRatePerDay: 32000, dispatchRatePerDay: 16000, currencyId: 1, commodityType: 1,    claimTimeBarDays: 90, despatchBasis: 'ALL_TIME_SAVED', effectiveFrom: '2026-01-01', effectiveTo: null, notes: 'Indicative default — confirm against fixture recap before use.', isActive: true },
     { demurrageRateId: 3, vesselType: 'AFRAMAX',      charterPartyTypeId: 1, demurrageRatePerDay: 25000, dispatchRatePerDay: 12500, currencyId: 1, commodityType: 1,    claimTimeBarDays: 90, despatchBasis: 'ALL_TIME_SAVED', effectiveFrom: '2026-01-01', effectiveTo: null, notes: 'Indicative default — confirm against fixture recap before use.', isActive: true },
@@ -2205,7 +2205,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { demurrageRateId: 6, vesselType: 'LNG_CARRIER',  charterPartyTypeId: 2, demurrageRatePerDay: 100000, dispatchRatePerDay: 50000, currencyId: 1, commodityType: 4,   claimTimeBarDays: 90, despatchBasis: 'ALL_TIME_SAVED', effectiveFrom: '2026-01-01', effectiveTo: null, notes: 'Indicative default — confirm against fixture recap before use.', isActive: true },
     { demurrageRateId: 7, vesselType: 'BULK_CARRIER', charterPartyTypeId: 1, demurrageRatePerDay: 18000, dispatchRatePerDay: 9000,  currencyId: 1, commodityType: 6, claimTimeBarDays: 90, despatchBasis: 'ALL_TIME_SAVED', effectiveFrom: '2026-01-01', effectiveTo: null, notes: 'Indicative default — confirm against fixture recap before use.', isActive: true },
   ],
-  laytime_exception_type: [
+  mst_laytime_exception_type: [
     { exceptionTypeId: 1,  exceptionCode: 'WEATHER',                exceptionName: 'Adverse Weather',                  defaultCountsAgainstLaytime: false, isWeatherRelated: true,  description: 'Cargo work suspended due to weather (rain, high seas, wind) — excepted under Weather Working Days (WWD) templates.',                                    isActive: true },
     { exceptionTypeId: 2,  exceptionCode: 'STRIKE',                 exceptionName: 'Strike / Labour Action',           defaultCountsAgainstLaytime: false, isWeatherRelated: false, description: 'Cargo work stopped by a strike at the port, terminal, or aboard the vessel.',                                                                          isActive: true },
     { exceptionTypeId: 3,  exceptionCode: 'BREAKDOWN',               exceptionName: 'Equipment Breakdown',              defaultCountsAgainstLaytime: false, isWeatherRelated: false, description: 'Ship\'s gear, shore crane, pump, or loading arm breakdown halting cargo operations.',                                                                   isActive: true },
@@ -2390,7 +2390,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { facilityId: 5, facilityCode: 'LME-METRO-DT',   facilityName: 'Metro Detroit LME Approved Warehouse' },
     { facilityId: 6, facilityCode: 'SULLOM-STORAGE', facilityName: 'Sullom Voe Crude Storage Tanks' },
   ],
-  lng_terminal_detail: [
+  ref_lng_terminal_detail: [
     { facilityId: 4, terminalType: 'IMPORT_REGAS', regasCapacityMmscmd: 28.0, liquefactionCapacityMtpa: null, storageCapacityCbm: 540000, numStorageTanks: 3, numBerths: 2, minCargoSizeCbm: 90000, maxCargoSizeCbm: 217000, notes: 'Gate Terminal Rotterdam — one of the largest LNG import terminals in NW Europe, expandable send-out capacity.' },
   ],
   commodity_grade_standard: [
@@ -2421,7 +2421,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { rateIndexId: 3, indexCode: 'EURIBOR_3M', indexName: 'Euro Interbank Offered Rate 3 Month', currencyId: 3, tenor: '3M',        dayCountConvention: 'ACT_360', compounding: 'SIMPLE',                publicationSource: 'EMMI',      isRfrr: false, isActive: true, description: 'Eurozone interbank offered rate, 3-month tenor.' },
     { rateIndexId: 4, indexCode: 'SONIA',      indexName: 'Sterling Overnight Index Average',    currencyId: 2, tenor: 'OVERNIGHT', dayCountConvention: 'ACT_365', compounding: 'OVERNIGHT_COMPOUNDED', publicationSource: 'Bank of England', isRfrr: true, isActive: true, description: 'GBP risk-free rate — replaced GBP LIBOR.' },
   ],
-  regulatory_report_type: [
+  mst_regulatory_report_type: [
     { reportTypeId: 1, reportCode: 'EMIR_TRADE',    reportName: 'EMIR Trade Report',                  regulation: 'EMIR',    jurisdictionId: 16, submissionTarget: 'Trade Repository', reportingDeadline: 'T+1 business day', reportFormat: 'XML', isMandatory: true, isActive: true, description: 'European Market Infrastructure Regulation trade-level report.' },
     { reportTypeId: 2, reportCode: 'REMIT_TABLE1',  reportName: 'REMIT Table 1 — Standard Contract',  regulation: 'REMIT',   jurisdictionId: 16, submissionTarget: 'ACER ARIS',        reportingDeadline: 'T+1 business day', reportFormat: 'XML', isMandatory: true, isActive: true, description: 'Standard wholesale energy contract report under REMIT.' },
     { reportTypeId: 3, reportCode: 'UK_EMIR_TRADE', reportName: 'UK EMIR Trade Report',               regulation: 'UK_EMIR', jurisdictionId: 1,  submissionTarget: 'UK Trade Repository', reportingDeadline: 'T+1 business day', reportFormat: 'XML', isMandatory: true, isActive: true, description: 'UK post-Brexit EMIR-equivalent trade report.' },
@@ -2483,7 +2483,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { creditTermId: 10, termCode: 'PREPAY',           termName: 'Prepaid — No Credit',        creditPeriodDays: 0,  collateralType: 'CASH',             marginCallThreshold: null,    marginCallCurrencyId: 1, nettingEligible: false, requiresIsda: false, description: 'Full payment required before delivery/execution — no open credit exposure.', isActive: true },
     { creditTermId: 11, termCode: 'CASH_ON_DELIVERY', termName: 'Cash on Delivery',           creditPeriodDays: 0,  collateralType: 'CASH',             marginCallThreshold: null,    marginCallCurrencyId: 1, nettingEligible: false, requiresIsda: false, description: 'Payment due concurrent with delivery — no open credit exposure.', isActive: true },
   ],
-  holiday_calendar: [
+  mst_holiday_calendar: [
     { calendarId: 1, calendarCode: 'UK_BANK',    calendarName: 'UK Bank Holidays' },
     { calendarId: 2, calendarCode: 'US_FEDERAL', calendarName: 'US Federal Holidays' },
     { calendarId: 3, calendarCode: 'NYMEX_WTI',  calendarName: 'NYMEX WTI Futures Calendar' },
@@ -2495,7 +2495,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { fxRateId: 1, fromCurrencyId: 3, toCurrencyId: 1, rate: 1.0850, rateDate: '2026-07-04', rateType: 'EOD', source: 'ECB' },
     { fxRateId: 2, fromCurrencyId: 2, toCurrencyId: 1, rate: 1.2650, rateDate: '2026-07-04', rateType: 'EOD', source: 'BLOOMBERG' },
   ],
-  settlement_calendar: [
+  ref_settlement_calendar: [
     { scId: 1, productId: 1, calendarId: 2, priority: 1, isActive: true },
     { scId: 2, productId: 4, calendarId: 5, priority: 1, isActive: true },
   ],
@@ -2555,7 +2555,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { ruleId: 1, productId: 6, elementCode: 'CU', elementType: 'PAYABLE', baseContentPct: 24.00,  rejectionThresholdPct: 22.00, penaltyPerPpmOverBase: null,  penaltyCurrencyId: 1, penaltyUomId: 12, isActive: true, notes: 'Copper concentrate — payable metal, standard treatment/refining charge terms apply below this.' },
     { ruleId: 2, productId: 6, elementCode: 'AS', elementType: 'PENALTY', baseContentPct: 0.20,  rejectionThresholdPct: 0.50, penaltyPerPpmOverBase: 2.50, penaltyCurrencyId: 1, penaltyUomId: 12, isActive: true, notes: 'Arsenic penalty — USD 2.50/dmt for every 100ppm (0.01%) above the 0.20% base, standard smelter contract term.' },
   ],
-  lng_boil_off_rule: [
+  ref_lng_boil_off_rule: [
     { ruleId: 1, ruleCode: 'GATE-LNG-STORAGE', ruleName: 'Gate Terminal Storage Boil-Off', vesselId: null, facilityId: 4, dailyBoilOffRatePct: 0.05, isForcingBoilOffAllowed: false, effectiveFrom: '2026-01-01', effectiveTo: null, isActive: true, notes: 'In-tank storage boil-off at Gate LNG Terminal Rotterdam.' },
     { ruleId: 2, ruleCode: 'DEFAULT-TRANSIT',    ruleName: 'Default Laden Transit Boil-Off', vesselId: null, facilityId: null, dailyBoilOffRatePct: 0.15, isForcingBoilOffAllowed: true,  effectiveFrom: '2026-01-01', effectiveTo: null, isActive: true, notes: 'Generic laden-voyage default used when no vessel-specific guaranteed rate applies.' },
   ],
@@ -2580,7 +2580,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { ruleId: 1, sourceLegalEntityId: 1, destinationLegalEntityId: 2, transferPricingMarkupType: 'PERCENT', markupValue: 1.5, markupCurrencyId: null, automaticBookingEnabled: true, isActive: true, notes: 'UK desk to Netherlands BU — 1.5% transfer pricing markup, auto-booked back-to-back.' },
     { ruleId: 2, sourceLegalEntityId: 1, destinationLegalEntityId: 3, transferPricingMarkupType: 'FLAT',    markupValue: 0.25, markupCurrencyId: 1, automaticBookingEnabled: false, isActive: true, notes: 'UK desk to Singapore BU — flat USD 0.25/unit markup, manual booking review required.' },
   ],
-  payment_calendar_assignment: [
+  ref_payment_calendar_assignment: [
     { assignmentId: 1, paymentTermId: 1,  currencyId: 1, locationId: null, primaryHolidayCalendarId: 2, secondaryHolidayCalendarId: null, isActive: true, notes: 'USD default — US Federal calendar only.' },
     { assignmentId: 2, paymentTermId: 1,  currencyId: 1, locationId: 1,    primaryHolidayCalendarId: 2, secondaryHolidayCalendarId: 1,    isActive: true, notes: 'USD payment against a UK delivery location — cross-reference US Federal with UK Bank holidays.' },
   ],

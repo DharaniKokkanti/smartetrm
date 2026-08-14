@@ -53,9 +53,9 @@ export function PaymentTermsPage() {
 
   // Load base date events and BDC types from static data (same source as Tier 2 UI)
   const { data: bdeRows = [], isLoading: bdeLoading } =
-    useTableRows<{ typeCode: string; typeName: string; applicableCommodity: string | null }>('base_date_event_type');
+    useTableRows<{ typeCode: string; typeName: string; applicableCommodity: string | null }>('ref_base_date_event_type');
   const { data: bdcRows = [], isLoading: bdcLoading } =
-    useTableRows<{ typeCode: string; typeName: string }>('business_day_convention_type');
+    useTableRows<{ typeCode: string; typeName: string }>('ref_business_day_convention_type');
   const { data: paymentMethodOptions = [], isLoading: pmLoading } = useCustomConfigOptions('PAYMENT_METHOD');
 
   // Build label map for formula column display

@@ -236,7 +236,7 @@ function LaytimeTab({ voyageId }: { voyageId: number }) {
   const { data = [], isLoading } = useLaytimeCalculations(voyageId);
   const create = useCreateLaytimeCalculation();
   const { data: locations = [] } = useLocations();
-  const { data: laytimeTerms = [] } = useTableRows<{ laytimeTermId: number; termCode: string }>('laytime_term_template');
+  const { data: laytimeTerms = [] } = useTableRows<{ laytimeTermId: number; termCode: string }>('ref_laytime_term_template');
   const [open, setOpen] = useState(false);
   const [form] = Form.useForm<LaytimeCalculationInput>();
 

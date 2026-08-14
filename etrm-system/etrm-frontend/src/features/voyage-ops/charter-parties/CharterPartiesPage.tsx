@@ -30,8 +30,8 @@ export function CharterPartiesPage() {
   const { data: locations = [] } = useLocations();
   const { data: counterparties = [] } = useCounterparties();
   const { data: currencies = [] } = useCurrencies();
-  const { data: cpTypes = [] } = useTableRows<{ charterPartyTypeId: number; typeCode: string }>('charter_party_type');
-  const { data: laytimeTerms = [] } = useTableRows<{ laytimeTermId: number; termCode: string }>('laytime_term_template');
+  const { data: cpTypes = [] } = useTableRows<{ charterPartyTypeId: number; typeCode: string }>('ref_charter_party_type');
+  const { data: laytimeTerms = [] } = useTableRows<{ laytimeTermId: number; termCode: string }>('ref_laytime_term_template');
   type CpTemplate = {
     templateId: number; templateCode: string; defaultLaytimeTermId: number | null;
     defaultDemurrageRatePerDay: number | null; defaultDispatchRatePerDay: number | null;

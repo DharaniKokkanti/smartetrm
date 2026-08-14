@@ -25,7 +25,7 @@ export function EmissionObligationsPage() {
   const save = useSaveEmissionObligation();
   const { data: legalEntities = [] } = useLegalEntities();
   const { data: schemes = [] }       = useEmissionSchemes();
-  const { data: statusRows = [] }    = useTableRows<{ typeCode: string; typeName: string }>('emission_obligation_status');
+  const { data: statusRows = [] }    = useTableRows<{ typeCode: string; typeName: string }>('mst_emission_obligation_status');
   const statusOpts = statusRows.map((r) => ({ value: r.typeCode, label: r.typeName }));
 
   const leOpts = useMemo(

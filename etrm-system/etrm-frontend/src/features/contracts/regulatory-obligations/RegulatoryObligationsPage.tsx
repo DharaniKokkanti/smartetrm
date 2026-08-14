@@ -22,7 +22,7 @@ export function RegulatoryObligationsPage() {
   const save = useSaveRegulatoryObligation();
   const deactivate = useDeactivateRegulatoryObligation();
   const { data: legalEntities = [] } = useLegalEntities();
-  const { data: reportTypeRows = [] } = useTableRows<{ reportTypeId: number; reportCode: string; reportName: string }>('regulatory_report_type');
+  const { data: reportTypeRows = [] } = useTableRows<{ reportTypeId: number; reportCode: string; reportName: string }>('mst_regulatory_report_type');
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<RegulatoryObligation | null>(null);

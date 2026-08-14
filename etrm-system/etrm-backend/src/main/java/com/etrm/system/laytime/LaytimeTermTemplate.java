@@ -16,7 +16,7 @@ import jakarta.persistence.Version;
  * resolve laytime_term_id -> its code/name for display.
  */
 @Entity
-@Table(name = "laytime_term_template")
+@Table(name = "ref_laytime_term_template")
 public class LaytimeTermTemplate {
 
     @Id

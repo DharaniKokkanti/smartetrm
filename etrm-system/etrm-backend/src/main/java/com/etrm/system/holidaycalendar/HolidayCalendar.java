@@ -35,7 +35,7 @@ import java.time.LocalDateTime;
  * a real @CreatedDate JPA auditing field.
  */
 @Entity
-@Table(name = "holiday_calendar")
+@Table(name = "mst_holiday_calendar")
 @EntityListeners(AuditingEntityListener.class)
 public class HolidayCalendar {
 

@@ -15,7 +15,7 @@ import jakarta.persistence.Table;
  * for display, same pattern as batch 3's CreditTerm/PaymentTerm readers.
  */
 @Entity
-@Table(name = "charter_party_type")
+@Table(name = "ref_charter_party_type")
 public class CharterPartyType {
 
     @Id

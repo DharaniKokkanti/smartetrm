@@ -31,7 +31,7 @@ import java.time.LocalDateTime;
  * (quantity * price_per_rin) — read-only.
  */
 @Entity
-@Table(name = "rin_transaction")
+@Table(name = "tran_rin_transaction")
 public class RinTransaction {
 
     @Id

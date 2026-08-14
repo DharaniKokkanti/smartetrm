@@ -30,7 +30,7 @@ import java.time.LocalDateTime;
  * TRADING/EXPORTER per the frontend comment; treated as a plain String field.
  */
 @Entity
-@Table(name = "rin_account")
+@Table(name = "mst_rin_account")
 @EntityListeners(AuditingEntityListener.class)
 public class RinAccount {
 
