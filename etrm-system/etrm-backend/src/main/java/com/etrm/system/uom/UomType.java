@@ -14,7 +14,7 @@ import jakarta.persistence.Table;
  * UnitOfMeasureService can resolve uom_category -> its code for display.
  */
 @Entity
-@Table(name = "uom_type")
+@Table(name = "mst_uom_type")
 public class UomType {
 
     @Id

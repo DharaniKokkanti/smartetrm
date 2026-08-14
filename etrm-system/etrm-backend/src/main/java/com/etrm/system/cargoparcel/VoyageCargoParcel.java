@@ -25,7 +25,7 @@ import java.math.BigDecimal;
  * that future batch.
  */
 @Entity
-@Table(name = "voyage_cargo_parcel")
+@Table(name = "tran_voyage_cargo_parcel")
 public class VoyageCargoParcel extends AuditableEntity {
 
     @Id

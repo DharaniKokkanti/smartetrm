@@ -13,7 +13,7 @@ export function BunkerRobLedgerPage() {
   const [vesselId, setVesselId] = useState<number | undefined>();
   const [fuelGradeId, setFuelGradeId] = useState<number | undefined>();
   const { data: vessels = [] } = useVessels();
-  const { data: fuelGrades = [] } = useTableRows<{ fuelGradeId: number; gradeCode: string }>('bunker_fuel_grade');
+  const { data: fuelGrades = [] } = useTableRows<{ fuelGradeId: number; gradeCode: string }>('ref_bunker_fuel_grade');
   const { data = [], isLoading } = useBunkerRobLedger({ vesselId, fuelGradeId });
 
   return (

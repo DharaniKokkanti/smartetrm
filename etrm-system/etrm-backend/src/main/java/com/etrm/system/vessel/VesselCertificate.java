@@ -33,7 +33,7 @@ import java.time.LocalDateTime;
  * resolve (per brief).
  */
 @Entity
-@Table(name = "vessel_certificate")
+@Table(name = "ref_vessel_certificate")
 @EntityListeners(AuditingEntityListener.class)
 public class VesselCertificate {
 

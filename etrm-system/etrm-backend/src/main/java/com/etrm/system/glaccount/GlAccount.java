@@ -45,7 +45,7 @@ import java.time.LocalDateTime;
  * outside V137's registry-only governance-column audit).
  */
 @Entity
-@Table(name = "gl_account")
+@Table(name = "ref_gl_account")
 @EntityListeners(AuditingEntityListener.class)
 public class GlAccount {
 

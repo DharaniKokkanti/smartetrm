@@ -16,7 +16,7 @@ import com.etrm.system.common.SourceSystemDefaults;
  * display.
  */
 @Entity
-@Table(name = "sof_event_type")
+@Table(name = "ref_sof_event_type")
 public class SofEventType {
 
     @Id

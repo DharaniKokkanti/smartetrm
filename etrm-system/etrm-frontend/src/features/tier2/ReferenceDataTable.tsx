@@ -121,8 +121,8 @@ const ISO_3166_COLS = new Set(['countryCode', 'jurisdictionCode', 'incorporation
  *  comment below for why these need a real /api/v1/... fetch instead of the
  *  generic /reference-data/:table mechanism every other foreign_key column uses. */
 const DEDICATED_ENTITY_FK_TABLES = new Set([
-  'ref_counterparty', 'ref_location', 'mst_holiday_calendar', 'ref_legal_entity', 'ref_product', 'ref_storage_facility', 'vessel', 'market_product_link', 'unit_of_measure',
-  'exchange', 'payment_term', 'ref_transport_route',
+  'ref_counterparty', 'ref_location', 'mst_holiday_calendar', 'ref_legal_entity', 'ref_product', 'ref_storage_facility', 'ref_vessel', 'market_product_link', 'ref_unit_of_measure',
+  'ref_exchange', 'ref_payment_term', 'ref_transport_route',
 ]);
 
 /** Extra validation rules injected for globally-standardised codes */
@@ -510,14 +510,14 @@ export function ReferenceDataTable({ table }: Props) {
     ref_legal_entity: legalEntityRows.map((e) => ({ value: e.legalEntityId, label: e.entityName })),
     ref_product: productRows.map((p) => ({ value: p.productId, label: p.productName })),
     ref_storage_facility: storageFacilityRows.map((s) => ({ value: s.storageId, label: s.storageName })),
-    vessel: vesselRows.map((v) => ({ value: v.vesselId, label: v.vesselName })),
+    ref_vessel: vesselRows.map((v) => ({ value: v.vesselId, label: v.vesselName })),
     market_product_link: marketProductLinkRows.map((m) => ({
       value: m.marketProductLinkId,
       label: `${m.marketCode ?? '—'} / ${m.productCode ?? '—'}`,
     })),
-    unit_of_measure: uomRows.map((u) => ({ value: u.uomId, label: `${u.uomCode} — ${u.uomName}` })),
-    exchange: exchangeRows.map((e) => ({ value: e.exchangeId, label: `${e.exchangeCode} — ${e.exchangeName}` })),
-    payment_term: paymentTermRows.map((p) => ({ value: p.paymentTermId, label: `${p.termCode} — ${p.termName}` })),
+    ref_unit_of_measure: uomRows.map((u) => ({ value: u.uomId, label: `${u.uomCode} — ${u.uomName}` })),
+    ref_exchange: exchangeRows.map((e) => ({ value: e.exchangeId, label: `${e.exchangeCode} — ${e.exchangeName}` })),
+    ref_payment_term: paymentTermRows.map((p) => ({ value: p.paymentTermId, label: `${p.termCode} — ${p.termName}` })),
     ref_transport_route: transportRouteRows.map((r) => ({ value: r.routeId, label: `${r.routeCode} — ${r.routeName}` })),
   }), [
     counterpartyRows, locationRows, holidayCalendarRows, legalEntityRows, productRows, storageFacilityRows, vesselRows, marketProductLinkRows, uomRows,

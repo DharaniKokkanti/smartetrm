@@ -16,7 +16,7 @@ import jakarta.persistence.Version;
  * code/name for display.
  */
 @Entity
-@Table(name = "port_activity_template")
+@Table(name = "ref_port_activity_template")
 public class PortActivityTemplate {
 
     @Id

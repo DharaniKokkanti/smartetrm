@@ -259,7 +259,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'customs_movement_status', label: 'Customs Movement Status', pk: 'customsMovementStatusId', group: 'Finance & Settlement', order: 10,
+    name: 'ref_customs_movement_status', label: 'Customs Movement Status', pk: 'customsMovementStatusId', group: 'Finance & Settlement', order: 10,
     subGroup: 'Tax & Duty Rules', description: 'T1/T2/T2L/EU/Non-T1 goods movement status — whether duty and import VAT have already been accounted for. Shared lookup for tax_rule and customs_duty_rule.',
     rows: [
       { customsMovementStatusId: 1, typeCode: 'T1',     typeName: 'T1 - Non-Union Transit',     description: 'Non-Community/non-EU goods in transit; duty and import VAT not yet accounted for', sortOrder: 1, isActive: true },
@@ -501,7 +501,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'uom_type', label: 'UoM Types', pk: 'uomTypeId', group: 'Finance & Settlement', order: 10,
+    name: 'mst_uom_type', label: 'UoM Types', pk: 'uomTypeId', group: 'Finance & Settlement', order: 10,
     subGroup: 'Units & Conversions', description: 'Physical dimension classification for a unit of measure — the real CHECK values on dbo.unit_of_measure.uom_category, now a dedicated FK table (V84).',
     rows: [
       { uomTypeId: 1, typeCode: 'VOLUME',      typeName: 'Volume',      description: 'Liquid or gas volume units — barrels, cubic metres, gallons, litres. Used for crude, refined products, and LNG.', sortOrder: 1, isActive: true },
@@ -590,8 +590,8 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
 // Tables whose columns differ from the standard lookup pattern stay fully defined.
 
 const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
-  currency: {
-    tableName: 'currency', displayName: 'Currencies', primaryKeyColumn: 'currencyId', isTemporal: false,
+  ref_currency: {
+    tableName: 'ref_currency', displayName: 'Currencies', primaryKeyColumn: 'currencyId', isTemporal: false,
     columns: [
       col('currencyId',    'ID',             'number',  false, true,  null),
       col('currencyCode',  'Code',           'string',  false, false, 3),
@@ -748,7 +748,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('vesselType',           'Vessel Type',          'string',      true,  false, 30),
       col('routeDescription',     'Route',                'string',      true,  false, 200),
       col('commodityType',        'Commodity',            'foreign_key', true,  false, null, null, 'ref_commodity_type'),
-      col('currencyId',           'Currency',             'foreign_key', true,  false, null, null, 'currency'),
+      col('currencyId',           'Currency',             'foreign_key', true,  false, null, null, 'ref_currency'),
       col('uomId',                'UoM',                  'number',      true,  false, null),
       col('publicationSource',    'Publication Source',   'string',      true,  false, 100),
       col('publicationFrequency', 'Publication Frequency','enum',        true,  false, null, ['DAILY', 'WEEKLY', 'ANNUAL']),
@@ -782,7 +782,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('charterPartyTypeId',  'Charter Party Type',  'foreign_key', true,  false, null, null, 'ref_charter_party_type'),
       col('demurrageRatePerDay', 'Demurrage $/Day',     'number',      false, false, null, null, null, null, true),
       col('dispatchRatePerDay',  'Dispatch $/Day',      'number',      true,  false, null, null, null, null, true),
-      col('currencyId',          'Currency',            'foreign_key', false, false, null, null, 'currency'),
+      col('currencyId',          'Currency',            'foreign_key', false, false, null, null, 'ref_currency'),
       col('commodityType',       'Commodity',           'foreign_key', true,  false, null, null, 'ref_commodity_type'),
       col('claimTimeBarDays',    'Claim Time-Bar (days)','number',     true,  false, null),
       col('despatchBasis',       'Despatch Basis',      'enum',        true,  false, null, ['ALL_TIME_SAVED', 'WORKING_TIME_SAVED_ONLY']),
@@ -805,8 +805,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
     ],
   },
   // V108 — Voyage & Charter Ops backbone lookups.
-  bunker_fuel_grade: {
-    tableName: 'bunker_fuel_grade', displayName: 'Bunker Fuel Grades', primaryKeyColumn: 'fuelGradeId', isTemporal: false,
+  ref_bunker_fuel_grade: {
+    tableName: 'ref_bunker_fuel_grade', displayName: 'Bunker Fuel Grades', primaryKeyColumn: 'fuelGradeId', isTemporal: false,
     columns: [
       col('fuelGradeId',        'ID',                  'number',  false, true,  null),
       col('gradeCode',          'Code',                'string',  false, false, 30),
@@ -817,8 +817,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',           'Active',              'boolean', false, false, null),
     ],
   },
-  sof_event_type: {
-    tableName: 'sof_event_type', displayName: 'SOF Event Types', primaryKeyColumn: 'sofEventTypeId', isTemporal: false,
+  ref_sof_event_type: {
+    tableName: 'ref_sof_event_type', displayName: 'SOF Event Types', primaryKeyColumn: 'sofEventTypeId', isTemporal: false,
     columns: [
       col('sofEventTypeId',     'ID',                  'number',  false, true,  null),
       col('eventCode',          'Code',                'string',  false, false, 30),
@@ -828,8 +828,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',           'Active',              'boolean', false, false, null),
     ],
   },
-  off_hire_reason_type: {
-    tableName: 'off_hire_reason_type', displayName: 'Off-Hire Reason Types', primaryKeyColumn: 'offHireReasonTypeId', isTemporal: false,
+  ref_off_hire_reason_type: {
+    tableName: 'ref_off_hire_reason_type', displayName: 'Off-Hire Reason Types', primaryKeyColumn: 'offHireReasonTypeId', isTemporal: false,
     columns: [
       col('offHireReasonTypeId', 'ID',          'number',  false, true,  null),
       col('reasonCode',          'Code',        'string',  false, false, 30),
@@ -861,8 +861,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',        'Active',          'boolean',     false, false, null),
     ],
   },
-  charter_party_template: {
-    tableName: 'charter_party_template', displayName: 'Charter Party Templates', primaryKeyColumn: 'templateId', isTemporal: false,
+  ref_charter_party_template: {
+    tableName: 'ref_charter_party_template', displayName: 'Charter Party Templates', primaryKeyColumn: 'templateId', isTemporal: false,
     columns: [
       col('templateId',                      'ID',                          'number',      false, true,  null),
       col('templateCode',                     'Code',                        'string',      false, false, 30),
@@ -878,8 +878,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',                         'Active',                     'boolean',     false, false, null),
     ],
   },
-  port_activity_template: {
-    tableName: 'port_activity_template', displayName: 'Port Activity Templates', primaryKeyColumn: 'templateId', isTemporal: false,
+  ref_port_activity_template: {
+    tableName: 'ref_port_activity_template', displayName: 'Port Activity Templates', primaryKeyColumn: 'templateId', isTemporal: false,
     columns: [
       col('templateId',      'ID',            'number',      false, true,  null),
       col('templateCode',    'Code',          'string',      false, false, 30),
@@ -890,11 +890,11 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',        'Active',        'boolean',     false, false, null),
     ],
   },
-  emission_factor: {
-    tableName: 'emission_factor', displayName: 'Emission Factors', primaryKeyColumn: 'factorId', isTemporal: false,
+  ref_emission_factor: {
+    tableName: 'ref_emission_factor', displayName: 'Emission Factors', primaryKeyColumn: 'factorId', isTemporal: false,
     columns: [
       col('factorId',      'ID',             'number',      false, true,  null),
-      col('fuelGradeId',   'Fuel Grade',     'foreign_key', false, false, null, null, 'bunker_fuel_grade'),
+      col('fuelGradeId',   'Fuel Grade',     'foreign_key', false, false, null, null, 'ref_bunker_fuel_grade'),
       col('emissionType',  'Emission Type',  'enum',        false, false, null, ['CO2', 'SOX', 'NOX', 'CH4', 'N2O']),
       col('factorValue',   'Factor Value',   'number',      false, false, null, null, null, null, true),
       col('uomBasis',      'UOM Basis',      'string',      false, false, 20),
@@ -904,8 +904,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',      'Active',         'boolean',     false, false, null),
     ],
   },
-  vessel_operational_status_type: {
-    tableName: 'vessel_operational_status_type', displayName: 'Vessel Operational Status Types', primaryKeyColumn: 'statusTypeId', isTemporal: false,
+  ref_vessel_operational_status_type: {
+    tableName: 'ref_vessel_operational_status_type', displayName: 'Vessel Operational Status Types', primaryKeyColumn: 'statusTypeId', isTemporal: false,
     columns: [
       col('statusTypeId', 'ID',          'number',  false, true,  null),
       col('statusCode',   'Code',        'string',  false, false, 30),
@@ -914,8 +914,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',     'Active',      'boolean', false, false, null),
     ],
   },
-  delay_reason_type: {
-    tableName: 'delay_reason_type', displayName: 'Delay Reason Types', primaryKeyColumn: 'delayReasonTypeId', isTemporal: false,
+  ref_delay_reason_type: {
+    tableName: 'ref_delay_reason_type', displayName: 'Delay Reason Types', primaryKeyColumn: 'delayReasonTypeId', isTemporal: false,
     columns: [
       col('delayReasonTypeId', 'ID',          'number',  false, true,  null),
       col('reasonCode',        'Code',        'string',  false, false, 30),
@@ -1143,7 +1143,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('gradeName',              'Grade Name',            'string',      false, false, 150),
       col('isParGrade',             'Par Grade',             'boolean',     false, false, null),
       col('priceAdjustmentPerUom',  'Price Adjustment',      'number',      false, false, null, null, null, null, true),
-      col('adjustmentCurrencyId',   'Adjustment Currency',   'foreign_key', true,  false, null, null, 'currency'),
+      col('adjustmentCurrencyId',   'Adjustment Currency',   'foreign_key', true,  false, null, null, 'ref_currency'),
       // uom isn't a tier2-registered table, so this can't use the generic
       // foreign_key resolution (see the uomId 'placeholder' precedent in
       // makeExchangeMeta above) — stored as a plain numeric id. The row data
@@ -1194,8 +1194,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
   // dedicated page/store in etrmHandlers.ts (vesselId 1 = NORDIC LUNA);
   // this exists purely so V96's lng_boil_off_rule.vessel_id resolves to a
   // real label instead of a raw id.
-  vessel: {
-    tableName: 'vessel', displayName: 'Vessels', primaryKeyColumn: 'vesselId', isTemporal: false,
+  ref_vessel: {
+    tableName: 'ref_vessel', displayName: 'Vessels', primaryKeyColumn: 'vesselId', isTemporal: false,
     columns: [
       col('vesselId',   'ID',   'number', false, true,  null),
       col('imoNumber',  'IMO',  'string', false, false, 10),
@@ -1210,8 +1210,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
   // carry a real FK to dbo.unit_of_measure, so this is a real resolution
   // target, not another placeholder. Ids/order match the real V1 seed
   // (01_master_data_foundation.sql): 1=BBL...10=BUSHEL...12=MT_MET.
-  unit_of_measure: {
-    tableName: 'unit_of_measure', displayName: 'Units of Measure', primaryKeyColumn: 'uomId', isTemporal: false,
+  ref_unit_of_measure: {
+    tableName: 'ref_unit_of_measure', displayName: 'Units of Measure', primaryKeyColumn: 'uomId', isTemporal: false,
     columns: [
       col('uomId',   'ID',   'number', false, true,  null),
       col('uomCode', 'Code', 'string', false, false, 20),
@@ -1236,8 +1236,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
   // Payment Terms has its own dedicated page/store in etrmHandlers.ts
   // (paymentTermId 1 = NET_30); exists purely so V96's
   // payment_calendar_assignment.payment_term_id resolves to a real label.
-  payment_term: {
-    tableName: 'payment_term', displayName: 'Payment Terms', primaryKeyColumn: 'paymentTermId', isTemporal: false,
+  ref_payment_term: {
+    tableName: 'ref_payment_term', displayName: 'Payment Terms', primaryKeyColumn: 'paymentTermId', isTemporal: false,
     columns: [
       col('paymentTermId', 'ID',   'number', false, true,  null),
       col('termCode',      'Code', 'string', false, false, 30),
@@ -1283,7 +1283,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('rateIndexId',         'ID',                  'number',      false, true,  null),
       col('indexCode',           'Code',                'string',      false, false, 20),
       col('indexName',           'Name',                'string',      false, false, 200),
-      col('currencyId',          'Currency',            'foreign_key', false, false, null, null, 'currency'),
+      col('currencyId',          'Currency',            'foreign_key', false, false, null, null, 'ref_currency'),
       col('tenor',                'Tenor',               'string',      true,  false, 20),
       col('dayCountConvention',   'Day Count Convention','enum',        false, false, null, ['ACT_360', 'ACT_365', 'ACT_ACT', '30_360', 'ACT_365F']),
       col('compounding',           'Compounding',         'enum',        false, false, null, ['SIMPLE', 'COMPOUNDED', 'OVERNIGHT_COMPOUNDED']),
@@ -1414,7 +1414,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('creditPeriodDays',    'Credit Period (Days)',  'number',  false, false, null),
       col('collateralType',      'Collateral Type',       'enum',    true,  false, null, ['NONE', 'CASH', 'LETTER_OF_CREDIT', 'PARENT_GUARANTEE', 'BANK_GUARANTEE', 'PLEDGE', 'OTHER']),
       col('marginCallThreshold', 'Margin Call Threshold', 'number',  true,  false, null, null, null, null, true),
-      col('marginCallCurrencyId','Margin Call Currency',  'foreign_key', false, false, null, null, 'currency'),
+      col('marginCallCurrencyId','Margin Call Currency',  'foreign_key', false, false, null, null, 'ref_currency'),
       col('nettingEligible',     'Netting Eligible',      'boolean', false, false, null),
       col('requiresIsda',        'Requires ISDA',         'boolean', false, false, null),
       col('description',         'Description',           'string', true,  false, 500),
@@ -1440,8 +1440,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
     tableName: 'ref_fx_rate', displayName: 'FX Rates', primaryKeyColumn: 'fxRateId', isTemporal: false,
     columns: [
       col('fxRateId',        'ID',              'number',      false, true,  null),
-      col('fromCurrencyId',  'From Currency',   'foreign_key', false, false, null, null, 'currency'),
-      col('toCurrencyId',    'To Currency',     'foreign_key', false, false, null, null, 'currency'),
+      col('fromCurrencyId',  'From Currency',   'foreign_key', false, false, null, null, 'ref_currency'),
+      col('toCurrencyId',    'To Currency',     'foreign_key', false, false, null, null, 'ref_currency'),
       col('rate',            'Rate',            'number',      false, false, null, null, null, null, true),
       col('rateDate',        'Rate Date',       'date',        false, false, null),
       col('rateType',        'Rate Type',       'enum',        false, false, null, ['EOD', 'INTRADAY', 'SETTLEMENT', 'FIXING', 'MID']),
@@ -1509,8 +1509,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('baseContentPct',              'Base Content (%)',  'number',      false, false, null, null, null, null, true),
       col('rejectionThresholdPct',        'Rejection Threshold (%)', 'number', true, false, null, null, null, null, true),
       col('penaltyPerPpmOverBase',         'Penalty per PPM Over Base', 'number', true, false, null, null, null, null, true),
-      col('penaltyCurrencyId',              'Penalty Currency',  'foreign_key', true,  false, null, null, 'currency'),
-      col('penaltyUomId',                    'Penalty UoM',       'foreign_key', true,  false, null, null, 'unit_of_measure'),
+      col('penaltyCurrencyId',              'Penalty Currency',  'foreign_key', true,  false, null, null, 'ref_currency'),
+      col('penaltyUomId',                    'Penalty UoM',       'foreign_key', true,  false, null, null, 'ref_unit_of_measure'),
       col('isActive',                          'Active',            'boolean',     false, false, null),
       col('notes',                               'Notes',             'string',      true,  false, 500),
     ],
@@ -1521,7 +1521,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('ruleId',                     'ID',                        'number',      false, true,  null),
       col('ruleCode',                    'Code',                      'string',      false, false, 30),
       col('ruleName',                     'Name',                      'string',      false, false, 150),
-      col('vesselId',                      'Vessel',                    'foreign_key', true,  false, null, null, 'vessel'),
+      col('vesselId',                      'Vessel',                    'foreign_key', true,  false, null, null, 'ref_vessel'),
       col('facilityId',                     'Storage Facility',          'foreign_key', true,  false, null, null, 'ref_storage_facility'),
       col('dailyBoilOffRatePct',              'Daily Boil-Off Rate (%)',   'number',      false, false, null, null, null, null, true),
       col('isForcingBoilOffAllowed',           'Forcing Boil-Off Allowed',  'boolean',     false, false, null),
@@ -1562,8 +1562,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('moisturePctMin',            'Moisture % Min',           'number',      false, false, null, null, null, null, true),
       col('moisturePctMax',             'Moisture % Max',           'number',      false, false, null, null, null, null, true),
       col('priceDiscountPerUom',          'Price Discount',           'number',      false, false, null, null, null, null, true),
-      col('discountCurrencyId',             'Discount Currency',        'foreign_key', false, false, null, null, 'currency'),
-      col('discountUomId',                   'Discount UoM',             'foreign_key', false, false, null, null, 'unit_of_measure'),
+      col('discountCurrencyId',             'Discount Currency',        'foreign_key', false, false, null, null, 'ref_currency'),
+      col('discountUomId',                   'Discount UoM',             'foreign_key', false, false, null, null, 'ref_unit_of_measure'),
       col('weightShrinkageFactorPct',           'Weight Shrinkage Factor (%)', 'number', true, false, null, null, null, null, true),
       col('isActive',                              'Active',                   'boolean',     false, false, null),
       col('notes',                                   'Notes',                    'string',      true,  false, 500),
@@ -1591,7 +1591,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('destinationLegalEntityId',        'Destination Legal Entity', 'foreign_key', false, false, null, null, 'ref_legal_entity'),
       col('transferPricingMarkupType',         'Markup Type',             'enum',        false, false, null, ['FLAT', 'PERCENT', 'INDEX_OFFSET']),
       col('markupValue',                          'Markup Value',            'number',      false, false, null, null, null, null, true),
-      col('markupCurrencyId',                       'Markup Currency',         'foreign_key', true,  false, null, null, 'currency'),
+      col('markupCurrencyId',                       'Markup Currency',         'foreign_key', true,  false, null, null, 'ref_currency'),
       col('automaticBookingEnabled',                   'Automatic Booking',       'boolean',     false, false, null),
       col('isActive',                                    'Active',                  'boolean',     false, false, null),
       col('notes',                                         'Notes',                   'string',      true,  false, 500),
@@ -1601,8 +1601,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
     tableName: 'ref_payment_calendar_assignment', displayName: 'Payment Calendar Assignments', primaryKeyColumn: 'assignmentId', isTemporal: false,
     columns: [
       col('assignmentId',                   'ID',                     'number',      false, true,  null),
-      col('paymentTermId',                    'Payment Term',           'foreign_key', false, false, null, null, 'payment_term'),
-      col('currencyId',                         'Currency',               'foreign_key', false, false, null, null, 'currency'),
+      col('paymentTermId',                    'Payment Term',           'foreign_key', false, false, null, null, 'ref_payment_term'),
+      col('currencyId',                         'Currency',               'foreign_key', false, false, null, null, 'ref_currency'),
       col('locationId',                           'Location',               'foreign_key', true,  false, null, null, 'ref_location'),
       col('primaryHolidayCalendarId',                'Primary Calendar',       'foreign_key', false, false, null, null, 'mst_holiday_calendar'),
       col('secondaryHolidayCalendarId',                 'Secondary Calendar',     'foreign_key', true,  false, null, null, 'mst_holiday_calendar'),
@@ -1616,8 +1616,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
   // direct profit_center_id on gl_account — reached by joining through
   // cost_center instead, per the "don't duplicate a derivable segment"
   // chart-of-accounts convention.
-  profit_center: {
-    tableName: 'profit_center', displayName: 'Profit Centers', primaryKeyColumn: 'profitCenterId', isTemporal: false,
+  ref_profit_center: {
+    tableName: 'ref_profit_center', displayName: 'Profit Centers', primaryKeyColumn: 'profitCenterId', isTemporal: false,
     columns: [
       col('profitCenterId',   'ID',            'number',      false, true,  null),
       col('profitCenterCode', 'Code',          'string',      false, false, 30),
@@ -1626,18 +1626,18 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',         'Active',        'boolean',     false, false, null),
     ],
   },
-  cost_center: {
-    tableName: 'cost_center', displayName: 'Cost Centers', primaryKeyColumn: 'costCenterId', isTemporal: false,
+  ref_cost_center: {
+    tableName: 'ref_cost_center', displayName: 'Cost Centers', primaryKeyColumn: 'costCenterId', isTemporal: false,
     columns: [
       col('costCenterId',   'ID',            'number',      false, true,  null),
       col('costCenterCode', 'Code',          'string',      false, false, 30),
       col('costCenterName', 'Name',          'string',      false, false, 200),
-      col('profitCenterId', 'Profit Center', 'foreign_key', false, false, null, null, 'profit_center'),
+      col('profitCenterId', 'Profit Center', 'foreign_key', false, false, null, null, 'ref_profit_center'),
       col('isActive',       'Active',        'boolean',     false, false, null),
     ],
   },
-  tax_code: {
-    tableName: 'tax_code', displayName: 'Tax Codes', primaryKeyColumn: 'taxCodeId', isTemporal: false,
+  ref_tax_code: {
+    tableName: 'ref_tax_code', displayName: 'Tax Codes', primaryKeyColumn: 'taxCodeId', isTemporal: false,
     columns: [
       col('taxCodeId',    'ID',          'number',      false, true,  null),
       col('taxCode',      'Code',        'string',      false, false, 20),
@@ -1721,10 +1721,10 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('facilityId',       'Storage Facility',   'foreign_key', false, false, null, null, 'ref_storage_facility'),
       col('agreementType',    'Agreement Type',     'enum',        false, false, null, ['STORAGE', 'THROUGHPUT', 'BOTH']),
       col('contractedCapacity','Contracted Capacity','number',     false, false, null, null, null, null, true),
-      col('capacityUomId',    'Capacity UoM',       'foreign_key', false, false, null, null, 'unit_of_measure'),
+      col('capacityUomId',    'Capacity UoM',       'foreign_key', false, false, null, null, 'ref_unit_of_measure'),
       col('tariffRate',       'Tariff Rate',        'number',      true,  false, null, null, null, null, true),
-      col('tariffCurrencyId', 'Tariff Currency',    'foreign_key', true,  false, null, null, 'currency'),
-      col('tariffUomId',      'Tariff UoM',         'foreign_key', true,  false, null, null, 'unit_of_measure'),
+      col('tariffCurrencyId', 'Tariff Currency',    'foreign_key', true,  false, null, null, 'ref_currency'),
+      col('tariffUomId',      'Tariff UoM',         'foreign_key', true,  false, null, null, 'ref_unit_of_measure'),
       col('motTypeId',        'Mode of Transport',  'foreign_key', true,  false, null, null, 'mst_mot_type'),
       col('effectiveFrom',    'Effective From',     'date',        false, false, null),
       col('effectiveTo',      'Effective To',       'date',        true,  false, null),
@@ -1754,8 +1754,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('productId',        'Product',         'foreign_key', true,  false, null, null, 'ref_product'),
       col('tariffType',       'Tariff Type',     'enum',        false, false, null, ['FLAT_PER_LOAD', 'PER_KM', 'PER_MT', 'PER_BBL', 'PER_HOUR']),
       col('rate',             'Rate',            'number',      false, false, null, null, null, null, true),
-      col('currencyId',       'Currency',        'foreign_key', false, false, null, null, 'currency'),
-      col('rateUomId',        'Rate UoM',        'foreign_key', true,  false, null, null, 'unit_of_measure'),
+      col('currencyId',       'Currency',        'foreign_key', false, false, null, null, 'ref_currency'),
+      col('rateUomId',        'Rate UoM',        'foreign_key', true,  false, null, null, 'ref_unit_of_measure'),
       col('minCharge',        'Min Charge',      'number',      true,  false, null, null, null, null, true),
       col('fuelSurchargePct', 'Fuel Surcharge %','number',      true,  false, null, null, null, null, true),
       col('effectiveFrom',    'Effective From',  'date',        false, false, null),
@@ -1766,8 +1766,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
   },
   // V188 — resolves which tax_code applies to a trade, and whether a match
   // should actually generate a bookable authority-cost line.
-  tax_rule: {
-    tableName: 'tax_rule', displayName: 'Tax Rules', primaryKeyColumn: 'taxRuleId', isTemporal: false,
+  ref_tax_rule: {
+    tableName: 'ref_tax_rule', displayName: 'Tax Rules', primaryKeyColumn: 'taxRuleId', isTemporal: false,
     columns: [
       col('taxRuleId',                'ID',                  'number',      false, true,  null),
       col('ruleName',                 'Rule Name',           'string',      false, false, 200),
@@ -1778,9 +1778,9 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('counterpartyId',           'Counterparty',        'foreign_key', true,  false, null, null, 'ref_counterparty'),
       col('productId',                'Product',             'foreign_key', true,  false, null, null, 'ref_product'),
       col('direction',                'Direction',           'enum',        false, false, null, ['BUY', 'SELL', 'BOTH']),
-      col('customsMovementStatusId',  'Movement Status',     'foreign_key', true,  false, null, null, 'customs_movement_status'),
+      col('customsMovementStatusId',  'Movement Status',     'foreign_key', true,  false, null, null, 'ref_customs_movement_status'),
       col('incotermId',               'Incoterm',            'foreign_key', true,  false, null, null, 'mst_incoterm'),
-      col('taxCodeId',                'Tax Code',            'foreign_key', false, false, null, null, 'tax_code'),
+      col('taxCodeId',                'Tax Code',            'foreign_key', false, false, null, null, 'ref_tax_code'),
       col('costApplicableInd',        'Generates Cost',      'boolean',     false, false, null),
       col('issuingAuthority',         'Issuing Authority',   'string',      true,  false, 100),
       col('priority',                 'Priority',            'number',      false, false, null),
@@ -1807,8 +1807,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
   },
   // V188 — import/export customs duty, keyed by origin/destination country
   // pair + commodity, a materially different shape from tax_rule.
-  customs_duty_rule: {
-    tableName: 'customs_duty_rule', displayName: 'Customs Duty Rules', primaryKeyColumn: 'customsDutyRuleId', isTemporal: false,
+  ref_customs_duty_rule: {
+    tableName: 'ref_customs_duty_rule', displayName: 'Customs Duty Rules', primaryKeyColumn: 'customsDutyRuleId', isTemporal: false,
     columns: [
       col('customsDutyRuleId',        'ID',                  'number',      false, true,  null),
       col('ruleName',                 'Rule Name',           'string',      false, false, 200),
@@ -1820,12 +1820,12 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('legalEntityId',            'Legal Entity',        'foreign_key', true,  false, null, null, 'ref_legal_entity'),
       col('counterpartyId',           'Counterparty',        'foreign_key', true,  false, null, null, 'ref_counterparty'),
       col('direction',                'Direction',           'enum',        false, false, null, ['BUY', 'SELL', 'BOTH']),
-      col('customsMovementStatusId',  'Movement Status',     'foreign_key', true,  false, null, null, 'customs_movement_status'),
+      col('customsMovementStatusId',  'Movement Status',     'foreign_key', true,  false, null, null, 'ref_customs_movement_status'),
       col('incotermId',               'Incoterm',            'foreign_key', true,  false, null, null, 'mst_incoterm'),
-      col('productHsCodeId',          'HS Classification',   'foreign_key', true,  false, null, null, 'product_hs_code'),
+      col('productHsCodeId',          'HS Classification',   'foreign_key', true,  false, null, null, 'ref_product_hs_code'),
       col('dutyRatePercent',          'Duty Rate %',         'number',      true,  false, null, null, null, null, true),
       col('dutyFlatAmount',           'Duty Flat Amount',    'number',      true,  false, null, null, null, null, true),
-      col('dutyFlatCurrencyId',       'Duty Flat Currency',  'foreign_key', true,  false, null, null, 'currency'),
+      col('dutyFlatCurrencyId',       'Duty Flat Currency',  'foreign_key', true,  false, null, null, 'ref_currency'),
       col('costApplicableInd',        'Generates Cost',      'boolean',     false, false, null),
       col('issuingAuthority',         'Issuing Authority',   'string',      true,  false, 100),
       col('priority',                 'Priority',            'number',      false, false, null),
@@ -1838,8 +1838,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
   // V189 — one product, many real-world HS/CN classifications (e.g. Copper
   // spans cathode/wire-rod/concentrate, each dutied differently). Referenced
   // from customs_duty_rule.productHsCodeId instead of a free-text hs_code.
-  product_hs_code: {
-    tableName: 'product_hs_code', displayName: 'Product HS Codes', primaryKeyColumn: 'productHsCodeId', isTemporal: false,
+  ref_product_hs_code: {
+    tableName: 'ref_product_hs_code', displayName: 'Product HS Codes', primaryKeyColumn: 'productHsCodeId', isTemporal: false,
     columns: [
       col('productHsCodeId', 'ID',            'number',      false, true,  null),
       col('productId',       'Product',       'foreign_key', false, false, null, null, 'ref_product'),
@@ -1860,7 +1860,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
  * not new code (per the Master Data Entry Technical Design doc).
  */
 export const registrySeed: RegistryEntry[] = [
-  { registryId: 1, tableName: 'currency',            displayName: 'Currencies',           moduleGroup: 'Finance & Settlement', subGroup: 'Global Codes',      description: 'ISO 4217 currency codes used across all monetary fields. The 3-letter alphabetic code (e.g. USD, EUR, GBP) is enforced. Reference: iso.org/iso-4217-currency-codes.html', allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: true,  isEnabled: true, displayOrder: 1 },
+  { registryId: 1, tableName: 'ref_currency',            displayName: 'Currencies',           moduleGroup: 'Finance & Settlement', subGroup: 'Global Codes',      description: 'ISO 4217 currency codes used across all monetary fields. The 3-letter alphabetic code (e.g. USD, EUR, GBP) is enforced. Reference: iso.org/iso-4217-currency-codes.html', allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: true,  isEnabled: true, displayOrder: 1 },
   { registryId: 2, tableName: 'ref_commodity',           displayName: 'Commodities',          moduleGroup: 'Products & Markets', subGroup: 'Classification',    description: 'Top-level commodity classification — Oil, Gas, Power, Agricultural, Metals, and Other. Drives product group assignment, applicable trade types, and pricing curve linkage.',                                allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
   { registryId: 3, tableName: 'ref_credit_rating',       displayName: 'Credit Ratings',       moduleGroup: 'Counterparties & Agreements', subGroup: 'Classification',    description: 'S&P, Moody\'s, and Fitch credit rating scales with numeric equivalents. Used to derive credit exposure limits and margin requirements for each counterparty.',                                                   allowCreate: true,  allowEdit: true,  allowDelete: true,  allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
   { registryId: 4, tableName: 'mst_incoterm',            displayName: 'Incoterms',            moduleGroup: 'Contract & Legal', subGroup: 'Global Codes',      description: 'ICC Incoterms® 2020 rules that define the point at which risk and cost transfer from seller to buyer. Reference: iccwbo.org/resources-for-business/incoterms-rules',                            allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 4 },
@@ -1879,15 +1879,15 @@ export const registrySeed: RegistryEntry[] = [
   { registryId: 207, tableName: 'ref_demurrage_dispatch_rate',displayName: 'Demurrage & Dispatch Rates',moduleGroup: 'Freight & Shipping', subGroup: 'Charter', description: 'Standard demurrage/dispatch rates by vessel class and commodity — includes the claim time-bar (days to submit with supporting docs) and despatch basis (all time saved vs. working time only).', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 4 },
   { registryId: 208, tableName: 'mst_laytime_exception_type', displayName: 'Laytime Exception Types',   moduleGroup: 'Freight & Shipping', subGroup: 'Charter', description: 'Standard reasons time is excepted from (or counted against) laytime — weather, strikes, breakdowns, port congestion — used in laytime calculations and demurrage disputes across any vessel-carried commodity.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 5 },
   // V108 — Voyage & Charter Ops backbone lookups
-  { registryId: 250, tableName: 'bunker_fuel_grade',    displayName: 'Bunker Fuel Grades',    moduleGroup: 'Voyage & Charter Ops', description: 'VLSFO/HSFO/LSMGO/MGO plus alternative fuels (methanol, LNG boil-off, biofuel blend) — parent table for bunker_stem and the ROB ledger.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
-  { registryId: 251, tableName: 'sof_event_type',       displayName: 'SOF Event Types',       moduleGroup: 'Voyage & Charter Ops', description: 'Standard Statement of Facts event codes (NOR tendered, all fast, hoses connected, commenced/completed loading-discharging) — parent table for voyage_sof_event.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
-  { registryId: 252, tableName: 'off_hire_reason_type', displayName: 'Off-Hire Reason Types', moduleGroup: 'Voyage & Charter Ops', description: 'Standard time charter off-hire reasons — breakdown, dry-docking, deviation, awaiting orders — parent table for charter_off_hire_event.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
+  { registryId: 250, tableName: 'ref_bunker_fuel_grade',    displayName: 'Bunker Fuel Grades',    moduleGroup: 'Voyage & Charter Ops', description: 'VLSFO/HSFO/LSMGO/MGO plus alternative fuels (methanol, LNG boil-off, biofuel blend) — parent table for bunker_stem and the ROB ledger.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
+  { registryId: 251, tableName: 'ref_sof_event_type',       displayName: 'SOF Event Types',       moduleGroup: 'Voyage & Charter Ops', description: 'Standard Statement of Facts event codes (NOR tendered, all fast, hoses connected, commenced/completed loading-discharging) — parent table for voyage_sof_event.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
+  { registryId: 252, tableName: 'ref_off_hire_reason_type', displayName: 'Off-Hire Reason Types', moduleGroup: 'Voyage & Charter Ops', description: 'Standard time charter off-hire reasons — breakdown, dry-docking, deviation, awaiting orders — parent table for charter_off_hire_event.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
   // V110 — Maritime Execution Platform phase 2
-  { registryId: 260, tableName: 'charter_party_template',         displayName: 'Charter Party Templates',         moduleGroup: 'Voyage & Charter Ops', description: 'Reusable clause-bundle defaults for a new fixture.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 4 },
-  { registryId: 261, tableName: 'port_activity_template',         displayName: 'Port Activity Templates',         moduleGroup: 'Voyage & Charter Ops', description: 'Standard ordered sequences of expected SOF events per port.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 5 },
-  { registryId: 262, tableName: 'emission_factor',                displayName: 'Emission Factors',                moduleGroup: 'Voyage & Charter Ops', description: 'Per-fuel-grade CO2/SOx/NOx/CH4/N2O emission factors.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 6 },
-  { registryId: 263, tableName: 'vessel_operational_status_type', displayName: 'Vessel Operational Status Types', moduleGroup: 'Voyage & Charter Ops', description: 'Real-time operational state vocabulary.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 7 },
-  { registryId: 264, tableName: 'delay_reason_type',              displayName: 'Delay Reason Types',              moduleGroup: 'Voyage & Charter Ops', description: 'Voyage-level underway/transit delay attribution.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 8 },
+  { registryId: 260, tableName: 'ref_charter_party_template',         displayName: 'Charter Party Templates',         moduleGroup: 'Voyage & Charter Ops', description: 'Reusable clause-bundle defaults for a new fixture.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 4 },
+  { registryId: 261, tableName: 'ref_port_activity_template',         displayName: 'Port Activity Templates',         moduleGroup: 'Voyage & Charter Ops', description: 'Standard ordered sequences of expected SOF events per port.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 5 },
+  { registryId: 262, tableName: 'ref_emission_factor',                displayName: 'Emission Factors',                moduleGroup: 'Voyage & Charter Ops', description: 'Per-fuel-grade CO2/SOx/NOx/CH4/N2O emission factors.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 6 },
+  { registryId: 263, tableName: 'ref_vessel_operational_status_type', displayName: 'Vessel Operational Status Types', moduleGroup: 'Voyage & Charter Ops', description: 'Real-time operational state vocabulary.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 7 },
+  { registryId: 264, tableName: 'ref_delay_reason_type',              displayName: 'Delay Reason Types',              moduleGroup: 'Voyage & Charter Ops', description: 'Voyage-level underway/transit delay attribution.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 8 },
   { registryId: 265, tableName: 'ref_fleet_group',                    displayName: 'Fleet Groups',                    moduleGroup: 'Logistics & Delivery', description: 'Top-level portfolio grouping above individual fleets.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 20 },
   { registryId: 266, tableName: 'ref_fleet',                          displayName: 'Fleets',                          moduleGroup: 'Logistics & Delivery', description: 'Vessel groupings under an owner/operator and fleet group.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 21 },
   // V56 — dedicated FX tenor/period master, linked from fx_rate (not a lookup_value category — needs to scale to 1000+ daily-forward rows)
@@ -1943,9 +1943,9 @@ export const registrySeed: RegistryEntry[] = [
   { registryId: 240, tableName: 'ref_intercompany_transfer_rule', displayName: 'Intercompany Transfer Rules', moduleGroup: 'Counterparties & Agreements', subGroup: 'Terms', description: 'Automates the matching back-to-back internal transfer deal and its transfer-pricing markup whenever the central desk passes position/risk to a country business unit.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
   { registryId: 241, tableName: 'ref_payment_calendar_assignment', displayName: 'Payment Calendar Assignments', moduleGroup: 'Calendar & Periods', subGroup: 'Calendars', description: 'Junction matrix mapping multi-currency cash obligations to the right holiday-calendar pair, preventing settlement date miscalculations across payment term, currency, and location.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 5 },
   // V142 — chart of accounts: profit_center -> cost_center -> gl_account, plus tax_code
-  { registryId: 267, tableName: 'profit_center', displayName: 'Profit Centers', moduleGroup: 'Finance & Settlement', subGroup: 'Chart of Accounts', description: 'Scoped to one booking company (legal entity) — the top of the profit-attribution chain that cost centers roll up into, following standard company-code-scoped profit center conventions.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
-  { registryId: 268, tableName: 'cost_center', displayName: 'Cost Centers', moduleGroup: 'Finance & Settlement', subGroup: 'Chart of Accounts', description: 'Every cost center rolls up to exactly one profit center — the profit center is assigned in the cost center master data. Linked from gl_account.cost_center_id.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
-  { registryId: 269, tableName: 'tax_code', displayName: 'Tax Codes', moduleGroup: 'Finance & Settlement', subGroup: 'Chart of Accounts', description: 'Structured tax rate + jurisdiction reference (rate %, tax type, country) — not a free-text label. Linked from gl_account.default_tax_code_id.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
+  { registryId: 267, tableName: 'ref_profit_center', displayName: 'Profit Centers', moduleGroup: 'Finance & Settlement', subGroup: 'Chart of Accounts', description: 'Scoped to one booking company (legal entity) — the top of the profit-attribution chain that cost centers roll up into, following standard company-code-scoped profit center conventions.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
+  { registryId: 268, tableName: 'ref_cost_center', displayName: 'Cost Centers', moduleGroup: 'Finance & Settlement', subGroup: 'Chart of Accounts', description: 'Every cost center rolls up to exactly one profit center — the profit center is assigned in the cost center master data. Linked from gl_account.cost_center_id.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
+  { registryId: 269, tableName: 'ref_tax_code', displayName: 'Tax Codes', moduleGroup: 'Finance & Settlement', subGroup: 'Chart of Accounts', description: 'Structured tax rate + jurisdiction reference (rate %, tax type, country) — not a free-text label. Linked from gl_account.default_tax_code_id.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
   // V116/V117/V123/V124 — real-backend registry rows these migrations already
   // insert into master_data_table_registry (mirrored exactly: allowCreate/
   // allowEdit/allowDelete/displayOrder/moduleGroup all copied from the SQL),
@@ -1958,10 +1958,10 @@ export const registrySeed: RegistryEntry[] = [
   { registryId: 275, tableName: 'ref_road_tariff',               displayName: 'Road (Truck) Tariffs',      moduleGroup: 'Supply & Distribution', description: 'Truck freight rates by route — flat per load, per km, per MT/BBL — with fuel surcharge and minimum charge. The road-transport analogue of pipeline_tariff.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 8 },
   { registryId: 276, tableName: 'ref_book_level_type',           displayName: 'Book Level Types',          moduleGroup: 'Organization & Users',  description: 'Admin-definable hierarchy levels for the Book tree (Desk, Strategy, Trading Book, or a custom level such as Location/Region). Parent table for book.book_level_type_id FK.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 14 },
   // V188 — resolves which tax_code applies to a trade + import/export customs duty
-  { registryId: 277, tableName: 'tax_rule',           displayName: 'Tax Rules',           moduleGroup: 'Finance & Settlement', subGroup: 'Tax & Duty Rules', description: 'Resolves which tax_code (VAT rate) applies to a trade — by location, jurisdiction, legal entity, counterparty, product, direction, and customs movement status — and whether a match should actually generate a bookable authority-cost line.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 11 },
-  { registryId: 278, tableName: 'customs_duty_rule', displayName: 'Customs Duty Rules', moduleGroup: 'Finance & Settlement', subGroup: 'Tax & Duty Rules', description: 'Import/export customs duty rules — origin/destination country pair, product, ad valorem % or flat rate, HS classification. Separate concept from VAT/tax_rule.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 12 },
+  { registryId: 277, tableName: 'ref_tax_rule',           displayName: 'Tax Rules',           moduleGroup: 'Finance & Settlement', subGroup: 'Tax & Duty Rules', description: 'Resolves which tax_code (VAT rate) applies to a trade — by location, jurisdiction, legal entity, counterparty, product, direction, and customs movement status — and whether a match should actually generate a bookable authority-cost line.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 11 },
+  { registryId: 278, tableName: 'ref_customs_duty_rule', displayName: 'Customs Duty Rules', moduleGroup: 'Finance & Settlement', subGroup: 'Tax & Duty Rules', description: 'Import/export customs duty rules — origin/destination country pair, product, ad valorem % or flat rate, HS classification. Separate concept from VAT/tax_rule.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 12 },
   // V189 — one product, many real HS/CN classifications, each dutied differently
-  { registryId: 279, tableName: 'product_hs_code', displayName: 'Product HS Codes', moduleGroup: 'Finance & Settlement', subGroup: 'Tax & Duty Rules', description: 'Harmonized System / Combined Nomenclature classifications for a product — one product can have multiple HS codes (e.g. copper cathode vs. wire rod), each dutied differently. Referenced from customs_duty_rule.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 13 },
+  { registryId: 279, tableName: 'ref_product_hs_code', displayName: 'Product HS Codes', moduleGroup: 'Finance & Settlement', subGroup: 'Tax & Duty Rules', description: 'Harmonized System / Combined Nomenclature classifications for a product — one product can have multiple HS codes (e.g. copper cathode vs. wire rod), each dutied differently. Referenced from customs_duty_rule.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 13 },
   // V17 parent lookup tables — generated from the simple list above
   ...PARENT_LOOKUP_TABLES.map((t, i) => ({
     registryId:       10 + i,
@@ -1986,7 +1986,7 @@ export const metadataSeed: Record<string, TableMetadata> = {
 };
 
 export const rowSeed: Record<string, ReferenceDataRow[]> = {
-  currency: [
+  ref_currency: [
     { currencyId: 1, currencyCode: 'USD', currencyName: 'US Dollar',      symbol: '$', decimalPlaces: 2, isActive: true },
     { currencyId: 2, currencyCode: 'GBP', currencyName: 'British Pound',  symbol: '£', decimalPlaces: 2, isActive: true },
     { currencyId: 3, currencyCode: 'EUR', currencyName: 'Euro',           symbol: '€', decimalPlaces: 2, isActive: true },
@@ -2218,7 +2218,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { exceptionTypeId: 10, exceptionCode: 'FORCE_MAJEURE',                exceptionName: 'Force Majeure',                        defaultCountsAgainstLaytime: false, isWeatherRelated: false, description: 'War, blockade, pandemic-related port closure, or other force majeure event outside either party\'s control.',                                        isActive: true },
     { exceptionTypeId: 11, exceptionCode: 'OTHER',                        exceptionName: 'Other',                                defaultCountsAgainstLaytime: true,  isWeatherRelated: false, description: 'Other exception reason — see notes on the specific laytime/demurrage record.',                                                                       isActive: true },
   ],
-  bunker_fuel_grade: [
+  ref_bunker_fuel_grade: [
     { fuelGradeId: 1, gradeCode: 'VLSFO',          gradeName: 'Very Low Sulphur Fuel Oil (0.5%)', isAlternativeFuel: false, description: null, sortOrder: 1, isActive: true },
     { fuelGradeId: 2, gradeCode: 'HSFO',           gradeName: 'High Sulphur Fuel Oil',              isAlternativeFuel: false, description: null, sortOrder: 2, isActive: true },
     { fuelGradeId: 3, gradeCode: 'ULSFO',          gradeName: 'Ultra Low Sulphur Fuel Oil',          isAlternativeFuel: false, description: null, sortOrder: 3, isActive: true },
@@ -2228,7 +2228,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { fuelGradeId: 7, gradeCode: 'LNG_BOG',        gradeName: 'LNG Boil-Off Gas (as fuel)',              isAlternativeFuel: true,  description: null, sortOrder: 7, isActive: true },
     { fuelGradeId: 8, gradeCode: 'BIOFUEL_BLEND',  gradeName: 'Biofuel Blend (e.g. B24/B30)',             isAlternativeFuel: true,  description: null, sortOrder: 8, isActive: true },
   ],
-  sof_event_type: [
+  ref_sof_event_type: [
     { sofEventTypeId: 1,  eventCode: 'NOR_TENDERED',        eventName: 'Notice of Readiness Tendered', eventSequenceOrder: 1,  description: null, isActive: true },
     { sofEventTypeId: 2,  eventCode: 'ANCHORED',             eventName: 'Vessel Anchored',               eventSequenceOrder: 2,  description: null, isActive: true },
     { sofEventTypeId: 3,  eventCode: 'PILOT_ON_BOARD',        eventName: 'Pilot On Board',                 eventSequenceOrder: 3,  description: null, isActive: true },
@@ -2241,7 +2241,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { sofEventTypeId: 10, eventCode: 'HOSES_DISCONNECTED',           eventName: 'Hoses Disconnected',                   eventSequenceOrder: 10, description: null, isActive: true },
     { sofEventTypeId: 11, eventCode: 'VESSEL_DEPARTED',               eventName: 'Vessel Departed',                       eventSequenceOrder: 11, description: null, isActive: true },
   ],
-  off_hire_reason_type: [
+  ref_off_hire_reason_type: [
     { offHireReasonTypeId: 1, reasonCode: 'BREAKDOWN',        reasonName: 'Machinery / Equipment Breakdown', description: null, isActive: true },
     { offHireReasonTypeId: 2, reasonCode: 'DRY_DOCKING',       reasonName: 'Dry-Docking / Special Survey',     description: null, isActive: true },
     { offHireReasonTypeId: 3, reasonCode: 'DEVIATION',          reasonName: 'Deviation from Voyage Orders',      description: null, isActive: true },
@@ -2260,21 +2260,21 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { fleetId: 2, fleetCode: 'PRODUCT-FLEET', fleetName: 'Product Tanker Fleet', fleetGroupId: 1, ownerOperatorId: 1, description: null, isActive: true },
     { fleetId: 3, fleetCode: 'BULK-FLEET',    fleetName: 'Dry Bulk Fleet',       fleetGroupId: 2, ownerOperatorId: 2, description: null, isActive: true },
   ],
-  charter_party_template: [
+  ref_charter_party_template: [
     { templateId: 1, templateCode: 'STD-VOYAGE-TANKER', templateName: 'Standard Tanker Voyage Charter', charterPartyTypeId: 1, defaultLaytimeTermId: 2, defaultDemurrageRatePerDay: 45000, defaultDispatchRatePerDay: 22500, defaultBunkerClauseBasis: null, defaultBunkerClauseTolerancePct: null, defaultHirePaymentFrequency: null, description: 'Typical AG-Europe / AG-Asia crude voyage terms.', isActive: true },
     { templateId: 2, templateCode: 'STD-TC-TANKER',     templateName: 'Standard Tanker Time Charter',    charterPartyTypeId: 2, defaultLaytimeTermId: null, defaultDemurrageRatePerDay: null, defaultDispatchRatePerDay: null, defaultBunkerClauseBasis: 'SAME_QUANTITY_PCT', defaultBunkerClauseTolerancePct: 5, defaultHirePaymentFrequency: 'FIFTEEN_DAYS', description: 'Typical 12-24 month period tanker time charter terms.', isActive: true },
   ],
-  port_activity_template: [
+  ref_port_activity_template: [
     { templateId: 1, templateCode: 'GENERIC-TANKER-PORT', templateName: 'Generic Tanker Port Call', portLocationId: null, commodityTypeId: 1, description: 'Standard load/discharge sequence for a tanker port call.', isActive: true },
     { templateId: 2, templateCode: 'LNG-TERMINAL',        templateName: 'LNG Terminal Port Call',   portLocationId: null, commodityTypeId: 4, description: 'LNG-specific sequence including BOG management.', isActive: true },
   ],
-  emission_factor: [
+  ref_emission_factor: [
     { factorId: 1, fuelGradeId: 1, emissionType: 'CO2', factorValue: 3.151, uomBasis: 'T_PER_T_FUEL', source: 'IMO 2020 Guidelines', effectiveFrom: '2020-01-01', notes: 'VLSFO', isActive: true },
     { factorId: 2, fuelGradeId: 2, emissionType: 'CO2', factorValue: 3.114, uomBasis: 'T_PER_T_FUEL', source: 'IMO 2020 Guidelines', effectiveFrom: '2020-01-01', notes: 'HSFO', isActive: true },
     { factorId: 3, fuelGradeId: 4, emissionType: 'CO2', factorValue: 3.206, uomBasis: 'T_PER_T_FUEL', source: 'IMO 2020 Guidelines', effectiveFrom: '2020-01-01', notes: 'LSMGO', isActive: true },
     { factorId: 4, fuelGradeId: 7, emissionType: 'CO2', factorValue: 2.750, uomBasis: 'T_PER_T_FUEL', source: 'IMO 2020 Guidelines', effectiveFrom: '2020-01-01', notes: 'LNG boil-off as fuel', isActive: true },
   ],
-  vessel_operational_status_type: [
+  ref_vessel_operational_status_type: [
     { statusTypeId: 1, statusCode: 'AT_SEA',            statusName: 'At Sea',             description: null, isActive: true },
     { statusTypeId: 2, statusCode: 'IN_PORT',            statusName: 'In Port',            description: null, isActive: true },
     { statusTypeId: 3, statusCode: 'AT_ANCHOR',           statusName: 'At Anchor',           description: null, isActive: true },
@@ -2285,7 +2285,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { statusTypeId: 8, statusCode: 'IDLE',                          statusName: 'Idle',                          description: null, isActive: true },
     { statusTypeId: 9, statusCode: 'DRY_DOCK',                        statusName: 'Dry Dock',                        description: null, isActive: true },
   ],
-  delay_reason_type: [
+  ref_delay_reason_type: [
     { delayReasonTypeId: 1, reasonCode: 'WEATHER_ROUTING',        reasonName: 'Weather Routing',                description: null, isActive: true },
     { delayReasonTypeId: 2, reasonCode: 'PIRACY_REROUTE',          reasonName: 'Piracy Reroute',                  description: null, isActive: true },
     { delayReasonTypeId: 3, reasonCode: 'CANAL_CONGESTION',         reasonName: 'Canal Congestion',                description: null, isActive: true },
@@ -2505,11 +2505,11 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { repositoryId: 3, repositoryCode: 'ICE-TVEL', repositoryName: 'ICE Trade Vault Europe', regulation: 'UK_EMIR', jurisdiction: 'GB', operatorCpId: null, submissionUrl: null, submissionFormat: 'REST', isActive: true, notes: null },
   ],
   // Lightweight vessel mirror — real vesselId 1 = NORDIC LUNA (etrmHandlers.ts).
-  vessel: [
+  ref_vessel: [
     { vesselId: 1, imoNumber: 'IMO 9741060', vesselName: 'NORDIC LUNA' },
   ],
   // Lightweight unit_of_measure mirror — ids match the real V1 seed order.
-  unit_of_measure: [
+  ref_unit_of_measure: [
     { uomId: 1,  uomCode: 'BBL',     uomName: 'Barrel' },
     { uomId: 2,  uomCode: 'KBD',     uomName: 'Thousand Barrels/Day' },
     { uomId: 3,  uomCode: 'MT',      uomName: 'Metric Tonne' },
@@ -2532,7 +2532,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { legalEntityId: 3, entityCode: 'SETRM-SG',  name: 'NonameETRM Pte Ltd Singapore' },
   ],
   // Lightweight payment_term mirror — real ids from etrmHandlers.ts (paymentTermId 1 = NET_30).
-  payment_term: [
+  ref_payment_term: [
     { paymentTermId: 1,  termCode: 'NET_30',        termName: 'Net 30 Calendar Days' },
     { paymentTermId: 10, termCode: 'NOR_PLUS_7_BIZ', termName: 'NOR Tendered +7 Business Days' },
   ],
@@ -2585,18 +2585,18 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { assignmentId: 2, paymentTermId: 1,  currencyId: 1, locationId: 1,    primaryHolidayCalendarId: 2, secondaryHolidayCalendarId: 1,    isActive: true, notes: 'USD payment against a UK delivery location — cross-reference US Federal with UK Bank holidays.' },
   ],
   // V142 — chart of accounts: profit_center -> cost_center -> gl_account, plus tax_code
-  profit_center: [
+  ref_profit_center: [
     { profitCenterId: 1, profitCenterCode: 'PC-UK-TRADE', profitCenterName: 'UK Trading',   legalEntityId: 1, isActive: true },
     { profitCenterId: 2, profitCenterCode: 'PC-US-TRADE', profitCenterName: 'US Trading',   legalEntityId: 2, isActive: true },
     { profitCenterId: 3, profitCenterCode: 'PC-CORP',     profitCenterName: 'Corporate',    legalEntityId: 1, isActive: true },
   ],
-  cost_center: [
+  ref_cost_center: [
     { costCenterId: 1, costCenterCode: 'CC-TRADING',    costCenterName: 'Trading Desk',      profitCenterId: 1, isActive: true },
     { costCenterId: 2, costCenterCode: 'CC-US-TRADING', costCenterName: 'US Trading Desk',    profitCenterId: 2, isActive: true },
     { costCenterId: 3, costCenterCode: 'CC-RISK',       costCenterName: 'Risk & Compliance',  profitCenterId: 3, isActive: true },
     { costCenterId: 4, costCenterCode: 'CC-OPS',        costCenterName: 'Back-Office Operations', profitCenterId: 3, isActive: true },
   ],
-  tax_code: [
+  ref_tax_code: [
     { taxCodeId: 1, taxCode: 'VAT-GB-STD', description: 'UK standard-rate VAT',           ratePercent: 20.0, taxTypeId: 1, countryId: 1, isActive: true },
     { taxCodeId: 2, taxCode: 'VAT-NL-STD', description: 'Netherlands standard-rate VAT',  ratePercent: 21.0, taxTypeId: 1, countryId: 3, isActive: true },
     { taxCodeId: 3, taxCode: 'ZERO-RATED', description: 'Zero-rated / exempt',            ratePercent: 0.0,  taxTypeId: 1, countryId: null, isActive: true },
@@ -2604,7 +2604,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
   // V188 — real DB has 0 rows in either table (built as a schema/design
   // exercise, no live rules entered yet); these mock rows exist purely to
   // demonstrate the shape in mock mode.
-  tax_rule: [
+  ref_tax_rule: [
     { taxRuleId: 1, ruleName: 'UK Standard VAT — GB Domestic', loadLocationId: null, dischLocationId: null, countryId: 1, legalEntityId: null, counterpartyId: null, productId: null, direction: 'BOTH', customsMovementStatusId: 5, incotermId: null, taxCodeId: 1, costApplicableInd: true, issuingAuthority: 'HMRC', priority: 0, validFrom: null, validTo: null, isActive: true, notes: null },
     { taxRuleId: 2, ruleName: 'NL Standard VAT — NL Domestic',  loadLocationId: null, dischLocationId: null, countryId: 3, legalEntityId: null, counterpartyId: null, productId: null, direction: 'BOTH', customsMovementStatusId: 5, incotermId: null, taxCodeId: 2, costApplicableInd: true, issuingAuthority: 'Belastingdienst', priority: 0, validFrom: null, validTo: null, isActive: true, notes: null },
     { taxRuleId: 3, ruleName: 'Intra-EU Reverse Charge — Zero-Rated', loadLocationId: null, dischLocationId: null, countryId: null, legalEntityId: null, counterpartyId: null, productId: null, direction: 'BOTH', customsMovementStatusId: 4, incotermId: null, taxCodeId: 3, costApplicableInd: false, issuingAuthority: null, priority: 10, validFrom: null, validTo: null, isActive: true, notes: 'B2B cross-border EU — VAT liability shifts to the customer, no authority cost booked here.' },
@@ -2620,12 +2620,12 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { sourceSystemId: 6, sourceCode: 'EXCHANGE_FEED_NYMEX',  sourceName: 'NYMEX Exchange Feed',      category: 'EXCHANGE_FEED', description: 'Automated feed ingestion from NYMEX/CME.', sortOrder: 6, isActive: true },
     { sourceSystemId: 7, sourceCode: 'SYSTEM_MIGRATION',     sourceName: 'System / Migration',       category: 'SYSTEM',        description: 'Row created by a Flyway migration seed, backfill, or other system-internal process, not a user or external system.', sortOrder: 7, isActive: true },
   ],
-  product_hs_code: [
+  ref_product_hs_code: [
     { productHsCodeId: 1, productId: 7,  hsCode: '7403.11', hsDescription: 'Refined copper cathodes', isDefault: true,  isActive: true },
     { productHsCodeId: 2, productId: 7,  hsCode: '7408.11', hsDescription: 'Copper wire rod',          isDefault: false, isActive: true },
     { productHsCodeId: 3, productId: 1,  hsCode: '2709.00', hsDescription: 'Crude petroleum oil',      isDefault: true,  isActive: true },
   ],
-  customs_duty_rule: [
+  ref_customs_duty_rule: [
     { customsDutyRuleId: 1, ruleName: 'US Import Duty — Crude Oil', originCountryId: 1, destinationCountryId: 2, loadLocationId: null, dischLocationId: null, productId: 1, productHsCodeId: 3, legalEntityId: null, counterpartyId: null, direction: 'BUY', customsMovementStatusId: 1, incotermId: 9, dutyRatePercent: 3.5, dutyFlatAmount: null, dutyFlatCurrencyId: null, costApplicableInd: true, issuingAuthority: 'US CBP', priority: 0, validFrom: null, validTo: null, isActive: true, notes: null },
     { customsDutyRuleId: 2, ruleName: 'US Import Duty — Copper Cathode', originCountryId: 1, destinationCountryId: 2, loadLocationId: null, dischLocationId: null, productId: 7, productHsCodeId: 1, legalEntityId: null, counterpartyId: null, direction: 'BUY', customsMovementStatusId: 1, incotermId: 9, dutyRatePercent: 1.0, dutyFlatAmount: null, dutyFlatCurrencyId: null, costApplicableInd: true, issuingAuthority: 'US CBP', priority: 0, validFrom: null, validTo: null, isActive: true, notes: 'Same product as the wire-rod rule below, different HS classification and duty rate — this is exactly the case product_hs_code exists to model without duplicating every other rule dimension.' },
     { customsDutyRuleId: 3, ruleName: 'US Import Duty — Copper Wire Rod', originCountryId: 1, destinationCountryId: 2, loadLocationId: null, dischLocationId: null, productId: 7, productHsCodeId: 2, legalEntityId: null, counterpartyId: null, direction: 'BUY', customsMovementStatusId: 1, incotermId: 9, dutyRatePercent: 2.5, dutyFlatAmount: null, dutyFlatCurrencyId: null, costApplicableInd: true, issuingAuthority: 'US CBP', priority: 0, validFrom: null, validTo: null, isActive: true, notes: null },

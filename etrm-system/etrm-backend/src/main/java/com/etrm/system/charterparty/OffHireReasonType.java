@@ -15,7 +15,7 @@ import jakarta.persistence.Table;
  * for display.
  */
 @Entity
-@Table(name = "off_hire_reason_type")
+@Table(name = "ref_off_hire_reason_type")
 public class OffHireReasonType {
 
     @Id

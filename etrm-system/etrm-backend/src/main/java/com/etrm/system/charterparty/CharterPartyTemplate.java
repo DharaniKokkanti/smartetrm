@@ -17,7 +17,7 @@ import jakarta.persistence.Version;
  * its code/name for display.
  */
 @Entity
-@Table(name = "charter_party_template")
+@Table(name = "ref_charter_party_template")
 public class CharterPartyTemplate {
 
     @Id

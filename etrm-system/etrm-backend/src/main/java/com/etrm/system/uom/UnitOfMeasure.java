@@ -37,7 +37,7 @@ import java.time.LocalDateTime;
  * UnitOfMeasureService), created_by/updated_at/updated_by added fresh.
  */
 @Entity
-@Table(name = "unit_of_measure")
+@Table(name = "ref_unit_of_measure")
 @EntityListeners(AuditingEntityListener.class)
 public class UnitOfMeasure {
 

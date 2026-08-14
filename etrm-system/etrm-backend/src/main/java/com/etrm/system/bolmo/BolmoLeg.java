@@ -25,7 +25,7 @@ import java.time.LocalDateTime;
  * orderId is a plain Integer and orderReference always serializes as null.
  */
 @Entity
-@Table(name = "bolmo_leg")
+@Table(name = "tran_bolmo_leg")
 public class BolmoLeg {
 
     @Id

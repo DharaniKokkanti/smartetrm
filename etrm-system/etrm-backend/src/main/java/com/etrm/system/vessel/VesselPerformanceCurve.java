@@ -18,7 +18,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "vessel_performance_curve")
+@Table(name = "ref_vessel_performance_curve")
 public class VesselPerformanceCurve extends AuditableEntity {
 
     @Id

@@ -25,7 +25,7 @@ import java.time.LocalDateTime;
  * never updated.
  */
 @Entity
-@Table(name = "currency")
+@Table(name = "ref_currency")
 public class Currency {
 
     @Id

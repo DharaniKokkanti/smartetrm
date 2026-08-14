@@ -18,7 +18,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "voyage")
+@Table(name = "ref_voyage")
 public class Voyage extends AuditableEntity {
 
     @Id

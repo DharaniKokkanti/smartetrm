@@ -22,7 +22,7 @@ import java.math.BigDecimal;
  * commodity-specific" requirement rather than two near-identical tables.
  */
 @Entity
-@Table(name = "vessel_cargo_tank")
+@Table(name = "ref_vessel_cargo_tank")
 public class VesselCargoTank extends AuditableEntity {
 
     @Id

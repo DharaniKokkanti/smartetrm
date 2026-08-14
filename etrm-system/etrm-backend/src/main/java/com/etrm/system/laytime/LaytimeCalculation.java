@@ -25,7 +25,7 @@ import java.time.LocalDateTime;
  * new row and flips the prior current row's is_current_version off.
  */
 @Entity
-@Table(name = "laytime_calculation")
+@Table(name = "tran_laytime_calculation")
 public class LaytimeCalculation {
 
     @Id

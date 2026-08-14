@@ -39,7 +39,7 @@ import java.time.LocalDateTime;
  * annotations; PaymentTermService no longer sets createdAt manually.
  */
 @Entity
-@Table(name = "payment_term")
+@Table(name = "ref_payment_term")
 @EntityListeners(AuditingEntityListener.class)
 public class PaymentTerm {
 

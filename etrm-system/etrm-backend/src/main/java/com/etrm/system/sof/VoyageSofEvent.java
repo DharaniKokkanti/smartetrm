@@ -16,7 +16,7 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "voyage_sof_event")
+@Table(name = "tran_voyage_sof_event")
 public class VoyageSofEvent extends AuditableEntity {
 
     @Id

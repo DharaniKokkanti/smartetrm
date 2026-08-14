@@ -17,7 +17,7 @@ import java.math.BigDecimal;
  * gl_account.default_tax_code_id to its code for display.
  */
 @Entity
-@Table(name = "tax_code")
+@Table(name = "ref_tax_code")
 public class TaxCode {
 
     @Id

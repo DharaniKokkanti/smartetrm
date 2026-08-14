@@ -38,7 +38,7 @@ import java.time.LocalDateTime;
  * entity had fallen outside V137's registry-only governance-column audit).
  */
 @Entity
-@Table(name = "uom_conversion")
+@Table(name = "ref_uom_conversion")
 @EntityListeners(AuditingEntityListener.class)
 public class UomConversion {
 

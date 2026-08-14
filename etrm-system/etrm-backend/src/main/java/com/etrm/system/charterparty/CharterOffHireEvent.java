@@ -17,7 +17,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "charter_off_hire_event")
+@Table(name = "tran_charter_off_hire_event")
 public class CharterOffHireEvent extends AuditableEntity {
 
     @Id

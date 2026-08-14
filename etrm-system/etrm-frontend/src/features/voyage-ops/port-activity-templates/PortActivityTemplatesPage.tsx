@@ -21,7 +21,7 @@ interface TemplateRow {
 }
 
 export function PortActivityTemplatesPage() {
-  const { data: rows = [], isLoading } = useTableRows<TemplateRow>('port_activity_template');
+  const { data: rows = [], isLoading } = useTableRows<TemplateRow>('ref_port_activity_template');
   const navigate = useNavigate();
   const [stepsFor, setStepsFor] = useState<TemplateRow | null>(null);
 
@@ -59,7 +59,7 @@ function StepsDrawer({ template, onClose }: { template: TemplateRow; onClose: ()
   const { data = [], isLoading } = usePortActivityTemplateSteps(template.templateId);
   const save = useSavePortActivityTemplateStep();
   const del = useDeletePortActivityTemplateStep();
-  const { data: eventTypes = [] } = useTableRows<{ sofEventTypeId: number; eventCode: string }>('sof_event_type');
+  const { data: eventTypes = [] } = useTableRows<{ sofEventTypeId: number; eventCode: string }>('ref_sof_event_type');
   const [open, setOpen] = useState(false);
   const [form] = Form.useForm<PortActivityTemplateStepInput>();
 

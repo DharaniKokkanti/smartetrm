@@ -25,7 +25,7 @@ import java.time.LocalDate;
  * Long — not unified with those, just mapped correctly for this table.
  */
 @Entity
-@Table(name = "tax_registration")
+@Table(name = "ref_tax_registration")
 public class TaxRegistration extends AuditableEntity {
 
     @Id

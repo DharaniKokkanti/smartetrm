@@ -33,9 +33,9 @@ export function GlAccountsPage() {
   const { data: accountTypeRows = [] } = useLookupValues('GL_ACCOUNT_TYPE');
   const accountTypeOpts = accountTypeRows.map((r) => ({ value: r.typeCode, label: r.typeName }));
 
-  const { data: costCenterRows = [] } = useTableRows<{ costCenterId: number; costCenterCode: string; costCenterName: string }>('cost_center');
+  const { data: costCenterRows = [] } = useTableRows<{ costCenterId: number; costCenterCode: string; costCenterName: string }>('ref_cost_center');
   const costCenterOpts = costCenterRows.map((c) => ({ value: c.costCenterId, label: `${c.costCenterCode} — ${c.costCenterName}` }));
-  const { data: taxCodeRows = [] } = useTableRows<{ taxCodeId: number; taxCode: string; description: string }>('tax_code');
+  const { data: taxCodeRows = [] } = useTableRows<{ taxCodeId: number; taxCode: string; description: string }>('ref_tax_code');
   const taxCodeOpts = taxCodeRows.map((t) => ({ value: t.taxCodeId, label: `${t.taxCode} — ${t.description}` }));
 
   const { data: legalEntities = [] } = useLegalEntities();

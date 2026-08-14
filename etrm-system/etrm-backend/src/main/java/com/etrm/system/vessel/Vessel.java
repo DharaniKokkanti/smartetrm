@@ -32,7 +32,7 @@ import java.time.LocalDate;
  * as its own distinct field.
  */
 @Entity
-@Table(name = "vessel")
+@Table(name = "ref_vessel")
 public class Vessel extends AuditableEntity {
 
     @Id

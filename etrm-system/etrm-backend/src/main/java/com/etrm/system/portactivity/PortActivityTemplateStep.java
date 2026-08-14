@@ -16,7 +16,7 @@ import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "port_activity_template_step")
+@Table(name = "ref_port_activity_template_step")
 public class PortActivityTemplateStep extends AuditableEntity {
 
     @Id

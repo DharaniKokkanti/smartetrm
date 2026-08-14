@@ -25,7 +25,7 @@ import java.time.LocalDate;
  * country-level (e.g. FERC vs. state PUC broker licenses in the US).
  */
 @Entity
-@Table(name = "license_registration")
+@Table(name = "ref_license_registration")
 public class LicenseRegistration extends AuditableEntity {
 
     @Id

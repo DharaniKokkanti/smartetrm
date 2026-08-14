@@ -119,7 +119,7 @@ function CargoParcelsTab({ voyageId }: { voyageId: number }) {
 function BunkerStemsTab({ voyageId, vesselId }: { voyageId: number; vesselId: number }) {
   const { data = [], isLoading } = useBunkerStems({ voyageId });
   const save = useSaveBunkerStem();
-  const { data: fuelGrades = [] } = useTableRows<{ fuelGradeId: number; gradeCode: string }>('bunker_fuel_grade');
+  const { data: fuelGrades = [] } = useTableRows<{ fuelGradeId: number; gradeCode: string }>('ref_bunker_fuel_grade');
   const { data: locations = [] } = useLocations();
   const [open, setOpen] = useState(false);
   const [form] = Form.useForm<BunkerStemInput>();
@@ -181,7 +181,7 @@ function BunkerStemsTab({ voyageId, vesselId }: { voyageId: number; vesselId: nu
 function SofEventsTab({ voyageId }: { voyageId: number }) {
   const { data = [], isLoading } = useSofEvents(voyageId);
   const save = useSaveSofEvent();
-  const { data: eventTypes = [] } = useTableRows<{ sofEventTypeId: number; eventCode: string }>('sof_event_type');
+  const { data: eventTypes = [] } = useTableRows<{ sofEventTypeId: number; eventCode: string }>('ref_sof_event_type');
   const { data: locations = [] } = useLocations();
   const [open, setOpen] = useState(false);
   const [form] = Form.useForm<VoyageSofEventInput>();

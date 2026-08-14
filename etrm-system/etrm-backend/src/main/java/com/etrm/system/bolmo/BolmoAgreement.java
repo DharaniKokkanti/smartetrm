@@ -23,7 +23,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Entity
-@Table(name = "bolmo_agreement")
+@Table(name = "tran_bolmo_agreement")
 public class BolmoAgreement {
 
     @Id

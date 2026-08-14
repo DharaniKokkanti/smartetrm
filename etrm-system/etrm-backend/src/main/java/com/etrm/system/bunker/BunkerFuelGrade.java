@@ -16,7 +16,7 @@ import jakarta.persistence.Version;
  * fuel_grade_id -> its code/name for display.
  */
 @Entity
-@Table(name = "bunker_fuel_grade")
+@Table(name = "ref_bunker_fuel_grade")
 public class BunkerFuelGrade {
 
     @Id

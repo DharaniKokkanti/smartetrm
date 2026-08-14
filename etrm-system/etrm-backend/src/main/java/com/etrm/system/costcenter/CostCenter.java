@@ -16,7 +16,7 @@ import jakarta.persistence.Table;
  * already resolves legal_entity_id/book_id via their own repositories.
  */
 @Entity
-@Table(name = "cost_center")
+@Table(name = "ref_cost_center")
 public class CostCenter {
 
     @Id

@@ -38,7 +38,7 @@ export function CharterPartiesPage() {
     defaultBunkerClauseBasis: string | null; defaultBunkerClauseTolerancePct: number | null;
     defaultHirePaymentFrequency: string | null;
   };
-  const { data: cpTemplates = [] } = useTableRows<CpTemplate>('charter_party_template');
+  const { data: cpTemplates = [] } = useTableRows<CpTemplate>('ref_charter_party_template');
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<CharterParty | null>(null);

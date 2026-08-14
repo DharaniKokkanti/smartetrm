@@ -48,7 +48,7 @@ export function CharterPartyWorkspace() {
 function OffHireEventsTab({ charterPartyId }: { charterPartyId: number }) {
   const { data = [], isLoading } = useCharterOffHireEvents(charterPartyId);
   const save = useSaveCharterOffHireEvent();
-  const { data: reasonTypes = [] } = useTableRows<{ offHireReasonTypeId: number; reasonCode: string }>('off_hire_reason_type');
+  const { data: reasonTypes = [] } = useTableRows<{ offHireReasonTypeId: number; reasonCode: string }>('ref_off_hire_reason_type');
   const [open, setOpen] = useState(false);
   const [form] = Form.useForm<CharterOffHireEventInput>();
 

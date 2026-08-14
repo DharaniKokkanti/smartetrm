@@ -18,7 +18,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "bunker_stem")
+@Table(name = "tran_bunker_stem")
 public class BunkerStem extends AuditableEntity {
 
     @Id
