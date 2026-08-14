@@ -15,7 +15,7 @@ import jakarta.persistence.Table;
  * name for display.
  */
 @Entity
-@Table(name = "reporting_group")
+@Table(name = "ref_reporting_group")
 public class ReportingGroup {
 
     @Id

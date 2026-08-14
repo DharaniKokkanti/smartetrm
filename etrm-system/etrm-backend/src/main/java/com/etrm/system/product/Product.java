@@ -32,7 +32,7 @@ import java.time.LocalDateTime;
  * already plain numeric ids on the frontend (no translation needed).
  */
 @Entity
-@Table(name = "product")
+@Table(name = "ref_product")
 public class Product {
 
     @Id

@@ -26,7 +26,7 @@ export function CommercialTermsPage() {
   const { data: counterparties = [] } = useCounterparties();
   const { data: legalEntities = [] } = useLegalEntities();
   const { data: paymentTerms = [] } = usePaymentTerms();
-  const { data: creditTermRows = [] } = useTableRows<{ creditTermId: number; termCode: string; termName: string }>('credit_term');
+  const { data: creditTermRows = [] } = useTableRows<{ creditTermId: number; termCode: string; termName: string }>('ref_credit_term');
   const { data: currencies = [] } = useCurrencies();
 
   const [open, setOpen] = useState(false);

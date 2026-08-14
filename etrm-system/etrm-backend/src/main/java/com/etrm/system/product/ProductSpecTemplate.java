@@ -17,7 +17,7 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "product_spec_template")
+@Table(name = "ref_product_spec_template")
 public class ProductSpecTemplate extends AuditableEntity {
 
     @Id

@@ -18,7 +18,7 @@ import jakarta.persistence.Version;
  * CommodityTypeMapping).
  */
 @Entity
-@Table(name = "commodity")
+@Table(name = "ref_commodity")
 public class Commodity {
 
     @Id

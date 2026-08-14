@@ -63,7 +63,7 @@ function CargoParcelsTab({ voyageId }: { voyageId: number }) {
   const { data: products = [] } = useProducts();
   const { data: uoms = [] } = useUom();
   const { data: locations = [] } = useLocations();
-  const { data: commodityTypes = [] } = useTableRows<{ commodityTypeId: number; typeCode: string }>('commodity_type');
+  const { data: commodityTypes = [] } = useTableRows<{ commodityTypeId: number; typeCode: string }>('ref_commodity_type');
   const [open, setOpen] = useState(false);
   const [form] = Form.useForm<VoyageCargoParcelInput>();
 

@@ -13,7 +13,7 @@ import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 
 @Entity
-@Table(name = "address")
+@Table(name = "ref_address")
 public class Address extends AuditableEntity {
 
     @Id

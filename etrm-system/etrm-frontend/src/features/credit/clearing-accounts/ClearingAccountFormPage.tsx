@@ -38,7 +38,7 @@ interface ContractSpecRow { contractSpecId: number; specCode: string; specName: 
 
 function MarginRatesTab({ clearingAccountId }: { clearingAccountId: number }) {
   const { data = [], isLoading } = useClearingAccountMarginRates(clearingAccountId);
-  const { data: specs = [] } = useTableRows<ContractSpecRow>('derivative_contract_specification');
+  const { data: specs = [] } = useTableRows<ContractSpecRow>('ref_derivative_contract_specification');
   const { data: currencies = [] } = useCurrencies();
   const save = useSaveClearingAccountMarginRate(clearingAccountId);
   const deactivate = useDeactivateClearingAccountMarginRate(clearingAccountId);

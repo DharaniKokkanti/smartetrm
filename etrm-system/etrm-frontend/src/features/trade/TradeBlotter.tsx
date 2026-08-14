@@ -690,7 +690,7 @@ function FxSection({ currencyOpts, direction }: { currencyOpts: SelectOpt[]; dir
  *  of the trader having to know/type the published differential by hand. */
 function GradeDeliveredSelect({ onPick }: { onPick: (grade: Record<string, unknown>) => void }) {
   const productId = Form.useWatch('productId') as number | undefined;
-  const { data: gradeRows = [] } = useTableRows('commodity_grade_standard');
+  const { data: gradeRows = [] } = useTableRows('ref_commodity_grade_standard');
   const grades = gradeRows.filter(
     (g) => g.productId === productId && g.isActive,
   );
@@ -1460,7 +1460,7 @@ export function TradeBlotter() {
   const { data: books = [] } = useBooks();
   const { data: products = [] } = useProducts();
   const { data: markets = [] } = useMarkets();
-  const { data: commodityRows = [] } = useTableRows<CommodityRow>('commodity');
+  const { data: commodityRows = [] } = useTableRows<CommodityRow>('ref_commodity');
   const { data: pricingRules = [] } = usePricingRules();
   const { data: balmoProducts = [] } = useBalmoProducts();
   const { data: locations = [] } = useLocations();
@@ -1484,7 +1484,7 @@ export function TradeBlotter() {
   const { data: countries = [] }          = useCountries();
   const { data: holidayCalendars = [] }   = useHolidayCalendars();
   const { data: crudeGradeRows = [] }     = useTableRows<{ typeCode: string; typeName: string }>('crude_grade_type');
-  const { data: metalShapeRows = [] }     = useTableRows<{ typeCode: string; typeName: string }>('metal_shape');
+  const { data: metalShapeRows = [] }     = useTableRows<{ typeCode: string; typeName: string }>('ref_metal_shape');
   const { data: gasDayTypeRows = [] }     = useTableRows<{ typeCode: string; typeName: string }>('gas_day_type');
   const { data: nominationTypeRows = [] } = useTableRows<{ typeCode: string; typeName: string }>('nomination_type');
   const { data: lngPriceBasisRows = [] }  = useTableRows<{ typeCode: string; typeName: string }>('lng_price_basis');

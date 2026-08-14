@@ -10,7 +10,7 @@ import jakarta.persistence.Table;
 
 /** Read path only — see {@link LookupValue}'s doc comment. */
 @Entity
-@Table(name = "lookup_category")
+@Table(name = "ref_lookup_category")
 public class LookupCategory {
 
     @Id

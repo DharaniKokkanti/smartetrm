@@ -9,7 +9,7 @@ import jakarta.validation.constraints.NotBlank;
  * Contact role and primary flag live here (per-assignment) not on the pool record.
  */
 @Entity
-@Table(name = "entity_contact")
+@Table(name = "ref_entity_contact")
 public class EntityContact extends AuditableEntity {
 
     @Id

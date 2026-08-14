@@ -30,7 +30,7 @@ import java.time.LocalDateTime;
  * created_at/created_by to real @CreatedDate/@CreatedBy JPA auditing fields.
  */
 @Entity
-@Table(name = "gtc_version")
+@Table(name = "ref_gtc_version")
 @EntityListeners(AuditingEntityListener.class)
 public class GtcVersion {
 

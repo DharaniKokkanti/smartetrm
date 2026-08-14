@@ -17,7 +17,7 @@ import jakarta.persistence.Table;
  * organization/desks/types.ts's COMMODITY_TYPE_LOOKUP.
  */
 @Entity
-@Table(name = "lookup_value")
+@Table(name = "ref_lookup_value")
 public class LookupValue {
 
     @Id

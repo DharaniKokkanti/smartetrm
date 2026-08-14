@@ -36,7 +36,7 @@ import java.time.LocalDateTime;
  * here 100% fail with a NOT NULL constraint violation.
  */
 @Entity
-@Table(name = "netting_agreement")
+@Table(name = "ref_netting_agreement")
 @EntityListeners(AuditingEntityListener.class)
 public class NettingAgreement {
 

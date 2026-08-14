@@ -30,7 +30,7 @@ import java.time.LocalDateTime;
  * entity had fallen outside V137's registry-only governance-column audit).
  */
 @Entity
-@Table(name = "spec_parameter")
+@Table(name = "ref_spec_parameter")
 @EntityListeners(AuditingEntityListener.class)
 public class SpecParameter {
 

@@ -19,8 +19,9 @@ function col(
 
 // V55 moved commodity_type from a hardcoded VARCHAR+CHECK to an INT FK on
 // dbo.lookup_value(lookup_id); V85 later pulled it back out into its own
-// dedicated dbo.commodity_type table (see PARENT_LOOKUP_TABLES below —
-// 'commodity_type' entry, ids seeded in the same order this comment used to
+// dedicated dbo.commodity_type table (renamed dbo.ref_commodity_type,
+// 2026-08-14) (see PARENT_LOOKUP_TABLES below —
+// 'ref_commodity_type' entry, ids seeded in the same order this comment used to
 // document: OIL=1, GAS=2, POWER=3, LNG=4, AGRICULTURAL=5, METALS=6,
 // FREIGHT=7, RINS=8, ENVIRONMENTAL=9, MULTI=10, OTHER=11). The various
 // bespoke entity mocks below (book/desk/gl_account/etc., in etrmHandlers.ts,
@@ -56,7 +57,7 @@ interface LookupDef {
 
 const PARENT_LOOKUP_TABLES: LookupDef[] = [
   {
-    name: 'deal_type', label: 'Deal Types', pk: 'dealTypeId', group: 'Products & Markets', order: 1,
+    name: 'ref_deal_type', label: 'Deal Types', pk: 'dealTypeId', group: 'Products & Markets', order: 1,
     subGroup: 'Trade Types', description: 'Classifies trades by the nature of the obligation — physical delivery, financial settlement, options, or freight charters. Used on every trade ticket to drive workflow rules and position logic.',
     rows: [
       { dealTypeId: 1, typeCode: 'PHYSICAL',  typeName: 'Physical',  description: 'Physical commodity delivery trade',            sortOrder: 1, isActive: true },
@@ -79,7 +80,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'counterparty_type', label: 'Counterparty Types', pk: 'counterpartyTypeId', group: 'Counterparties & Agreements', order: 1,
+    name: 'ref_counterparty_type', label: 'Counterparty Types', pk: 'counterpartyTypeId', group: 'Counterparties & Agreements', order: 1,
     subGroup: 'Classification', description: 'Classifies entities you trade WITH as the legal counterparty. IDB brokers (ICAP, BGC, Tradition etc.) are NOT counterparties — manage them in the Brokers table. FCM and Prime Broker ARE counterparties: they are the legal entity on the trade ticket and require credit lines.',
     rows: [
       { counterpartyTypeId: 1,  typeCode: 'PRODUCER',     typeName: 'Producer',          description: 'Physical commodity producer — oil field operator, gas producer, miner, farmer.',                                                                                                                                                                                       sortOrder: 1,  isActive: true },
@@ -95,7 +96,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'kyc_status', label: 'KYC Statuses', pk: 'kycStatusId', group: 'Counterparties & Agreements', order: 2,
+    name: 'ref_kyc_status', label: 'KYC Statuses', pk: 'kycStatusId', group: 'Counterparties & Agreements', order: 2,
     subGroup: 'Compliance', description: 'Know Your Customer (KYC) lifecycle statuses applied to each counterparty. A counterparty must reach Approved status before trades can be booked against it.',
     rows: [
       { kycStatusId: 1, typeCode: 'PENDING',   typeName: 'Pending',   sortOrder: 1, isActive: true },
@@ -123,7 +124,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'address_type', label: 'Address Types', pk: 'addressTypeId', group: 'Counterparties & Agreements', order: 6,
+    name: 'ref_address_type', label: 'Address Types', pk: 'addressTypeId', group: 'Counterparties & Agreements', order: 6,
     subGroup: 'Address & Banking', description: 'Categorises the purpose of a physical address assigned to a counterparty, legal entity, or broker — e.g. Registered Office, Trading Address, Billing or Shipping location.',
     rows: [
       { addressTypeId: 1, typeCode: 'REGISTERED', typeName: 'Registered', sortOrder: 1, isActive: true },
@@ -135,7 +136,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'bank_account_type', label: 'Bank Account Types', pk: 'bankAccountTypeId', group: 'Counterparties & Agreements', order: 7,
+    name: 'ref_bank_account_type', label: 'Bank Account Types', pk: 'bankAccountTypeId', group: 'Counterparties & Agreements', order: 7,
     subGroup: 'Address & Banking', description: 'Designates the purpose of a bank account on a counterparty — settlement, collateral posting, margin, fee, or escrow. Drives the account selection on payment instructions and confirms correct routing.',
     rows: [
       { bankAccountTypeId: 1, typeCode: 'SETTLEMENT', typeName: 'Settlement', sortOrder: 1, isActive: true },
@@ -147,7 +148,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'commodity_type', label: 'Commodity Types', pk: 'commodityTypeId', group: 'Products & Markets', order: 9,
+    name: 'ref_commodity_type', label: 'Commodity Types', pk: 'commodityTypeId', group: 'Products & Markets', order: 9,
     subGroup: 'Classification', description: 'Sector classification reused across desks, books, GL accounts, periods, and other tables — pulled out of the generic Lookup Values system (V85) into its own dedicated table.',
     rows: [
       { commodityTypeId: 1,  typeCode: 'OIL',           typeName: 'Oil',             description: 'Crude oil and refined petroleum products.',        sortOrder: 1,  isActive: true },
@@ -187,7 +188,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'settlement_type', label: 'Settlement Types', pk: 'settlementTypeId', group: 'Products & Markets', order: 1,
+    name: 'ref_settlement_type', label: 'Settlement Types', pk: 'settlementTypeId', group: 'Products & Markets', order: 1,
     subGroup: 'Settlement', description: 'How a trade obligation is ultimately settled — physical commodity delivery, cash settlement against an index, options exercise, swap, or netting against an opposing position.',
     rows: [
       { settlementTypeId: 1, typeCode: 'PHYSICAL',  typeName: 'Physical',  description: 'Commodity physically delivered to buyer',                sortOrder: 1, isActive: true },
@@ -218,7 +219,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'netting_agreement_type', label: 'Netting Agreement Types', pk: 'nettingAgreementTypeId', group: 'Counterparties & Agreements', order: 2,
+    name: 'ref_netting_agreement_type', label: 'Netting Agreement Types', pk: 'nettingAgreementTypeId', group: 'Counterparties & Agreements', order: 2,
     subGroup: 'Legal', description: 'Industry-standard master agreements that govern the right to net outstanding obligations against a single counterparty — ISDA, EFET, GTMA, and NAESB. Required for bilateral netting under Basel III.',
     rows: [
       { nettingAgreementTypeId: 1, typeCode: 'ISDA_2002', typeName: 'ISDA 2002 MA', description: 'International Swaps & Derivatives Assoc. 2002 Master Agreement', sortOrder: 1, isActive: true },
@@ -396,7 +397,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
   // wired as dbo.period.gas_day_type_lookup_id -> lookup_value since V57;
   // its rows now live in the lookup_value seed above, not here.
   {
-    name: 'metal_shape', label: 'Metal Physical Forms', pk: 'metalShapeId', group: 'Products & Markets', order: 6,
+    name: 'ref_metal_shape', label: 'Metal Physical Forms', pk: 'metalShapeId', group: 'Products & Markets', order: 6,
     subGroup: 'Metals Details', description: 'Physical form in which a metal is traded and delivered — the real CHECK values on dbo.metal_brand.metal_form (V68), now a dedicated FK table (V84).',
     rows: [
       { metalShapeId: 1,  typeCode: 'CATHODE',            typeName: 'Cathode',              description: 'Standard refined metal cathode — copper, zinc.', sortOrder: 1,  isActive: true },
@@ -562,7 +563,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
   // matching mock entry, unlike movement_type/inventory_ownership_type's
   // 35 siblings from the same review which are all already above).
   {
-    name: 'movement_type', label: 'Movement Types', pk: 'movementTypeId', group: 'Supply & Distribution', order: 2,
+    name: 'ref_movement_type', label: 'Movement Types', pk: 'movementTypeId', group: 'Supply & Distribution', order: 2,
     description: 'Inventory movement classification — Receipt, Delivery, Internal Transfer, Blend, Loss/Gain.',
     rows: [
       { movementTypeId: 1, typeCode: 'RECEIPT',           typeName: 'Receipt',           description: 'Product received into a tank/facility from an inbound vessel, pipeline, truck, or rail movement.', sortOrder: 10, isActive: true },
@@ -573,7 +574,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'inventory_ownership_type', label: 'Inventory Ownership Types', pk: 'ownershipTypeId', group: 'Supply & Distribution', order: 3,
+    name: 'ref_inventory_ownership_type', label: 'Inventory Ownership Types', pk: 'ownershipTypeId', group: 'Supply & Distribution', order: 3,
     description: 'Company-owned vs. consignment vs. exchange borrow/loan vs. third-party-held stock — affects physical and title reconciliation.',
     rows: [
       { ownershipTypeId: 1, typeCode: 'COMPANY_OWNED',   typeName: 'Company-Owned',    description: 'Stock owned outright by the trading entity — both physical and title reconciliation apply normally.', sortOrder: 10, isActive: true },
@@ -610,8 +611,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
   // properly `commodity_family` (V59), linked to `product`, not sitting on
   // `commodity`. `commodity` stays exactly what it's for: the unique list of
   // top-level commodity types this ETRM supports — nothing else.
-  commodity: {
-    tableName: 'commodity', displayName: 'Commodities', primaryKeyColumn: 'commodityId', isTemporal: false,
+  ref_commodity: {
+    tableName: 'ref_commodity', displayName: 'Commodities', primaryKeyColumn: 'commodityId', isTemporal: false,
     columns: [
       col('commodityId',      'ID',           'number',  false, true,  null),
       col('commodityCode',    'Code',         'string',  false, false, 20),
@@ -620,11 +621,11 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',         'Active',       'boolean', false, false, null),
     ],
   },
-  commodity_family: {
-    tableName: 'commodity_family', displayName: 'Commodity Families', primaryKeyColumn: 'commodityFamilyId', isTemporal: false,
+  ref_commodity_family: {
+    tableName: 'ref_commodity_family', displayName: 'Commodity Families', primaryKeyColumn: 'commodityFamilyId', isTemporal: false,
     columns: [
       col('commodityFamilyId', 'ID',          'number',      false, true,  null),
-      col('commodityId',       'Commodity',   'foreign_key', false, false, null, null, 'commodity'),
+      col('commodityId',       'Commodity',   'foreign_key', false, false, null, null, 'ref_commodity'),
       col('familyCode',        'Family Code', 'string',      false, false, 30),
       col('familyName',        'Family Name', 'string',      false, false, 100),
       // V61 — locked to a fixed list (was free text in V59; user reconsidered
@@ -647,11 +648,11 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
   // V82/V83/V84 are untouched by this — this only fixes lookup_value itself,
   // the generic table, so its own category axis is a managed list instead of
   // an unconstrained string).
-  lookup_value: {
-    tableName: 'lookup_value', displayName: 'Lookup Values', primaryKeyColumn: 'lookupId', isTemporal: false,
+  ref_lookup_value: {
+    tableName: 'ref_lookup_value', displayName: 'Lookup Values', primaryKeyColumn: 'lookupId', isTemporal: false,
     columns: [
       col('lookupId',     'ID',           'number',      false, true,  null),
-      col('categoryId',   'Category',     'foreign_key', false, false, null, null, 'lookup_category'),
+      col('categoryId',   'Category',     'foreign_key', false, false, null, null, 'ref_lookup_category'),
       col('code',         'Code',         'string',      false, false, 50),
       col('displayName',  'Display Name', 'string',      false, false, 200),
       col('sortOrder',    'Sort Order',   'number',      true,  false, null),
@@ -661,8 +662,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
   // V85 — dbo.lookup_category: the category master lookup_value.categoryId
   // now points at, so the category axis itself is a managed list (creatable
   // from the GUI) instead of a free-text string on every lookup_value row.
-  lookup_category: {
-    tableName: 'lookup_category', displayName: 'Lookup Categories', primaryKeyColumn: 'categoryId', isTemporal: false,
+  ref_lookup_category: {
+    tableName: 'ref_lookup_category', displayName: 'Lookup Categories', primaryKeyColumn: 'categoryId', isTemporal: false,
     columns: [
       col('categoryId',   'ID',          'number',  false, true,  null),
       col('categoryCode', 'Code',        'string',  false, false, 100),
@@ -681,18 +682,18 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
   // code was ever needed for that. Products are linked via the
   // product_reporting_group bridge table (managed from the Products page's
   // "Reporting Groups" tab, not here).
-  reporting_group: {
-    tableName: 'reporting_group', displayName: 'Reporting Groups', primaryKeyColumn: 'reportingGroupId', isTemporal: false,
+  ref_reporting_group: {
+    tableName: 'ref_reporting_group', displayName: 'Reporting Groups', primaryKeyColumn: 'reportingGroupId', isTemporal: false,
     columns: [
       col('reportingGroupId',    'ID',             'number',      false, true,  null),
-      col('classificationTypeId','Classification', 'foreign_key', false, false, null, null, 'lookup_value', 'REPORTING_CLASSIFICATION_TYPE'),
+      col('classificationTypeId','Classification', 'foreign_key', false, false, null, null, 'ref_lookup_value', 'REPORTING_CLASSIFICATION_TYPE'),
       col('groupName',           'Group Name',     'string',      false, false, 100),
       col('description',         'Description',    'string',      true,  false, 500),
       col('isActive',            'Active',         'boolean',     false, false, null),
     ],
   },
-  credit_rating: {
-    tableName: 'credit_rating', displayName: 'Credit Ratings', primaryKeyColumn: 'creditRatingId', isTemporal: false,
+  ref_credit_rating: {
+    tableName: 'ref_credit_rating', displayName: 'Credit Ratings', primaryKeyColumn: 'creditRatingId', isTemporal: false,
     columns: [
       col('creditRatingId', 'ID',            'number',  false, true,  null),
       col('agency',         'Agency',        'string',  false, false, 20),
@@ -746,7 +747,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('indexType',            'Index Type',           'enum',        false, false, null, ['BALTIC', 'WORLDSCALE', 'ASSESSED', 'OTHER']),
       col('vesselType',           'Vessel Type',          'string',      true,  false, 30),
       col('routeDescription',     'Route',                'string',      true,  false, 200),
-      col('commodityType',        'Commodity',            'foreign_key', true,  false, null, null, 'commodity_type'),
+      col('commodityType',        'Commodity',            'foreign_key', true,  false, null, null, 'ref_commodity_type'),
       col('currencyId',           'Currency',             'foreign_key', true,  false, null, null, 'currency'),
       col('uomId',                'UoM',                  'number',      true,  false, null),
       col('publicationSource',    'Publication Source',   'string',      true,  false, 100),
@@ -768,7 +769,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('norWifponAllowed',  'NOR — WIFPON',        'boolean', false, false, null),
       col('norWcconAllowed',   'NOR — WCCON',         'boolean', false, false, null),
       col('noticeOfReadinessTurnTimeMins', 'NOR Turn Time (mins)', 'number', false, false, null),
-      col('commodityType',     'Commodity',           'foreign_key', true,  false, null, null, 'commodity_type'),
+      col('commodityType',     'Commodity',           'foreign_key', true,  false, null, null, 'ref_commodity_type'),
       col('description',       'Description',         'string',  true,  false, 300),
       col('isActive',          'Active',              'boolean', false, false, null),
     ],
@@ -782,7 +783,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('demurrageRatePerDay', 'Demurrage $/Day',     'number',      false, false, null, null, null, null, true),
       col('dispatchRatePerDay',  'Dispatch $/Day',      'number',      true,  false, null, null, null, null, true),
       col('currencyId',          'Currency',            'foreign_key', false, false, null, null, 'currency'),
-      col('commodityType',       'Commodity',           'foreign_key', true,  false, null, null, 'commodity_type'),
+      col('commodityType',       'Commodity',           'foreign_key', true,  false, null, null, 'ref_commodity_type'),
       col('claimTimeBarDays',    'Claim Time-Bar (days)','number',     true,  false, null),
       col('despatchBasis',       'Despatch Basis',      'enum',        true,  false, null, ['ALL_TIME_SAVED', 'WORKING_TIME_SAVED_ONLY']),
       col('effectiveFrom',       'Effective From',      'date',        false, false, null),
@@ -884,7 +885,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('templateCode',    'Code',          'string',      false, false, 30),
       col('templateName',    'Name',          'string',      false, false, 150),
       col('portLocationId',  'Port',          'foreign_key', true,  false, null, null, 'location'),
-      col('commodityTypeId', 'Commodity Type', 'foreign_key', true,  false, null, null, 'commodity_type'),
+      col('commodityTypeId', 'Commodity Type', 'foreign_key', true,  false, null, null, 'ref_commodity_type'),
       col('description',     'Description',   'string',      true,  false, 500),
       col('isActive',        'Active',        'boolean',     false, false, null),
     ],
@@ -1056,7 +1057,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
   power_product_detail: {
     tableName: 'power_product_detail', displayName: 'Power Product Detail', primaryKeyColumn: 'productId', isTemporal: false,
     columns: [
-      col('productId',                  'Product',             'foreign_key', false, true,  null, null, 'product'),
+      col('productId',                  'Product',             'foreign_key', false, true,  null, null, 'ref_product'),
       col('defaultLoadShapeId',         'Default Load Shape',  'foreign_key', true,  false, null, null, 'load_shape_template'),
       col('voltageLevel',               'Voltage Level',       'enum',        true,  false, null, ['LOW', 'MEDIUM', 'HIGH', 'EXTRA_HIGH']),
       col('settlementPointType',        'Settlement Point',    'enum',        true,  false, null, ['NODE', 'ZONE', 'HUB', 'SYSTEM']),
@@ -1086,8 +1087,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
   // purely so FK columns pointing at product_id (power_product_detail, and
   // any future 1:1 product-extension table) can resolve a real label instead
   // of a raw id.
-  product: {
-    tableName: 'product', displayName: 'Products', primaryKeyColumn: 'productId', isTemporal: false,
+  ref_product: {
+    tableName: 'ref_product', displayName: 'Products', primaryKeyColumn: 'productId', isTemporal: false,
     columns: [
       col('productId',   'ID',   'number', false, true,  null),
       col('productCode', 'Code', 'string', false, false, 30),
@@ -1129,14 +1130,14 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
 
   // V67 — commodity_grade_standard: named grade tiers with a discount/premium
   // schedule vs. the contract par grade, linked from commodity_family.
-  commodity_grade_standard: {
-    tableName: 'commodity_grade_standard', displayName: 'Commodity Grade Standards', primaryKeyColumn: 'gradeStandardId', isTemporal: false,
+  ref_commodity_grade_standard: {
+    tableName: 'ref_commodity_grade_standard', displayName: 'Commodity Grade Standards', primaryKeyColumn: 'gradeStandardId', isTemporal: false,
     columns: [
       col('gradeStandardId',        'ID',                    'number',      false, true,  null),
       // V69: rescoped from commodity_family_id to product_id — real exchange
       // grade differential schedules are per listed contract (CBOT Corn's
       // schedule differs from CBOT Wheat's, even though both are GRAINS).
-      col('productId',              'Product',               'foreign_key', false, false, null, null, 'product'),
+      col('productId',              'Product',               'foreign_key', false, false, null, null, 'ref_product'),
       col('issuingBody',            'Issuing Body',          'string',      false, false, 50),
       col('gradeCode',              'Grade Code',            'string',      false, false, 30),
       col('gradeName',              'Grade Name',            'string',      false, false, 150),
@@ -1158,11 +1159,11 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
   // V68 — metal_brand: LME-style approved brand register (producer + metal
   // form), the real mechanism determining what physical metal is deliverable
   // against an exchange contract — replaces the previous boolean-only flag.
-  metal_brand: {
-    tableName: 'metal_brand', displayName: 'Metal Brand Register', primaryKeyColumn: 'metalBrandId', isTemporal: false,
+  ref_metal_brand: {
+    tableName: 'ref_metal_brand', displayName: 'Metal Brand Register', primaryKeyColumn: 'metalBrandId', isTemporal: false,
     columns: [
       col('metalBrandId',       'ID',                'number',      false, true,  null),
-      col('commodityFamilyId',  'Commodity Family',  'foreign_key', false, false, null, null, 'commodity_family'),
+      col('commodityFamilyId',  'Commodity Family',  'foreign_key', false, false, null, null, 'ref_commodity_family'),
       col('brandCode',          'Brand Code',        'string',      false, false, 30),
       col('brandName',          'Brand Name',        'string',      false, false, 150),
       col('producerName',       'Producer',          'string',      true,  false, 200),
@@ -1179,8 +1180,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
   // module/store, not this file's rowSeed, so this exists purely for FK
   // label resolution (insurance_provider.counterparty_id, transport_operator
   // .counterparty_id), not to duplicate the Counterparty page.
-  counterparty: {
-    tableName: 'counterparty', displayName: 'Counterparties', primaryKeyColumn: 'counterpartyId', isTemporal: false,
+  ref_counterparty: {
+    tableName: 'ref_counterparty', displayName: 'Counterparties', primaryKeyColumn: 'counterpartyId', isTemporal: false,
     columns: [
       col('counterpartyId', 'ID',   'number', false, true,  null),
       col('cpCode',         'Code', 'string', false, false, 20),
@@ -1222,8 +1223,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
   // Legal Entities has its own dedicated page/store (`legalEntitiesRef` in
   // etrmHandlers.ts); exists purely so V96's intercompany_transfer_rule
   // source/destination FKs resolve to a real label.
-  legal_entity: {
-    tableName: 'legal_entity', displayName: 'Legal Entities', primaryKeyColumn: 'legalEntityId', isTemporal: false,
+  ref_legal_entity: {
+    tableName: 'ref_legal_entity', displayName: 'Legal Entities', primaryKeyColumn: 'legalEntityId', isTemporal: false,
     columns: [
       col('legalEntityId', 'ID',   'number', false, true,  null),
       col('entityCode',    'Code', 'string', false, false, 20),
@@ -1270,8 +1271,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('providerName',    'Name',              'string',      false, false, 200),
       col('providerType',    'Provider Type',     'enum',        false, false, null, ['PI_CLUB', 'UNDERWRITER', 'INSURER', 'BROKER', 'REINSURER']),
       col('countryId',       'Country',           'foreign_key', true,  false, null, null, 'country'),
-      col('creditRatingId',  'Credit Rating',     'foreign_key', true,  false, null, null, 'credit_rating'),
-      col('counterpartyId',  'Counterparty',      'foreign_key', true,  false, null, null, 'counterparty'),
+      col('creditRatingId',  'Credit Rating',     'foreign_key', true,  false, null, null, 'ref_credit_rating'),
+      col('counterpartyId',  'Counterparty',      'foreign_key', true,  false, null, null, 'ref_counterparty'),
       col('isActive',        'Active',            'boolean',     false, false, null),
       col('notes',           'Notes',             'string',      true,  false, 300),
     ],
@@ -1314,10 +1315,10 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('operatorId',      'ID',            'number',      false, true,  null),
       col('operatorCode',    'Code',          'string',      false, false, 20),
       col('operatorName',    'Name',          'string',      false, false, 200),
-      col('operatorType',    'Operator Type', 'foreign_key', false, false, null, null, 'lookup_value', 'OPERATOR_TYPE'),
+      col('operatorType',    'Operator Type', 'foreign_key', false, false, null, null, 'ref_lookup_value', 'OPERATOR_TYPE'),
       col('motTypeId',       'MOT Type',      'foreign_key', true,  false, null, null, 'mot_type'),
       col('countryId',       'Country',       'foreign_key', true,  false, null, null, 'country'),
-      col('counterpartyId',  'Counterparty',  'foreign_key', true,  false, null, null, 'counterparty'),
+      col('counterpartyId',  'Counterparty',  'foreign_key', true,  false, null, null, 'ref_counterparty'),
       col('isActive',        'Active',        'boolean',     false, false, null),
       col('notes',           'Notes',         'string',      true,  false, 500),
     ],
@@ -1404,8 +1405,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
   // V72 — credit_term: reusable reference template (not counterparty-scoped
   // itself — no counterparty_id column), same role as payment_term. Assigned
   // to a counterparty via cp_commercial_terms.credit_term_id.
-  credit_term: {
-    tableName: 'credit_term', displayName: 'Credit Terms', primaryKeyColumn: 'creditTermId', isTemporal: false,
+  ref_credit_term: {
+    tableName: 'ref_credit_term', displayName: 'Credit Terms', primaryKeyColumn: 'creditTermId', isTemporal: false,
     columns: [
       col('creditTermId',        'ID',                    'number',  false, true,  null),
       col('termCode',            'Code',                  'string',  false, false, 30),
@@ -1451,7 +1452,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
     tableName: 'settlement_calendar', displayName: 'Settlement Calendars', primaryKeyColumn: 'scId', isTemporal: false,
     columns: [
       col('scId',        'ID',              'number',      false, true,  null),
-      col('productId',   'Product',         'foreign_key', false, false, null, null, 'product'),
+      col('productId',   'Product',         'foreign_key', false, false, null, null, 'ref_product'),
       col('calendarId',  'Holiday Calendar','foreign_key', false, false, null, null, 'holiday_calendar'),
       col('priority',    'Priority',        'number',      false, false, null),
       col('isActive',    'Active',          'boolean',     false, false, null),
@@ -1465,7 +1466,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('repositoryName',  'Name',            'string',      false, false, 200),
       col('regulation',      'Regulation',      'enum',        false, false, null, ['EMIR', 'REMIT', 'CFTC', 'DODD_FRANK', 'MIFID2', 'SFTR', 'UK_EMIR', 'ASIC', 'MAS', 'INTERNAL', 'OTHER']),
       col('jurisdiction',    'Jurisdiction',    'string',      true,  false, 2),
-      col('operatorCpId',    'Operator',        'foreign_key', true,  false, null, null, 'counterparty'),
+      col('operatorCpId',    'Operator',        'foreign_key', true,  false, null, null, 'ref_counterparty'),
       col('submissionUrl',   'Submission URL',  'string',      true,  false, 300),
       col('submissionFormat','Submission Format','enum',       true,  false, null, ['XML', 'REST', 'SFTP']),
       col('isActive',        'Active',          'boolean',     false, false, null),
@@ -1479,30 +1480,30 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
   // 96_commodity_specific_master_data.sql for the full review/rationale —
   // every FK below matches a real constraint added in that migration.
   // ═══════════════════════════════════════════════════════════════════════
-  metal_warrant: {
-    tableName: 'metal_warrant', displayName: 'Metal Warrants', primaryKeyColumn: 'warrantId', isTemporal: false,
+  ref_metal_warrant: {
+    tableName: 'ref_metal_warrant', displayName: 'Metal Warrants', primaryKeyColumn: 'warrantId', isTemporal: false,
     columns: [
       col('warrantId',            'ID',                  'number',      false, true,  null),
       col('warrantNumber',        'Warrant Number',      'string',      false, false, 50),
       col('facilityId',           'Vault Facility',      'foreign_key', false, false, null, null, 'storage_facility'),
-      col('productId',            'Product',             'foreign_key', false, false, null, null, 'product'),
-      col('metalBrandId',         'Brand',               'foreign_key', false, false, null, null, 'metal_brand'),
-      col('metalShapeId',         'Shape',               'foreign_key', false, false, null, null, 'metal_shape'),
+      col('productId',            'Product',             'foreign_key', false, false, null, null, 'ref_product'),
+      col('metalBrandId',         'Brand',               'foreign_key', false, false, null, null, 'ref_metal_brand'),
+      col('metalShapeId',         'Shape',               'foreign_key', false, false, null, null, 'ref_metal_shape'),
       col('slotVaultLocation',    'Slot/Vault Location', 'string',      true,  false, 50),
       col('netWeightMt',          'Net Weight (MT)',     'number',      false, false, null, null, null, null, true),
       col('warrantDate',          'Warrant Date',        'date',        false, false, null),
       col('rentPaidThroughDate',  'Rent Paid Through',   'date',        true,  false, null),
       col('isPledgedCollateral',  'Pledged as Collateral', 'boolean',   false, false, null),
-      col('holderCounterpartyId', 'Holder',              'foreign_key', true,  false, null, null, 'counterparty'),
+      col('holderCounterpartyId', 'Holder',              'foreign_key', true,  false, null, null, 'ref_counterparty'),
       col('isActive',             'Active',              'boolean',     false, false, null),
       col('notes',                'Notes',               'string',      true,  false, 500),
     ],
   },
-  metal_assay_component_rule: {
-    tableName: 'metal_assay_component_rule', displayName: 'Metal Assay Component Rules', primaryKeyColumn: 'ruleId', isTemporal: false,
+  ref_metal_assay_component_rule: {
+    tableName: 'ref_metal_assay_component_rule', displayName: 'Metal Assay Component Rules', primaryKeyColumn: 'ruleId', isTemporal: false,
     columns: [
       col('ruleId',                  'ID',                'number',      false, true,  null),
-      col('productId',                'Product',           'foreign_key', false, false, null, null, 'product'),
+      col('productId',                'Product',           'foreign_key', false, false, null, null, 'ref_product'),
       col('elementCode',               'Element',           'string',      false, false, 10),
       col('elementType',                'Element Type',      'enum',        false, false, null, ['PAYABLE', 'PENALTY', 'IMPURITY']),
       col('baseContentPct',              'Base Content (%)',  'number',      false, false, null, null, null, null, true),
@@ -1553,11 +1554,11 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',                      'Active',              'boolean',     false, false, null),
     ],
   },
-  agri_moisture_discount_scale: {
-    tableName: 'agri_moisture_discount_scale', displayName: 'Agri Moisture Discount Scales', primaryKeyColumn: 'scaleId', isTemporal: false,
+  ref_agri_moisture_discount_scale: {
+    tableName: 'ref_agri_moisture_discount_scale', displayName: 'Agri Moisture Discount Scales', primaryKeyColumn: 'scaleId', isTemporal: false,
     columns: [
       col('scaleId',                 'ID',                       'number',      false, true,  null),
-      col('gradeStandardId',          'Grade Standard',           'foreign_key', false, false, null, null, 'commodity_grade_standard'),
+      col('gradeStandardId',          'Grade Standard',           'foreign_key', false, false, null, null, 'ref_commodity_grade_standard'),
       col('moisturePctMin',            'Moisture % Min',           'number',      false, false, null, null, null, null, true),
       col('moisturePctMax',             'Moisture % Max',           'number',      false, false, null, null, null, null, true),
       col('priceDiscountPerUom',          'Price Discount',           'number',      false, false, null, null, null, null, true),
@@ -1568,11 +1569,11 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('notes',                                   'Notes',                    'string',      true,  false, 500),
     ],
   },
-  agri_crop_year_lifecycle: {
-    tableName: 'agri_crop_year_lifecycle', displayName: 'Agri Crop Year Lifecycle', primaryKeyColumn: 'lifecycleId', isTemporal: false,
+  ref_agri_crop_year_lifecycle: {
+    tableName: 'ref_agri_crop_year_lifecycle', displayName: 'Agri Crop Year Lifecycle', primaryKeyColumn: 'lifecycleId', isTemporal: false,
     columns: [
       col('lifecycleId',            'ID',                  'number',      false, true,  null),
-      col('commodityId',             'Commodity',           'foreign_key', false, false, null, null, 'commodity'),
+      col('commodityId',             'Commodity',           'foreign_key', false, false, null, null, 'ref_commodity'),
       col('countryId',                 'Country',             'foreign_key', false, false, null, null, 'country'),
       col('cropYearLabel',              'Crop Year',           'string',      false, false, 20),
       col('harvestStartDate',             'Harvest Start',       'date',        false, false, null),
@@ -1582,12 +1583,12 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('notes',                                'Notes',               'string',      true,  false, 500),
     ],
   },
-  intercompany_transfer_rule: {
-    tableName: 'intercompany_transfer_rule', displayName: 'Intercompany Transfer Rules', primaryKeyColumn: 'ruleId', isTemporal: false,
+  ref_intercompany_transfer_rule: {
+    tableName: 'ref_intercompany_transfer_rule', displayName: 'Intercompany Transfer Rules', primaryKeyColumn: 'ruleId', isTemporal: false,
     columns: [
       col('ruleId',                       'ID',                       'number',      false, true,  null),
-      col('sourceLegalEntityId',           'Source Legal Entity',      'foreign_key', false, false, null, null, 'legal_entity'),
-      col('destinationLegalEntityId',        'Destination Legal Entity', 'foreign_key', false, false, null, null, 'legal_entity'),
+      col('sourceLegalEntityId',           'Source Legal Entity',      'foreign_key', false, false, null, null, 'ref_legal_entity'),
+      col('destinationLegalEntityId',        'Destination Legal Entity', 'foreign_key', false, false, null, null, 'ref_legal_entity'),
       col('transferPricingMarkupType',         'Markup Type',             'enum',        false, false, null, ['FLAT', 'PERCENT', 'INDEX_OFFSET']),
       col('markupValue',                          'Markup Value',            'number',      false, false, null, null, null, null, true),
       col('markupCurrencyId',                       'Markup Currency',         'foreign_key', true,  false, null, null, 'currency'),
@@ -1621,7 +1622,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('profitCenterId',   'ID',            'number',      false, true,  null),
       col('profitCenterCode', 'Code',          'string',      false, false, 30),
       col('profitCenterName', 'Name',          'string',      false, false, 200),
-      col('legalEntityId',    'Booking Company','foreign_key', false, false, null, null, 'legal_entity'),
+      col('legalEntityId',    'Booking Company','foreign_key', false, false, null, null, 'ref_legal_entity'),
       col('isActive',         'Active',        'boolean',     false, false, null),
     ],
   },
@@ -1666,9 +1667,9 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',      'Active',     'boolean', false, false, null),
     ],
   },
-  loading_rack: {
+  ref_loading_rack: {
     // V116, extended by V117 (motTypeId)
-    tableName: 'loading_rack', displayName: 'Loading Racks', primaryKeyColumn: 'rackId', isTemporal: false,
+    tableName: 'ref_loading_rack', displayName: 'Loading Racks', primaryKeyColumn: 'rackId', isTemporal: false,
     columns: [
       col('rackId',               'ID',                  'number',      false, true,  null),
       col('facilityId',           'Storage Facility',    'foreign_key', false, false, null, null, 'storage_facility'),
@@ -1679,44 +1680,44 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('lastCalibrationDate',  'Last Calibration',    'date',        true,  false, null),
       col('nextCalibrationDate',  'Next Calibration',    'date',        true,  false, null),
       col('maxFlowRateM3h',       'Max Flow Rate (m³/h)','number',      true,  false, null, null, null, null, true),
-      col('productId',            'Product',             'foreign_key', true,  false, null, null, 'product'),
+      col('productId',            'Product',             'foreign_key', true,  false, null, null, 'ref_product'),
       col('motTypeId',            'Mode of Transport',   'foreign_key', true,  false, null, null, 'mot_type'),
       col('isActive',             'Active',              'boolean',     false, false, null),
       col('notes',                'Notes',               'string',      true,  false, 500),
     ],
   },
-  blend_recipe: {
-    tableName: 'blend_recipe', displayName: 'Blend Recipes', primaryKeyColumn: 'blendRecipeId', isTemporal: false,
+  ref_blend_recipe: {
+    tableName: 'ref_blend_recipe', displayName: 'Blend Recipes', primaryKeyColumn: 'blendRecipeId', isTemporal: false,
     columns: [
       col('blendRecipeId',  'ID',              'number',      false, true,  null),
       col('recipeCode',     'Recipe Code',     'string',      false, false, 30),
       col('recipeName',     'Recipe Name',     'string',      false, false, 200),
-      col('targetProductId','Target Product',  'foreign_key', false, false, null, null, 'product'),
+      col('targetProductId','Target Product',  'foreign_key', false, false, null, null, 'ref_product'),
       col('commodityType',  'Commodity Type',  'string',      true,  false, 20),
       col('tolerancePct',   'Tolerance %',     'number',      true,  false, null, null, null, null, true),
       col('description',    'Description',     'string',      true,  false, 500),
       col('isActive',       'Active',          'boolean',     false, false, null),
     ],
   },
-  blend_recipe_component: {
-    tableName: 'blend_recipe_component', displayName: 'Blend Recipe Components', primaryKeyColumn: 'componentId', isTemporal: false,
+  ref_blend_recipe_component: {
+    tableName: 'ref_blend_recipe_component', displayName: 'Blend Recipe Components', primaryKeyColumn: 'componentId', isTemporal: false,
     columns: [
       col('componentId',        'ID',               'number',      false, true,  null),
-      col('blendRecipeId',      'Blend Recipe',     'foreign_key', false, false, null, null, 'blend_recipe'),
-      col('componentProductId', 'Component Product','foreign_key', false, false, null, null, 'product'),
+      col('blendRecipeId',      'Blend Recipe',     'foreign_key', false, false, null, null, 'ref_blend_recipe'),
+      col('componentProductId', 'Component Product','foreign_key', false, false, null, null, 'ref_product'),
       col('targetPct',          'Target %',         'number',      false, false, null, null, null, null, true),
       col('minPct',             'Min %',            'number',      true,  false, null, null, null, null, true),
       col('maxPct',             'Max %',            'number',      true,  false, null, null, null, null, true),
       col('sortOrder',          'Sort Order',       'number',      false, false, null),
     ],
   },
-  throughput_agreement: {
+  ref_throughput_agreement: {
     // V116, extended by V117 (motTypeId)
-    tableName: 'throughput_agreement', displayName: 'Throughput Agreements', primaryKeyColumn: 'agreementId', isTemporal: false,
+    tableName: 'ref_throughput_agreement', displayName: 'Throughput Agreements', primaryKeyColumn: 'agreementId', isTemporal: false,
     columns: [
       col('agreementId',      'ID',                 'number',      false, true,  null),
       col('agreementCode',    'Agreement Code',     'string',      false, false, 30),
-      col('counterpartyId',   'Counterparty',       'foreign_key', false, false, null, null, 'counterparty'),
+      col('counterpartyId',   'Counterparty',       'foreign_key', false, false, null, null, 'ref_counterparty'),
       col('facilityId',       'Storage Facility',   'foreign_key', false, false, null, null, 'storage_facility'),
       col('agreementType',    'Agreement Type',     'enum',        false, false, null, ['STORAGE', 'THROUGHPUT', 'BOTH']),
       col('contractedCapacity','Contracted Capacity','number',     false, false, null, null, null, null, true),
@@ -1731,26 +1732,26 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('notes',            'Notes',              'string',      true,  false, 500),
     ],
   },
-  product_interface_rule: {
-    tableName: 'product_interface_rule', displayName: 'Product Interface Rules', primaryKeyColumn: 'ruleId', isTemporal: false,
+  ref_product_interface_rule: {
+    tableName: 'ref_product_interface_rule', displayName: 'Product Interface Rules', primaryKeyColumn: 'ruleId', isTemporal: false,
     columns: [
       col('ruleId',              'ID',                  'number',      false, true,  null),
-      col('fromProductId',       'From Product',        'foreign_key', false, false, null, null, 'product'),
-      col('toProductId',         'To Product',          'foreign_key', false, false, null, null, 'product'),
+      col('fromProductId',       'From Product',        'foreign_key', false, false, null, null, 'ref_product'),
+      col('toProductId',         'To Product',          'foreign_key', false, false, null, null, 'ref_product'),
       col('minFlushVolumeM3',    'Min Flush Volume (m³)','number',     true,  false, null, null, null, null, true),
       col('isCompatible',        'Compatible',          'boolean',     false, false, null),
-      col('downgradeProductId',  'Downgrade Product',   'foreign_key', true,  false, null, null, 'product'),
+      col('downgradeProductId',  'Downgrade Product',   'foreign_key', true,  false, null, null, 'ref_product'),
       col('notes',               'Notes',               'string',      true,  false, 500),
       col('isActive',            'Active',              'boolean',     false, false, null),
     ],
   },
-  road_tariff: {
-    tableName: 'road_tariff', displayName: 'Road (Truck) Tariffs', primaryKeyColumn: 'tariffId', isTemporal: false,
+  ref_road_tariff: {
+    tableName: 'ref_road_tariff', displayName: 'Road (Truck) Tariffs', primaryKeyColumn: 'tariffId', isTemporal: false,
     columns: [
       col('tariffId',         'ID',              'number',      false, true,  null),
       col('routeId',          'Transport Route', 'foreign_key', false, false, null, null, 'transport_route'),
       col('operatorId',       'Operator',        'foreign_key', true,  false, null, null, 'transport_operator'),
-      col('productId',        'Product',         'foreign_key', true,  false, null, null, 'product'),
+      col('productId',        'Product',         'foreign_key', true,  false, null, null, 'ref_product'),
       col('tariffType',       'Tariff Type',     'enum',        false, false, null, ['FLAT_PER_LOAD', 'PER_KM', 'PER_MT', 'PER_BBL', 'PER_HOUR']),
       col('rate',             'Rate',            'number',      false, false, null, null, null, null, true),
       col('currencyId',       'Currency',        'foreign_key', false, false, null, null, 'currency'),
@@ -1773,9 +1774,9 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('loadLocationId',           'Load Location',       'foreign_key', true,  false, null, null, 'location'),
       col('dischLocationId',          'Discharge Location',  'foreign_key', true,  false, null, null, 'location'),
       col('countryId',                'Country',             'foreign_key', true,  false, null, null, 'country'),
-      col('legalEntityId',            'Legal Entity',        'foreign_key', true,  false, null, null, 'legal_entity'),
-      col('counterpartyId',           'Counterparty',        'foreign_key', true,  false, null, null, 'counterparty'),
-      col('productId',                'Product',             'foreign_key', true,  false, null, null, 'product'),
+      col('legalEntityId',            'Legal Entity',        'foreign_key', true,  false, null, null, 'ref_legal_entity'),
+      col('counterpartyId',           'Counterparty',        'foreign_key', true,  false, null, null, 'ref_counterparty'),
+      col('productId',                'Product',             'foreign_key', true,  false, null, null, 'ref_product'),
       col('direction',                'Direction',           'enum',        false, false, null, ['BUY', 'SELL', 'BOTH']),
       col('customsMovementStatusId',  'Movement Status',     'foreign_key', true,  false, null, null, 'customs_movement_status'),
       col('incotermId',               'Incoterm',            'foreign_key', true,  false, null, null, 'incoterm'),
@@ -1815,9 +1816,9 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('destinationCountryId',     'Destination Country', 'foreign_key', true,  false, null, null, 'country'),
       col('loadLocationId',           'Load Location',       'foreign_key', true,  false, null, null, 'location'),
       col('dischLocationId',          'Discharge Location',  'foreign_key', true,  false, null, null, 'location'),
-      col('productId',                'Product',             'foreign_key', true,  false, null, null, 'product'),
-      col('legalEntityId',            'Legal Entity',        'foreign_key', true,  false, null, null, 'legal_entity'),
-      col('counterpartyId',           'Counterparty',        'foreign_key', true,  false, null, null, 'counterparty'),
+      col('productId',                'Product',             'foreign_key', true,  false, null, null, 'ref_product'),
+      col('legalEntityId',            'Legal Entity',        'foreign_key', true,  false, null, null, 'ref_legal_entity'),
+      col('counterpartyId',           'Counterparty',        'foreign_key', true,  false, null, null, 'ref_counterparty'),
       col('direction',                'Direction',           'enum',        false, false, null, ['BUY', 'SELL', 'BOTH']),
       col('customsMovementStatusId',  'Movement Status',     'foreign_key', true,  false, null, null, 'customs_movement_status'),
       col('incotermId',               'Incoterm',            'foreign_key', true,  false, null, null, 'incoterm'),
@@ -1841,7 +1842,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
     tableName: 'product_hs_code', displayName: 'Product HS Codes', primaryKeyColumn: 'productHsCodeId', isTemporal: false,
     columns: [
       col('productHsCodeId', 'ID',            'number',      false, true,  null),
-      col('productId',       'Product',       'foreign_key', false, false, null, null, 'product'),
+      col('productId',       'Product',       'foreign_key', false, false, null, null, 'ref_product'),
       col('hsCode',          'HS Code',       'string',      false, false, 20),
       col('hsDescription',   'Description',   'string',      true,  false, 200),
       col('isDefault',       'Default',       'boolean',     false, false, null),
@@ -1860,8 +1861,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
  */
 export const registrySeed: RegistryEntry[] = [
   { registryId: 1, tableName: 'currency',            displayName: 'Currencies',           moduleGroup: 'Finance & Settlement', subGroup: 'Global Codes',      description: 'ISO 4217 currency codes used across all monetary fields. The 3-letter alphabetic code (e.g. USD, EUR, GBP) is enforced. Reference: iso.org/iso-4217-currency-codes.html', allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: true,  isEnabled: true, displayOrder: 1 },
-  { registryId: 2, tableName: 'commodity',           displayName: 'Commodities',          moduleGroup: 'Products & Markets', subGroup: 'Classification',    description: 'Top-level commodity classification — Oil, Gas, Power, Agricultural, Metals, and Other. Drives product group assignment, applicable trade types, and pricing curve linkage.',                                allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
-  { registryId: 3, tableName: 'credit_rating',       displayName: 'Credit Ratings',       moduleGroup: 'Counterparties & Agreements', subGroup: 'Classification',    description: 'S&P, Moody\'s, and Fitch credit rating scales with numeric equivalents. Used to derive credit exposure limits and margin requirements for each counterparty.',                                                   allowCreate: true,  allowEdit: true,  allowDelete: true,  allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
+  { registryId: 2, tableName: 'ref_commodity',           displayName: 'Commodities',          moduleGroup: 'Products & Markets', subGroup: 'Classification',    description: 'Top-level commodity classification — Oil, Gas, Power, Agricultural, Metals, and Other. Drives product group assignment, applicable trade types, and pricing curve linkage.',                                allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
+  { registryId: 3, tableName: 'ref_credit_rating',       displayName: 'Credit Ratings',       moduleGroup: 'Counterparties & Agreements', subGroup: 'Classification',    description: 'S&P, Moody\'s, and Fitch credit rating scales with numeric equivalents. Used to derive credit exposure limits and margin requirements for each counterparty.',                                                   allowCreate: true,  allowEdit: true,  allowDelete: true,  allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
   { registryId: 4, tableName: 'incoterm',            displayName: 'Incoterms',            moduleGroup: 'Contract & Legal', subGroup: 'Global Codes',      description: 'ICC Incoterms® 2020 rules that define the point at which risk and cost transfer from seller to buyer. Reference: iccwbo.org/resources-for-business/incoterms-rules',                            allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 4 },
   { registryId: 5, tableName: 'charter_party_type',  displayName: 'Charter Party Types',  moduleGroup: 'Freight & Shipping',   subGroup: 'Charter',           description: 'Types of vessel charter arrangements — Voyage Charter (fixed route, per tonne) or Time Charter (per day, operator controls routing). Determines freight cost calculation and demurrage liability.',     allowCreate: true,  allowEdit: true,  allowDelete: true,  allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
   { registryId: 6, tableName: 'load_shape_template', displayName: 'Load Shape Templates', moduleGroup: 'Power & Energy',     subGroup: 'Markets',           description: 'Standard electricity delivery profiles — Baseload (7×24), Peak (5×16 or 6×16), Off-peak, and user-defined shapes. Templates constrain the hours delivered under a power supply contract.',               allowCreate: true,  allowEdit: true,  allowDelete: true,  allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
@@ -1892,11 +1893,11 @@ export const registrySeed: RegistryEntry[] = [
   // V56 — dedicated FX tenor/period master, linked from fx_rate (not a lookup_value category — needs to scale to 1000+ daily-forward rows)
   { registryId: 209, tableName: 'fx_period',              displayName: 'FX Periods / Tenors',       moduleGroup: 'Pricing & Rates',    subGroup: 'FX',      description: 'Standard FX tenors (SPOT, 1M-2Y) plus individual daily-forward periods used to build a full FX forward curve. Linked from fx_rate.fx_period_id — scales to 1000+ daily delivery days without bloating the generic lookup table.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: true, isEnabled: true, displayOrder: 6 },
   // V59 — commodity_family: the missing middle tier between commodity (sector) and product (instrument), replacing product.product_family's raw unconstrained string
-  { registryId: 210, tableName: 'commodity_family',       displayName: 'Commodity Families',        moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Grouping of similar products beneath a commodity — e.g. Crude Oil vs Refined Products under Oil, Base vs Precious Metals under Metals. Linked from product.commodity_family_id.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
+  { registryId: 210, tableName: 'ref_commodity_family',       displayName: 'Commodity Families',        moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Grouping of similar products beneath a commodity — e.g. Crude Oil vs Refined Products under Oil, Base vs Precious Metals under Metals. Linked from product.commodity_family_id.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
   // V60 — reporting_group: independent per-report classification axes (Position, VaR, Settlement/GL) — a product's group can differ per reporting context, unlike commodity_family which is a single taxonomy
-  { registryId: 211, tableName: 'reporting_group',        displayName: 'Reporting Groups',          moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Per-report classification groups (Position Reporting, VaR/Risk, Settlement/GL) — a product can sit in a different group per reporting context. Assigned to products via the Products page "Reporting Groups" tab.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 4 },
+  { registryId: 211, tableName: 'ref_reporting_group',        displayName: 'Reporting Groups',          moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Per-report classification groups (Position Reporting, VaR/Risk, Settlement/GL) — a product can sit in a different group per reporting context. Assigned to products via the Products page "Reporting Groups" tab.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 4 },
   // V63 — lookup_value: the generic category+code+display_name table (only REPORTING_CLASSIFICATION_TYPE rows seeded here so far)
-  { registryId: 212, tableName: 'lookup_value',           displayName: 'Lookup Values',             moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Generic category/code/display-name reference table. Only the Reporting Classification Type category is populated here — add rows under a new "category" value to introduce a new axis for Reporting Groups.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 5 },
+  { registryId: 212, tableName: 'ref_lookup_value',           displayName: 'Lookup Values',             moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Generic category/code/display-name reference table. Only the Reporting Classification Type category is populated here — add rows under a new "category" value to introduce a new axis for Reporting Groups.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 5 },
   // V65 — Power registry orphans: real V11/V12 tables/seed data that were never registered, found during an LNG/Power/Agri/Metals master-data review
   { registryId: 213, tableName: 'interconnector',         displayName: 'Interconnectors',           moduleGroup: 'Power & Energy',     subGroup: 'Grid',           description: 'Cross-zone / cross-border transmission links between two transmission zones — the grid-capacity equivalent of a freight route. Directional or bidirectional, with a rated MW capacity.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 8 },
   { registryId: 214, tableName: 'generation_asset',       displayName: 'Generation Assets',         moduleGroup: 'Power & Energy',     subGroup: 'Assets',         description: 'Plant-level technical master data — fuel type, technology, nameplate capacity, and ownership. The power equivalent of `vessel` for oil shipping.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 9 },
@@ -1905,9 +1906,9 @@ export const registrySeed: RegistryEntry[] = [
   // V66 — lng_terminal_detail: 1:1 LNG extension of storage_facility (send-out/liquefaction capacity, berths, cargo lot size range)
   { registryId: 217, tableName: 'lng_terminal_detail',    displayName: 'LNG Terminal Detail',       moduleGroup: 'Freight & Shipping', subGroup: 'Charter',        description: 'Terminal-level LNG capacity data — regasification send-out rate (import) or liquefaction nameplate (export) in MTPA, storage tank/berth count, and the acceptable cargo-lot size range for scheduling.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 6 },
   // V67 — commodity_grade_standard: named grade tiers (e.g. USDA No. 2 Yellow Corn) with a discount/premium schedule vs. the contract par grade
-  { registryId: 218, tableName: 'commodity_grade_standard', displayName: 'Commodity Grade Standards', moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Named grade tiers for a specific product/contract (e.g. CBOT Corn\'s USDA No. 2 Yellow par grade) and the flat price adjustment vs. par for delivering an alternate grade. Scoped per product, not per commodity family — real exchange differential schedules are contract-specific (Corn\'s schedule differs from Wheat\'s). Selectable per order in the Trade Blotter to auto-populate a price adjustment.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 6 },
+  { registryId: 218, tableName: 'ref_commodity_grade_standard', displayName: 'Commodity Grade Standards', moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Named grade tiers for a specific product/contract (e.g. CBOT Corn\'s USDA No. 2 Yellow par grade) and the flat price adjustment vs. par for delivering an alternate grade. Scoped per product, not per commodity family — real exchange differential schedules are contract-specific (Corn\'s schedule differs from Wheat\'s). Selectable per order in the Trade Blotter to auto-populate a price adjustment.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 6 },
   // V68 — metal_brand: LME-style approved brand register (producer + metal form) — the real mechanism determining what physical metal is deliverable
-  { registryId: 219, tableName: 'metal_brand',              displayName: 'Metal Brand Register',      moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Exchange-approved producer brands by metal form (cathode, ingot, wire rod, etc.) — only brands on this list may be placed on warrant and delivered against an exchange contract.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 7 },
+  { registryId: 219, tableName: 'ref_metal_brand',              displayName: 'Metal Brand Register',      moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Exchange-approved producer brands by metal form (cathode, ingot, wire rod, etc.) — only brands on this list may be placed on warrant and delivered against an exchange contract.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 7 },
   // V70 — genuine registry orphans found via a whole-project master-data review (all four already in MasterDataHub.tsx's live:false backlog)
   { registryId: 220, tableName: 'insurance_provider',       displayName: 'Insurance Providers',        moduleGroup: 'Credit & Collateral',   subGroup: 'Insurance',   description: 'Insurance companies, P&I clubs, and underwriters — Lloyd\'s syndicates, AIG, Zurich, Euler Hermes — with contact and credit rating, for cargo/credit/political-risk coverage.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 8 },
   { registryId: 221, tableName: 'interest_rate_index',      displayName: 'Interest Rate Indices',      moduleGroup: 'Pricing & Rates',       subGroup: 'FX',          description: 'Reference rate indices (SOFR, EURIBOR, SONIA) with day-count/compounding conventions — used for financing costs, late-payment interest, and commodity-linked structures.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 7 },
@@ -1922,24 +1923,24 @@ export const registrySeed: RegistryEntry[] = [
   // (V104's sibling external_system_type registry row was dropped in V106)
   { registryId: 243, tableName: 'connection_type', displayName: 'Connection Types', moduleGroup: 'Organization & Users', subGroup: 'System', description: 'Integration transport mechanisms — API, SFTP, File, Manual, Message Queue. Parent table for external_system.connectionTypeId FK.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 13 },
   // V72 — credit_term: reusable credit-facility term template, referenced by cp_commercial_terms
-  { registryId: 228, tableName: 'credit_term', displayName: 'Credit Terms', moduleGroup: 'Counterparties & Agreements', subGroup: 'Terms', description: 'Reusable credit facility terms — credit period, required collateral type, margin call threshold, netting eligibility. Assigned to a counterparty via CP Commercial Terms.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
+  { registryId: 228, tableName: 'ref_credit_term', displayName: 'Credit Terms', moduleGroup: 'Counterparties & Agreements', subGroup: 'Terms', description: 'Reusable credit facility terms — credit period, required collateral type, margin call threshold, netting eligibility. Assigned to a counterparty via CP Commercial Terms.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
   // V73 — fx_rate, settlement_calendar, trade_repository
   { registryId: 229, tableName: 'fx_rate',             displayName: 'FX Rates',             moduleGroup: 'Pricing & Rates',                  subGroup: 'FX',        description: 'Daily FX rates per currency pair — EOD, intraday, settlement, fixing, or mid. Used for P&L revaluation and cross-currency settlement.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: true, isEnabled: true, displayOrder: 8 },
   { registryId: 230, tableName: 'settlement_calendar', displayName: 'Settlement Calendars', moduleGroup: 'Products & Markets',                subGroup: 'Classification', description: 'Which holiday calendars apply to a product\'s settlement date calculation — a product may use multiple (e.g. UK + US bank holidays), with a priority order.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 8 },
   { registryId: 231, tableName: 'trade_repository',    displayName: 'Trade Repositories',   moduleGroup: 'Sanctions & Regulatory Reporting', subGroup: 'Reporting', description: 'Approved trade repositories for regulatory reporting submission — DTCC, REGIS-TR, ICE TVEL — by regime with submission format and endpoint.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
   // V85 — lookup_category: the category master lookup_value.categoryId now points at
-  { registryId: 232, tableName: 'lookup_category',     displayName: 'Lookup Categories',    moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Category master for Lookup Values — add a category here first, then add its code/display-name rows under Lookup Values to introduce a new managed picklist.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 8 },
+  { registryId: 232, tableName: 'ref_lookup_category',     displayName: 'Lookup Categories',    moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Category master for Lookup Values — add a category here first, then add its code/display-name rows under Lookup Values to introduce a new managed picklist.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 8 },
   // V96 — commodity-specific master data (Metals warrants/assay, LNG
   // boil-off, Power pnode/ancillary services, Agri moisture/crop-year,
   // multi-country intercompany/payment-calendar guardrails)
-  { registryId: 233, tableName: 'metal_warrant', displayName: 'Metal Warrants', moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Securitized title document for a specific, discrete physical lot in an exchange-approved vault (LME/CME) — distinct from generic volumetric storage capacity.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 20 },
-  { registryId: 234, tableName: 'metal_assay_component_rule', displayName: 'Metal Assay Component Rules', moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Financial scaling rules applied to concentrate actualizations to calculate premiums/penalties from lab assays (payable/penalty/impurity elements vs. a base content %).', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 21 },
+  { registryId: 233, tableName: 'ref_metal_warrant', displayName: 'Metal Warrants', moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Securitized title document for a specific, discrete physical lot in an exchange-approved vault (LME/CME) — distinct from generic volumetric storage capacity.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 20 },
+  { registryId: 234, tableName: 'ref_metal_assay_component_rule', displayName: 'Metal Assay Component Rules', moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Financial scaling rules applied to concentrate actualizations to calculate premiums/penalties from lab assays (payable/penalty/impurity elements vs. a base content %).', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 21 },
   { registryId: 235, tableName: 'lng_boil_off_rule', displayName: 'LNG Boil-Off Rules', moduleGroup: 'Freight & Shipping', subGroup: 'Charter', description: 'Cryogenic transit/storage vaporization loss curves, scoped to a vessel and/or storage facility, used by the risk and actualization engines to model standard LNG inventory degradation.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 20 },
   { registryId: 236, tableName: 'power_pnode', displayName: 'Power Pricing Nodes', moduleGroup: 'Power & Energy', subGroup: 'Grid', description: 'Low-level LMP settlement granularity — physical grid injection/withdrawal nodes (ISO/RTO standard) under a balancing authority, optionally mapped to a transmission zone.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 10 },
   { registryId: 237, tableName: 'power_ancillary_service_type', displayName: 'Power Ancillary Service Types', moduleGroup: 'Power & Energy', subGroup: 'Markets', description: 'Grid-reliability products traded alongside standard MWh power blocks — spinning reserve, regulation up/down, voltage support — per balancing authority.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 11 },
-  { registryId: 238, tableName: 'agri_moisture_discount_scale', displayName: 'Agri Moisture Discount Scales', moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Weighbridge actualization scale — automatic financial weight shrinkage and pricing discount based on grain moisture content, banded off a commodity grade standard.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 22 },
-  { registryId: 239, tableName: 'agri_crop_year_lifecycle', displayName: 'Agri Crop Year Lifecycle', moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Hard time boundaries for old-crop vs. new-crop futures and physical cash market spreads, per commodity and country.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 23 },
-  { registryId: 240, tableName: 'intercompany_transfer_rule', displayName: 'Intercompany Transfer Rules', moduleGroup: 'Counterparties & Agreements', subGroup: 'Terms', description: 'Automates the matching back-to-back internal transfer deal and its transfer-pricing markup whenever the central desk passes position/risk to a country business unit.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
+  { registryId: 238, tableName: 'ref_agri_moisture_discount_scale', displayName: 'Agri Moisture Discount Scales', moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Weighbridge actualization scale — automatic financial weight shrinkage and pricing discount based on grain moisture content, banded off a commodity grade standard.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 22 },
+  { registryId: 239, tableName: 'ref_agri_crop_year_lifecycle', displayName: 'Agri Crop Year Lifecycle', moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Hard time boundaries for old-crop vs. new-crop futures and physical cash market spreads, per commodity and country.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 23 },
+  { registryId: 240, tableName: 'ref_intercompany_transfer_rule', displayName: 'Intercompany Transfer Rules', moduleGroup: 'Counterparties & Agreements', subGroup: 'Terms', description: 'Automates the matching back-to-back internal transfer deal and its transfer-pricing markup whenever the central desk passes position/risk to a country business unit.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
   { registryId: 241, tableName: 'payment_calendar_assignment', displayName: 'Payment Calendar Assignments', moduleGroup: 'Calendar & Periods', subGroup: 'Calendars', description: 'Junction matrix mapping multi-currency cash obligations to the right holiday-calendar pair, preventing settlement date miscalculations across payment term, currency, and location.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 5 },
   // V142 — chart of accounts: profit_center -> cost_center -> gl_account, plus tax_code
   { registryId: 267, tableName: 'profit_center', displayName: 'Profit Centers', moduleGroup: 'Finance & Settlement', subGroup: 'Chart of Accounts', description: 'Scoped to one booking company (legal entity) — the top of the profit-attribution chain that cost centers roll up into, following standard company-code-scoped profit center conventions.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
@@ -1949,12 +1950,12 @@ export const registrySeed: RegistryEntry[] = [
   // insert into master_data_table_registry (mirrored exactly: allowCreate/
   // allowEdit/allowDelete/displayOrder/moduleGroup all copied from the SQL),
   // just never mirrored into this mock file until now.
-  { registryId: 270, tableName: 'loading_rack',             displayName: 'Loading Racks',             moduleGroup: 'Supply & Distribution', description: 'Custody-transfer measurement points at a terminal — rack number, meter type, prover certification and calibration dates.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
-  { registryId: 271, tableName: 'blend_recipe',             displayName: 'Blend Recipes',             moduleGroup: 'Supply & Distribution', description: 'Terminal splash-blending recipes — target product, tolerance, and component products (see Blend Recipe Components).', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 4 },
-  { registryId: 272, tableName: 'blend_recipe_component',   displayName: 'Blend Recipe Components',   moduleGroup: 'Supply & Distribution', description: 'Component products and target/min/max percentages within a blend recipe.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 5 },
-  { registryId: 273, tableName: 'throughput_agreement',     displayName: 'Throughput Agreements',     moduleGroup: 'Supply & Distribution', description: 'Contracted third-party storage or throughput rights at a terminal the company does not own — the storage-side analogue of pipeline_tariff.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 6 },
-  { registryId: 274, tableName: 'product_interface_rule',   displayName: 'Product Interface Rules',   moduleGroup: 'Supply & Distribution', description: 'Minimum flush volume and downgrade rules when switching incompatible products through a shared line or rack.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 7 },
-  { registryId: 275, tableName: 'road_tariff',               displayName: 'Road (Truck) Tariffs',      moduleGroup: 'Supply & Distribution', description: 'Truck freight rates by route — flat per load, per km, per MT/BBL — with fuel surcharge and minimum charge. The road-transport analogue of pipeline_tariff.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 8 },
+  { registryId: 270, tableName: 'ref_loading_rack',             displayName: 'Loading Racks',             moduleGroup: 'Supply & Distribution', description: 'Custody-transfer measurement points at a terminal — rack number, meter type, prover certification and calibration dates.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
+  { registryId: 271, tableName: 'ref_blend_recipe',             displayName: 'Blend Recipes',             moduleGroup: 'Supply & Distribution', description: 'Terminal splash-blending recipes — target product, tolerance, and component products (see Blend Recipe Components).', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 4 },
+  { registryId: 272, tableName: 'ref_blend_recipe_component',   displayName: 'Blend Recipe Components',   moduleGroup: 'Supply & Distribution', description: 'Component products and target/min/max percentages within a blend recipe.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 5 },
+  { registryId: 273, tableName: 'ref_throughput_agreement',     displayName: 'Throughput Agreements',     moduleGroup: 'Supply & Distribution', description: 'Contracted third-party storage or throughput rights at a terminal the company does not own — the storage-side analogue of pipeline_tariff.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 6 },
+  { registryId: 274, tableName: 'ref_product_interface_rule',   displayName: 'Product Interface Rules',   moduleGroup: 'Supply & Distribution', description: 'Minimum flush volume and downgrade rules when switching incompatible products through a shared line or rack.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 7 },
+  { registryId: 275, tableName: 'ref_road_tariff',               displayName: 'Road (Truck) Tariffs',      moduleGroup: 'Supply & Distribution', description: 'Truck freight rates by route — flat per load, per km, per MT/BBL — with fuel surcharge and minimum charge. The road-transport analogue of pipeline_tariff.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 8 },
   { registryId: 276, tableName: 'book_level_type',           displayName: 'Book Level Types',          moduleGroup: 'Organization & Users',  description: 'Admin-definable hierarchy levels for the Book tree (Desk, Strategy, Trading Book, or a custom level such as Location/Region). Parent table for book.book_level_type_id FK.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 14 },
   // V188 — resolves which tax_code applies to a trade + import/export customs duty
   { registryId: 277, tableName: 'tax_rule',           displayName: 'Tax Rules',           moduleGroup: 'Finance & Settlement', subGroup: 'Tax & Duty Rules', description: 'Resolves which tax_code (VAT rate) applies to a trade — by location, jurisdiction, legal entity, counterparty, product, direction, and customs movement status — and whether a match should actually generate a bookable authority-cost line.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 11 },
@@ -2638,30 +2639,30 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
   // V116/V117 — Supply & Distribution complex tables (facilityId 1=Cushing
   // Tank Farm, 4=Gate LNG Rotterdam; productId 1=Brent Crude, 13=ULSD,
   // 14=Ethanol, 15=Gas97 Blend, per the product/storage_facility rowSeed above)
-  loading_rack: [
+  ref_loading_rack: [
     { rackId: 1, facilityId: 1, rackNumber: 'RACK-01', meterType: 'POSITIVE_DISPLACEMENT', proverType: 'SMALL_VOLUME_PROVER', proverCertNumber: 'PVC-CUSH-01', lastCalibrationDate: '2026-01-15', nextCalibrationDate: '2026-07-15', maxFlowRateM3h: 450.0, productId: 1, motTypeId: 3, isActive: true, notes: 'Truck loading rack, crude/refined products.' },
     { rackId: 2, facilityId: 4, rackNumber: 'RACK-LNG-1', meterType: 'CORIOLIS', proverType: null, proverCertNumber: null, lastCalibrationDate: '2026-02-01', nextCalibrationDate: '2026-08-01', maxFlowRateM3h: 1200.0, productId: null, motTypeId: 1, isActive: true, notes: 'LNG loading arm metering, marine transfer.' },
   ],
-  blend_recipe: [
+  ref_blend_recipe: [
     { blendRecipeId: 1, recipeCode: 'GAS97-E3', recipeName: 'Gasoline 97 E3 Splash Blend', targetProductId: 15, commodityType: 'OIL', tolerancePct: 0.5, description: 'ULSD/ethanol splash blend to produce Gasoline 97 E3 at the rack.', isActive: true },
   ],
-  blend_recipe_component: [
+  ref_blend_recipe_component: [
     { componentId: 1, blendRecipeId: 1, componentProductId: 13, targetPct: 97.0, minPct: 96.5, maxPct: 97.5, sortOrder: 1 },
     { componentId: 2, blendRecipeId: 1, componentProductId: 14, targetPct: 3.0,  minPct: 2.5,  maxPct: 3.5,  sortOrder: 2 },
   ],
-  throughput_agreement: [
+  ref_throughput_agreement: [
     { agreementId: 1, agreementCode: 'TA-CUSH-001', counterpartyId: 1, facilityId: 1, agreementType: 'THROUGHPUT', contractedCapacity: 50000, capacityUomId: 1, tariffRate: 0.35, tariffCurrencyId: 1, tariffUomId: 1, motTypeId: null, effectiveFrom: '2026-01-01', effectiveTo: '2026-12-31', isActive: true, notes: 'Third-party throughput rights at Cushing Tank Farm T-1.' },
   ],
-  product_interface_rule: [
+  ref_product_interface_rule: [
     { ruleId: 1, fromProductId: 1, toProductId: 13, minFlushVolumeM3: 15.0, isCompatible: false, downgradeProductId: 13, notes: 'Crude-to-diesel changeover requires a full flush; off-spec interface material downgraded to ULSD.', isActive: true },
   ],
-  road_tariff: [
+  ref_road_tariff: [
     { tariffId: 1, routeId: 1, operatorId: 1, productId: 1, tariffType: 'PER_MT', rate: 4.25, currencyId: 1, rateUomId: 3, minCharge: 500.0, fuelSurchargePct: 8.5, effectiveFrom: '2026-01-01', effectiveTo: null, isActive: true, notes: 'Standard tanker truck rate.' },
   ],
   // V161/V164/V209 — real exchange futures specs, mirroring the backend's
   // V209 seed so the Contract Margin Rates page has the same dropdown
   // options under mocks as it does against the real backend.
-  derivative_contract_specification: [
+  ref_derivative_contract_specification: [
     { contractSpecId: 1, specCode: 'ICE-BRENT-FUT', specName: 'ICE Brent Crude Futures', instrumentType: 'FUTURE', listingExchangeId: 1, isActive: true },
     { contractSpecId: 2, specCode: 'NYMEX-WTI-FUT', specName: 'NYMEX WTI Light Sweet Crude Oil Futures', instrumentType: 'FUTURE', listingExchangeId: 2, isActive: true },
     { contractSpecId: 3, specCode: 'CBOT-CORN-FUT', specName: 'CBOT Corn Futures', instrumentType: 'FUTURE', listingExchangeId: 6, isActive: true },

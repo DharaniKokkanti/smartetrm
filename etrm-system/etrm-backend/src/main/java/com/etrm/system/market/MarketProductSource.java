@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 
 /** Read-only — the frontend (markets/api.ts's listSources) never writes this. */
 @Entity
-@Table(name = "market_product_source")
+@Table(name = "ref_market_product_source")
 public class MarketProductSource {
 
     @Id

@@ -20,7 +20,7 @@ import jakarta.validation.constraints.NotNull;
  * one classification axis" already established by dbo.reporting_group.
  */
 @Entity
-@Table(name = "product_reporting_group")
+@Table(name = "ref_product_reporting_group")
 public class ProductReportingGroup extends AuditableEntity {
 
     @Id

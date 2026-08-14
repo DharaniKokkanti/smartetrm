@@ -39,7 +39,7 @@ import java.time.LocalDateTime;
  * fixed earlier this session.
  */
 @Entity
-@Table(name = "regulatory_obligation")
+@Table(name = "ref_regulatory_obligation")
 @EntityListeners(AuditingEntityListener.class)
 public class RegulatoryObligation {
 

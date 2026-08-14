@@ -43,7 +43,7 @@ import java.time.LocalDateTime;
  * created_at/created_by), same @LastModifiedDate/@LastModifiedBy pattern.
  */
 @Entity
-@Table(name = "cp_gtc_agreement")
+@Table(name = "ref_cp_gtc_agreement")
 @EntityListeners(AuditingEntityListener.class)
 public class CpGtcAgreement {
 

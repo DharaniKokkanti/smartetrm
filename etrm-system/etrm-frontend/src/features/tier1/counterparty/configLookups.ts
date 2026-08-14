@@ -14,19 +14,19 @@ export interface ConfigOption {
 // PARENT_LOOKUP_TABLES in mocks/referenceData.ts); GROUP_TO_PK records which
 // column on each row is that key, since ReferenceDataRow has no static shape.
 const GROUP_TO_TABLE: Record<string, string> = {
-  COUNTERPARTY_TYPE:     'counterparty_type',
-  KYC_STATUS:            'kyc_status',
+  COUNTERPARTY_TYPE:     'ref_counterparty_type',
+  KYC_STATUS:            'ref_kyc_status',
   CONTACT_ROLE:          'contact_role',
-  ADDRESS_TYPE:          'address_type',
-  BANK_ACCOUNT_TYPE:     'bank_account_type',
+  ADDRESS_TYPE:          'ref_address_type',
+  BANK_ACCOUNT_TYPE:     'ref_bank_account_type',
   PAYMENT_METHOD:        'payment_method',
-  SETTLEMENT_TYPE:       'settlement_type',
+  SETTLEMENT_TYPE:       'ref_settlement_type',
   STORAGE_FACILITY_TYPE: 'storage_facility_type',
-  NETTING_AGREEMENT_TYPE:'netting_agreement_type',
+  NETTING_AGREEMENT_TYPE:'ref_netting_agreement_type',
   TAX_TYPE:              'tax_type',
   LICENSE_TYPE:           'license_type',
   LEGAL_ENTITY_TYPE:     'legal_entity_type',
-  DEAL_TYPE:             'deal_type',
+  DEAL_TYPE:             'ref_deal_type',
 };
 
 const GROUP_TO_PK: Record<string, string> = {

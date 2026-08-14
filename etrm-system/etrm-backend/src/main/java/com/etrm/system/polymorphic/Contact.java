@@ -14,7 +14,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 @Entity
-@Table(name = "contact")
+@Table(name = "ref_contact")
 public class Contact extends AuditableEntity {
 
     @Id

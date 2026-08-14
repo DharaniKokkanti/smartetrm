@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "counterparty")
+@Table(name = "ref_counterparty")
 public class Counterparty extends AuditableEntity {
 
     @Id

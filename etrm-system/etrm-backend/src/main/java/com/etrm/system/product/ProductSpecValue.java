@@ -29,7 +29,7 @@ import java.time.LocalDateTime;
  * V149 — see ProductSpecValueService.update() for the fetch-then-copy
  * pattern needed because update() previously only did existsById(). */
 @Entity
-@Table(name = "product_spec_value")
+@Table(name = "ref_product_spec_value")
 @EntityListeners(AuditingEntityListener.class)
 public class ProductSpecValue {
 

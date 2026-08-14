@@ -16,7 +16,7 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "cp_commercial_terms")
+@Table(name = "ref_cp_commercial_terms")
 public class CpCommercialTerms extends AuditableEntity {
 
     @Id

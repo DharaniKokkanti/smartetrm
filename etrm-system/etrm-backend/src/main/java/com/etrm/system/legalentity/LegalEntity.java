@@ -15,7 +15,7 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "legal_entity")
+@Table(name = "ref_legal_entity")
 public class LegalEntity extends AuditableEntity {
 
     @Id

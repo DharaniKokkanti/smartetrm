@@ -10,7 +10,7 @@ import jakarta.validation.constraints.NotBlank;
  * registered office shared by a Legal Entity and a Counterparty.
  */
 @Entity
-@Table(name = "entity_address")
+@Table(name = "ref_entity_address")
 public class EntityAddress extends AuditableEntity {
 
     @Id

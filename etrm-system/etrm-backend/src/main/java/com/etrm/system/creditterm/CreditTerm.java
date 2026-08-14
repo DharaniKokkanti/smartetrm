@@ -23,7 +23,7 @@ import jakarta.persistence.Version;
  * this class today — a future Tier 2 rollout would need to wire that up.
  */
 @Entity
-@Table(name = "credit_term")
+@Table(name = "ref_credit_term")
 public class CreditTerm {
 
     @Id

@@ -29,7 +29,7 @@ function ApprovedProductsDrawer({ railcar, onClose }: { railcar: Railcar; onClos
   const { data = [], isLoading } = useRailcarApprovedProducts(railcarId);
   const save = useSaveRailcarApprovedProduct(railcarId);
   const remove = useDeleteRailcarApprovedProduct(railcarId);
-  const { data: productRows = [] } = useTableRows<{ productId: number; productCode: string; productName: string }>('product');
+  const { data: productRows = [] } = useTableRows<{ productId: number; productCode: string; productName: string }>('ref_product');
   const [addOpen, setAddOpen] = useState(false);
   const [form] = Form.useForm<{ productId: number; approvalStatus: string; effectiveFrom: Dayjs; effectiveTo?: Dayjs; regulatoryRef?: string; conditions?: string }>();
 

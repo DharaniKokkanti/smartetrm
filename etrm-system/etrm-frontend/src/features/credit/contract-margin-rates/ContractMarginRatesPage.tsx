@@ -13,7 +13,7 @@ import { TENOR_BUCKETS, MARGIN_UNIT_TYPES, type ContractMarginRate, type Contrac
 interface ContractSpecRow { contractSpecId: number; specCode: string; specName: string; }
 
 export function ContractMarginRatesPage() {
-  const { data: specs = [] } = useTableRows<ContractSpecRow>('derivative_contract_specification');
+  const { data: specs = [] } = useTableRows<ContractSpecRow>('ref_derivative_contract_specification');
   const { data: currencies = [] } = useCurrencies();
   const [contractSpecId, setContractSpecId] = useState<number | null>(null);
   const { data = [], isLoading } = useContractMarginRates(contractSpecId);

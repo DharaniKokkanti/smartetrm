@@ -18,7 +18,7 @@ import java.time.LocalDate;
 
 /** commodity_id resolves to the frontend's plain commodityType string via CommodityTypeMapping — see PriceIndex.java's doc comment. */
 @Entity
-@Table(name = "market")
+@Table(name = "ref_market")
 public class Market extends AuditableEntity {
 
     @Id

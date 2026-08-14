@@ -163,9 +163,9 @@ type LookupCategoryRow = { categoryId: number; categoryCode: string };
 
 function ReportingGroupsTab({ productId }: { productId: number }) {
   const { data = [], isLoading } = useProductReportingGroups(productId);
-  const { data: groups = [] } = useTableRows<ReportingGroup>('reporting_group');
-  const { data: allLookups = [] } = useTableRows<LookupValueRow>('lookup_value');
-  const { data: allCategories = [] } = useTableRows<LookupCategoryRow>('lookup_category');
+  const { data: groups = [] } = useTableRows<ReportingGroup>('ref_reporting_group');
+  const { data: allLookups = [] } = useTableRows<LookupValueRow>('ref_lookup_value');
+  const { data: allCategories = [] } = useTableRows<LookupCategoryRow>('ref_lookup_category');
   const reportingClassificationCategoryId = allCategories
     .find((c) => c.categoryCode === 'REPORTING_CLASSIFICATION_TYPE')?.categoryId;
   const classificationTypes = allLookups
@@ -582,7 +582,7 @@ function SpecsTab({ product, isBlend }: { product: Product; isBlend: boolean }) 
     isBlend ? product.productId : null,
   );
   const { data: allProducts = [] } = useProducts();
-  const { data: commodities = [] } = useTableRows<CommodityRow>('commodity');
+  const { data: commodities = [] } = useTableRows<CommodityRow>('ref_commodity');
   const productCommodityType = resolveCommodityType(commodities, product.commodityId) ?? 'OTHER';
   const addComp    = useAddBlendComponent(product.productId);
   const removeComp = useRemoveBlendComponent(product.productId);
@@ -821,13 +821,13 @@ export function ProductsPage() {
   useFormDraft('markets-products', { form, open: drawerOpen, setOpen: setDrawerOpen, editing, setEditing });
 
   type CommodityFamilyRow = { commodityFamilyId: number; commodityId: number; familyCode: string; familyName: string; isActive: boolean };
-  const { data: commodityFamilies = [] } = useTableRows<CommodityFamilyRow>('commodity_family');
+  const { data: commodityFamilies = [] } = useTableRows<CommodityFamilyRow>('ref_commodity_family');
   function familyLabel(id: number | null | undefined): string {
     if (id == null) return '—';
     return commodityFamilies.find((f) => f.commodityFamilyId === id)?.familyName ?? `#${id}`;
   }
 
-  const { data: commodities = [] } = useTableRows<CommodityRow>('commodity');
+  const { data: commodities = [] } = useTableRows<CommodityRow>('ref_commodity');
 
   const filtered = useMemo(
     () => (data ?? []).filter((p) => activeCommodity === 'ALL' || resolveCommodityType(commodities, p.commodityId) === activeCommodity),

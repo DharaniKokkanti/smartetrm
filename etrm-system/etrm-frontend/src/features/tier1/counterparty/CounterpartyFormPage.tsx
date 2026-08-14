@@ -48,7 +48,7 @@ export function CounterpartyFormPage() {
   const { data: kycStatusOptions = [], isLoading: loadingKycStatus } = useCustomConfigOptions('KYC_STATUS');
   const { data: countries = [], isLoading: loadingCountries } = useCountries();
   const { data: currencies = [], isLoading: loadingCurrencies } = useCurrencies();
-  const { data: creditRatings = [] } = useTableRows<ReferenceDataRow>('credit_rating');
+  const { data: creditRatings = [] } = useTableRows<ReferenceDataRow>('ref_credit_rating');
   const countryOptions = countries
     .filter((c) => c.isActive)
     .map((c) => ({ label: `${c.countryCode} — ${c.countryName}`, value: c.countryId }));

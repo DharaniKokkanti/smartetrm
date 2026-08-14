@@ -28,7 +28,7 @@ import java.time.LocalDateTime;
  * V149 (updated_at/updated_by new; created_at/created_by upgraded to real
  * @CreatedDate/@CreatedBy fields — see GlAccount.java's doc comment). */
 @Entity
-@Table(name = "product_blend_component")
+@Table(name = "ref_product_blend_component")
 @EntityListeners(AuditingEntityListener.class)
 public class ProductBlendComponent {
 

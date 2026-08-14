@@ -39,7 +39,7 @@ import java.time.LocalDateTime;
  * needs to set them manually.
  */
 @Entity
-@Table(name = "mot_asset_product_approval")
+@Table(name = "ref_mot_asset_product_approval")
 @EntityListeners(AuditingEntityListener.class)
 public class RailcarProductApproval {
 
