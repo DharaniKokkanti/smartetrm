@@ -28,7 +28,7 @@ import java.time.LocalDateTime;
  * updated_at/updated_by added, matching GlAccount's shape.
  */
 @Entity
-@Table(name = "book_trader")
+@Table(name = "ref_book_trader")
 @EntityListeners(AuditingEntityListener.class)
 public class BookTrader {
 

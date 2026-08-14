@@ -9,7 +9,7 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "credit_limit_type")
+@Table(name = "mst_credit_limit_type")
 public class CreditLimitType extends TypeCodeLookup {
     @Id
     @Column(name = "credit_limit_type_id")

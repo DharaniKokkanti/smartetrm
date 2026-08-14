@@ -9,7 +9,7 @@ import jakarta.persistence.Table;
 import com.etrm.system.common.SourceSystemDefaults;
 
 @Entity
-@Table(name = "credit_limit_status_type")
+@Table(name = "mst_credit_limit_status_type")
 public class CreditLimitStatusType extends TypeCodeLookup {
     @Id
     @Column(name = "credit_limit_status_type_id")

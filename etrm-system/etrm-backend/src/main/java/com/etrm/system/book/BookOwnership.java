@@ -44,7 +44,7 @@ import java.time.LocalDateTime;
  * own @PrePersist default is kept as-is (not an audit column).
  */
 @Entity
-@Table(name = "book_ownership")
+@Table(name = "ref_book_ownership")
 @EntityListeners(AuditingEntityListener.class)
 public class BookOwnership {
 

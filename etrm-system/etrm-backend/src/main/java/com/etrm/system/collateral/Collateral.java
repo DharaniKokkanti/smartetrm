@@ -23,7 +23,7 @@ import java.time.LocalDate;
  * entity can't write to it and the frontend doesn't use it either.
  */
 @Entity
-@Table(name = "collateral")
+@Table(name = "ref_collateral")
 public class Collateral extends AuditableEntity {
 
     @Id

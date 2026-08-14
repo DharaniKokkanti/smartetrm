@@ -22,11 +22,11 @@ public interface BookRepository extends JpaRepository<Book, Integer> {
     @Query(value = """
             WITH book_tree AS (
                 SELECT book_id, parent_book_id, 0 AS depth
-                FROM dbo.book
+                FROM dbo.ref_book
                 WHERE book_id = :rootBookId
                 UNION ALL
                 SELECT b.book_id, b.parent_book_id, bt.depth + 1
-                FROM dbo.book b
+                FROM dbo.ref_book b
                 JOIN book_tree bt ON b.parent_book_id = bt.book_id
             )
             SELECT book_id FROM book_tree

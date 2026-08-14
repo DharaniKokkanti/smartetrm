@@ -36,7 +36,7 @@ import java.time.LocalDateTime;
  * real @CreatedDate/@LastModifiedDate JPA auditing.
  */
 @Entity
-@Table(name = "margin_agreement")
+@Table(name = "ref_margin_agreement")
 @EntityListeners(AuditingEntityListener.class)
 public class MarginAgreement {
 

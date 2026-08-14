@@ -45,7 +45,7 @@ import java.util.List;
  * @CreatedBy/@LastModifiedDate/@LastModifiedBy, matching GlAccount's shape.
  */
 @Entity
-@Table(name = "credit_limit")
+@Table(name = "ref_credit_limit")
 @EntityListeners(AuditingEntityListener.class)
 public class CreditLimit {
 

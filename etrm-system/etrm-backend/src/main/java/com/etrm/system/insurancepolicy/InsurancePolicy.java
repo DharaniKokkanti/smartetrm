@@ -18,7 +18,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "insurance_policy")
+@Table(name = "ref_insurance_policy")
 public class InsurancePolicy extends AuditableEntity {
 
     @Id

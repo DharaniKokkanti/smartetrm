@@ -22,7 +22,7 @@ import jakarta.persistence.Version;
  * only DBA/vendor adds rows via migration").
  */
 @Entity
-@Table(name = "commodity_instrument_type_config")
+@Table(name = "mst_commodity_instrument_type_config")
 public class CommodityInstrumentMapEntry {
 
     @EmbeddedId

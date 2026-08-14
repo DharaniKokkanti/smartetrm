@@ -47,9 +47,9 @@ export function MarginAgreementsPage() {
   const save       = useSaveMarginAgreement();
   const deactivate = useDeactivateMarginAgreement();
   const { data: counterparties = [] }        = useCounterparties();
-  const { data: agreementTypeRows = [] }     = useTableRows<{ typeCode: string; typeName: string }>('margin_agreement_type');
-  const { data: valuationFreqRows = [] }     = useTableRows<{ typeCode: string; typeName: string }>('valuation_frequency_type');
-  const { data: governingLawRows = [] }      = useTableRows<{ typeCode: string; typeName: string }>('governing_law_type');
+  const { data: agreementTypeRows = [] }     = useTableRows<{ typeCode: string; typeName: string }>('mst_margin_agreement_type');
+  const { data: valuationFreqRows = [] }     = useTableRows<{ typeCode: string; typeName: string }>('mst_valuation_frequency_type');
+  const { data: governingLawRows = [] }      = useTableRows<{ typeCode: string; typeName: string }>('mst_governing_law_type');
   const { data: currencies = [] }            = useCurrencies();
 
   const agreementTypeOpts = agreementTypeRows.map((r) => ({ value: r.typeCode, label: r.typeName }));

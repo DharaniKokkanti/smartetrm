@@ -33,7 +33,7 @@ import java.time.LocalDateTime;
  * links back to the valuation run that triggered it.
  */
 @Entity
-@Table(name = "margin_call")
+@Table(name = "tran_margin_call")
 @EntityListeners(AuditingEntityListener.class)
 public class MarginCall {
 

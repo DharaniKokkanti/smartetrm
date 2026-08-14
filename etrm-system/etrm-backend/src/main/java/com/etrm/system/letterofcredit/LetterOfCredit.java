@@ -35,7 +35,7 @@ import java.time.LocalDateTime;
  * real @CreatedDate/@LastModifiedDate JPA auditing.
  */
 @Entity
-@Table(name = "letter_of_credit")
+@Table(name = "ref_letter_of_credit")
 @EntityListeners(AuditingEntityListener.class)
 public class LetterOfCredit {
 

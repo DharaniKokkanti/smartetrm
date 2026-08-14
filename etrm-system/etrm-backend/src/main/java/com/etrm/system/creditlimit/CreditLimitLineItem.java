@@ -34,7 +34,7 @@ import java.time.LocalDateTime;
  * @LastModifiedDate/@LastModifiedBy all populate correctly on that insert.
  */
 @Entity
-@Table(name = "credit_limit_line_item")
+@Table(name = "ref_credit_limit_line_item")
 @EntityListeners(AuditingEntityListener.class)
 public class CreditLimitLineItem {
 

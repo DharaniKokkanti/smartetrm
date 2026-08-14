@@ -52,7 +52,7 @@ import java.util.List;
  * is unchanged from before.
  */
 @Entity
-@Table(name = "book")
+@Table(name = "ref_book")
 public class Book extends AuditableEntity {
 
     @Id

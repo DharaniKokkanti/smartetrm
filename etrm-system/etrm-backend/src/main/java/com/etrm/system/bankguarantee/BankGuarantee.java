@@ -18,7 +18,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "bank_guarantee")
+@Table(name = "ref_bank_guarantee")
 public class BankGuarantee extends AuditableEntity {
 
     @Id

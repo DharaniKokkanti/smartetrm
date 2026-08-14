@@ -9,7 +9,7 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "margin_agreement_type")
+@Table(name = "mst_margin_agreement_type")
 public class MarginAgreementType extends TypeCodeLookup {
     @Id
     @Column(name = "margin_agreement_type_id")

@@ -35,7 +35,7 @@ import java.time.LocalDateTime;
  * GlAccount's shape.
  */
 @Entity
-@Table(name = "broker_fee_agreement")
+@Table(name = "ref_broker_fee_agreement")
 @EntityListeners(AuditingEntityListener.class)
 public class BrokerFeeAgreement {
 

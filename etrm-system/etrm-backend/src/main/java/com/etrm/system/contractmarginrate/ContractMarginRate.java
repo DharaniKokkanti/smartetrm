@@ -34,7 +34,7 @@ import java.time.LocalDateTime;
  * same filtered-endpoint rationale as ClearingAccountMarginRate.
  */
 @Entity
-@Table(name = "contract_margin_rate")
+@Table(name = "ref_contract_margin_rate")
 @EntityListeners(AuditingEntityListener.class)
 public class ContractMarginRate {
 

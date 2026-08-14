@@ -32,7 +32,7 @@ import java.time.LocalDateTime;
  * these fresh on the recreate's insert, no service change needed.
  */
 @Entity
-@Table(name = "trader_commodity_limit")
+@Table(name = "ref_trader_commodity_limit")
 @EntityListeners(AuditingEntityListener.class)
 public class TraderCommodityLimit {
 

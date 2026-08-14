@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
  * limit form (frontend's CreditLimitInput explicitly omits 'alerts').
  */
 @Entity
-@Table(name = "credit_limit_alert")
+@Table(name = "tran_credit_limit_alert")
 public class CreditLimitAlert {
 
     @Id

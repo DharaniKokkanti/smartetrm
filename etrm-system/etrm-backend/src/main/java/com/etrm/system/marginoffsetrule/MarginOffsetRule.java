@@ -33,7 +33,7 @@ import java.time.LocalDateTime;
  * as ContractMarginRate/ClearingAccountMarginRate.
  */
 @Entity
-@Table(name = "margin_offset_rule")
+@Table(name = "ref_margin_offset_rule")
 @EntityListeners(AuditingEntityListener.class)
 public class MarginOffsetRule {
 

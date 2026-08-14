@@ -35,7 +35,7 @@ import java.time.LocalDateTime;
  * server-side filtering and would force a full-table client-side scan.
  */
 @Entity
-@Table(name = "clearing_account_margin_rate")
+@Table(name = "ref_clearing_account_margin_rate")
 @EntityListeners(AuditingEntityListener.class)
 public class ClearingAccountMarginRate {
 

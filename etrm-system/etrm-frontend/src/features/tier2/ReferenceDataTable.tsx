@@ -437,7 +437,7 @@ export function ReferenceDataTable({ table }: Props) {
   // fix can't paper over — its FK dropdowns stay empty until that future
   // controller work lands.
   const fkTables = useMemo(
-    () => Array.from(new Set(editableColumns.filter((c) => c.kind === 'foreign_key' && c.foreignKeyTable && c.foreignKeyTable !== 'country' && !DEDICATED_ENTITY_FK_TABLES.has(c.foreignKeyTable)).map((c) => c.foreignKeyTable as string))),
+    () => Array.from(new Set(editableColumns.filter((c) => c.kind === 'foreign_key' && c.foreignKeyTable && c.foreignKeyTable !== 'ref_country' && !DEDICATED_ENTITY_FK_TABLES.has(c.foreignKeyTable)).map((c) => c.foreignKeyTable as string))),
     [editableColumns],
   );
   const fkResults = useQueries({
@@ -527,7 +527,7 @@ export function ReferenceDataTable({ table }: Props) {
   const fkOptions = useMemo(() => {
     const map: Record<string, { value: number; label: string }[]> = {};
     fkTargets.forEach(([key, { table, category }]) => {
-      if (table === 'country') {
+      if (table === 'ref_country') {
         map[key] = countryFkOptions;
         return;
       }

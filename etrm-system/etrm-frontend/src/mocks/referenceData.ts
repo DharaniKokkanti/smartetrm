@@ -107,7 +107,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'contact_role', label: 'Contact Roles', pk: 'contactRoleId', group: 'Organization & Users', order: 1,
+    name: 'mst_contact_role', label: 'Contact Roles', pk: 'contactRoleId', group: 'Organization & Users', order: 1,
     subGroup: 'People', description: 'Functional roles assigned to contacts on counterparties and legal entities — e.g. Trader, Back Office, Legal, Compliance. A contact can hold multiple roles against different entities.',
     rows: [
       { contactRoleId:  1, typeCode: 'TRADER',      typeName: 'Trader',      sortOrder:  1, isActive: true },
@@ -165,7 +165,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'book_type', label: 'Book Types', pk: 'bookTypeId', group: 'Organization & Users', order: 2,
+    name: 'mst_book_type', label: 'Book Types', pk: 'bookTypeId', group: 'Organization & Users', order: 2,
     subGroup: 'Trading', description: 'Classifies trading books by mandate — proprietary trading, hedging, arbitrage, client facilitation, or risk management. Each book type carries distinct P&L attribution and risk limit rules.',
     rows: [
       { bookTypeId: 1, typeCode: 'TRADING',   typeName: 'Trading',   description: 'Proprietary trading book for physical and financial positions',  sortOrder: 1, isActive: true },
@@ -177,7 +177,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'legal_entity_type', label: 'Legal Entity Types', pk: 'legalEntityTypeId', group: 'Organization & Users', order: 3,
+    name: 'mst_legal_entity_type', label: 'Legal Entity Types', pk: 'legalEntityTypeId', group: 'Organization & Users', order: 3,
     subGroup: 'Entity', description: 'Legal form of each internal entity registered in the system — trading company, subsidiary, branch, holding company, or broker. Determines regulatory scope and guarantor eligibility.',
     rows: [
       { legalEntityTypeId: 1, typeCode: 'TRADING_COMPANY', typeName: 'Trading Company', description: 'Standalone commodity trading company',             sortOrder: 1, isActive: true },
@@ -231,7 +231,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'tax_type', label: 'Tax Types', pk: 'taxTypeId', group: 'Credit & Collateral', order: 8,
+    name: 'mst_tax_type', label: 'Tax Types', pk: 'taxTypeId', group: 'Credit & Collateral', order: 8,
     subGroup: 'Fiscal', description: 'Tax and business registration identifier types used across counterparty and legal entity records — VAT, GST, EIN, UTR, TIN, ABN, SIREN, and others. Required for invoice generation and regulatory reporting.',
     rows: [
       { taxTypeId: 1, typeCode: 'VAT',   typeName: 'VAT',   description: 'Value Added Tax (EU, UK, and most jurisdictions)',      sortOrder: 1, isActive: true },
@@ -246,7 +246,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'license_type', label: 'License Types', pk: 'licenseTypeId', group: 'Credit & Collateral', order: 9,
+    name: 'ref_license_type', label: 'License Types', pk: 'licenseTypeId', group: 'Credit & Collateral', order: 9,
     subGroup: 'Fiscal', description: 'Regulatory and trading license types held by legal entities and counterparties — broker licenses, market participant registrations, import/export licenses, environmental permits. Parent table for license_registration.licenseTypeId FK.',
     rows: [
       { licenseTypeId: 1, typeCode: 'BROKER',                typeName: 'Broker License',                 description: 'State/national license to broker energy or commodity trades',        sortOrder: 1, isActive: true },
@@ -431,7 +431,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
   // power_product_detail.default_load_shape_id already FKs to it).
   // ── Credit & Risk classification tables ───────────────────────────────────
   {
-    name: 'margin_agreement_type', label: 'Margin Agreement Types', pk: 'marginAgreementTypeId', group: 'Credit & Collateral', order: 1,
+    name: 'mst_margin_agreement_type', label: 'Margin Agreement Types', pk: 'marginAgreementTypeId', group: 'Credit & Collateral', order: 1,
     subGroup: 'Margin & Collateral', description: 'Types of credit support annex (CSA) and pledge arrangements governing how collateral is exchanged between two counterparties. CSA_BILATERAL = mutual obligation. CSA_ONE_WAY = only one party posts. PLEDGE = title transfer collateral. CTA = collateral transfer agreement.',
     rows: [
       { marginAgreementTypeId: 1, typeCode: 'CSA_BILATERAL',   typeName: 'CSA Bilateral',        description: 'Both parties can be required to post collateral depending on MTM direction. Standard under ISDA 2002 Credit Support Annex (English law).', sortOrder: 10, isActive: true },
@@ -442,7 +442,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'valuation_frequency_type', label: 'Valuation Frequencies', pk: 'valuationFrequencyTypeId', group: 'Credit & Collateral', order: 2,
+    name: 'mst_valuation_frequency_type', label: 'Valuation Frequencies', pk: 'valuationFrequencyTypeId', group: 'Credit & Collateral', order: 2,
     subGroup: 'Margin & Collateral', description: 'How often MTM valuation is performed and compared against the CSA threshold to determine whether a margin call must be issued. Daily is the market standard under ISDA and EMIR clearing rules.',
     rows: [
       { valuationFrequencyTypeId: 1, typeCode: 'DAILY',   typeName: 'Daily',   description: 'MTM valuation performed every business day. Margin calls issued next business day if call amount exceeds MTA. Standard under ISDA 2002 and EMIR.', sortOrder: 10, isActive: true },
@@ -451,7 +451,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'governing_law_type', label: 'CSA Governing Laws', pk: 'governingLawTypeId', group: 'Credit & Collateral', order: 3,
+    name: 'mst_governing_law_type', label: 'CSA Governing Laws', pk: 'governingLawTypeId', group: 'Credit & Collateral', order: 3,
     subGroup: 'Margin & Collateral', description: 'Legal jurisdiction under which the Credit Support Annex is governed. English law and New York law are the two dominant ISDA CSA jurisdictions; each has different title-transfer vs. security-interest treatment of collateral.',
     rows: [
       { governingLawTypeId: 1, typeCode: 'ENGLISH',  typeName: 'English Law',   description: 'ISDA 1995 / 2016 Credit Support Annex (Transfer — English law). Collateral is transferred by way of title, not security interest. Most common in Europe and Asia.', sortOrder: 10, isActive: true },
@@ -460,7 +460,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'credit_limit_type', label: 'Credit Limit Types', pk: 'creditLimitTypeId', group: 'Credit & Collateral', order: 4,
+    name: 'mst_credit_limit_type', label: 'Credit Limit Types', pk: 'creditLimitTypeId', group: 'Credit & Collateral', order: 4,
     subGroup: 'Credit Limits', description: 'Classifies what type of credit exposure the limit controls. A single counterparty typically has separate limits for each type — pre-settlement, settlement, and MTM exposure are independently tracked against their own approved limits.',
     rows: [
       { creditLimitTypeId: 1, typeCode: 'PRE_SETTLEMENT',  typeName: 'Pre-Settlement',    description: 'Forward exposure risk — the replacement cost if the counterparty defaults before maturity. Calculated as sum of positive MTM of all open trades. Most important limit type for long-dated OTC portfolios.', sortOrder: 10, isActive: true },
@@ -470,7 +470,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'credit_limit_status_type', label: 'Credit Limit Statuses', pk: 'creditLimitStatusTypeId', group: 'Credit & Collateral', order: 5,
+    name: 'mst_credit_limit_status_type', label: 'Credit Limit Statuses', pk: 'creditLimitStatusTypeId', group: 'Credit & Collateral', order: 5,
     subGroup: 'Credit Limits', description: 'Lifecycle status of a credit limit record. Only ACTIVE limits are checked during trade booking. SUSPENDED limits block new trades but do not cancel existing ones. EXPIRED limits are automatically transitioned by the system at end of day on the expiry date.',
     rows: [
       { creditLimitStatusTypeId: 1, typeCode: 'ACTIVE',    typeName: 'Active',    description: 'Limit is in effect and enforced. New trades are validated against this limit during booking. Utilisaton tracked in real time.',                                   sortOrder: 10, isActive: true },
@@ -480,7 +480,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'lc_type', label: 'Letter of Credit Types', pk: 'lcTypeId', group: 'Credit & Collateral', order: 6,
+    name: 'mst_lc_type', label: 'Letter of Credit Types', pk: 'lcTypeId', group: 'Credit & Collateral', order: 6,
     subGroup: 'Letters of Credit', description: 'Category of letter of credit, which determines the conditions under which it can be drawn and whether it can be transferred or renewed. Most commodity trades use Standby or Documentary LCs. Governed by ICC UCP 600 (documentary) or ISP98 (standby).',
     rows: [
       { lcTypeId: 1, typeCode: 'STANDBY',       typeName: 'Standby LC',        description: 'Independent payment guarantee — drawn only on default or non-performance. No physical document presentation required. Governed by ISP98. Used as general credit support for commodity trades.', sortOrder: 10, isActive: true },
@@ -490,7 +490,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'lc_status_type', label: 'LC Statuses', pk: 'lcStatusTypeId', group: 'Credit & Collateral', order: 7,
+    name: 'mst_lc_status_type', label: 'LC Statuses', pk: 'lcStatusTypeId', group: 'Credit & Collateral', order: 7,
     subGroup: 'Letters of Credit', description: 'Lifecycle status of a letter of credit record. Tracks the LC from issuance through partial or full drawdown to expiry or cancellation. PARTIALLY_DRAWN and FULLY_DRAWN are system-computed based on drawdown_amount vs lc_amount.',
     rows: [
       { lcStatusTypeId: 1, typeCode: 'ACTIVE',           typeName: 'Active',           description: 'LC is current and available to draw against. Expiry date is in the future and face value is not fully drawn.',                                                                     sortOrder: 10, isActive: true },
@@ -944,7 +944,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('balancingAuthorityId', 'ID',          'number',  false, true,  null),
       col('baCode',               'BA Code',     'string',  false, false, 20),
       col('baName',               'Name',        'string',  false, false, 200),
-      col('countryId',            'Country',     'foreign_key', false, false, null, null, 'country'),
+      col('countryId',            'Country',     'foreign_key', false, false, null, null, 'ref_country'),
       col('marketType',           'Market Type', 'enum',    false, false, null, ['ISO', 'RTO', 'TSO', 'VERTICALLY_INTEGRATED', 'OTHER']),
       col('isActive',             'Active',      'boolean', false, false, null),
     ],
@@ -1168,7 +1168,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('brandName',          'Brand Name',        'string',      false, false, 150),
       col('producerName',       'Producer',          'string',      true,  false, 200),
       col('metalForm',          'Metal Form',        'enum',        false, false, null, ['CATHODE', 'CATHODE_FULL_PLATE', 'INGOT', 'WIRE_ROD', 'PIG', 'BAR', 'GRANULES', 'BRIQUETTE', 'SLAB', 'OTHER']),
-      col('countryOfOriginId',  'Country of Origin', 'foreign_key', true,  false, null, null, 'country'),
+      col('countryOfOriginId',  'Country of Origin', 'foreign_key', true,  false, null, null, 'ref_country'),
       col('approvalDate',       'Approval Date',     'date',        true,  false, null),
       col('delistingDate',      'Delisting Date',    'date',        true,  false, null),
       col('isActive',           'Active',            'boolean',     false, false, null),
@@ -1263,14 +1263,14 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
   // no dedicated page and no frontend mock at all. All four already appear
   // in MasterDataHub.tsx's `live: false` backlog — confirmed planned, not an
   // overlooked concept.
-  insurance_provider: {
-    tableName: 'insurance_provider', displayName: 'Insurance Providers', primaryKeyColumn: 'providerId', isTemporal: false,
+  ref_insurance_provider: {
+    tableName: 'ref_insurance_provider', displayName: 'Insurance Providers', primaryKeyColumn: 'providerId', isTemporal: false,
     columns: [
       col('providerId',      'ID',                'number',      false, true,  null),
       col('providerCode',    'Code',              'string',      false, false, 20),
       col('providerName',    'Name',              'string',      false, false, 200),
       col('providerType',    'Provider Type',     'enum',        false, false, null, ['PI_CLUB', 'UNDERWRITER', 'INSURER', 'BROKER', 'REINSURER']),
-      col('countryId',       'Country',           'foreign_key', true,  false, null, null, 'country'),
+      col('countryId',       'Country',           'foreign_key', true,  false, null, null, 'ref_country'),
       col('creditRatingId',  'Credit Rating',     'foreign_key', true,  false, null, null, 'ref_credit_rating'),
       col('counterpartyId',  'Counterparty',      'foreign_key', true,  false, null, null, 'ref_counterparty'),
       col('isActive',        'Active',            'boolean',     false, false, null),
@@ -1300,7 +1300,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('reportCode',         'Code',               'string',  false, false, 30),
       col('reportName',         'Name',               'string',  false, false, 200),
       col('regulation',         'Regulation',         'enum',    false, false, null, ['EMIR', 'REMIT', 'CFTC', 'DODD_FRANK', 'MIFID2', 'SFTR', 'UK_EMIR', 'ASIC', 'MAS', 'INTERNAL', 'OTHER']),
-      col('jurisdictionId',     'Jurisdiction',       'foreign_key', true, false, null, null, 'country'),
+      col('jurisdictionId',     'Jurisdiction',       'foreign_key', true, false, null, null, 'ref_country'),
       col('submissionTarget',   'Submission Target',  'string',  true,  false, 100),
       col('reportingDeadline',  'Reporting Deadline',  'string', true,  false, 100),
       col('reportFormat',        'Report Format',       'string', true,  false, 20),
@@ -1317,7 +1317,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('operatorName',    'Name',          'string',      false, false, 200),
       col('operatorType',    'Operator Type', 'foreign_key', false, false, null, null, 'ref_lookup_value', 'OPERATOR_TYPE'),
       col('motTypeId',       'MOT Type',      'foreign_key', true,  false, null, null, 'mst_mot_type'),
-      col('countryId',       'Country',       'foreign_key', true,  false, null, null, 'country'),
+      col('countryId',       'Country',       'foreign_key', true,  false, null, null, 'ref_country'),
       col('counterpartyId',  'Counterparty',  'foreign_key', true,  false, null, null, 'ref_counterparty'),
       col('isActive',        'Active',        'boolean',     false, false, null),
       col('notes',           'Notes',         'string',      true,  false, 500),
@@ -1330,8 +1330,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
   // text); event_category/event_type and external_system have real schemas
   // but no consumer yet (no notification engine / integrations built) — added
   // as plain reference data ahead of those features.
-  collateral_type: {
-    tableName: 'collateral_type', displayName: 'Collateral Types', primaryKeyColumn: 'collateralTypeId', isTemporal: false,
+  mst_collateral_type: {
+    tableName: 'mst_collateral_type', displayName: 'Collateral Types', primaryKeyColumn: 'collateralTypeId', isTemporal: false,
     columns: [
       col('collateralTypeId',   'ID',                'number',  false, true,  null),
       col('typeCode',           'Code',              'string',  false, false, 30),
@@ -1342,8 +1342,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('description',        'Description',       'string',  true,  false, 300),
     ],
   },
-  event_category: {
-    tableName: 'event_category', displayName: 'Event Categories', primaryKeyColumn: 'categoryId', isTemporal: false,
+  mst_event_category: {
+    tableName: 'mst_event_category', displayName: 'Event Categories', primaryKeyColumn: 'categoryId', isTemporal: false,
     columns: [
       col('categoryId',   'ID',          'number',  false, true,  null),
       col('categoryCode', 'Code',        'string',  false, false, 30),
@@ -1352,11 +1352,11 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',     'Active',      'boolean', false, false, null),
     ],
   },
-  event_type: {
-    tableName: 'event_type', displayName: 'Event Types', primaryKeyColumn: 'eventTypeId', isTemporal: false,
+  mst_event_type: {
+    tableName: 'mst_event_type', displayName: 'Event Types', primaryKeyColumn: 'eventTypeId', isTemporal: false,
     columns: [
       col('eventTypeId',           'ID',                  'number',      false, true,  null),
-      col('categoryId',            'Category',            'foreign_key', false, false, null, null, 'event_category'),
+      col('categoryId',            'Category',            'foreign_key', false, false, null, null, 'mst_event_category'),
       col('eventCode',             'Code',                'string',      false, false, 50),
       col('eventName',             'Name',                'string',      false, false, 200),
       col('entityType',            'Entity Type',         'enum',        false, false, null, ['TRADE', 'POSITION', 'DELIVERY', 'NOMINATION', 'SETTLEMENT', 'INVOICE', 'PAYMENT', 'RISK', 'CREDIT', 'MARGIN', 'MARKET_DATA', 'SYSTEM', 'USER', 'COUNTERPARTY', 'VESSEL', 'PIPELINE', 'OTHER']),
@@ -1376,8 +1376,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
   // Nullable — not a required field on external_system. (V104's sibling
   // external_system_type/system_type FK was dropped again in V106 — no
   // longer required, per explicit product direction.)
-  connection_type: {
-    tableName: 'connection_type', displayName: 'Connection Types', primaryKeyColumn: 'connectionTypeId', isTemporal: false,
+  ref_connection_type: {
+    tableName: 'ref_connection_type', displayName: 'Connection Types', primaryKeyColumn: 'connectionTypeId', isTemporal: false,
     columns: [
       col('connectionTypeId', 'ID',          'number',  false, true,  null),
       col('typeCode',         'Code',        'string',  false, false, 50),
@@ -1394,7 +1394,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('systemCode',           'Code',           'string',  false, false, 30),
       col('systemName',           'Name',           'string',  false, false, 150),
       col('vendorName',           'Vendor',         'string',  true,  false, 150),
-      col('connectionTypeId',     'Connection Type', 'foreign_key', true, false, null, null, 'connection_type'),
+      col('connectionTypeId',     'Connection Type', 'foreign_key', true, false, null, null, 'ref_connection_type'),
       col('baseUrl',              'Base URL',       'string',  true,  false, 500),
       col('ownerTeam',            'Owner Team',     'string',  true,  false, 100),
       col('isActive',             'Active',         'boolean', false, false, null),
@@ -1574,7 +1574,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
     columns: [
       col('lifecycleId',            'ID',                  'number',      false, true,  null),
       col('commodityId',             'Commodity',           'foreign_key', false, false, null, null, 'ref_commodity'),
-      col('countryId',                 'Country',             'foreign_key', false, false, null, null, 'country'),
+      col('countryId',                 'Country',             'foreign_key', false, false, null, null, 'ref_country'),
       col('cropYearLabel',              'Crop Year',           'string',      false, false, 20),
       col('harvestStartDate',             'Harvest Start',       'date',        false, false, null),
       col('harvestEndDate',                 'Harvest End',         'date',        false, false, null),
@@ -1643,8 +1643,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('taxCode',      'Code',        'string',      false, false, 20),
       col('description',  'Description', 'string',      false, false, 200),
       col('ratePercent',  'Rate %',      'number',      false, false, null, null, null, null, true),
-      col('taxTypeId',    'Tax Type',    'foreign_key', true,  false, null, null, 'tax_type'),
-      col('countryId',    'Jurisdiction','foreign_key', true,  false, null, null, 'country'),
+      col('taxTypeId',    'Tax Type',    'foreign_key', true,  false, null, null, 'mst_tax_type'),
+      col('countryId',    'Jurisdiction','foreign_key', true,  false, null, null, 'ref_country'),
       col('isActive',     'Active',      'boolean',     false, false, null),
     ],
   },
@@ -1654,11 +1654,11 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
   // matching mock entry — the gap a MasterDataHub review surfaced as
   // "not allowed to add" cards. Column shapes below mirror each table's real
   // CREATE TABLE exactly (same source migration cited per table).
-  book_level_type: {
+  ref_book_level_type: {
     // V123/V124 — sort_order is TINYINT not SMALLINT elsewhere, and the code/
     // name columns are level_type_code/level_type_name, not the standard
     // typeCode/typeName pair — hence its own entry rather than the makeLookupMeta factory.
-    tableName: 'book_level_type', displayName: 'Book Level Types', primaryKeyColumn: 'levelTypeId', isTemporal: false,
+    tableName: 'ref_book_level_type', displayName: 'Book Level Types', primaryKeyColumn: 'levelTypeId', isTemporal: false,
     columns: [
       col('levelTypeId',   'ID',         'number',  false, true,  null),
       col('levelTypeCode', 'Code',       'string',  false, false, 30),
@@ -1773,7 +1773,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('ruleName',                 'Rule Name',           'string',      false, false, 200),
       col('loadLocationId',           'Load Location',       'foreign_key', true,  false, null, null, 'ref_location'),
       col('dischLocationId',          'Discharge Location',  'foreign_key', true,  false, null, null, 'ref_location'),
-      col('countryId',                'Country',             'foreign_key', true,  false, null, null, 'country'),
+      col('countryId',                'Country',             'foreign_key', true,  false, null, null, 'ref_country'),
       col('legalEntityId',            'Legal Entity',        'foreign_key', true,  false, null, null, 'ref_legal_entity'),
       col('counterpartyId',           'Counterparty',        'foreign_key', true,  false, null, null, 'ref_counterparty'),
       col('productId',                'Product',             'foreign_key', true,  false, null, null, 'ref_product'),
@@ -1812,8 +1812,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
     columns: [
       col('customsDutyRuleId',        'ID',                  'number',      false, true,  null),
       col('ruleName',                 'Rule Name',           'string',      false, false, 200),
-      col('originCountryId',          'Origin Country',      'foreign_key', true,  false, null, null, 'country'),
-      col('destinationCountryId',     'Destination Country', 'foreign_key', true,  false, null, null, 'country'),
+      col('originCountryId',          'Origin Country',      'foreign_key', true,  false, null, null, 'ref_country'),
+      col('destinationCountryId',     'Destination Country', 'foreign_key', true,  false, null, null, 'ref_country'),
       col('loadLocationId',           'Load Location',       'foreign_key', true,  false, null, null, 'ref_location'),
       col('dischLocationId',          'Discharge Location',  'foreign_key', true,  false, null, null, 'ref_location'),
       col('productId',                'Product',             'foreign_key', true,  false, null, null, 'ref_product'),
@@ -1910,18 +1910,18 @@ export const registrySeed: RegistryEntry[] = [
   // V68 — metal_brand: LME-style approved brand register (producer + metal form) — the real mechanism determining what physical metal is deliverable
   { registryId: 219, tableName: 'ref_metal_brand',              displayName: 'Metal Brand Register',      moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Exchange-approved producer brands by metal form (cathode, ingot, wire rod, etc.) — only brands on this list may be placed on warrant and delivered against an exchange contract.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 7 },
   // V70 — genuine registry orphans found via a whole-project master-data review (all four already in MasterDataHub.tsx's live:false backlog)
-  { registryId: 220, tableName: 'insurance_provider',       displayName: 'Insurance Providers',        moduleGroup: 'Credit & Collateral',   subGroup: 'Insurance',   description: 'Insurance companies, P&I clubs, and underwriters — Lloyd\'s syndicates, AIG, Zurich, Euler Hermes — with contact and credit rating, for cargo/credit/political-risk coverage.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 8 },
+  { registryId: 220, tableName: 'ref_insurance_provider',       displayName: 'Insurance Providers',        moduleGroup: 'Credit & Collateral',   subGroup: 'Insurance',   description: 'Insurance companies, P&I clubs, and underwriters — Lloyd\'s syndicates, AIG, Zurich, Euler Hermes — with contact and credit rating, for cargo/credit/political-risk coverage.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 8 },
   { registryId: 221, tableName: 'ref_interest_rate_index',      displayName: 'Interest Rate Indices',      moduleGroup: 'Pricing & Rates',       subGroup: 'FX',          description: 'Reference rate indices (SOFR, EURIBOR, SONIA) with day-count/compounding conventions — used for financing costs, late-payment interest, and commodity-linked structures.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 7 },
   { registryId: 222, tableName: 'mst_regulatory_report_type',   displayName: 'Regulatory Report Types',    moduleGroup: 'Sanctions & Regulatory Reporting', subGroup: 'Reporting', description: 'Regulatory report type definitions — EMIR, REMIT, CFTC, MiFID II — with submission target and reporting deadline, driving which reports a trade requires.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
   { registryId: 223, tableName: 'ref_transport_operator',       displayName: 'Transport Operators',        moduleGroup: 'Logistics & Delivery',  subGroup: 'Transport',   description: 'Haulage companies, rail/pipeline operators, ship managers, and terminal operators — coverage area, primary transport mode, and commodity approvals.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 9 },
   // V71 — collateral_type (connects to a known margin_agreement gap), event_category/event_type and external_system (real schema, no consumer built yet)
-  { registryId: 224, tableName: 'collateral_type', displayName: 'Collateral Types', moduleGroup: 'Credit & Collateral',   subGroup: 'Collateral', description: 'Eligible collateral asset classes and their standard haircut % — cash, government/corporate bonds, letters of credit, bank guarantees. Reference for margin agreement collateral eligibility.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 10 },
-  { registryId: 225, tableName: 'event_category',  displayName: 'Event Categories', moduleGroup: 'Organization & Users', subGroup: 'System',     description: 'Top-level classification for system workflow/lifecycle events — Trade, Delivery, Settlement, Risk, Credit, Market Data, Regulatory.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 10 },
-  { registryId: 226, tableName: 'event_type',      displayName: 'Event Types',     moduleGroup: 'Organization & Users', subGroup: 'System',     description: 'Full catalogue of system event codes with severity, SLA, and workflow flags (requires action/approval, triggers notification) — drives the notification engine and audit trail.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 11 },
+  { registryId: 224, tableName: 'mst_collateral_type', displayName: 'Collateral Types', moduleGroup: 'Credit & Collateral',   subGroup: 'Collateral', description: 'Eligible collateral asset classes and their standard haircut % — cash, government/corporate bonds, letters of credit, bank guarantees. Reference for margin agreement collateral eligibility.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 10 },
+  { registryId: 225, tableName: 'mst_event_category',  displayName: 'Event Categories', moduleGroup: 'Organization & Users', subGroup: 'System',     description: 'Top-level classification for system workflow/lifecycle events — Trade, Delivery, Settlement, Risk, Credit, Market Data, Regulatory.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 10 },
+  { registryId: 226, tableName: 'mst_event_type',      displayName: 'Event Types',     moduleGroup: 'Organization & Users', subGroup: 'System',     description: 'Full catalogue of system event codes with severity, SLA, and workflow flags (requires action/approval, triggers notification) — drives the notification engine and audit trail.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 11 },
   { registryId: 227, tableName: 'external_system', displayName: 'External Systems', moduleGroup: 'Organization & Users', subGroup: 'System',    description: 'Integration endpoints — market data vendors, ERP, CTRM, shipping, bank, regulatory systems — for the polymorphic external_system_mapping crosswalk.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 12 },
   // V105 — connection_type: parent lookup for external_system.connectionTypeId
   // (V104's sibling external_system_type registry row was dropped in V106)
-  { registryId: 243, tableName: 'connection_type', displayName: 'Connection Types', moduleGroup: 'Organization & Users', subGroup: 'System', description: 'Integration transport mechanisms — API, SFTP, File, Manual, Message Queue. Parent table for external_system.connectionTypeId FK.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 13 },
+  { registryId: 243, tableName: 'ref_connection_type', displayName: 'Connection Types', moduleGroup: 'Organization & Users', subGroup: 'System', description: 'Integration transport mechanisms — API, SFTP, File, Manual, Message Queue. Parent table for external_system.connectionTypeId FK.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 13 },
   // V72 — credit_term: reusable credit-facility term template, referenced by cp_commercial_terms
   { registryId: 228, tableName: 'ref_credit_term', displayName: 'Credit Terms', moduleGroup: 'Counterparties & Agreements', subGroup: 'Terms', description: 'Reusable credit facility terms — credit period, required collateral type, margin call threshold, netting eligibility. Assigned to a counterparty via CP Commercial Terms.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
   // V73 — fx_rate, settlement_calendar, trade_repository
@@ -1956,7 +1956,7 @@ export const registrySeed: RegistryEntry[] = [
   { registryId: 273, tableName: 'ref_throughput_agreement',     displayName: 'Throughput Agreements',     moduleGroup: 'Supply & Distribution', description: 'Contracted third-party storage or throughput rights at a terminal the company does not own — the storage-side analogue of pipeline_tariff.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 6 },
   { registryId: 274, tableName: 'ref_product_interface_rule',   displayName: 'Product Interface Rules',   moduleGroup: 'Supply & Distribution', description: 'Minimum flush volume and downgrade rules when switching incompatible products through a shared line or rack.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 7 },
   { registryId: 275, tableName: 'ref_road_tariff',               displayName: 'Road (Truck) Tariffs',      moduleGroup: 'Supply & Distribution', description: 'Truck freight rates by route — flat per load, per km, per MT/BBL — with fuel surcharge and minimum charge. The road-transport analogue of pipeline_tariff.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 8 },
-  { registryId: 276, tableName: 'book_level_type',           displayName: 'Book Level Types',          moduleGroup: 'Organization & Users',  description: 'Admin-definable hierarchy levels for the Book tree (Desk, Strategy, Trading Book, or a custom level such as Location/Region). Parent table for book.book_level_type_id FK.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 14 },
+  { registryId: 276, tableName: 'ref_book_level_type',           displayName: 'Book Level Types',          moduleGroup: 'Organization & Users',  description: 'Admin-definable hierarchy levels for the Book tree (Desk, Strategy, Trading Book, or a custom level such as Location/Region). Parent table for book.book_level_type_id FK.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 14 },
   // V188 — resolves which tax_code applies to a trade + import/export customs duty
   { registryId: 277, tableName: 'tax_rule',           displayName: 'Tax Rules',           moduleGroup: 'Finance & Settlement', subGroup: 'Tax & Duty Rules', description: 'Resolves which tax_code (VAT rate) applies to a trade — by location, jurisdiction, legal entity, counterparty, product, direction, and customs movement status — and whether a match should actually generate a bookable authority-cost line.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 11 },
   { registryId: 278, tableName: 'customs_duty_rule', displayName: 'Customs Duty Rules', moduleGroup: 'Finance & Settlement', subGroup: 'Tax & Duty Rules', description: 'Import/export customs duty rules — origin/destination country pair, product, ad valorem % or flat rate, HS classification. Separate concept from VAT/tax_rule.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 12 },
@@ -2409,7 +2409,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { counterpartyId: 2, cpCode: 'GLENCORE', legalName: 'Glencore International AG' },
     { counterpartyId: 3, cpCode: 'SHELLPLC', legalName: 'Shell plc' },
   ],
-  insurance_provider: [
+  ref_insurance_provider: [
     { providerId: 1, providerCode: 'LLOYDS-SYN', providerName: "Lloyd's of London (Syndicate 2623)", providerType: 'UNDERWRITER', countryId: 1, creditRatingId: 1, counterpartyId: null, isActive: true, notes: 'Marine cargo and P&I risks — subscribes via broker slip.' },
     { providerId: 2, providerCode: 'NORTH-PANDI', providerName: 'North of England P&I Association', providerType: 'PI_CLUB', countryId: 1, creditRatingId: 2, counterpartyId: null, isActive: true, notes: 'Protection & Indemnity cover for chartered/owned tonnage.' },
     { providerId: 3, providerCode: 'AIG-MARINE', providerName: 'AIG Marine Insurance', providerType: 'INSURER', countryId: 2, creditRatingId: 2, counterpartyId: null, isActive: true, notes: 'Cargo and political risk insurer.' },
@@ -2432,7 +2432,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { operatorId: 2, operatorCode: 'NORTHWARD-RAIL',  operatorName: 'Northward Rail Freight', operatorType: 7, motTypeId: 4, countryId: 2, counterpartyId: null, isActive: true, notes: 'Unit-train bulk rail operator for grain and refined products.' },
     { operatorId: 3, operatorCode: 'RHINE-BARGE',     operatorName: 'Rhine Barge Logistics',  operatorType: 6, motTypeId: 5, countryId: 3, counterpartyId: null, isActive: true, notes: 'Inland waterway barge operator, ARA region.' },
   ],
-  collateral_type: [
+  mst_collateral_type: [
     { collateralTypeId: 1, typeCode: 'CASH_USD', typeName: 'Cash USD',                    assetClass: 'CASH',             standardHaircutPct: 0.0,  isActive: true, description: 'USD cash collateral.' },
     { collateralTypeId: 2, typeCode: 'CASH_EUR', typeName: 'Cash EUR',                    assetClass: 'CASH',             standardHaircutPct: 0.0,  isActive: true, description: 'EUR cash collateral.' },
     { collateralTypeId: 3, typeCode: 'GOV_US',   typeName: 'US Treasury Bonds',           assetClass: 'GOVERNMENT_BOND',  standardHaircutPct: 2.0,  isActive: true, description: 'US Government securities.' },
@@ -2441,7 +2441,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { collateralTypeId: 6, typeCode: 'LC',       typeName: 'Letter of Credit',            assetClass: 'LETTER_OF_CREDIT', standardHaircutPct: 0.0,  isActive: true, description: 'Bank-issued letter of credit.' },
     { collateralTypeId: 7, typeCode: 'BG',       typeName: 'Bank Guarantee',              assetClass: 'BANK_GUARANTEE',   standardHaircutPct: 0.0,  isActive: true, description: 'Bank-issued guarantee.' },
   ],
-  event_category: [
+  mst_event_category: [
     { categoryId: 1, categoryCode: 'TRADE',       categoryName: 'Trade Lifecycle',      description: 'Events related to trade creation and lifecycle',       isActive: true },
     { categoryId: 2, categoryCode: 'DELIVERY',    categoryName: 'Delivery & Logistics', description: 'Physical delivery and logistics events',                isActive: true },
     { categoryId: 3, categoryCode: 'SETTLEMENT',  categoryName: 'Settlement & Payment', description: 'Settlement, invoicing, and payment events',             isActive: true },
@@ -2450,7 +2450,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { categoryId: 6, categoryCode: 'MARKET_DATA', categoryName: 'Market Data',          description: 'Curve loading, fixing, and data quality events',        isActive: true },
     { categoryId: 7, categoryCode: 'REGULATORY',  categoryName: 'Regulatory',           description: 'Regulatory reporting and compliance events',            isActive: true },
   ],
-  event_type: [
+  mst_event_type: [
     { eventTypeId: 1, categoryId: 1, eventCode: 'TRADE_CREATED',   eventName: 'Trade Created',                   entityType: 'TRADE',  severity: 'INFO',    requiresAction: false, requiresApproval: false, triggersNotification: true,  slaMinutes: null, isReportable: true,  isActive: true, description: null },
     { eventTypeId: 2, categoryId: 1, eventCode: 'TRADE_AMENDED',   eventName: 'Trade Amended',                   entityType: 'TRADE',  severity: 'INFO',    requiresAction: false, requiresApproval: true,  triggersNotification: true,  slaMinutes: null, isReportable: true,  isActive: true, description: null },
     { eventTypeId: 3, categoryId: 1, eventCode: 'TRADE_CANCELLED', eventName: 'Trade Cancelled',                 entityType: 'TRADE',  severity: 'WARNING', requiresAction: false, requiresApproval: true,  triggersNotification: true,  slaMinutes: null, isReportable: true,  isActive: true, description: null },
@@ -2458,7 +2458,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { eventTypeId: 5, categoryId: 5, eventCode: 'MARGIN_CALL_ISSUED', eventName: 'Margin Call Issued',           entityType: 'MARGIN', severity: 'ALERT',   requiresAction: true,  requiresApproval: false, triggersNotification: true,  slaMinutes: 1440, isReportable: false, isActive: true, description: 'Raised when exposure crosses the CSA threshold.' },
     { eventTypeId: 6, categoryId: 4, eventCode: 'CREDIT_LIMIT_BREACH', eventName: 'Credit Limit Breach',         entityType: 'CREDIT', severity: 'BREACH',  requiresAction: true,  requiresApproval: false, triggersNotification: true,  slaMinutes: 60,   isReportable: false, isActive: true, description: 'Utilisation exceeds the credit limit\'s critical threshold.' },
   ],
-  connection_type: [
+  ref_connection_type: [
     { connectionTypeId: 1, typeCode: 'API',           typeName: 'API',           description: null, sortOrder: 1, isActive: true },
     { connectionTypeId: 2, typeCode: 'SFTP',          typeName: 'SFTP',          description: null, sortOrder: 2, isActive: true },
     { connectionTypeId: 3, typeCode: 'FILE',          typeName: 'File',          description: null, sortOrder: 3, isActive: true },
@@ -2631,7 +2631,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { customsDutyRuleId: 3, ruleName: 'US Import Duty — Copper Wire Rod', originCountryId: 1, destinationCountryId: 2, loadLocationId: null, dischLocationId: null, productId: 7, productHsCodeId: 2, legalEntityId: null, counterpartyId: null, direction: 'BUY', customsMovementStatusId: 1, incotermId: 9, dutyRatePercent: 2.5, dutyFlatAmount: null, dutyFlatCurrencyId: null, costApplicableInd: true, issuingAuthority: 'US CBP', priority: 0, validFrom: null, validTo: null, isActive: true, notes: null },
   ],
   // V123/V124 — DESK/STRATEGY/TRADING_BOOK, exact rows the migration itself seeds
-  book_level_type: [
+  ref_book_level_type: [
     { levelTypeId: 1, levelTypeCode: 'DESK',         levelTypeName: 'Desk',         sortOrder: 1, isActive: true },
     { levelTypeId: 2, levelTypeCode: 'STRATEGY',     levelTypeName: 'Strategy',     sortOrder: 2, isActive: true },
     { levelTypeId: 3, levelTypeCode: 'TRADING_BOOK', levelTypeName: 'Trading Book', sortOrder: 3, isActive: true },

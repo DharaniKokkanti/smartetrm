@@ -29,7 +29,7 @@ export function InsurancePoliciesPage() {
   const save = useSaveInsurancePolicy();
   const { data: legalEntities = [] } = useLegalEntities();
   const { data: currencies = [] } = useCurrencies();
-  const { data: providerRows = [] } = useTableRows<{ providerId: number; providerCode: string; providerName: string }>('insurance_provider');
+  const { data: providerRows = [] } = useTableRows<{ providerId: number; providerCode: string; providerName: string }>('ref_insurance_provider');
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<InsurancePolicy | null>(null);

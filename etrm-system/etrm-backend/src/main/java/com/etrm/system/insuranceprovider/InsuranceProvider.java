@@ -21,7 +21,7 @@ import com.etrm.system.common.SourceSystemDefaults;
  * above), so there's nothing yet for optimistic locking to protect.
  */
 @Entity
-@Table(name = "insurance_provider")
+@Table(name = "ref_insurance_provider")
 public class InsuranceProvider {
 
     @Id

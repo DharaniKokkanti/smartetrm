@@ -35,7 +35,7 @@ import java.time.LocalDateTime;
  * cascades to its descendants via BookRepository.findDescendantIds (V122).
  */
 @Entity
-@Table(name = "book_access_grant")
+@Table(name = "ref_book_access_grant")
 @EntityListeners(AuditingEntityListener.class)
 public class BookAccessGrant {
 

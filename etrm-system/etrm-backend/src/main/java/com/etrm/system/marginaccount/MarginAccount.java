@@ -43,7 +43,7 @@ import java.time.LocalDateTime;
  * allocation under one shared clearing account.
  */
 @Entity
-@Table(name = "margin_account")
+@Table(name = "ref_margin_account")
 @EntityListeners(AuditingEntityListener.class)
 public class MarginAccount {
 

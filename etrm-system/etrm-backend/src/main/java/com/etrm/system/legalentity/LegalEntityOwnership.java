@@ -38,7 +38,7 @@ import java.time.LocalDateTime;
  * auditing (see GlAccount.java for the canonical pattern this replicates).
  */
 @Entity
-@Table(name = "legal_entity_ownership")
+@Table(name = "ref_legal_entity_ownership")
 @EntityListeners(AuditingEntityListener.class)
 public class LegalEntityOwnership {
 

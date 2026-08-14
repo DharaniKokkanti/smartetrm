@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
  * Same reason-required shape as Book.archivedReason (V119).
  */
 @Entity
-@Table(name = "book_eod_status")
+@Table(name = "ref_book_eod_status")
 public class BookEodStatus {
 
     @Id

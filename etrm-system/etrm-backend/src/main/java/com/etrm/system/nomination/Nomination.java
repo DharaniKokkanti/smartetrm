@@ -30,7 +30,7 @@ import java.time.LocalDateTime;
  * of a future TradeOrder batch.
  */
 @Entity
-@Table(name = "nomination")
+@Table(name = "tran_nomination")
 public class Nomination {
 
     @Id

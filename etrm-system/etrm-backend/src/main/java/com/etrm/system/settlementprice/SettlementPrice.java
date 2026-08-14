@@ -72,7 +72,7 @@ import java.time.LocalDateTime;
  * never stored or settable.
  */
 @Entity
-@Table(name = "settlement_price")
+@Table(name = "ref_settlement_price")
 @EntityListeners(AuditingEntityListener.class)
 public class SettlementPrice {
 

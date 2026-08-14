@@ -33,7 +33,7 @@ import java.time.LocalDateTime;
  * discount, VM P&L, FCM ledger balances, reconciliation status).
  */
 @Entity
-@Table(name = "margin_valuation")
+@Table(name = "tran_margin_valuation")
 @EntityListeners(AuditingEntityListener.class)
 public class MarginValuation {
 

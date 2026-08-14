@@ -19,7 +19,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Entity
-@Table(name = "trader")
+@Table(name = "ref_trader")
 public class Trader extends AuditableEntity {
 
     @Id

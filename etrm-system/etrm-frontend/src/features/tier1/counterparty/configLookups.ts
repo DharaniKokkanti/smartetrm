@@ -16,16 +16,16 @@ export interface ConfigOption {
 const GROUP_TO_TABLE: Record<string, string> = {
   COUNTERPARTY_TYPE:     'ref_counterparty_type',
   KYC_STATUS:            'ref_kyc_status',
-  CONTACT_ROLE:          'contact_role',
+  CONTACT_ROLE:          'mst_contact_role',
   ADDRESS_TYPE:          'ref_address_type',
   BANK_ACCOUNT_TYPE:     'ref_bank_account_type',
   PAYMENT_METHOD:        'mst_payment_method',
   SETTLEMENT_TYPE:       'ref_settlement_type',
   STORAGE_FACILITY_TYPE: 'mst_storage_facility_type',
   NETTING_AGREEMENT_TYPE:'ref_netting_agreement_type',
-  TAX_TYPE:              'tax_type',
-  LICENSE_TYPE:           'license_type',
-  LEGAL_ENTITY_TYPE:     'legal_entity_type',
+  TAX_TYPE:              'mst_tax_type',
+  LICENSE_TYPE:           'ref_license_type',
+  LEGAL_ENTITY_TYPE:     'mst_legal_entity_type',
   DEAL_TYPE:             'ref_deal_type',
 };
 

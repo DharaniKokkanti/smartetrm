@@ -32,7 +32,7 @@ import java.time.LocalDateTime;
  * standard audit columns added, matching GlAccount's shape.
  */
 @Entity
-@Table(name = "country")
+@Table(name = "ref_country")
 @EntityListeners(AuditingEntityListener.class)
 public class Country {
 

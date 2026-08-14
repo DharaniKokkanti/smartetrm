@@ -9,7 +9,7 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "valuation_frequency_type")
+@Table(name = "mst_valuation_frequency_type")
 public class ValuationFrequencyType extends TypeCodeLookup {
     @Id
     @Column(name = "valuation_frequency_type_id")

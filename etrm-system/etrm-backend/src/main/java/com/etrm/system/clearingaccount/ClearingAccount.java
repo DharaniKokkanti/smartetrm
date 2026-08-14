@@ -33,7 +33,7 @@ import java.time.LocalDateTime;
  * carrying them itself.
  */
 @Entity
-@Table(name = "clearing_account")
+@Table(name = "ref_clearing_account")
 @EntityListeners(AuditingEntityListener.class)
 public class ClearingAccount {
 

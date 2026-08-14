@@ -9,7 +9,7 @@ import jakarta.persistence.Table;
 import com.etrm.system.common.SourceSystemDefaults;
 
 @Entity
-@Table(name = "lc_status_type")
+@Table(name = "mst_lc_status_type")
 public class LcStatusType extends TypeCodeLookup {
     @Id
     @Column(name = "lc_status_type_id")
