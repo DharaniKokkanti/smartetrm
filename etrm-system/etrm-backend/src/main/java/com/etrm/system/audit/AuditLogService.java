@@ -5,7 +5,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 /**
- * Writes to dbo.user_audit_log (migration 01, renamed from audit_log in
+ * Writes to dbo.usr_user_audit_log (migration 01, renamed from audit_log in
  * V217) via raw JDBC rather than a JPA entity — its primary key is the
  * composite (audit_id, audit_date) used for date-based partitioning, which
  * doesn't map cleanly onto a single IDENTITY-backed @Id. Both audit_date and
@@ -33,7 +33,7 @@ public class AuditLogService {
     public void record(String action, String entityType, String entityId, Integer userId, String username, String ipAddress) {
         short srcId = SourceSystemDefaults.tier1ApplicationScreen();
         jdbc.update(
-                "INSERT INTO dbo.user_audit_log (entity_type, entity_id, action, user_id, username, ip_address, created_src_id, updated_src_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                "INSERT INTO dbo.usr_user_audit_log (entity_type, entity_id, action, user_id, username, ip_address, created_src_id, updated_src_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                 entityType, entityId, action, userId, username, ipAddress, srcId, srcId);
     }
 }

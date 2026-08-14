@@ -12,7 +12,7 @@ import jakarta.persistence.Version;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "app_user")
+@Table(name = "usr_app_user")
 public class AppUser extends AuditableEntity {
 
     @Id

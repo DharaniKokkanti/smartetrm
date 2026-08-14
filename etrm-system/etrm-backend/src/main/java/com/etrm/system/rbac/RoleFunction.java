@@ -11,7 +11,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "role_function")
+@Table(name = "usr_role_function")
 @EntityListeners(AuditingEntityListener.class)
 public class RoleFunction {
 

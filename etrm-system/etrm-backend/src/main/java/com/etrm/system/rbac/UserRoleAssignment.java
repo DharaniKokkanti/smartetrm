@@ -14,7 +14,7 @@ import java.time.LocalDate;
 // V151 — added created_at/created_by/updated_at/updated_by (this dedicated
 // entity had fallen outside V137's registry-only governance-column audit).
 @Entity
-@Table(name = "user_role_assignment")
+@Table(name = "usr_user_role_assignment")
 @EntityListeners(AuditingEntityListener.class)
 public class UserRoleAssignment {
 

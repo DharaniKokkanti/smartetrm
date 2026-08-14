@@ -5,7 +5,7 @@ import com.etrm.system.common.SourceSystemDefaults;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "user_role")
+@Table(name = "usr_user_role")
 public class UserRole {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

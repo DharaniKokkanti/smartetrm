@@ -12,7 +12,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "role_field_profile")
+@Table(name = "usr_role_field_profile")
 @EntityListeners(AuditingEntityListener.class)
 public class RoleFieldProfile {
 

@@ -53,8 +53,8 @@ public class UserPermissionService {
         jdbc.query(
                 """
                 SELECT DISTINCT ur.role_code
-                FROM dbo.user_role_assignment ura
-                JOIN dbo.user_role ur ON ur.role_id = ura.role_id
+                FROM dbo.usr_user_role_assignment ura
+                JOIN dbo.usr_user_role ur ON ur.role_id = ura.role_id
                 WHERE ura.user_id = ?
                   AND ura.is_active = 1 AND ura.status = 'ACTIVE'
                   AND ur.is_active = 1 AND ur.status = 'APPROVED'
@@ -70,9 +70,9 @@ public class UserPermissionService {
         jdbc.query(
                 """
                 SELECT f.function_code, rf.access_level
-                FROM dbo.user_role_assignment ura
-                JOIN dbo.user_role ur ON ur.role_id = ura.role_id
-                JOIN dbo.role_function rf ON rf.role_id = ur.role_id
+                FROM dbo.usr_user_role_assignment ura
+                JOIN dbo.usr_user_role ur ON ur.role_id = ura.role_id
+                JOIN dbo.usr_role_function rf ON rf.role_id = ur.role_id
                 JOIN dbo.app_function f ON f.function_id = rf.function_id
                 WHERE ura.user_id = ?
                   AND ura.is_active = 1 AND ura.status = 'ACTIVE'
@@ -100,8 +100,8 @@ public class UserPermissionService {
         Integer count = jdbc.queryForObject(
                 """
                 SELECT COUNT(*)
-                FROM dbo.user_role_assignment ura
-                JOIN dbo.user_role ur ON ur.role_id = ura.role_id
+                FROM dbo.usr_user_role_assignment ura
+                JOIN dbo.usr_user_role ur ON ur.role_id = ura.role_id
                 WHERE ura.user_id = ? AND ur.role_code = 'ADMIN'
                   AND ura.is_active = 1 AND ura.status = 'ACTIVE'
                   AND ur.is_active = 1 AND ur.status = 'APPROVED'

@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "field_permission_profile")
+@Table(name = "usr_field_permission_profile")
 public class FieldPermissionProfile {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

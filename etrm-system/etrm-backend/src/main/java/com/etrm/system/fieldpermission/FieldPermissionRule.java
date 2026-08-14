@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 // here is an insert — no fetch-then-copy-back needed for created_at/
 // created_by like the row_version=fresh update() pattern elsewhere.
 @Entity
-@Table(name = "field_permission_rule")
+@Table(name = "usr_field_permission_rule")
 @EntityListeners(AuditingEntityListener.class)
 public class FieldPermissionRule {
 
