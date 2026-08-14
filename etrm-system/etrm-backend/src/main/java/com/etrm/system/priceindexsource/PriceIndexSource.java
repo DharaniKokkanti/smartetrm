@@ -51,7 +51,7 @@ import java.time.LocalDateTime;
  * were migrated into ticker_mapping.settle_ticker by that migration.
  */
 @Entity
-@Table(name = "price_index_source")
+@Table(name = "ref_price_index_source")
 @EntityListeners(AuditingEntityListener.class)
 public class PriceIndexSource {
 

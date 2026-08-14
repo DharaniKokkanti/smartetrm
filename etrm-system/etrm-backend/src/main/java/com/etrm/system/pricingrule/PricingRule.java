@@ -60,7 +60,7 @@ import java.time.LocalDate;
  *  - pricingType: resolved from pricing_type_id via dbo.lookup.PricingType.
  */
 @Entity
-@Table(name = "pricing_rule")
+@Table(name = "ref_pricing_rule")
 public class PricingRule extends AuditableEntity {
 
     @Id

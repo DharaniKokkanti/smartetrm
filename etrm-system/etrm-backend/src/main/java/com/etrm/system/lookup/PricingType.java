@@ -11,7 +11,7 @@ import com.etrm.system.common.SourceSystemDefaults;
 
 /** Same TypeCodeLookup shape as LcType/etc. — see that class's doc comment. */
 @Entity
-@Table(name = "pricing_type")
+@Table(name = "mst_pricing_type")
 public class PricingType extends TypeCodeLookup {
     @Id
     @Column(name = "pricing_type_id")

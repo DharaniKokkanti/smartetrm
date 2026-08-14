@@ -26,7 +26,7 @@ import jakarta.validation.constraints.Size;
  * price_index row doesn't carry on its own.
  */
 @Entity
-@Table(name = "option_index_link")
+@Table(name = "ref_option_index_link")
 public class OptionIndexLink extends AuditableEntity {
 
     @Id

@@ -34,7 +34,7 @@ import java.time.LocalDateTime;
  * borrowed onto the pricing rule's hydrated response.
  */
 @Entity
-@Table(name = "formula_template")
+@Table(name = "ref_formula_template")
 @EntityListeners(AuditingEntityListener.class)
 public class FormulaTemplate {
 

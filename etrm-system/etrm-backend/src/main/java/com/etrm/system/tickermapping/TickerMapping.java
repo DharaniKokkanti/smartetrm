@@ -31,7 +31,7 @@ import java.time.LocalDate;
  * TickerMappingService.hydrate().
  */
 @Entity
-@Table(name = "ticker_mapping")
+@Table(name = "ref_ticker_mapping")
 public class TickerMapping extends AuditableEntity {
 
     @Id

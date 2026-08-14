@@ -48,7 +48,7 @@ import java.time.LocalTime;
  * just a product/market, is what actually resolves to a specific index.
  */
 @Entity
-@Table(name = "price_index")
+@Table(name = "ref_price_index")
 @EntityListeners(AuditingEntityListener.class)
 public class PriceIndex {
 

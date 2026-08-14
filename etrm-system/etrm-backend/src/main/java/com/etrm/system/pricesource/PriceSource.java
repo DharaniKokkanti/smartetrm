@@ -28,7 +28,7 @@ import jakarta.validation.constraints.Size;
  * this source, instead of flagging every source holiday as a missing fixing.
  */
 @Entity
-@Table(name = "price_source")
+@Table(name = "ref_price_source")
 public class PriceSource extends AuditableEntity {
 
     @Id

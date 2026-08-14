@@ -297,7 +297,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'pricing_type', label: 'Pricing Types', pk: 'pricingTypeId', group: 'Pricing & Rates', order: 9,
+    name: 'mst_pricing_type', label: 'Pricing Types', pk: 'pricingTypeId', group: 'Pricing & Rates', order: 9,
     subGroup: 'Pricing', description: 'Determines how the trade price is calculated — fixed at trade date, floating benchmark index, formula-based, differential spread, or Asian average over a pricing period.',
     rows: [
       { pricingTypeId: 1, typeCode: 'FIXED',          typeName: 'Fixed',                      description: 'Firm price agreed at trade date, no market linkage',                                                          sortOrder: 1, isActive: true },
@@ -727,8 +727,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',              'Active',                  'boolean', false, false, null),
     ],
   },
-  fx_period: {
-    tableName: 'fx_period', displayName: 'FX Periods / Tenors', primaryKeyColumn: 'fxPeriodId', isTemporal: false,
+  ref_fx_period: {
+    tableName: 'ref_fx_period', displayName: 'FX Periods / Tenors', primaryKeyColumn: 'fxPeriodId', isTemporal: false,
     columns: [
       col('fxPeriodId',  'ID',          'number',  false, true,  null),
       col('periodCode',  'Period Code', 'string',  false, false, 20),
@@ -924,8 +924,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',          'Active',      'boolean', false, false, null),
     ],
   },
-  load_shape_template: {
-    tableName: 'load_shape_template', displayName: 'Load Shape Templates', primaryKeyColumn: 'loadShapeId', isTemporal: false,
+  ref_load_shape_template: {
+    tableName: 'ref_load_shape_template', displayName: 'Load Shape Templates', primaryKeyColumn: 'loadShapeId', isTemporal: false,
     columns: [
       col('loadShapeId', 'ID',         'number',  false, true,  null),
       col('shapeCode',   'Shape Code', 'string',  false, false, 30),
@@ -938,8 +938,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',         'Active',             'boolean', false, false, null),
     ],
   },
-  balancing_authority: {
-    tableName: 'balancing_authority', displayName: 'Balancing Authorities', primaryKeyColumn: 'balancingAuthorityId', isTemporal: false,
+  ref_balancing_authority: {
+    tableName: 'ref_balancing_authority', displayName: 'Balancing Authorities', primaryKeyColumn: 'balancingAuthorityId', isTemporal: false,
     columns: [
       col('balancingAuthorityId', 'ID',          'number',  false, true,  null),
       col('baCode',               'BA Code',     'string',  false, false, 20),
@@ -949,64 +949,64 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',             'Active',      'boolean', false, false, null),
     ],
   },
-  transmission_zone: {
-    tableName: 'transmission_zone', displayName: 'Transmission Zones', primaryKeyColumn: 'zoneId', isTemporal: false,
+  ref_transmission_zone: {
+    tableName: 'ref_transmission_zone', displayName: 'Transmission Zones', primaryKeyColumn: 'zoneId', isTemporal: false,
     columns: [
       col('zoneId',               'ID',                  'number',      false, true,  null, null, null),
-      col('balancingAuthorityId', 'Balancing Authority', 'foreign_key', false, false, null, null, 'balancing_authority'),
+      col('balancingAuthorityId', 'Balancing Authority', 'foreign_key', false, false, null, null, 'ref_balancing_authority'),
       col('zoneCode',             'Zone Code',           'string',      false, false, 30),
       col('zoneName',             'Zone Name',           'string',      false, false, 200),
       col('zoneType',             'Zone Type',           'enum',        false, false, null, ['LOAD_ZONE', 'GSP_GROUP', 'PRICING_NODE_GROUP', 'HUB', 'OTHER']),
       col('isActive',             'Active',              'boolean',     false, false, null),
     ],
   },
-  load_shape_interval: {
-    tableName: 'load_shape_interval', displayName: 'Load Shape Intervals', primaryKeyColumn: 'shapeIntervalId', isTemporal: false,
+  ref_load_shape_interval: {
+    tableName: 'ref_load_shape_interval', displayName: 'Load Shape Intervals', primaryKeyColumn: 'shapeIntervalId', isTemporal: false,
     columns: [
       col('shapeIntervalId', 'ID',              'number',      false, true,  null),
-      col('loadShapeId',     'Load Shape',      'foreign_key', false, false, null, null, 'load_shape_template'),
+      col('loadShapeId',     'Load Shape',      'foreign_key', false, false, null, null, 'ref_load_shape_template'),
       col('dayType',         'Day Type',        'enum',        false, false, null, ['ALL', 'WEEKDAYS', 'WEEKENDS', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY', 'HOLIDAY']),
       col('intervalNo',      'Interval No',     'number',      false, false, null),
       col('intervalFactor',  'Interval Factor', 'number',      false, false, null, null, null, null, true),
     ],
   },
-  load_shape_component: {
-    tableName: 'load_shape_component', displayName: 'Load Shape Components', primaryKeyColumn: 'shapeComponentId', isTemporal: false,
+  ref_load_shape_component: {
+    tableName: 'ref_load_shape_component', displayName: 'Load Shape Components', primaryKeyColumn: 'shapeComponentId', isTemporal: false,
     columns: [
       col('shapeComponentId',  'ID',            'number',      false, true,  null),
-      col('parentLoadShapeId', 'Parent Shape',  'foreign_key', false, false, null, null, 'load_shape_template'),
-      col('childLoadShapeId',  'Child Shape',   'foreign_key', false, false, null, null, 'load_shape_template'),
+      col('parentLoadShapeId', 'Parent Shape',  'foreign_key', false, false, null, null, 'ref_load_shape_template'),
+      col('childLoadShapeId',  'Child Shape',   'foreign_key', false, false, null, null, 'ref_load_shape_template'),
       col('weightFactor',      'Weight Factor', 'number',      false, false, null, null, null, null, true),
       col('monthFrom',         'Month From',    'number',      true,  false, null),
       col('monthTo',           'Month To',      'number',      true,  false, null),
       col('sequenceNo',        'Sequence',      'number',      false, false, null),
     ],
   },
-  energy_footprint: {
-    tableName: 'energy_footprint', displayName: 'Energy Footprints', primaryKeyColumn: 'energyFootprintId', isTemporal: false,
+  ref_energy_footprint: {
+    tableName: 'ref_energy_footprint', displayName: 'Energy Footprints', primaryKeyColumn: 'energyFootprintId', isTemporal: false,
     columns: [
       col('energyFootprintId',    'ID',                  'number',      false, true,  null),
       col('footprintCode',        'Code',                'string',      false, false, 30),
       col('footprintName',        'Name',                'string',      false, false, 200),
       col('footprintType',        'Footprint Type',      'enum',        false, false, null, ['SOLAR_PORTFOLIO', 'WIND_PORTFOLIO', 'EV_CHARGING_NETWORK', 'BATTERY_FLEET', 'DEMAND_RESPONSE', 'MICROGRID', 'HYBRID']),
       col('flowDirection',        'Flow Direction',      'enum',        false, false, null, ['GENERATION', 'LOAD', 'BIDIRECTIONAL']),
-      col('balancingAuthorityId', 'Balancing Authority', 'foreign_key', true,  false, null, null, 'balancing_authority'),
-      col('defaultZoneId',        'Default Zone',        'foreign_key', true,  false, null, null, 'transmission_zone'),
+      col('balancingAuthorityId', 'Balancing Authority', 'foreign_key', true,  false, null, null, 'ref_balancing_authority'),
+      col('defaultZoneId',        'Default Zone',        'foreign_key', true,  false, null, null, 'ref_transmission_zone'),
       col('totalCapacityMw',      'Capacity (MW)',       'number',      true,  false, null, null, null, null, true),
-      col('defaultLoadShapeId',   'Default Load Shape',  'foreign_key', true,  false, null, null, 'load_shape_template'),
+      col('defaultLoadShapeId',   'Default Load Shape',  'foreign_key', true,  false, null, null, 'ref_load_shape_template'),
       col('isAggregatedDispatch', 'Aggregated Dispatch', 'boolean',     false, false, null),
       col('isActive',             'Active',              'boolean',     false, false, null),
     ],
   },
-  energy_footprint_site: {
-    tableName: 'energy_footprint_site', displayName: 'Energy Footprint Sites', primaryKeyColumn: 'footprintSiteId', isTemporal: false,
+  ref_energy_footprint_site: {
+    tableName: 'ref_energy_footprint_site', displayName: 'Energy Footprint Sites', primaryKeyColumn: 'footprintSiteId', isTemporal: false,
     columns: [
       col('footprintSiteId',    'ID',                 'number',      false, true,  null),
-      col('energyFootprintId',  'Footprint',          'foreign_key', false, false, null, null, 'energy_footprint'),
+      col('energyFootprintId',  'Footprint',          'foreign_key', false, false, null, null, 'ref_energy_footprint'),
       col('siteCode',           'Site Code',          'string',      false, false, 30),
       col('siteName',           'Site Name',          'string',      false, false, 200),
       col('siteType',           'Site Type',          'enum',        false, false, null, ['SOLAR_ARRAY', 'ROOFTOP_SOLAR', 'WIND_TURBINE_GROUP', 'EV_CHARGING_HUB', 'EV_DEPOT', 'BATTERY_UNIT', 'CURTAILABLE_LOAD', 'OTHER']),
-      col('zoneId',             'Zone',               'foreign_key', true,  false, null, null, 'transmission_zone'),
+      col('zoneId',             'Zone',               'foreign_key', true,  false, null, null, 'ref_transmission_zone'),
       col('capacityMw',         'Capacity (MW)',      'number',      false, false, null, null, null, null, true),
       col('storageCapacityMwh', 'Storage (MWh)',      'number',      true,  false, null, null, null, null, true),
       col('chargerCount',       'Charger Count',      'number',      true,  false, null),
@@ -1024,28 +1024,28 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
   // transmission_zone's own location_id already accepted) since `location`/
   // `counterparty` aren't in this file's rowSeed — flagged here rather than
   // silently faked.
-  interconnector: {
-    tableName: 'interconnector', displayName: 'Interconnectors', primaryKeyColumn: 'interconnectorId', isTemporal: false,
+  ref_interconnector: {
+    tableName: 'ref_interconnector', displayName: 'Interconnectors', primaryKeyColumn: 'interconnectorId', isTemporal: false,
     columns: [
       col('interconnectorId',   'ID',                  'number',      false, true,  null),
       col('interconnectorCode', 'Code',                'string',      false, false, 30),
       col('interconnectorName', 'Name',                'string',      false, false, 200),
-      col('fromZoneId',         'From Zone',           'foreign_key', false, false, null, null, 'transmission_zone'),
-      col('toZoneId',           'To Zone',             'foreign_key', false, false, null, null, 'transmission_zone'),
+      col('fromZoneId',         'From Zone',           'foreign_key', false, false, null, null, 'ref_transmission_zone'),
+      col('toZoneId',           'To Zone',             'foreign_key', false, false, null, null, 'ref_transmission_zone'),
       col('capacityMw',         'Capacity (MW)',       'number',      true,  false, null, null, null, null, true),
       col('directionType',      'Direction',           'enum',        false, false, null, ['UNIDIRECTIONAL', 'BIDIRECTIONAL']),
       col('operator',           'Operator',            'string',      true,  false, 200),
       col('isActive',           'Active',              'boolean',     false, false, null),
     ],
   },
-  generation_asset: {
-    tableName: 'generation_asset', displayName: 'Generation Assets', primaryKeyColumn: 'generationAssetId', isTemporal: false,
+  ref_generation_asset: {
+    tableName: 'ref_generation_asset', displayName: 'Generation Assets', primaryKeyColumn: 'generationAssetId', isTemporal: false,
     columns: [
       col('generationAssetId',    'ID',                  'number',      false, true,  null),
       col('assetCode',            'Asset Code',          'string',      false, false, 30),
       col('assetName',            'Asset Name',          'string',      false, false, 200),
-      col('balancingAuthorityId', 'Balancing Authority', 'foreign_key', true,  false, null, null, 'balancing_authority'),
-      col('zoneId',               'Zone',                'foreign_key', true,  false, null, null, 'transmission_zone'),
+      col('balancingAuthorityId', 'Balancing Authority', 'foreign_key', true,  false, null, null, 'ref_balancing_authority'),
+      col('zoneId',               'Zone',                'foreign_key', true,  false, null, null, 'ref_transmission_zone'),
       col('fuelType',             'Fuel Type',           'enum',        false, false, null, ['GAS', 'COAL', 'NUCLEAR', 'HYDRO', 'WIND', 'SOLAR', 'BIOMASS', 'OIL', 'STORAGE', 'OTHER']),
       col('technology',           'Technology',          'string',      true,  false, 50),
       col('nameplateCapacityMw',  'Nameplate Capacity (MW)', 'number',  false, false, null, null, null, null, true),
@@ -1054,26 +1054,26 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',             'Active',              'boolean',     false, false, null),
     ],
   },
-  power_product_detail: {
-    tableName: 'power_product_detail', displayName: 'Power Product Detail', primaryKeyColumn: 'productId', isTemporal: false,
+  ref_power_product_detail: {
+    tableName: 'ref_power_product_detail', displayName: 'Power Product Detail', primaryKeyColumn: 'productId', isTemporal: false,
     columns: [
       col('productId',                  'Product',             'foreign_key', false, true,  null, null, 'ref_product'),
-      col('defaultLoadShapeId',         'Default Load Shape',  'foreign_key', true,  false, null, null, 'load_shape_template'),
+      col('defaultLoadShapeId',         'Default Load Shape',  'foreign_key', true,  false, null, null, 'ref_load_shape_template'),
       col('voltageLevel',               'Voltage Level',       'enum',        true,  false, null, ['LOW', 'MEDIUM', 'HIGH', 'EXTRA_HIGH']),
       col('settlementPointType',        'Settlement Point',    'enum',        true,  false, null, ['NODE', 'ZONE', 'HUB', 'SYSTEM']),
-      col('defaultBalancingAuthorityId','Default Balancing Authority', 'foreign_key', true, false, null, null, 'balancing_authority'),
-      col('defaultZoneId',              'Default Zone',        'foreign_key', true,  false, null, null, 'transmission_zone'),
+      col('defaultBalancingAuthorityId','Default Balancing Authority', 'foreign_key', true, false, null, null, 'ref_balancing_authority'),
+      col('defaultZoneId',              'Default Zone',        'foreign_key', true,  false, null, null, 'ref_transmission_zone'),
       col('isAncillaryService',         'Ancillary Service',   'boolean',     false, false, null),
       col('notes',                      'Notes',               'string',      true,  false, 500),
     ],
   },
-  transmission_right_type: {
-    tableName: 'transmission_right_type', displayName: 'Transmission Right Types', primaryKeyColumn: 'rightTypeId', isTemporal: false,
+  ref_transmission_right_type: {
+    tableName: 'ref_transmission_right_type', displayName: 'Transmission Right Types', primaryKeyColumn: 'rightTypeId', isTemporal: false,
     columns: [
       col('rightTypeId',              'ID',                    'number',      false, true,  null),
       col('typeCode',                  'Code',                  'string',      false, false, 10),
       col('typeName',                    'Name',                  'string',      false, false, 100),
-      col('homeBalancingAuthorityId',      'Home Balancing Authority', 'foreign_key', true, false, null, null, 'balancing_authority'),
+      col('homeBalancingAuthorityId',      'Home Balancing Authority', 'foreign_key', true, false, null, null, 'ref_balancing_authority'),
       col('settlementBasis',                'Settlement Basis',      'enum',        false, false, null, ['DA_LMP_DIFFERENCE', 'RT_LMP_DIFFERENCE']),
       col('allocationMethod',                 'Allocation Method',     'enum',        false, false, null, ['AUCTION', 'ARR_ALLOCATION', 'BILATERAL_TRANSFER']),
       col('description',                        'Description',           'string',      true,  false, 300),
@@ -1277,8 +1277,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('notes',           'Notes',             'string',      true,  false, 300),
     ],
   },
-  interest_rate_index: {
-    tableName: 'interest_rate_index', displayName: 'Interest Rate Indices', primaryKeyColumn: 'rateIndexId', isTemporal: false,
+  ref_interest_rate_index: {
+    tableName: 'ref_interest_rate_index', displayName: 'Interest Rate Indices', primaryKeyColumn: 'rateIndexId', isTemporal: false,
     columns: [
       col('rateIndexId',         'ID',                  'number',      false, true,  null),
       col('indexCode',           'Code',                'string',      false, false, 20),
@@ -1436,8 +1436,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
 
   // V73 — fx_rate, settlement_calendar, trade_repository: flat reference/
   // bridge tables (no real workflow), fit the generic Static Data mechanism.
-  fx_rate: {
-    tableName: 'fx_rate', displayName: 'FX Rates', primaryKeyColumn: 'fxRateId', isTemporal: false,
+  ref_fx_rate: {
+    tableName: 'ref_fx_rate', displayName: 'FX Rates', primaryKeyColumn: 'fxRateId', isTemporal: false,
     columns: [
       col('fxRateId',        'ID',              'number',      false, true,  null),
       col('fromCurrencyId',  'From Currency',   'foreign_key', false, false, null, null, 'currency'),
@@ -1531,25 +1531,25 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('notes',                                     'Notes',                     'string',      true,  false, 500),
     ],
   },
-  power_pnode: {
-    tableName: 'power_pnode', displayName: 'Power Pricing Nodes', primaryKeyColumn: 'pnodeId', isTemporal: false,
+  mst_power_pnode: {
+    tableName: 'mst_power_pnode', displayName: 'Power Pricing Nodes', primaryKeyColumn: 'pnodeId', isTemporal: false,
     columns: [
       col('pnodeId',              'ID',                  'number',      false, true,  null),
       col('pnodeMarketName',       'Market Node Name',    'string',      false, false, 50),
-      col('balancingAuthorityId',   'Balancing Authority', 'foreign_key', false, false, null, null, 'balancing_authority'),
-      col('transmissionZoneId',      'Transmission Zone',   'foreign_key', true,  false, null, null, 'transmission_zone'),
+      col('balancingAuthorityId',   'Balancing Authority', 'foreign_key', false, false, null, null, 'ref_balancing_authority'),
+      col('transmissionZoneId',      'Transmission Zone',   'foreign_key', true,  false, null, null, 'ref_transmission_zone'),
       col('nodeType',                  'Node Type',           'enum',        false, false, null, ['HUB', 'INTERFACE', 'BUS', 'ZONE']),
       col('isActive',                    'Active',              'boolean',     false, false, null),
       col('notes',                         'Notes',               'string',      true,  false, 500),
     ],
   },
-  power_ancillary_service_type: {
-    tableName: 'power_ancillary_service_type', displayName: 'Power Ancillary Service Types', primaryKeyColumn: 'serviceTypeId', isTemporal: false,
+  mst_power_ancillary_service_type: {
+    tableName: 'mst_power_ancillary_service_type', displayName: 'Power Ancillary Service Types', primaryKeyColumn: 'serviceTypeId', isTemporal: false,
     columns: [
       col('serviceTypeId',         'ID',                  'number',      false, true,  null),
       col('serviceCode',            'Code',                'string',      false, false, 30),
       col('serviceName',             'Name',                'string',      false, false, 150),
-      col('balancingAuthorityId',      'Balancing Authority', 'foreign_key', false, false, null, null, 'balancing_authority'),
+      col('balancingAuthorityId',      'Balancing Authority', 'foreign_key', false, false, null, null, 'ref_balancing_authority'),
       col('description',                 'Description',         'string',      true,  false, 500),
       col('isActive',                      'Active',              'boolean',     false, false, null),
     ],
@@ -1865,14 +1865,14 @@ export const registrySeed: RegistryEntry[] = [
   { registryId: 3, tableName: 'ref_credit_rating',       displayName: 'Credit Ratings',       moduleGroup: 'Counterparties & Agreements', subGroup: 'Classification',    description: 'S&P, Moody\'s, and Fitch credit rating scales with numeric equivalents. Used to derive credit exposure limits and margin requirements for each counterparty.',                                                   allowCreate: true,  allowEdit: true,  allowDelete: true,  allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
   { registryId: 4, tableName: 'mst_incoterm',            displayName: 'Incoterms',            moduleGroup: 'Contract & Legal', subGroup: 'Global Codes',      description: 'ICC Incoterms® 2020 rules that define the point at which risk and cost transfer from seller to buyer. Reference: iccwbo.org/resources-for-business/incoterms-rules',                            allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 4 },
   { registryId: 5, tableName: 'ref_charter_party_type',  displayName: 'Charter Party Types',  moduleGroup: 'Freight & Shipping',   subGroup: 'Charter',           description: 'Types of vessel charter arrangements — Voyage Charter (fixed route, per tonne) or Time Charter (per day, operator controls routing). Determines freight cost calculation and demurrage liability.',     allowCreate: true,  allowEdit: true,  allowDelete: true,  allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
-  { registryId: 6, tableName: 'load_shape_template', displayName: 'Load Shape Templates', moduleGroup: 'Power & Energy',     subGroup: 'Markets',           description: 'Standard electricity delivery profiles — Baseload (7×24), Peak (5×16 or 6×16), Off-peak, and user-defined shapes. Templates constrain the hours delivered under a power supply contract.',               allowCreate: true,  allowEdit: true,  allowDelete: true,  allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
-  { registryId: 7, tableName: 'balancing_authority', displayName: 'Balancing Authorities',moduleGroup: 'Power & Energy',     subGroup: 'Markets',           description: 'Grid operators (ISOs/RTOs and utilities) responsible for maintaining real-time balance between supply and demand within their control area — PJM, ERCOT, CAISO, and others.',                        allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
-  { registryId: 8, tableName: 'transmission_zone',   displayName: 'Transmission Zones',   moduleGroup: 'Power & Energy',     subGroup: 'Grid',              description: 'Pricing and scheduling zones within a balancing authority area — hubs, load zones, and LMP nodes. Each zone has its own congestion and loss components for locational marginal pricing.',            allowCreate: true,  allowEdit: true,  allowDelete: true,  allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
+  { registryId: 6, tableName: 'ref_load_shape_template', displayName: 'Load Shape Templates', moduleGroup: 'Power & Energy',     subGroup: 'Markets',           description: 'Standard electricity delivery profiles — Baseload (7×24), Peak (5×16 or 6×16), Off-peak, and user-defined shapes. Templates constrain the hours delivered under a power supply contract.',               allowCreate: true,  allowEdit: true,  allowDelete: true,  allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
+  { registryId: 7, tableName: 'ref_balancing_authority', displayName: 'Balancing Authorities',moduleGroup: 'Power & Energy',     subGroup: 'Markets',           description: 'Grid operators (ISOs/RTOs and utilities) responsible for maintaining real-time balance between supply and demand within their control area — PJM, ERCOT, CAISO, and others.',                        allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
+  { registryId: 8, tableName: 'ref_transmission_zone',   displayName: 'Transmission Zones',   moduleGroup: 'Power & Energy',     subGroup: 'Grid',              description: 'Pricing and scheduling zones within a balancing authority area — hubs, load zones, and LMP nodes. Each zone has its own congestion and loss components for locational marginal pricing.',            allowCreate: true,  allowEdit: true,  allowDelete: true,  allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
   // V51 — nested shape structure + distributed energy footprints (ids above the 10+i parent-lookup block)
-  { registryId: 201, tableName: 'load_shape_interval',   displayName: 'Load Shape Intervals',   moduleGroup: 'Power & Energy', subGroup: 'Markets', description: 'Per-interval MW weighting under a load shape template — the hourly (or 15/30-min) profile behind shaped products such as solar generation or EV charging demand curves.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 4 },
-  { registryId: 202, tableName: 'load_shape_component',  displayName: 'Load Shape Components',  moduleGroup: 'Power & Energy', subGroup: 'Markets', description: 'Nested shape structure — composite parent shapes built from weighted child shapes, optionally scoped to a seasonal month window (e.g. ATC = Peak + Off-Peak).',           allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 5 },
-  { registryId: 203, tableName: 'energy_footprint',      displayName: 'Energy Footprints',      moduleGroup: 'Power & Energy', subGroup: 'Assets',  description: 'Distributed asset portfolios and networks traded as one unit — solar portfolios, EV charging networks, battery fleets, demand-response aggregations.',                     allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 6 },
-  { registryId: 204, tableName: 'energy_footprint_site', displayName: 'Energy Footprint Sites', moduleGroup: 'Power & Energy', subGroup: 'Assets',  description: 'Member sites of an energy footprint — per-site location, settlement zone, capacity, and technology detail (solar array, EV charging hub, battery unit).',                  allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 7 },
+  { registryId: 201, tableName: 'ref_load_shape_interval',   displayName: 'Load Shape Intervals',   moduleGroup: 'Power & Energy', subGroup: 'Markets', description: 'Per-interval MW weighting under a load shape template — the hourly (or 15/30-min) profile behind shaped products such as solar generation or EV charging demand curves.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 4 },
+  { registryId: 202, tableName: 'ref_load_shape_component',  displayName: 'Load Shape Components',  moduleGroup: 'Power & Energy', subGroup: 'Markets', description: 'Nested shape structure — composite parent shapes built from weighted child shapes, optionally scoped to a seasonal month window (e.g. ATC = Peak + Off-Peak).',           allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 5 },
+  { registryId: 203, tableName: 'ref_energy_footprint',      displayName: 'Energy Footprints',      moduleGroup: 'Power & Energy', subGroup: 'Assets',  description: 'Distributed asset portfolios and networks traded as one unit — solar portfolios, EV charging networks, battery fleets, demand-response aggregations.',                     allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 6 },
+  { registryId: 204, tableName: 'ref_energy_footprint_site', displayName: 'Energy Footprint Sites', moduleGroup: 'Power & Energy', subGroup: 'Assets',  description: 'Member sites of an energy footprint — per-site location, settlement zone, capacity, and technology detail (solar array, EV charging hub, battery unit).',                  allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 7 },
   // V53 — freight/demurrage master data enhancement (works across oil, LNG, dry-bulk/metals — NOT power, which doesn't move by vessel)
   { registryId: 205, tableName: 'mst_freight_rate_index',     displayName: 'Freight Rate Indices',      moduleGroup: 'Freight & Shipping', subGroup: 'Charter', description: 'Freight benchmarks — Baltic dry-bulk indices (any dry cargo: ore, coal, grain), Worldscale tanker flat rates, and Spark30S for LNG. Used to set/escalate time charter hire or benchmark voyage freight.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
   { registryId: 206, tableName: 'ref_laytime_term_template',  displayName: 'Laytime Term Templates',    moduleGroup: 'Freight & Shipping', subGroup: 'Charter', description: 'Standard laytime clauses — which days count (SHINC/SHEX/WWD), whether laytime is reversible, and the NOR-tendering basis (WIPON/WIBON/WIFPON/WCCON) that determines when laytime starts counting.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
@@ -1891,7 +1891,7 @@ export const registrySeed: RegistryEntry[] = [
   { registryId: 265, tableName: 'fleet_group',                    displayName: 'Fleet Groups',                    moduleGroup: 'Logistics & Delivery', description: 'Top-level portfolio grouping above individual fleets.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 20 },
   { registryId: 266, tableName: 'fleet',                          displayName: 'Fleets',                          moduleGroup: 'Logistics & Delivery', description: 'Vessel groupings under an owner/operator and fleet group.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 21 },
   // V56 — dedicated FX tenor/period master, linked from fx_rate (not a lookup_value category — needs to scale to 1000+ daily-forward rows)
-  { registryId: 209, tableName: 'fx_period',              displayName: 'FX Periods / Tenors',       moduleGroup: 'Pricing & Rates',    subGroup: 'FX',      description: 'Standard FX tenors (SPOT, 1M-2Y) plus individual daily-forward periods used to build a full FX forward curve. Linked from fx_rate.fx_period_id — scales to 1000+ daily delivery days without bloating the generic lookup table.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: true, isEnabled: true, displayOrder: 6 },
+  { registryId: 209, tableName: 'ref_fx_period',              displayName: 'FX Periods / Tenors',       moduleGroup: 'Pricing & Rates',    subGroup: 'FX',      description: 'Standard FX tenors (SPOT, 1M-2Y) plus individual daily-forward periods used to build a full FX forward curve. Linked from fx_rate.fx_period_id — scales to 1000+ daily delivery days without bloating the generic lookup table.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: true, isEnabled: true, displayOrder: 6 },
   // V59 — commodity_family: the missing middle tier between commodity (sector) and product (instrument), replacing product.product_family's raw unconstrained string
   { registryId: 210, tableName: 'ref_commodity_family',       displayName: 'Commodity Families',        moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Grouping of similar products beneath a commodity — e.g. Crude Oil vs Refined Products under Oil, Base vs Precious Metals under Metals. Linked from product.commodity_family_id.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
   // V60 — reporting_group: independent per-report classification axes (Position, VaR, Settlement/GL) — a product's group can differ per reporting context, unlike commodity_family which is a single taxonomy
@@ -1899,10 +1899,10 @@ export const registrySeed: RegistryEntry[] = [
   // V63 — lookup_value: the generic category+code+display_name table (only REPORTING_CLASSIFICATION_TYPE rows seeded here so far)
   { registryId: 212, tableName: 'ref_lookup_value',           displayName: 'Lookup Values',             moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Generic category/code/display-name reference table. Only the Reporting Classification Type category is populated here — add rows under a new "category" value to introduce a new axis for Reporting Groups.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 5 },
   // V65 — Power registry orphans: real V11/V12 tables/seed data that were never registered, found during an LNG/Power/Agri/Metals master-data review
-  { registryId: 213, tableName: 'interconnector',         displayName: 'Interconnectors',           moduleGroup: 'Power & Energy',     subGroup: 'Grid',           description: 'Cross-zone / cross-border transmission links between two transmission zones — the grid-capacity equivalent of a freight route. Directional or bidirectional, with a rated MW capacity.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 8 },
-  { registryId: 214, tableName: 'generation_asset',       displayName: 'Generation Assets',         moduleGroup: 'Power & Energy',     subGroup: 'Assets',         description: 'Plant-level technical master data — fuel type, technology, nameplate capacity, and ownership. The power equivalent of `vessel` for oil shipping.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 9 },
-  { registryId: 215, tableName: 'power_product_detail',   displayName: 'Power Product Detail',      moduleGroup: 'Power & Energy',     subGroup: 'Markets',        description: '1:1 power-specific extension of a product — default load shape, voltage level, settlement point type (node/zone/hub/system), and whether it is an ancillary-service product.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 10 },
-  { registryId: 216, tableName: 'transmission_right_type',displayName: 'Transmission Right Types',  moduleGroup: 'Power & Energy',     subGroup: 'Grid',           description: 'Regional terminology for the same financial transmission-right instrument — FTR (PJM/MISO), CRR (CAISO/ERCOT), TCC (NYISO) — with its settlement basis and allocation method.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 11 },
+  { registryId: 213, tableName: 'ref_interconnector',         displayName: 'Interconnectors',           moduleGroup: 'Power & Energy',     subGroup: 'Grid',           description: 'Cross-zone / cross-border transmission links between two transmission zones — the grid-capacity equivalent of a freight route. Directional or bidirectional, with a rated MW capacity.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 8 },
+  { registryId: 214, tableName: 'ref_generation_asset',       displayName: 'Generation Assets',         moduleGroup: 'Power & Energy',     subGroup: 'Assets',         description: 'Plant-level technical master data — fuel type, technology, nameplate capacity, and ownership. The power equivalent of `vessel` for oil shipping.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 9 },
+  { registryId: 215, tableName: 'ref_power_product_detail',   displayName: 'Power Product Detail',      moduleGroup: 'Power & Energy',     subGroup: 'Markets',        description: '1:1 power-specific extension of a product — default load shape, voltage level, settlement point type (node/zone/hub/system), and whether it is an ancillary-service product.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 10 },
+  { registryId: 216, tableName: 'ref_transmission_right_type',displayName: 'Transmission Right Types',  moduleGroup: 'Power & Energy',     subGroup: 'Grid',           description: 'Regional terminology for the same financial transmission-right instrument — FTR (PJM/MISO), CRR (CAISO/ERCOT), TCC (NYISO) — with its settlement basis and allocation method.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 11 },
   // V66 — lng_terminal_detail: 1:1 LNG extension of storage_facility (send-out/liquefaction capacity, berths, cargo lot size range)
   { registryId: 217, tableName: 'ref_lng_terminal_detail',    displayName: 'LNG Terminal Detail',       moduleGroup: 'Freight & Shipping', subGroup: 'Charter',        description: 'Terminal-level LNG capacity data — regasification send-out rate (import) or liquefaction nameplate (export) in MTPA, storage tank/berth count, and the acceptable cargo-lot size range for scheduling.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 6 },
   // V67 — commodity_grade_standard: named grade tiers (e.g. USDA No. 2 Yellow Corn) with a discount/premium schedule vs. the contract par grade
@@ -1911,7 +1911,7 @@ export const registrySeed: RegistryEntry[] = [
   { registryId: 219, tableName: 'ref_metal_brand',              displayName: 'Metal Brand Register',      moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Exchange-approved producer brands by metal form (cathode, ingot, wire rod, etc.) — only brands on this list may be placed on warrant and delivered against an exchange contract.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 7 },
   // V70 — genuine registry orphans found via a whole-project master-data review (all four already in MasterDataHub.tsx's live:false backlog)
   { registryId: 220, tableName: 'insurance_provider',       displayName: 'Insurance Providers',        moduleGroup: 'Credit & Collateral',   subGroup: 'Insurance',   description: 'Insurance companies, P&I clubs, and underwriters — Lloyd\'s syndicates, AIG, Zurich, Euler Hermes — with contact and credit rating, for cargo/credit/political-risk coverage.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 8 },
-  { registryId: 221, tableName: 'interest_rate_index',      displayName: 'Interest Rate Indices',      moduleGroup: 'Pricing & Rates',       subGroup: 'FX',          description: 'Reference rate indices (SOFR, EURIBOR, SONIA) with day-count/compounding conventions — used for financing costs, late-payment interest, and commodity-linked structures.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 7 },
+  { registryId: 221, tableName: 'ref_interest_rate_index',      displayName: 'Interest Rate Indices',      moduleGroup: 'Pricing & Rates',       subGroup: 'FX',          description: 'Reference rate indices (SOFR, EURIBOR, SONIA) with day-count/compounding conventions — used for financing costs, late-payment interest, and commodity-linked structures.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 7 },
   { registryId: 222, tableName: 'mst_regulatory_report_type',   displayName: 'Regulatory Report Types',    moduleGroup: 'Sanctions & Regulatory Reporting', subGroup: 'Reporting', description: 'Regulatory report type definitions — EMIR, REMIT, CFTC, MiFID II — with submission target and reporting deadline, driving which reports a trade requires.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
   { registryId: 223, tableName: 'transport_operator',       displayName: 'Transport Operators',        moduleGroup: 'Logistics & Delivery',  subGroup: 'Transport',   description: 'Haulage companies, rail/pipeline operators, ship managers, and terminal operators — coverage area, primary transport mode, and commodity approvals.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 9 },
   // V71 — collateral_type (connects to a known margin_agreement gap), event_category/event_type and external_system (real schema, no consumer built yet)
@@ -1925,7 +1925,7 @@ export const registrySeed: RegistryEntry[] = [
   // V72 — credit_term: reusable credit-facility term template, referenced by cp_commercial_terms
   { registryId: 228, tableName: 'ref_credit_term', displayName: 'Credit Terms', moduleGroup: 'Counterparties & Agreements', subGroup: 'Terms', description: 'Reusable credit facility terms — credit period, required collateral type, margin call threshold, netting eligibility. Assigned to a counterparty via CP Commercial Terms.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
   // V73 — fx_rate, settlement_calendar, trade_repository
-  { registryId: 229, tableName: 'fx_rate',             displayName: 'FX Rates',             moduleGroup: 'Pricing & Rates',                  subGroup: 'FX',        description: 'Daily FX rates per currency pair — EOD, intraday, settlement, fixing, or mid. Used for P&L revaluation and cross-currency settlement.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: true, isEnabled: true, displayOrder: 8 },
+  { registryId: 229, tableName: 'ref_fx_rate',             displayName: 'FX Rates',             moduleGroup: 'Pricing & Rates',                  subGroup: 'FX',        description: 'Daily FX rates per currency pair — EOD, intraday, settlement, fixing, or mid. Used for P&L revaluation and cross-currency settlement.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: true, isEnabled: true, displayOrder: 8 },
   { registryId: 230, tableName: 'ref_settlement_calendar', displayName: 'Settlement Calendars', moduleGroup: 'Products & Markets',                subGroup: 'Classification', description: 'Which holiday calendars apply to a product\'s settlement date calculation — a product may use multiple (e.g. UK + US bank holidays), with a priority order.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 8 },
   { registryId: 231, tableName: 'trade_repository',    displayName: 'Trade Repositories',   moduleGroup: 'Sanctions & Regulatory Reporting', subGroup: 'Reporting', description: 'Approved trade repositories for regulatory reporting submission — DTCC, REGIS-TR, ICE TVEL — by regime with submission format and endpoint.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
   // V85 — lookup_category: the category master lookup_value.categoryId now points at
@@ -1936,8 +1936,8 @@ export const registrySeed: RegistryEntry[] = [
   { registryId: 233, tableName: 'ref_metal_warrant', displayName: 'Metal Warrants', moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Securitized title document for a specific, discrete physical lot in an exchange-approved vault (LME/CME) — distinct from generic volumetric storage capacity.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 20 },
   { registryId: 234, tableName: 'ref_metal_assay_component_rule', displayName: 'Metal Assay Component Rules', moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Financial scaling rules applied to concentrate actualizations to calculate premiums/penalties from lab assays (payable/penalty/impurity elements vs. a base content %).', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 21 },
   { registryId: 235, tableName: 'ref_lng_boil_off_rule', displayName: 'LNG Boil-Off Rules', moduleGroup: 'Freight & Shipping', subGroup: 'Charter', description: 'Cryogenic transit/storage vaporization loss curves, scoped to a vessel and/or storage facility, used by the risk and actualization engines to model standard LNG inventory degradation.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 20 },
-  { registryId: 236, tableName: 'power_pnode', displayName: 'Power Pricing Nodes', moduleGroup: 'Power & Energy', subGroup: 'Grid', description: 'Low-level LMP settlement granularity — physical grid injection/withdrawal nodes (ISO/RTO standard) under a balancing authority, optionally mapped to a transmission zone.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 10 },
-  { registryId: 237, tableName: 'power_ancillary_service_type', displayName: 'Power Ancillary Service Types', moduleGroup: 'Power & Energy', subGroup: 'Markets', description: 'Grid-reliability products traded alongside standard MWh power blocks — spinning reserve, regulation up/down, voltage support — per balancing authority.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 11 },
+  { registryId: 236, tableName: 'mst_power_pnode', displayName: 'Power Pricing Nodes', moduleGroup: 'Power & Energy', subGroup: 'Grid', description: 'Low-level LMP settlement granularity — physical grid injection/withdrawal nodes (ISO/RTO standard) under a balancing authority, optionally mapped to a transmission zone.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 10 },
+  { registryId: 237, tableName: 'mst_power_ancillary_service_type', displayName: 'Power Ancillary Service Types', moduleGroup: 'Power & Energy', subGroup: 'Markets', description: 'Grid-reliability products traded alongside standard MWh power blocks — spinning reserve, regulation up/down, voltage support — per balancing authority.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 11 },
   { registryId: 238, tableName: 'ref_agri_moisture_discount_scale', displayName: 'Agri Moisture Discount Scales', moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Weighbridge actualization scale — automatic financial weight shrinkage and pricing discount based on grain moisture content, banded off a commodity grade standard.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 22 },
   { registryId: 239, tableName: 'ref_agri_crop_year_lifecycle', displayName: 'Agri Crop Year Lifecycle', moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Hard time boundaries for old-crop vs. new-crop futures and physical cash market spreads, per commodity and country.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 23 },
   { registryId: 240, tableName: 'ref_intercompany_transfer_rule', displayName: 'Intercompany Transfer Rules', moduleGroup: 'Counterparties & Agreements', subGroup: 'Terms', description: 'Automates the matching back-to-back internal transfer deal and its transfer-pricing markup whenever the central desk passes position/risk to a country business unit.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
@@ -2158,7 +2158,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { charterPartyTypeId: 4, typeCode: 'COA',       typeName: 'Contract of Affreightment',  rateBasis: 'PER_TONNE',  durationBasis: 'CONTRACT_PERIOD', standardFormReference: null,                                    description: 'Commitment to carry multiple cargoes of agreed total quantity over a period, owner nominates vessels per shipment.',            isActive: true },
     { charterPartyTypeId: 5, typeCode: 'WS_VOYAGE', typeName: 'Voyage Charter — Worldscale', rateBasis: 'WORLDSCALE', durationBasis: 'SINGLE_VOYAGE',  standardFormReference: 'ASBATANKVOY',                           description: 'Voyage charter where freight is quoted as a % of the published Worldscale flat rate for the route.',                            isActive: true },
   ],
-  fx_period: [
+  ref_fx_period: [
     { fxPeriodId: 1,  periodCode: 'SPOT',  periodName: 'Spot Rate',       periodType: 'SPOT',           daysOffset: 0,   isActive: true },
     { fxPeriodId: 2,  periodCode: '1M',    periodName: '1 Month Forward', periodType: 'STANDARD_TENOR', daysOffset: 30,  isActive: true },
     { fxPeriodId: 3,  periodCode: '2M',    periodName: '2 Month Forward', periodType: 'STANDARD_TENOR', daysOffset: 60,  isActive: true },
@@ -2294,7 +2294,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { delayReasonTypeId: 6, reasonCode: 'PORT_CONGESTION_TRANSIT',     reasonName: 'Port Congestion (Transit)',          description: null, isActive: true },
     { delayReasonTypeId: 7, reasonCode: 'OTHER',                        reasonName: 'Other',                                description: null, isActive: true },
   ],
-  load_shape_template: [
+  ref_load_shape_template: [
     { loadShapeId: 1, shapeCode: 'BASELOAD',   shapeName: 'Baseload (7x24)',             shapeType: 'BASELOAD', startHour: 0,    endHour: 24,   intervalMinutes: 60, isComposite: false, isActive: true },
     { loadShapeId: 2, shapeCode: 'PEAK_US',    shapeName: 'US Peak (5x16)',              shapeType: 'PEAK',     startHour: 7,    endHour: 23,   intervalMinutes: 60, isComposite: false, isActive: true },
     { loadShapeId: 3, shapeCode: 'OFFPEAK_US', shapeName: 'US Off-Peak',                 shapeType: 'OFFPEAK',  startHour: 23,   endHour: 7,    intervalMinutes: 60, isComposite: false, isActive: true },
@@ -2302,7 +2302,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { loadShapeId: 5, shapeCode: 'EV_NIGHT',   shapeName: 'EV Overnight Charging Shape', shapeType: 'CUSTOM',   startHour: null, endHour: null, intervalMinutes: 60, isComposite: false, isActive: true },
     { loadShapeId: 6, shapeCode: 'ATC_US',     shapeName: 'US Around-the-Clock',         shapeType: 'CUSTOM',   startHour: null, endHour: null, intervalMinutes: 60, isComposite: true,  isActive: true },
   ],
-  load_shape_interval: [
+  ref_load_shape_interval: [
     { shapeIntervalId: 1, loadShapeId: 4, dayType: 'ALL', intervalNo: 9,  intervalFactor: 0.7 },
     { shapeIntervalId: 2, loadShapeId: 4, dayType: 'ALL', intervalNo: 12, intervalFactor: 1.0 },
     { shapeIntervalId: 3, loadShapeId: 4, dayType: 'ALL', intervalNo: 16, intervalFactor: 0.4 },
@@ -2310,21 +2310,21 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { shapeIntervalId: 5, loadShapeId: 5, dayType: 'ALL', intervalNo: 12, intervalFactor: 0.15 },
     { shapeIntervalId: 6, loadShapeId: 5, dayType: 'ALL', intervalNo: 22, intervalFactor: 0.75 },
   ],
-  load_shape_component: [
+  ref_load_shape_component: [
     { shapeComponentId: 1, parentLoadShapeId: 6, childLoadShapeId: 2, weightFactor: 1, monthFrom: null, monthTo: null, sequenceNo: 1 },
     { shapeComponentId: 2, parentLoadShapeId: 6, childLoadShapeId: 3, weightFactor: 1, monthFrom: null, monthTo: null, sequenceNo: 2 },
   ],
-  energy_footprint: [
+  ref_energy_footprint: [
     { energyFootprintId: 1, footprintCode: 'SOLAR_CA_01', footprintName: 'California Distributed Solar Portfolio', footprintType: 'SOLAR_PORTFOLIO',     flowDirection: 'GENERATION', balancingAuthorityId: 3, defaultZoneId: null, totalCapacityMw: 120, defaultLoadShapeId: 4, isAggregatedDispatch: true,  isActive: true },
     { energyFootprintId: 2, footprintCode: 'EVNET_GB_01', footprintName: 'GB Motorway Fast-Charging Network',      footprintType: 'EV_CHARGING_NETWORK', flowDirection: 'LOAD',       balancingAuthorityId: 6, defaultZoneId: null, totalCapacityMw: 45,  defaultLoadShapeId: 5, isAggregatedDispatch: false, isActive: true },
   ],
-  energy_footprint_site: [
+  ref_energy_footprint_site: [
     { footprintSiteId: 1, energyFootprintId: 1, siteCode: 'SC-FRESNO-1',  siteName: 'Fresno Ground-Mount Array',   siteType: 'SOLAR_ARRAY',     zoneId: null, capacityMw: 60, storageCapacityMwh: null, chargerCount: null, maxChargerKw: null, connectorStandard: null,  technology: 'TRACKER_PV',  isActive: true },
     { footprintSiteId: 2, energyFootprintId: 1, siteCode: 'SC-KERN-1',    siteName: 'Kern County Bifacial Array',  siteType: 'SOLAR_ARRAY',     zoneId: null, capacityMw: 45, storageCapacityMwh: null, chargerCount: null, maxChargerKw: null, connectorStandard: null,  technology: 'BIFACIAL_PV', isActive: true },
     { footprintSiteId: 3, energyFootprintId: 2, siteCode: 'EV-M1-JCT15',  siteName: 'M1 Junction 15 Charging Hub', siteType: 'EV_CHARGING_HUB', zoneId: null, capacityMw: 12, storageCapacityMwh: null, chargerCount: 32,   maxChargerKw: 350,  connectorStandard: 'CCS', technology: 'DC_FAST',     isActive: true },
     { footprintSiteId: 4, energyFootprintId: 2, siteCode: 'EV-LDN-DEPOT', siteName: 'London Bus Depot',            siteType: 'EV_DEPOT',        zoneId: null, capacityMw: 23, storageCapacityMwh: null, chargerCount: 80,   maxChargerKw: 150,  connectorStandard: 'TYPE2', technology: 'DC_FAST',   isActive: true },
   ],
-  balancing_authority: [
+  ref_balancing_authority: [
     { balancingAuthorityId: 1, baCode: 'PJM',    baName: 'PJM Interconnection',                          countryId: 2, marketType: 'RTO', isActive: true },
     { balancingAuthorityId: 2, baCode: 'ERCOT',  baName: 'Electric Reliability Council of Texas',        countryId: 2, marketType: 'ISO', isActive: true },
     { balancingAuthorityId: 3, baCode: 'CAISO',  baName: 'California ISO',                               countryId: 2, marketType: 'ISO', isActive: true },
@@ -2333,7 +2333,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { balancingAuthorityId: 6, baCode: 'NGESO',  baName: 'National Grid Electricity System Operator',    countryId: 1, marketType: 'TSO', isActive: true },
     { balancingAuthorityId: 7, baCode: 'TENNET', baName: 'TenneT TSO',                                   countryId: 3, marketType: 'TSO', isActive: true },
   ],
-  transmission_zone: [
+  ref_transmission_zone: [
     { zoneId: 1, balancingAuthorityId: 1, zoneCode: 'PJM_WEST',    zoneName: 'PJM West Hub',    zoneType: 'HUB',       isActive: true },
     { zoneId: 2, balancingAuthorityId: 1, zoneCode: 'PJM_AECO',    zoneName: 'AECO Zone',       zoneType: 'LOAD_ZONE', isActive: true },
     { zoneId: 3, balancingAuthorityId: 2, zoneCode: 'ERCOT_NORTH', zoneName: 'ERCOT North Hub', zoneType: 'HUB',       isActive: true },
@@ -2342,21 +2342,21 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { zoneId: 6, balancingAuthorityId: 6, zoneCode: 'GSP_B',      zoneName: 'GSP Group _B',    zoneType: 'GSP_GROUP', isActive: true },
   ],
   // V65 — Power registry orphans
-  interconnector: [
+  ref_interconnector: [
     { interconnectorId: 1, interconnectorCode: 'PJM-MISO-01', interconnectorName: 'PJM–MISO Interface', fromZoneId: 1, toZoneId: 2, capacityMw: 3500, directionType: 'BIDIRECTIONAL', operator: 'PJM/MISO Joint Operating Agreement', isActive: true },
     { interconnectorId: 2, interconnectorCode: 'ERCOT-DC-TIE', interconnectorName: 'ERCOT North–Houston DC Tie', fromZoneId: 3, toZoneId: 4, capacityMw: 600, directionType: 'BIDIRECTIONAL', operator: 'ERCOT', isActive: true },
     { interconnectorId: 3, interconnectorCode: 'IFA2', interconnectorName: 'IFA2 (GB–France)', fromZoneId: 5, toZoneId: 6, capacityMw: 1000, directionType: 'BIDIRECTIONAL', operator: 'National Grid / RTE', isActive: true },
   ],
-  generation_asset: [
+  ref_generation_asset: [
     { generationAssetId: 1, assetCode: 'PJM-DRESDEN-NUC', assetName: 'Dresden Nuclear Station', balancingAuthorityId: 1, zoneId: 1, fuelType: 'NUCLEAR', technology: 'PWR_REACTOR', nameplateCapacityMw: 1800, commissioningDate: '1970-04-01', decommissioningDate: null, isActive: true },
     { generationAssetId: 2, assetCode: 'ERCOT-PANHANDLE-WIND', assetName: 'Texas Panhandle Wind Farm', balancingAuthorityId: 2, zoneId: 3, fuelType: 'WIND', technology: 'ONSHORE_WIND', nameplateCapacityMw: 500, commissioningDate: '2018-09-01', decommissioningDate: null, isActive: true },
     { generationAssetId: 3, assetCode: 'CAISO-MOJAVE-SOLAR', assetName: 'Mojave Desert Solar Array', balancingAuthorityId: 3, zoneId: null, fuelType: 'SOLAR', technology: 'PV', nameplateCapacityMw: 280, commissioningDate: '2015-06-01', decommissioningDate: null, isActive: true },
     { generationAssetId: 4, assetCode: 'NGESO-DRAX-BIOMASS', assetName: 'Drax Power Station (Biomass Units)', balancingAuthorityId: 6, zoneId: 5, fuelType: 'BIOMASS', technology: 'CCGT', nameplateCapacityMw: 2600, commissioningDate: '1986-01-01', decommissioningDate: null, isActive: true },
   ],
-  power_product_detail: [
+  ref_power_product_detail: [
     { productId: 8, defaultLoadShapeId: 1, voltageLevel: 'HIGH', settlementPointType: 'HUB', defaultBalancingAuthorityId: 6, defaultZoneId: 5, isAncillaryService: false, notes: 'EEX German Power Baseload — settles at the GSP Group _A hub.' },
   ],
-  transmission_right_type: [
+  ref_transmission_right_type: [
     { rightTypeId: 1, typeCode: 'FTR', typeName: 'Financial Transmission Right', homeBalancingAuthorityId: 1, settlementBasis: 'DA_LMP_DIFFERENCE', allocationMethod: 'AUCTION', description: 'PJM/MISO terminology. Hedges day-ahead LMP spread between a source and sink point.', isActive: true },
     { rightTypeId: 2, typeCode: 'CRR', typeName: 'Congestion Revenue Right',      homeBalancingAuthorityId: 3, settlementBasis: 'DA_LMP_DIFFERENCE', allocationMethod: 'AUCTION', description: 'CAISO/ERCOT terminology for the same economic instrument as an FTR.', isActive: true },
     { rightTypeId: 3, typeCode: 'TCC', typeName: 'Transmission Congestion Contract', homeBalancingAuthorityId: 5, settlementBasis: 'DA_LMP_DIFFERENCE', allocationMethod: 'AUCTION', description: 'NYISO terminology for the same economic instrument as an FTR.', isActive: true },
@@ -2415,7 +2415,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { providerId: 3, providerCode: 'AIG-MARINE', providerName: 'AIG Marine Insurance', providerType: 'INSURER', countryId: 2, creditRatingId: 2, counterpartyId: null, isActive: true, notes: 'Cargo and political risk insurer.' },
     { providerId: 4, providerCode: 'EULER-HERMES', providerName: 'Euler Hermes (Allianz Trade)', providerType: 'INSURER', countryId: 16, creditRatingId: 2, counterpartyId: null, isActive: true, notes: 'Trade credit insurance provider.' },
   ],
-  interest_rate_index: [
+  ref_interest_rate_index: [
     { rateIndexId: 1, indexCode: 'SOFR',       indexName: 'Secured Overnight Financing Rate',    currencyId: 1, tenor: 'OVERNIGHT', dayCountConvention: 'ACT_360', compounding: 'OVERNIGHT_COMPOUNDED', publicationSource: 'NY Fed',    isRfrr: true,  isActive: true, description: 'US risk-free rate — replaced USD LIBOR.' },
     { rateIndexId: 2, indexCode: 'SOFR_3M',    indexName: 'SOFR Term 3 Month',                   currencyId: 1, tenor: '3M',        dayCountConvention: 'ACT_360', compounding: 'SIMPLE',                publicationSource: 'CME Group', isRfrr: true,  isActive: true, description: 'Forward-looking term SOFR, 3-month tenor.' },
     { rateIndexId: 3, indexCode: 'EURIBOR_3M', indexName: 'Euro Interbank Offered Rate 3 Month', currencyId: 3, tenor: '3M',        dayCountConvention: 'ACT_360', compounding: 'SIMPLE',                publicationSource: 'EMMI',      isRfrr: false, isActive: true, description: 'Eurozone interbank offered rate, 3-month tenor.' },
@@ -2491,7 +2491,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { calendarId: 5, calendarCode: 'ECB_TARGET', calendarName: 'ECB TARGET2 Payment System Holidays' },
     { calendarId: 6, calendarCode: 'ICE_BRENT',  calendarName: 'ICE Brent Futures Calendar' },
   ],
-  fx_rate: [
+  ref_fx_rate: [
     { fxRateId: 1, fromCurrencyId: 3, toCurrencyId: 1, rate: 1.0850, rateDate: '2026-07-04', rateType: 'EOD', source: 'ECB' },
     { fxRateId: 2, fromCurrencyId: 2, toCurrencyId: 1, rate: 1.2650, rateDate: '2026-07-04', rateType: 'EOD', source: 'BLOOMBERG' },
   ],
@@ -2559,11 +2559,11 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { ruleId: 1, ruleCode: 'GATE-LNG-STORAGE', ruleName: 'Gate Terminal Storage Boil-Off', vesselId: null, facilityId: 4, dailyBoilOffRatePct: 0.05, isForcingBoilOffAllowed: false, effectiveFrom: '2026-01-01', effectiveTo: null, isActive: true, notes: 'In-tank storage boil-off at Gate LNG Terminal Rotterdam.' },
     { ruleId: 2, ruleCode: 'DEFAULT-TRANSIT',    ruleName: 'Default Laden Transit Boil-Off', vesselId: null, facilityId: null, dailyBoilOffRatePct: 0.15, isForcingBoilOffAllowed: true,  effectiveFrom: '2026-01-01', effectiveTo: null, isActive: true, notes: 'Generic laden-voyage default used when no vessel-specific guaranteed rate applies.' },
   ],
-  power_pnode: [
+  mst_power_pnode: [
     { pnodeId: 1, pnodeMarketName: 'PJM_WEST_HUB_NODE', balancingAuthorityId: 1, transmissionZoneId: 1, nodeType: 'HUB', isActive: true, notes: null },
     { pnodeId: 2, pnodeMarketName: 'PJM_AECO_BUS_5021', balancingAuthorityId: 1, transmissionZoneId: 2, nodeType: 'BUS', isActive: true, notes: null },
   ],
-  power_ancillary_service_type: [
+  mst_power_ancillary_service_type: [
     { serviceTypeId: 1, serviceCode: 'SPINNING_RESERVE', serviceName: 'Synchronized Reserve', balancingAuthorityId: 1, description: 'Online generation capable of responding within 10 minutes to a system contingency.', isActive: true },
     { serviceTypeId: 2, serviceCode: 'REG_UP',           serviceName: 'Regulation Up',          balancingAuthorityId: 1, description: 'AGC-dispatched capacity that increases output to follow system frequency.', isActive: true },
     { serviceTypeId: 3, serviceCode: 'RRS',                serviceName: 'Responsive Reserve Service', balancingAuthorityId: 2, description: 'Fast-responding reserve (10 minutes) for large frequency deviations.', isActive: true },

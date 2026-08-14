@@ -28,7 +28,7 @@ import java.time.LocalDate;
  * convention or the other, not always both.
  */
 @Entity
-@Table(name = "volatility_point")
+@Table(name = "ref_volatility_point")
 public class VolatilityPoint extends AuditableEntity {
 
     @Id
