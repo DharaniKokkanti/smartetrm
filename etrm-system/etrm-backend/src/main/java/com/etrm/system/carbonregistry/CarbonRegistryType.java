@@ -13,7 +13,7 @@ import jakarta.persistence.Table;
  * (type_code/type_name) that carbon_registry.registry_type points at.
  */
 @Entity
-@Table(name = "mst_carbon_registry_type")
+@Table(name = "ref_carbon_registry_type")
 public class CarbonRegistryType {
 
     @Id

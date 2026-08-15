@@ -531,7 +531,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'mst_carbon_registry_type', label: 'Carbon Registry Types', pk: 'carbonRegistryTypeId', group: 'Carbon & Environmental', order: 13,
+    name: 'ref_carbon_registry_type', label: 'Carbon Registry Types', pk: 'carbonRegistryTypeId', group: 'Carbon & Environmental', order: 13,
     subGroup: 'Carbon & Environmental', description: 'Classification of carbon registries. Compliance registries are established by law to track mandatory allowance holdings and transfers. Voluntary registries operate privately to issue and retire voluntary carbon credits.',
     rows: [
       { carbonRegistryTypeId: 1, typeCode: 'COMPLIANCE', typeName: 'Compliance', description: 'Registry mandated by a regulator to issue, transfer and cancel compliance allowances — EU Union Registry, UK Registry, CITSS (California).', sortOrder: 10, isActive: true },
@@ -738,8 +738,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',    'Active',      'boolean', false, false, null),
     ],
   },
-  mst_freight_rate_index: {
-    tableName: 'mst_freight_rate_index', displayName: 'Freight Rate Indices', primaryKeyColumn: 'freightRateIndexId', isTemporal: false,
+  ref_freight_rate_index: {
+    tableName: 'ref_freight_rate_index', displayName: 'Freight Rate Indices', primaryKeyColumn: 'freightRateIndexId', isTemporal: false,
     columns: [
       col('freightRateIndexId',   'ID',                   'number',      false, true,  null),
       col('indexCode',            'Index Code',           'string',      false, false, 30),
@@ -1874,7 +1874,7 @@ export const registrySeed: RegistryEntry[] = [
   { registryId: 203, tableName: 'ref_energy_footprint',      displayName: 'Energy Footprints',      moduleGroup: 'Power & Energy', subGroup: 'Assets',  description: 'Distributed asset portfolios and networks traded as one unit — solar portfolios, EV charging networks, battery fleets, demand-response aggregations.',                     allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 6 },
   { registryId: 204, tableName: 'ref_energy_footprint_site', displayName: 'Energy Footprint Sites', moduleGroup: 'Power & Energy', subGroup: 'Assets',  description: 'Member sites of an energy footprint — per-site location, settlement zone, capacity, and technology detail (solar array, EV charging hub, battery unit).',                  allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 7 },
   // V53 — freight/demurrage master data enhancement (works across oil, LNG, dry-bulk/metals — NOT power, which doesn't move by vessel)
-  { registryId: 205, tableName: 'mst_freight_rate_index',     displayName: 'Freight Rate Indices',      moduleGroup: 'Freight & Shipping', subGroup: 'Charter', description: 'Freight benchmarks — Baltic dry-bulk indices (any dry cargo: ore, coal, grain), Worldscale tanker flat rates, and Spark30S for LNG. Used to set/escalate time charter hire or benchmark voyage freight.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
+  { registryId: 205, tableName: 'ref_freight_rate_index',     displayName: 'Freight Rate Indices',      moduleGroup: 'Freight & Shipping', subGroup: 'Charter', description: 'Freight benchmarks — Baltic dry-bulk indices (any dry cargo: ore, coal, grain), Worldscale tanker flat rates, and Spark30S for LNG. Used to set/escalate time charter hire or benchmark voyage freight.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
   { registryId: 206, tableName: 'ref_laytime_term_template',  displayName: 'Laytime Term Templates',    moduleGroup: 'Freight & Shipping', subGroup: 'Charter', description: 'Standard laytime clauses — which days count (SHINC/SHEX/WWD), whether laytime is reversible, and the NOR-tendering basis (WIPON/WIBON/WIFPON/WCCON) that determines when laytime starts counting.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
   { registryId: 207, tableName: 'ref_demurrage_dispatch_rate',displayName: 'Demurrage & Dispatch Rates',moduleGroup: 'Freight & Shipping', subGroup: 'Charter', description: 'Standard demurrage/dispatch rates by vessel class and commodity — includes the claim time-bar (days to submit with supporting docs) and despatch basis (all time saved vs. working time only).', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 4 },
   { registryId: 208, tableName: 'mst_laytime_exception_type', displayName: 'Laytime Exception Types',   moduleGroup: 'Freight & Shipping', subGroup: 'Charter', description: 'Standard reasons time is excepted from (or counted against) laytime — weather, strikes, breakdowns, port congestion — used in laytime calculations and demurrage disputes across any vessel-carried commodity.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 5 },
@@ -2176,7 +2176,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
   // mock table yet (a pre-existing gap: the frontend has no unit_of_measure
   // mock at all), so these numbers aren't cross-referenced against anything;
   // they only need to be non-null to satisfy chk_fri_pricing_rules's intent.
-  mst_freight_rate_index: [
+  ref_freight_rate_index: [
     { freightRateIndexId: 1, indexCode: 'BDTI',         indexName: 'Baltic Dirty Tanker Index',                  indexType: 'BALTIC',   vesselType: null,           routeDescription: null,                    commodityType: 1, currencyId: 1, uomId: 102, publicationSource: 'Baltic Exchange',      publicationFrequency: 'DAILY',  description: 'Composite index tracking crude/dirty product tanker freight rates across major routes.',            isActive: true },
     { freightRateIndexId: 2, indexCode: 'BCTI',         indexName: 'Baltic Clean Tanker Index',                  indexType: 'BALTIC',   vesselType: null,           routeDescription: null,                    commodityType: 1, currencyId: 1, uomId: 102, publicationSource: 'Baltic Exchange',      publicationFrequency: 'DAILY',  description: 'Composite index tracking clean petroleum product tanker freight rates.',                              isActive: true },
     { freightRateIndexId: 3, indexCode: 'BDI',          indexName: 'Baltic Dry Index',                           indexType: 'BALTIC',   vesselType: 'BULK_CARRIER', routeDescription: null,                    commodityType: null,  currencyId: 1, uomId: 101, publicationSource: 'Baltic Exchange',      publicationFrequency: 'DAILY',  description: 'Composite dry bulk freight index (Capesize/Panamax/Supramax/Handysize) — prices any dry-bulk cargo (ore, coal, grain), not agriculture-specific.', isActive: true },
