@@ -67,7 +67,7 @@ export function BrokerFeeAgreementsPage() {
   const [form] = Form.useForm<BrokerFeeAgreementInput>();
   useFormDraft('contracts-bfa', { form, open, setOpen, editing, setEditing });
 
-  const { data: commodities = [] } = useTableRows<CommodityRow>('ref_commodity');
+  const { data: commodities = [] } = useTableRows<CommodityRow>('mst_commodity');
 
   const filteredProducts = useMemo(
     () => products.filter((p) => !selectedCommodity || resolveCommodityType(commodities, p.commodityId) === selectedCommodity),

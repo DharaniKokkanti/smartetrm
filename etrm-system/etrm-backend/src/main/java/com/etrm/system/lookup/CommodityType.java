@@ -18,7 +18,7 @@ import com.etrm.system.common.SourceSystemDefaults;
  * and 'commodity_type' are never picked up as lookup_categories at all").
  */
 @Entity
-@Table(name = "ref_commodity_type")
+@Table(name = "mst_commodity_type")
 public class CommodityType {
 
     @Id

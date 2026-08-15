@@ -1460,7 +1460,7 @@ export function TradeBlotter() {
   const { data: books = [] } = useBooks();
   const { data: products = [] } = useProducts();
   const { data: markets = [] } = useMarkets();
-  const { data: commodityRows = [] } = useTableRows<CommodityRow>('ref_commodity');
+  const { data: commodityRows = [] } = useTableRows<CommodityRow>('mst_commodity');
   const { data: pricingRules = [] } = usePricingRules();
   const { data: balmoProducts = [] } = useBalmoProducts();
   const { data: locations = [] } = useLocations();

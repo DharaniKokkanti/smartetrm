@@ -582,7 +582,7 @@ function SpecsTab({ product, isBlend }: { product: Product; isBlend: boolean }) 
     isBlend ? product.productId : null,
   );
   const { data: allProducts = [] } = useProducts();
-  const { data: commodities = [] } = useTableRows<CommodityRow>('ref_commodity');
+  const { data: commodities = [] } = useTableRows<CommodityRow>('mst_commodity');
   const productCommodityType = resolveCommodityType(commodities, product.commodityId) ?? 'OTHER';
   const addComp    = useAddBlendComponent(product.productId);
   const removeComp = useRemoveBlendComponent(product.productId);
@@ -827,7 +827,7 @@ export function ProductsPage() {
     return commodityFamilies.find((f) => f.commodityFamilyId === id)?.familyName ?? `#${id}`;
   }
 
-  const { data: commodities = [] } = useTableRows<CommodityRow>('ref_commodity');
+  const { data: commodities = [] } = useTableRows<CommodityRow>('mst_commodity');
 
   const filtered = useMemo(
     () => (data ?? []).filter((p) => activeCommodity === 'ALL' || resolveCommodityType(commodities, p.commodityId) === activeCommodity),

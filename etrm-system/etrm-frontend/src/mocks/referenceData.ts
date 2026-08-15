@@ -19,9 +19,9 @@ function col(
 
 // V55 moved commodity_type from a hardcoded VARCHAR+CHECK to an INT FK on
 // dbo.lookup_value(lookup_id); V85 later pulled it back out into its own
-// dedicated dbo.commodity_type table (renamed dbo.ref_commodity_type,
-// 2026-08-14) (see PARENT_LOOKUP_TABLES below —
-// 'ref_commodity_type' entry, ids seeded in the same order this comment used to
+// dedicated dbo.commodity_type table (renamed dbo.mst_commodity_type,
+// 2026-08-15) (see PARENT_LOOKUP_TABLES below —
+// 'mst_commodity_type' entry, ids seeded in the same order this comment used to
 // document: OIL=1, GAS=2, POWER=3, LNG=4, AGRICULTURAL=5, METALS=6,
 // FREIGHT=7, RINS=8, ENVIRONMENTAL=9, MULTI=10, OTHER=11). The various
 // bespoke entity mocks below (book/desk/gl_account/etc., in etrmHandlers.ts,
@@ -148,7 +148,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'ref_commodity_type', label: 'Commodity Types', pk: 'commodityTypeId', group: 'Products & Markets', order: 9,
+    name: 'mst_commodity_type', label: 'Commodity Types', pk: 'commodityTypeId', group: 'Products & Markets', order: 9,
     subGroup: 'Classification', description: 'Sector classification reused across desks, books, GL accounts, periods, and other tables — pulled out of the generic Lookup Values system (V85) into its own dedicated table.',
     rows: [
       { commodityTypeId: 1,  typeCode: 'OIL',           typeName: 'Oil',             description: 'Crude oil and refined petroleum products.',        sortOrder: 1,  isActive: true },
@@ -611,8 +611,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
   // properly `commodity_family` (V59), linked to `product`, not sitting on
   // `commodity`. `commodity` stays exactly what it's for: the unique list of
   // top-level commodity types this ETRM supports — nothing else.
-  ref_commodity: {
-    tableName: 'ref_commodity', displayName: 'Commodities', primaryKeyColumn: 'commodityId', isTemporal: false,
+  mst_commodity: {
+    tableName: 'mst_commodity', displayName: 'Commodities', primaryKeyColumn: 'commodityId', isTemporal: false,
     columns: [
       col('commodityId',      'ID',           'number',  false, true,  null),
       col('commodityCode',    'Code',         'string',  false, false, 20),
@@ -625,7 +625,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
     tableName: 'ref_commodity_family', displayName: 'Commodity Families', primaryKeyColumn: 'commodityFamilyId', isTemporal: false,
     columns: [
       col('commodityFamilyId', 'ID',          'number',      false, true,  null),
-      col('commodityId',       'Commodity',   'foreign_key', false, false, null, null, 'ref_commodity'),
+      col('commodityId',       'Commodity',   'foreign_key', false, false, null, null, 'mst_commodity'),
       col('familyCode',        'Family Code', 'string',      false, false, 30),
       col('familyName',        'Family Name', 'string',      false, false, 100),
       // V61 — locked to a fixed list (was free text in V59; user reconsidered
@@ -747,7 +747,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('indexType',            'Index Type',           'enum',        false, false, null, ['BALTIC', 'WORLDSCALE', 'ASSESSED', 'OTHER']),
       col('vesselType',           'Vessel Type',          'string',      true,  false, 30),
       col('routeDescription',     'Route',                'string',      true,  false, 200),
-      col('commodityType',        'Commodity',            'foreign_key', true,  false, null, null, 'ref_commodity_type'),
+      col('commodityType',        'Commodity',            'foreign_key', true,  false, null, null, 'mst_commodity_type'),
       col('currencyId',           'Currency',             'foreign_key', true,  false, null, null, 'ref_currency'),
       col('uomId',                'UoM',                  'number',      true,  false, null),
       col('publicationSource',    'Publication Source',   'string',      true,  false, 100),
@@ -769,7 +769,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('norWifponAllowed',  'NOR — WIFPON',        'boolean', false, false, null),
       col('norWcconAllowed',   'NOR — WCCON',         'boolean', false, false, null),
       col('noticeOfReadinessTurnTimeMins', 'NOR Turn Time (mins)', 'number', false, false, null),
-      col('commodityType',     'Commodity',           'foreign_key', true,  false, null, null, 'ref_commodity_type'),
+      col('commodityType',     'Commodity',           'foreign_key', true,  false, null, null, 'mst_commodity_type'),
       col('description',       'Description',         'string',  true,  false, 300),
       col('isActive',          'Active',              'boolean', false, false, null),
     ],
@@ -783,7 +783,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('demurrageRatePerDay', 'Demurrage $/Day',     'number',      false, false, null, null, null, null, true),
       col('dispatchRatePerDay',  'Dispatch $/Day',      'number',      true,  false, null, null, null, null, true),
       col('currencyId',          'Currency',            'foreign_key', false, false, null, null, 'ref_currency'),
-      col('commodityType',       'Commodity',           'foreign_key', true,  false, null, null, 'ref_commodity_type'),
+      col('commodityType',       'Commodity',           'foreign_key', true,  false, null, null, 'mst_commodity_type'),
       col('claimTimeBarDays',    'Claim Time-Bar (days)','number',     true,  false, null),
       col('despatchBasis',       'Despatch Basis',      'enum',        true,  false, null, ['ALL_TIME_SAVED', 'WORKING_TIME_SAVED_ONLY']),
       col('effectiveFrom',       'Effective From',      'date',        false, false, null),
@@ -885,7 +885,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('templateCode',    'Code',          'string',      false, false, 30),
       col('templateName',    'Name',          'string',      false, false, 150),
       col('portLocationId',  'Port',          'foreign_key', true,  false, null, null, 'ref_location'),
-      col('commodityTypeId', 'Commodity Type', 'foreign_key', true,  false, null, null, 'ref_commodity_type'),
+      col('commodityTypeId', 'Commodity Type', 'foreign_key', true,  false, null, null, 'mst_commodity_type'),
       col('description',     'Description',   'string',      true,  false, 500),
       col('isActive',        'Active',        'boolean',     false, false, null),
     ],
@@ -1573,7 +1573,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
     tableName: 'ref_agri_crop_year_lifecycle', displayName: 'Agri Crop Year Lifecycle', primaryKeyColumn: 'lifecycleId', isTemporal: false,
     columns: [
       col('lifecycleId',            'ID',                  'number',      false, true,  null),
-      col('commodityId',             'Commodity',           'foreign_key', false, false, null, null, 'ref_commodity'),
+      col('commodityId',             'Commodity',           'foreign_key', false, false, null, null, 'mst_commodity'),
       col('countryId',                 'Country',             'foreign_key', false, false, null, null, 'ref_country'),
       col('cropYearLabel',              'Crop Year',           'string',      false, false, 20),
       col('harvestStartDate',             'Harvest Start',       'date',        false, false, null),
@@ -1861,7 +1861,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
  */
 export const registrySeed: RegistryEntry[] = [
   { registryId: 1, tableName: 'ref_currency',            displayName: 'Currencies',           moduleGroup: 'Finance & Settlement', subGroup: 'Global Codes',      description: 'ISO 4217 currency codes used across all monetary fields. The 3-letter alphabetic code (e.g. USD, EUR, GBP) is enforced. Reference: iso.org/iso-4217-currency-codes.html', allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: true,  isEnabled: true, displayOrder: 1 },
-  { registryId: 2, tableName: 'ref_commodity',           displayName: 'Commodities',          moduleGroup: 'Products & Markets', subGroup: 'Classification',    description: 'Top-level commodity classification — Oil, Gas, Power, Agricultural, Metals, and Other. Drives product group assignment, applicable trade types, and pricing curve linkage.',                                allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
+  { registryId: 2, tableName: 'mst_commodity',           displayName: 'Commodities',          moduleGroup: 'Products & Markets', subGroup: 'Classification',    description: 'Top-level commodity classification — Oil, Gas, Power, Agricultural, Metals, and Other. Drives product group assignment, applicable trade types, and pricing curve linkage.',                                allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
   { registryId: 3, tableName: 'ref_credit_rating',       displayName: 'Credit Ratings',       moduleGroup: 'Counterparties & Agreements', subGroup: 'Classification',    description: 'S&P, Moody\'s, and Fitch credit rating scales with numeric equivalents. Used to derive credit exposure limits and margin requirements for each counterparty.',                                                   allowCreate: true,  allowEdit: true,  allowDelete: true,  allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
   { registryId: 4, tableName: 'ref_incoterm',            displayName: 'Incoterms',            moduleGroup: 'Contract & Legal', subGroup: 'Global Codes',      description: 'ICC Incoterms® 2020 rules that define the point at which risk and cost transfer from seller to buyer. Reference: iccwbo.org/resources-for-business/incoterms-rules',                            allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 4 },
   { registryId: 5, tableName: 'ref_charter_party_type',  displayName: 'Charter Party Types',  moduleGroup: 'Freight & Shipping',   subGroup: 'Charter',           description: 'Types of vessel charter arrangements — Voyage Charter (fixed route, per tonne) or Time Charter (per day, operator controls routing). Determines freight cost calculation and demurrage liability.',     allowCreate: true,  allowEdit: true,  allowDelete: true,  allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
