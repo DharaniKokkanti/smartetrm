@@ -24,7 +24,7 @@ public class MarginOffsetRuleService {
 
     private String lookupLegLabel(Integer marketProductLinkId) {
         List<String> rows = jdbc.query(
-                "SELECT COALESCE(mpl.ticker, m.market_name) AS label FROM dbo.market_product_link mpl "
+                "SELECT COALESCE(mpl.ticker, m.market_name) AS label FROM dbo.ref_market_product_link mpl "
                         + "JOIN dbo.ref_market m ON mpl.market_id = m.market_id WHERE mpl.market_product_link_id = ?",
                 (rs, i) -> rs.getString("label"), marketProductLinkId);
         return rows.isEmpty() ? null : rows.get(0);

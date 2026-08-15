@@ -39,7 +39,7 @@ import java.time.LocalDateTime;
  * type wanted them but the live table never had them.
  */
 @Entity
-@Table(name = "mst_payment_method")
+@Table(name = "ref_payment_method")
 @EntityListeners(AuditingEntityListener.class)
 public class PaymentMethod {
 

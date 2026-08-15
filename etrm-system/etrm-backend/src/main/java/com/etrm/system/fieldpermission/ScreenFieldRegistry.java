@@ -11,7 +11,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "screen_field_registry")
+@Table(name = "sys_screen_field_registry")
 @EntityListeners(AuditingEntityListener.class)
 public class ScreenFieldRegistry {
 

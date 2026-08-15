@@ -19,7 +19,7 @@ const GROUP_TO_TABLE: Record<string, string> = {
   CONTACT_ROLE:          'mst_contact_role',
   ADDRESS_TYPE:          'ref_address_type',
   BANK_ACCOUNT_TYPE:     'ref_bank_account_type',
-  PAYMENT_METHOD:        'mst_payment_method',
+  PAYMENT_METHOD:        'ref_payment_method',
   SETTLEMENT_TYPE:       'ref_settlement_type',
   STORAGE_FACILITY_TYPE: 'mst_storage_facility_type',
   NETTING_AGREEMENT_TYPE:'ref_netting_agreement_type',

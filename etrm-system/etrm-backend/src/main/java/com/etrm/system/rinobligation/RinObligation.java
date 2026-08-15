@@ -36,7 +36,7 @@ import java.time.LocalDateTime;
  * (required_quantity - retired_quantity) — read-only.
  */
 @Entity
-@Table(name = "mst_rin_obligation")
+@Table(name = "ref_rin_obligation")
 @EntityListeners(AuditingEntityListener.class)
 public class RinObligation {
 

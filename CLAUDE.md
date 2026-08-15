@@ -63,14 +63,15 @@ Informed by ComTech industry roundtables on ETRM/commodity-trading AI vendor pra
 - Governance/legal → maps to entitlement/access control layered onto the event and streaming systems.
 - Cost/talent → organizational/roadmap concern, not architecture.
 
-## 4a. Table Naming Convention — `mst_`/`ref_`/`tran_`/`usr_` prefixes (REAL, in progress — not aspirational like §1-3 above)
+## 4a. Table Naming Convention — `mst_`/`ref_`/`tran_`/`usr_`/`sys_` prefixes (REAL, in progress — not aspirational like §1-3 above)
 
 Unlike the event-architecture layer above, this is live, currently being rolled out table-by-table. Every physical table name carries a category prefix, decided before the DDL is written, no exceptions for new tables:
 
-- **`mst_`** — master data, only platform admins add/edit (system-controlled code lists, the existing SYSTEM-locked `allow_create/edit=0` set)
-- **`ref_`** — reference data, business users manage through the app (counterparties, products, markets, legal entities — done, 62 tables, 2026-08-14)
-- **`tran_`** — transaction data, real business events (trade capture — done, 25 tables, 2026-08-14; position/P&L/pricing/costs as those get built)
-- **`usr_`** — system users/security/admin infrastructure (accounts, roles, permissions, audit — not yet started)
+- **`mst_`** — master data, only platform admins add/edit (system-controlled code lists, the existing SYSTEM-locked `allow_create/edit=0` set) — 57 tables, 2026-08-14
+- **`ref_`** — reference data, business users manage through the app (counterparties, products, markets, legal entities, trade-adjacent transaction-support lookups) — 197 tables, 2026-08-14
+- **`tran_`** — transaction data, real business events (trade capture, position/P&L/pricing/margin/voyage events) — 40 tables, 2026-08-14
+- **`usr_`** — system users/security/admin infrastructure (accounts, roles, permissions, audit) — 9 tables, 2026-08-14
+- **`sys_`** — platform self-description/governance infrastructure, distinct from `usr_`: the table registry itself, data-provenance/integration registries, RBAC's own permissionable-thing catalog, UI field registry, workflow lock rules — 9 tables, 2026-08-14
 
 **Why**: `master_data_table_registry.module_group` already recorded this classification and was found silently wrong for 26 tables the same session this rule was introduced — a metadata row can drift with nothing forcing it into view, a table's own name cannot. It's also what makes the schema legible to future AI/MCP tooling reading it cold: an agent sees `tran_trade` vs `ref_counterparty` vs `mst_currency` and gets the mutability/governance category for free, without an extra lookup or risk of trusting a stale row — the same "explicit, inspectable rule over opaque classification" principle §4 above already calls for, just applied directly in the identifier.
 

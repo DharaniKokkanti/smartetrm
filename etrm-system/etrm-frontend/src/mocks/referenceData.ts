@@ -67,7 +67,7 @@ const PARENT_LOOKUP_TABLES: LookupDef[] = [
     ],
   },
   {
-    name: 'mst_payment_method', label: 'Payment Methods', pk: 'paymentMethodId', group: 'Contract & Legal', order: 1,
+    name: 'ref_payment_method', label: 'Payment Methods', pk: 'paymentMethodId', group: 'Contract & Legal', order: 1,
     subGroup: 'Settlement', description: 'Valid mechanisms for settling payment obligations — wire transfers, LCs, bank guarantees, and netting. Drives payment term configuration and bank account type requirements.',
     rows: [
       { paymentMethodId: 1, typeCode: 'WIRE',             typeName: 'Wire Transfer',    description: 'Bank-to-bank SWIFT wire transfer',              sortOrder: 1, isActive: true },
@@ -703,8 +703,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',       'Active',        'boolean', false, false, null),
     ],
   },
-  mst_incoterm: {
-    tableName: 'mst_incoterm', displayName: 'Incoterms', primaryKeyColumn: 'incotermId', isTemporal: false,
+  ref_incoterm: {
+    tableName: 'ref_incoterm', displayName: 'Incoterms', primaryKeyColumn: 'incotermId', isTemporal: false,
     columns: [
       col('incotermId',     'ID',             'number',  false, true,  null),
       col('code',           'Code',           'string',  false, false, 10),
@@ -1387,8 +1387,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('isActive',         'Active',      'boolean', false, false, null),
     ],
   },
-  external_system: {
-    tableName: 'external_system', displayName: 'External Systems', primaryKeyColumn: 'externalSystemId', isTemporal: false,
+  sys_external_system: {
+    tableName: 'sys_external_system', displayName: 'External Systems', primaryKeyColumn: 'externalSystemId', isTemporal: false,
     columns: [
       col('externalSystemId',     'ID',             'number',  false, true,  null),
       col('systemCode',           'Code',           'string',  false, false, 30),
@@ -1425,8 +1425,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
   // Lightweight holiday_calendar mirror — same FK-resolution-only rationale
   // as product/storage_facility/counterparty above (has its own dedicated
   // HolidayCalendarsPage.tsx, not registered here).
-  mst_holiday_calendar: {
-    tableName: 'mst_holiday_calendar', displayName: 'Holiday Calendars', primaryKeyColumn: 'calendarId', isTemporal: false,
+  ref_holiday_calendar: {
+    tableName: 'ref_holiday_calendar', displayName: 'Holiday Calendars', primaryKeyColumn: 'calendarId', isTemporal: false,
     columns: [
       col('calendarId',   'ID',   'number', false, true,  null),
       col('calendarCode', 'Code', 'string', false, false, 20),
@@ -1453,7 +1453,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
     columns: [
       col('scId',        'ID',              'number',      false, true,  null),
       col('productId',   'Product',         'foreign_key', false, false, null, null, 'ref_product'),
-      col('calendarId',  'Holiday Calendar','foreign_key', false, false, null, null, 'mst_holiday_calendar'),
+      col('calendarId',  'Holiday Calendar','foreign_key', false, false, null, null, 'ref_holiday_calendar'),
       col('priority',    'Priority',        'number',      false, false, null),
       col('isActive',    'Active',          'boolean',     false, false, null),
     ],
@@ -1604,8 +1604,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('paymentTermId',                    'Payment Term',           'foreign_key', false, false, null, null, 'ref_payment_term'),
       col('currencyId',                         'Currency',               'foreign_key', false, false, null, null, 'ref_currency'),
       col('locationId',                           'Location',               'foreign_key', true,  false, null, null, 'ref_location'),
-      col('primaryHolidayCalendarId',                'Primary Calendar',       'foreign_key', false, false, null, null, 'mst_holiday_calendar'),
-      col('secondaryHolidayCalendarId',                 'Secondary Calendar',     'foreign_key', true,  false, null, null, 'mst_holiday_calendar'),
+      col('primaryHolidayCalendarId',                'Primary Calendar',       'foreign_key', false, false, null, null, 'ref_holiday_calendar'),
+      col('secondaryHolidayCalendarId',                 'Secondary Calendar',     'foreign_key', true,  false, null, null, 'ref_holiday_calendar'),
       col('isActive',                                      'Active',                 'boolean',     false, false, null),
       col('notes',                                           'Notes',                  'string',      true,  false, 500),
     ],
@@ -1779,7 +1779,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('productId',                'Product',             'foreign_key', true,  false, null, null, 'ref_product'),
       col('direction',                'Direction',           'enum',        false, false, null, ['BUY', 'SELL', 'BOTH']),
       col('customsMovementStatusId',  'Movement Status',     'foreign_key', true,  false, null, null, 'ref_customs_movement_status'),
-      col('incotermId',               'Incoterm',            'foreign_key', true,  false, null, null, 'mst_incoterm'),
+      col('incotermId',               'Incoterm',            'foreign_key', true,  false, null, null, 'ref_incoterm'),
       col('taxCodeId',                'Tax Code',            'foreign_key', false, false, null, null, 'ref_tax_code'),
       col('costApplicableInd',        'Generates Cost',      'boolean',     false, false, null),
       col('issuingAuthority',         'Issuing Authority',   'string',      true,  false, 100),
@@ -1793,8 +1793,8 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
   // V192 — governed registry of data-provenance origins (screens/APIs/
   // feeds/system). Not a PARENT_LOOKUP_TABLES entry because of the extra
   // `category` enum column beyond the generic typeCode/typeName shape.
-  source_system: {
-    tableName: 'source_system', displayName: 'Source Systems', primaryKeyColumn: 'sourceSystemId', isTemporal: false,
+  sys_source_system: {
+    tableName: 'sys_source_system', displayName: 'Source Systems', primaryKeyColumn: 'sourceSystemId', isTemporal: false,
     columns: [
       col('sourceSystemId', 'ID',          'number',  false, true,  null),
       col('sourceCode',     'Code',        'string',  false, false, 50),
@@ -1821,7 +1821,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('counterpartyId',           'Counterparty',        'foreign_key', true,  false, null, null, 'ref_counterparty'),
       col('direction',                'Direction',           'enum',        false, false, null, ['BUY', 'SELL', 'BOTH']),
       col('customsMovementStatusId',  'Movement Status',     'foreign_key', true,  false, null, null, 'ref_customs_movement_status'),
-      col('incotermId',               'Incoterm',            'foreign_key', true,  false, null, null, 'mst_incoterm'),
+      col('incotermId',               'Incoterm',            'foreign_key', true,  false, null, null, 'ref_incoterm'),
       col('productHsCodeId',          'HS Classification',   'foreign_key', true,  false, null, null, 'ref_product_hs_code'),
       col('dutyRatePercent',          'Duty Rate %',         'number',      true,  false, null, null, null, null, true),
       col('dutyFlatAmount',           'Duty Flat Amount',    'number',      true,  false, null, null, null, null, true),
@@ -1863,7 +1863,7 @@ export const registrySeed: RegistryEntry[] = [
   { registryId: 1, tableName: 'ref_currency',            displayName: 'Currencies',           moduleGroup: 'Finance & Settlement', subGroup: 'Global Codes',      description: 'ISO 4217 currency codes used across all monetary fields. The 3-letter alphabetic code (e.g. USD, EUR, GBP) is enforced. Reference: iso.org/iso-4217-currency-codes.html', allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: true,  isEnabled: true, displayOrder: 1 },
   { registryId: 2, tableName: 'ref_commodity',           displayName: 'Commodities',          moduleGroup: 'Products & Markets', subGroup: 'Classification',    description: 'Top-level commodity classification — Oil, Gas, Power, Agricultural, Metals, and Other. Drives product group assignment, applicable trade types, and pricing curve linkage.',                                allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
   { registryId: 3, tableName: 'ref_credit_rating',       displayName: 'Credit Ratings',       moduleGroup: 'Counterparties & Agreements', subGroup: 'Classification',    description: 'S&P, Moody\'s, and Fitch credit rating scales with numeric equivalents. Used to derive credit exposure limits and margin requirements for each counterparty.',                                                   allowCreate: true,  allowEdit: true,  allowDelete: true,  allowExcelUpload: false, isEnabled: true, displayOrder: 3 },
-  { registryId: 4, tableName: 'mst_incoterm',            displayName: 'Incoterms',            moduleGroup: 'Contract & Legal', subGroup: 'Global Codes',      description: 'ICC Incoterms® 2020 rules that define the point at which risk and cost transfer from seller to buyer. Reference: iccwbo.org/resources-for-business/incoterms-rules',                            allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 4 },
+  { registryId: 4, tableName: 'ref_incoterm',            displayName: 'Incoterms',            moduleGroup: 'Contract & Legal', subGroup: 'Global Codes',      description: 'ICC Incoterms® 2020 rules that define the point at which risk and cost transfer from seller to buyer. Reference: iccwbo.org/resources-for-business/incoterms-rules',                            allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 4 },
   { registryId: 5, tableName: 'ref_charter_party_type',  displayName: 'Charter Party Types',  moduleGroup: 'Freight & Shipping',   subGroup: 'Charter',           description: 'Types of vessel charter arrangements — Voyage Charter (fixed route, per tonne) or Time Charter (per day, operator controls routing). Determines freight cost calculation and demurrage liability.',     allowCreate: true,  allowEdit: true,  allowDelete: true,  allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
   { registryId: 6, tableName: 'ref_load_shape_template', displayName: 'Load Shape Templates', moduleGroup: 'Power & Energy',     subGroup: 'Markets',           description: 'Standard electricity delivery profiles — Baseload (7×24), Peak (5×16 or 6×16), Off-peak, and user-defined shapes. Templates constrain the hours delivered under a power supply contract.',               allowCreate: true,  allowEdit: true,  allowDelete: true,  allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
   { registryId: 7, tableName: 'ref_balancing_authority', displayName: 'Balancing Authorities',moduleGroup: 'Power & Energy',     subGroup: 'Markets',           description: 'Grid operators (ISOs/RTOs and utilities) responsible for maintaining real-time balance between supply and demand within their control area — PJM, ERCOT, CAISO, and others.',                        allowCreate: true,  allowEdit: true,  allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 2 },
@@ -1918,7 +1918,7 @@ export const registrySeed: RegistryEntry[] = [
   { registryId: 224, tableName: 'mst_collateral_type', displayName: 'Collateral Types', moduleGroup: 'Credit & Collateral',   subGroup: 'Collateral', description: 'Eligible collateral asset classes and their standard haircut % — cash, government/corporate bonds, letters of credit, bank guarantees. Reference for margin agreement collateral eligibility.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 10 },
   { registryId: 225, tableName: 'mst_event_category',  displayName: 'Event Categories', moduleGroup: 'Organization & Users', subGroup: 'System',     description: 'Top-level classification for system workflow/lifecycle events — Trade, Delivery, Settlement, Risk, Credit, Market Data, Regulatory.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 10 },
   { registryId: 226, tableName: 'mst_event_type',      displayName: 'Event Types',     moduleGroup: 'Organization & Users', subGroup: 'System',     description: 'Full catalogue of system event codes with severity, SLA, and workflow flags (requires action/approval, triggers notification) — drives the notification engine and audit trail.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 11 },
-  { registryId: 227, tableName: 'external_system', displayName: 'External Systems', moduleGroup: 'Organization & Users', subGroup: 'System',    description: 'Integration endpoints — market data vendors, ERP, CTRM, shipping, bank, regulatory systems — for the polymorphic external_system_mapping crosswalk.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 12 },
+  { registryId: 227, tableName: 'sys_external_system', displayName: 'External Systems', moduleGroup: 'Organization & Users', subGroup: 'System',    description: 'Integration endpoints — market data vendors, ERP, CTRM, shipping, bank, regulatory systems — for the polymorphic external_system_mapping crosswalk.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 12 },
   // V105 — connection_type: parent lookup for external_system.connectionTypeId
   // (V104's sibling external_system_type registry row was dropped in V106)
   { registryId: 243, tableName: 'ref_connection_type', displayName: 'Connection Types', moduleGroup: 'Organization & Users', subGroup: 'System', description: 'Integration transport mechanisms — API, SFTP, File, Manual, Message Queue. Parent table for external_system.connectionTypeId FK.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 13 },
@@ -2146,7 +2146,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { creditRatingId: 2, agency: 'S&P', rating: 'AA',  numericScore: 2, riskCategory: 'INVESTMENT_GRADE', isActive: true },
     { creditRatingId: 3, agency: 'S&P', rating: 'BBB', numericScore: 4, riskCategory: 'INVESTMENT_GRADE', isActive: true },
   ],
-  mst_incoterm: [
+  ref_incoterm: [
     { incotermId: 1, code: 'FOB', name: 'Free On Board',              transportMode: 'SEA_INLAND_WATERWAY', versionYear: 2020, isActive: true },
     { incotermId: 2, code: 'CIF', name: 'Cost, Insurance & Freight',  transportMode: 'SEA_INLAND_WATERWAY', versionYear: 2020, isActive: true },
     { incotermId: 3, code: 'DDP', name: 'Delivered Duty Paid',        transportMode: 'ANY',                 versionYear: 2020, isActive: true },
@@ -2465,7 +2465,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { connectionTypeId: 4, typeCode: 'MANUAL',        typeName: 'Manual',        description: null, sortOrder: 4, isActive: true },
     { connectionTypeId: 5, typeCode: 'MESSAGE_QUEUE', typeName: 'Message Queue', description: null, sortOrder: 5, isActive: true },
   ],
-  external_system: [
+  sys_external_system: [
     { externalSystemId: 1, systemCode: 'MKT_DATA_VENDOR_A', systemName: 'Market Data Vendor A (TBD)', vendorName: null, connectionTypeId: 1, baseUrl: null, ownerTeam: 'Market Data', isActive: true, notes: 'Real-time and historical price feed.' },
     { externalSystemId: 2, systemCode: 'ERP_SYSTEM',        systemName: 'ERP System (TBD)',           vendorName: null, connectionTypeId: 1, baseUrl: null, ownerTeam: 'Finance',     isActive: true, notes: 'GL posting and invoicing integration.' },
     { externalSystemId: 3, systemCode: 'REGULATORY_REPOSITORY', systemName: 'Regulatory Trade Repository (TBD)', vendorName: null, connectionTypeId: 2, baseUrl: null, ownerTeam: 'Compliance', isActive: true, notes: 'EMIR/Dodd-Frank trade repository submission.' },
@@ -2483,7 +2483,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { creditTermId: 10, termCode: 'PREPAY',           termName: 'Prepaid — No Credit',        creditPeriodDays: 0,  collateralType: 'CASH',             marginCallThreshold: null,    marginCallCurrencyId: 1, nettingEligible: false, requiresIsda: false, description: 'Full payment required before delivery/execution — no open credit exposure.', isActive: true },
     { creditTermId: 11, termCode: 'CASH_ON_DELIVERY', termName: 'Cash on Delivery',           creditPeriodDays: 0,  collateralType: 'CASH',             marginCallThreshold: null,    marginCallCurrencyId: 1, nettingEligible: false, requiresIsda: false, description: 'Payment due concurrent with delivery — no open credit exposure.', isActive: true },
   ],
-  mst_holiday_calendar: [
+  ref_holiday_calendar: [
     { calendarId: 1, calendarCode: 'UK_BANK',    calendarName: 'UK Bank Holidays' },
     { calendarId: 2, calendarCode: 'US_FEDERAL', calendarName: 'US Federal Holidays' },
     { calendarId: 3, calendarCode: 'NYMEX_WTI',  calendarName: 'NYMEX WTI Futures Calendar' },
@@ -2611,7 +2611,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
     { taxRuleId: 4, ruleName: 'DDP Sale — Seller Pays Import VAT', loadLocationId: null, dischLocationId: null, countryId: 1, legalEntityId: null, counterpartyId: null, productId: null, direction: 'SELL', customsMovementStatusId: null, incotermId: 7, taxCodeId: 1, costApplicableInd: true, issuingAuthority: 'HMRC', priority: 5, validFrom: null, validTo: null, isActive: true, notes: 'DDP — seller is importer of record, bears the import VAT cost, not the buyer.' },
   ],
   // V192 — mirrors the migration's seed exactly (see 192_source_system_registry.sql).
-  source_system: [
+  sys_source_system: [
     { sourceSystemId: 1, sourceCode: 'TRADE_CAPTURE_SCREEN', sourceName: 'Trade Capture Screen',     category: 'UI_SCREEN',     description: 'Manual single-trade entry via the Trade Capture workspace (/trade/capture).', sortOrder: 1, isActive: true },
     { sourceSystemId: 2, sourceCode: 'STATIC_DATA_ADMIN',    sourceName: 'Static Data Admin Screen', category: 'UI_SCREEN',     description: 'Generic Tier2 Static Data CRUD screen shared by the ~302 reference-data tables under /static-data/*. Interim bucket until each table/screen gets its own dedicated source row.', sortOrder: 2, isActive: true },
     { sourceSystemId: 3, sourceCode: 'BULK_EXCEL_UPLOAD',    sourceName: 'Bulk Excel Upload',        category: 'BULK_LOAD',     description: "Rows loaded via the Excel bulk-upload endpoint on a Static Data or Trade Capture screen, not typed by hand.", sortOrder: 3, isActive: true },

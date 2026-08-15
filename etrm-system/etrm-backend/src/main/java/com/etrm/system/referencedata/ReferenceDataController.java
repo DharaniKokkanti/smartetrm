@@ -67,7 +67,18 @@ public class ReferenceDataController {
     // written by createRow/updateRow/deleteRow's normal path (createdBy/
     // updatedBy still records the real admin user), it just isn't blocked by
     // the registry flag for this one role.
-    private boolean isSystemAdmin(Authentication authentication) {
+    //
+    // 2026-08-15 correction: ROLE_ADMIN is a role a client's own top-level
+    // user can hold — it does not distinguish "the vendor" from "a client's
+    // own admin." The mst_ naming convention's whole point is "vendor-only,
+    // not even a client super admin" (see MASTER_DATA_ARCHITECTURE.md §8),
+    // so the override above must not apply to mst_-prefixed tables — those
+    // stay hard-locked for every role until a real vendor-only flag exists,
+    // distinct from ROLE_ADMIN. Left unchanged for every other prefix (ref_/
+    // tran_/usr_/sys_), where the override was a deliberate, reasoned fix
+    // for a real gap, not a hole.
+    private boolean isSystemAdmin(Authentication authentication, String tableName) {
+        if (tableName != null && tableName.startsWith("mst_")) return false;
         if (authentication == null) return false;
         return authentication.getAuthorities().stream()
                 .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
@@ -132,7 +143,7 @@ public class ReferenceDataController {
             @PathVariable String table, @RequestBody Map<String, Object> row, Authentication authentication
     ) {
         MasterDataTableRegistry entry = requireRegistered(table);
-        if (!entry.getAllowCreate() && !isSystemAdmin(authentication)) {
+        if (!entry.getAllowCreate() && !isSystemAdmin(authentication, entry.getTableName())) {
             throw new IllegalStateException("Creating rows in \"" + table + "\" is not permitted.");
         }
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -145,7 +156,7 @@ public class ReferenceDataController {
             Authentication authentication
     ) {
         MasterDataTableRegistry entry = requireRegistered(table);
-        if (!entry.getAllowEdit() && !isSystemAdmin(authentication)) {
+        if (!entry.getAllowEdit() && !isSystemAdmin(authentication, entry.getTableName())) {
             throw new IllegalStateException("Editing rows in \"" + table + "\" is not permitted.");
         }
         return crudService.updateRow(entry.getTableName(), entry.getDisplayName(), id, row);
@@ -156,7 +167,7 @@ public class ReferenceDataController {
             @PathVariable String table, @PathVariable Long id, Authentication authentication
     ) {
         MasterDataTableRegistry entry = requireRegistered(table);
-        if (!entry.getAllowDelete() && !isSystemAdmin(authentication)) {
+        if (!entry.getAllowDelete() && !isSystemAdmin(authentication, entry.getTableName())) {
             throw new IllegalStateException("Deleting rows in \"" + table + "\" is not permitted.");
         }
         crudService.deleteRow(entry.getTableName(), entry.getDisplayName(), id);

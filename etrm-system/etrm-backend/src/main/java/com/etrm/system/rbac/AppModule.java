@@ -12,7 +12,7 @@ import com.etrm.system.common.SourceSystemDefaults;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "app_module")
+@Table(name = "sys_app_module")
 @EntityListeners(AuditingEntityListener.class)
 public class AppModule {
 

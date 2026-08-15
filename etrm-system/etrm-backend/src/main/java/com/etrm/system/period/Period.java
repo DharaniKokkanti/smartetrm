@@ -51,7 +51,7 @@ import java.time.LocalTime;
  * source without needing a trade-level override every time.
  */
 @Entity
-@Table(name = "mst_period")
+@Table(name = "ref_period")
 @EntityListeners(AuditingEntityListener.class)
 public class Period {
 

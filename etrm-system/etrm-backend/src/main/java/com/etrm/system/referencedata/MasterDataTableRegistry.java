@@ -9,7 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "master_data_table_registry")
+@Table(name = "sys_master_data_table_registry")
 public class MasterDataTableRegistry extends AuditableEntity {
 
     @Id

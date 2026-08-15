@@ -47,7 +47,7 @@ import java.time.LocalDateTime;
  * dates/failover ordering that these two columns never had.
  */
 @Entity
-@Table(name = "market_product_link")
+@Table(name = "ref_market_product_link")
 @EntityListeners(AuditingEntityListener.class)
 public class MarketProductLink {
 

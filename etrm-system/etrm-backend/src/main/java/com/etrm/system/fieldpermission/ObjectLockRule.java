@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 // it today), so JPA auditing populating these at insert/flush time is the
 // only wiring needed.
 @Entity
-@Table(name = "object_lock_rule")
+@Table(name = "sys_object_lock_rule")
 @EntityListeners(AuditingEntityListener.class)
 public class ObjectLockRule {
 

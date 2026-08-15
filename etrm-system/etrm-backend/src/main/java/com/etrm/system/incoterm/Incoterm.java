@@ -38,7 +38,7 @@ import java.time.LocalDateTime;
  * the frontend's own type wanted them but the live table never had them.
  */
 @Entity
-@Table(name = "mst_incoterm")
+@Table(name = "ref_incoterm")
 @EntityListeners(AuditingEntityListener.class)
 public class Incoterm {
 

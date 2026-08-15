@@ -127,7 +127,7 @@ public class ReferenceDataCrudService {
         Integer id = staticDataAdminSourceSystemId;
         if (id == null) {
             id = jdbc.queryForObject(
-                    "SELECT source_system_id FROM dbo.source_system WHERE source_code = ?",
+                    "SELECT source_system_id FROM dbo.sys_source_system WHERE source_code = ?",
                     Integer.class, "STATIC_DATA_ADMIN");
             staticDataAdminSourceSystemId = id;
         }

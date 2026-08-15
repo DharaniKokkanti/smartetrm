@@ -30,7 +30,7 @@ import java.time.LocalDateTime;
  * rin_account.account_type.
  */
 @Entity
-@Table(name = "mst_rin_fuel_category")
+@Table(name = "ref_rin_fuel_category")
 @EntityListeners(AuditingEntityListener.class)
 public class RinFuelCategory {
 

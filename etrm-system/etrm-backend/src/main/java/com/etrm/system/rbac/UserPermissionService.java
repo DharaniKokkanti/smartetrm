@@ -73,7 +73,7 @@ public class UserPermissionService {
                 FROM dbo.usr_user_role_assignment ura
                 JOIN dbo.usr_user_role ur ON ur.role_id = ura.role_id
                 JOIN dbo.usr_role_function rf ON rf.role_id = ur.role_id
-                JOIN dbo.app_function f ON f.function_id = rf.function_id
+                JOIN dbo.sys_app_function f ON f.function_id = rf.function_id
                 WHERE ura.user_id = ?
                   AND ura.is_active = 1 AND ura.status = 'ACTIVE'
                   AND ur.is_active = 1 AND ur.status = 'APPROVED'
