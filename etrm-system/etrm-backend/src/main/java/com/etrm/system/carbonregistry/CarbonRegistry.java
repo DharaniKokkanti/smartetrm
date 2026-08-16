@@ -35,7 +35,7 @@ import java.time.LocalDateTime;
  * @CreatedDate/@LastModifiedDate fields, matching GlAccount's shape.
  */
 @Entity
-@Table(name = "mst_carbon_registry")
+@Table(name = "ref_carbon_registry")
 @EntityListeners(AuditingEntityListener.class)
 public class CarbonRegistry {
 

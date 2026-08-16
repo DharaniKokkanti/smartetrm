@@ -19,7 +19,7 @@ import jakarta.validation.constraints.Size;
  * a schema change on dbo.book).
  */
 @Entity
-@Table(name = "mst_book_classification_dimension")
+@Table(name = "ref_book_classification_dimension")
 public class BookClassificationDimension extends AuditableEntity {
 
     @Id

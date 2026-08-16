@@ -9,7 +9,7 @@ import jakarta.persistence.Table;
 import com.etrm.system.common.SourceSystemDefaults;
 
 @Entity
-@Table(name = "mst_governing_law_type")
+@Table(name = "ref_governing_law_type")
 public class GoverningLawType extends TypeCodeLookup {
     @Id
     @Column(name = "governing_law_type_id")

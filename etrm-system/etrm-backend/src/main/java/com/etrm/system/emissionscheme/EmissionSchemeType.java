@@ -13,7 +13,7 @@ import com.etrm.system.common.SourceSystemDefaults;
  * (type_code/type_name) that emission_scheme.scheme_type points at.
  */
 @Entity
-@Table(name = "mst_emission_scheme_type")
+@Table(name = "ref_emission_scheme_type")
 public class EmissionSchemeType {
 
     @Id

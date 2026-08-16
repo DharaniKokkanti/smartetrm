@@ -9,7 +9,7 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "mst_lc_type")
+@Table(name = "ref_lc_type")
 public class LcType extends TypeCodeLookup {
     @Id
     @Column(name = "lc_type_id")

@@ -26,7 +26,7 @@ export function CollateralPage() {
   const { data: counterparties = [] } = useCounterparties();
   const { data: legalEntities = [] } = useLegalEntities();
   const { data: currencies = [] } = useCurrencies();
-  const { data: collateralTypeRows = [] } = useTableRows<{ collateralTypeId: number; typeCode: string; typeName: string }>('mst_collateral_type');
+  const { data: collateralTypeRows = [] } = useTableRows<{ collateralTypeId: number; typeCode: string; typeName: string }>('ref_collateral_type');
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Collateral | null>(null);

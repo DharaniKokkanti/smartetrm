@@ -16,7 +16,7 @@ import jakarta.persistence.Table;
  * table already exists live.
  */
 @Entity
-@Table(name = "mst_regulatory_report_type")
+@Table(name = "ref_regulatory_report_type")
 public class RegulatoryReportType {
 
     @Id

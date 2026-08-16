@@ -16,9 +16,12 @@ import com.etrm.system.common.SourceSystemDefaults;
  * (and 9 other tables) onto it — do not confuse with LookupValue, which is
  * a different mechanism entirely (V85's own migration comment: "'book_type'
  * and 'commodity_type' are never picked up as lookup_categories at all").
+ * Renamed mst_commodity_type -> mst_commodity_sector in V250 to disambiguate
+ * from mst_commodity (the 5-row tradable-commodity classification) — this
+ * is the broader 11-row sector tag, not the same concept.
  */
 @Entity
-@Table(name = "mst_commodity_type")
+@Table(name = "mst_commodity_sector")
 public class CommodityType {
 
     @Id

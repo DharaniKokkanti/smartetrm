@@ -11,7 +11,7 @@ import com.etrm.system.common.SourceSystemDefaults;
 
 /** Read-only — already generic-Tier2-registered. Added early for Collateral's denorm display name. */
 @Entity
-@Table(name = "mst_collateral_type")
+@Table(name = "ref_collateral_type")
 public class CollateralType {
 
     @Id

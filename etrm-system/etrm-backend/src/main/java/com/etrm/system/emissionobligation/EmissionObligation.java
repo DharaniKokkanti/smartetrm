@@ -36,7 +36,7 @@ import java.time.LocalDateTime;
  * @CreatedBy/@LastModifiedDate/@LastModifiedBy, matching GlAccount's shape.
  */
 @Entity
-@Table(name = "mst_emission_obligation")
+@Table(name = "ref_emission_obligation")
 @EntityListeners(AuditingEntityListener.class)
 public class EmissionObligation {
 

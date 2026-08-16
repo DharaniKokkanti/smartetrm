@@ -22,7 +22,7 @@ export function EnvironmentalProductsPage() {
   const deactivate = useDeactivateEnvironmentalProduct();
   const { data: schemes = [] }   = useEmissionSchemes();
   const { data: registries = [] } = useCarbonRegistries();
-  const { data: productTypeRows = [] } = useTableRows<{ typeCode: string; typeName: string }>('mst_environmental_product_type');
+  const { data: productTypeRows = [] } = useTableRows<{ typeCode: string; typeName: string }>('ref_environmental_product_type');
   const productTypeOpts = productTypeRows.map((r) => ({ value: r.typeCode, label: r.typeName }));
 
   const schemeOpts = useMemo(

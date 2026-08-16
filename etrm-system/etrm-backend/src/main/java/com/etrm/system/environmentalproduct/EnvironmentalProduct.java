@@ -36,7 +36,7 @@ import java.time.LocalDateTime;
  * auditing fields, matching GlAccount.java's shape.
  */
 @Entity
-@Table(name = "mst_environmental_product")
+@Table(name = "ref_environmental_product")
 @EntityListeners(AuditingEntityListener.class)
 public class EnvironmentalProduct {
 

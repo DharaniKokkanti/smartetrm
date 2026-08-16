@@ -43,7 +43,7 @@ export function LettersOfCreditPage() {
   const cancel = useCancelLetterOfCredit();
   const { data: counterparties = [] } = useCounterparties();
   const { data: legalEntities = [] }  = useLegalEntities();
-  const { data: lcTypeRows = [] }     = useTableRows<{ typeCode: string; typeName: string }>('mst_lc_type');
+  const { data: lcTypeRows = [] }     = useTableRows<{ typeCode: string; typeName: string }>('ref_lc_type');
   const { data: lcStatusRows = [] }   = useTableRows<{ typeCode: string; typeName: string }>('mst_lc_status_type');
   const { data: currencies = [] }     = useCurrencies();
 
