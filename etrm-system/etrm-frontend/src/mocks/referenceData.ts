@@ -1130,10 +1130,10 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
     ],
   },
 
-  // V67 — commodity_grade_standard: named grade tiers with a discount/premium
+  // V67 — product_grade_standard: named grade tiers with a discount/premium
   // schedule vs. the contract par grade, linked from commodity_family.
-  ref_commodity_grade_standard: {
-    tableName: 'ref_commodity_grade_standard', displayName: 'Commodity Grade Standards', primaryKeyColumn: 'gradeStandardId', isTemporal: false,
+  ref_product_grade_standard: {
+    tableName: 'ref_product_grade_standard', displayName: 'Commodity Grade Standards', primaryKeyColumn: 'gradeStandardId', isTemporal: false,
     columns: [
       col('gradeStandardId',        'ID',                    'number',      false, true,  null),
       // V69: rescoped from commodity_family_id to product_id — real exchange
@@ -1560,7 +1560,7 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
     tableName: 'ref_agri_moisture_discount_scale', displayName: 'Agri Moisture Discount Scales', primaryKeyColumn: 'scaleId', isTemporal: false,
     columns: [
       col('scaleId',                 'ID',                       'number',      false, true,  null),
-      col('gradeStandardId',          'Grade Standard',           'foreign_key', false, false, null, null, 'ref_commodity_grade_standard'),
+      col('gradeStandardId',          'Grade Standard',           'foreign_key', false, false, null, null, 'ref_product_grade_standard'),
       col('moisturePctMin',            'Moisture % Min',           'number',      false, false, null, null, null, null, true),
       col('moisturePctMax',             'Moisture % Max',           'number',      false, false, null, null, null, null, true),
       col('priceDiscountPerUom',          'Price Discount',           'number',      false, false, null, null, null, null, true),
@@ -1686,31 +1686,6 @@ const SPECIAL_TABLE_METADATA: Record<string, TableMetadata> = {
       col('motTypeId',            'Mode of Transport',   'foreign_key', true,  false, null, null, 'mst_mot_type'),
       col('isActive',             'Active',              'boolean',     false, false, null),
       col('notes',                'Notes',               'string',      true,  false, 500),
-    ],
-  },
-  ref_blend_recipe: {
-    tableName: 'ref_blend_recipe', displayName: 'Blend Recipes', primaryKeyColumn: 'blendRecipeId', isTemporal: false,
-    columns: [
-      col('blendRecipeId',  'ID',              'number',      false, true,  null),
-      col('recipeCode',     'Recipe Code',     'string',      false, false, 30),
-      col('recipeName',     'Recipe Name',     'string',      false, false, 200),
-      col('targetProductId','Target Product',  'foreign_key', false, false, null, null, 'ref_product'),
-      col('commodityType',  'Commodity Type',  'string',      true,  false, 20),
-      col('tolerancePct',   'Tolerance %',     'number',      true,  false, null, null, null, null, true),
-      col('description',    'Description',     'string',      true,  false, 500),
-      col('isActive',       'Active',          'boolean',     false, false, null),
-    ],
-  },
-  ref_blend_recipe_component: {
-    tableName: 'ref_blend_recipe_component', displayName: 'Blend Recipe Components', primaryKeyColumn: 'componentId', isTemporal: false,
-    columns: [
-      col('componentId',        'ID',               'number',      false, true,  null),
-      col('blendRecipeId',      'Blend Recipe',     'foreign_key', false, false, null, null, 'ref_blend_recipe'),
-      col('componentProductId', 'Component Product','foreign_key', false, false, null, null, 'ref_product'),
-      col('targetPct',          'Target %',         'number',      false, false, null, null, null, null, true),
-      col('minPct',             'Min %',            'number',      true,  false, null, null, null, null, true),
-      col('maxPct',             'Max %',            'number',      true,  false, null, null, null, null, true),
-      col('sortOrder',          'Sort Order',       'number',      false, false, null),
     ],
   },
   ref_throughput_agreement: {
@@ -1907,8 +1882,8 @@ export const registrySeed: RegistryEntry[] = [
   { registryId: 216, tableName: 'ref_transmission_right_type',displayName: 'Transmission Right Types',  moduleGroup: 'Power & Energy',     subGroup: 'Grid',           description: 'Regional terminology for the same financial transmission-right instrument — FTR (PJM/MISO), CRR (CAISO/ERCOT), TCC (NYISO) — with its settlement basis and allocation method.', allowCreate: true, allowEdit: true, allowDelete: false, allowExcelUpload: false, isEnabled: true, displayOrder: 11 },
   // V66 — lng_terminal_detail: 1:1 LNG extension of storage_facility (send-out/liquefaction capacity, berths, cargo lot size range)
   { registryId: 217, tableName: 'ref_lng_terminal_detail',    displayName: 'LNG Terminal Detail',       moduleGroup: 'Freight & Shipping', subGroup: 'Charter',        description: 'Terminal-level LNG capacity data — regasification send-out rate (import) or liquefaction nameplate (export) in MTPA, storage tank/berth count, and the acceptable cargo-lot size range for scheduling.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 6 },
-  // V67 — commodity_grade_standard: named grade tiers (e.g. USDA No. 2 Yellow Corn) with a discount/premium schedule vs. the contract par grade
-  { registryId: 218, tableName: 'ref_commodity_grade_standard', displayName: 'Commodity Grade Standards', moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Named grade tiers for a specific product/contract (e.g. CBOT Corn\'s USDA No. 2 Yellow par grade) and the flat price adjustment vs. par for delivering an alternate grade. Scoped per product, not per commodity family — real exchange differential schedules are contract-specific (Corn\'s schedule differs from Wheat\'s). Selectable per order in the Trade Blotter to auto-populate a price adjustment.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 6 },
+  // V67 — product_grade_standard: named grade tiers (e.g. USDA No. 2 Yellow Corn) with a discount/premium schedule vs. the contract par grade
+  { registryId: 218, tableName: 'ref_product_grade_standard', displayName: 'Commodity Grade Standards', moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Named grade tiers for a specific product/contract (e.g. CBOT Corn\'s USDA No. 2 Yellow par grade) and the flat price adjustment vs. par for delivering an alternate grade. Scoped per product, not per commodity family — real exchange differential schedules are contract-specific (Corn\'s schedule differs from Wheat\'s). Selectable per order in the Trade Blotter to auto-populate a price adjustment.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 6 },
   // V68 — metal_brand: LME-style approved brand register (producer + metal form) — the real mechanism determining what physical metal is deliverable
   { registryId: 219, tableName: 'ref_metal_brand',              displayName: 'Metal Brand Register',      moduleGroup: 'Products & Markets', subGroup: 'Classification', description: 'Exchange-approved producer brands by metal form (cathode, ingot, wire rod, etc.) — only brands on this list may be placed on warrant and delivered against an exchange contract.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 7 },
   // V70 — genuine registry orphans found via a whole-project master-data review (all four already in MasterDataHub.tsx's live:false backlog)
@@ -1953,8 +1928,6 @@ export const registrySeed: RegistryEntry[] = [
   // allowEdit/allowDelete/displayOrder/moduleGroup all copied from the SQL),
   // just never mirrored into this mock file until now.
   { registryId: 270, tableName: 'ref_loading_rack',             displayName: 'Loading Racks',             moduleGroup: 'Supply & Distribution', description: 'Custody-transfer measurement points at a terminal — rack number, meter type, prover certification and calibration dates.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 1 },
-  { registryId: 271, tableName: 'ref_blend_recipe',             displayName: 'Blend Recipes',             moduleGroup: 'Supply & Distribution', description: 'Terminal splash-blending recipes — target product, tolerance, and component products (see Blend Recipe Components).', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 4 },
-  { registryId: 272, tableName: 'ref_blend_recipe_component',   displayName: 'Blend Recipe Components',   moduleGroup: 'Supply & Distribution', description: 'Component products and target/min/max percentages within a blend recipe.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 5 },
   { registryId: 273, tableName: 'ref_throughput_agreement',     displayName: 'Throughput Agreements',     moduleGroup: 'Supply & Distribution', description: 'Contracted third-party storage or throughput rights at a terminal the company does not own — the storage-side analogue of pipeline_tariff.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 6 },
   { registryId: 274, tableName: 'ref_product_interface_rule',   displayName: 'Product Interface Rules',   moduleGroup: 'Supply & Distribution', description: 'Minimum flush volume and downgrade rules when switching incompatible products through a shared line or rack.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 7 },
   { registryId: 275, tableName: 'ref_road_tariff',               displayName: 'Road (Truck) Tariffs',      moduleGroup: 'Supply & Distribution', description: 'Truck freight rates by route — flat per load, per km, per MT/BBL — with fuel surcharge and minimum charge. The road-transport analogue of pipeline_tariff.', allowCreate: true, allowEdit: true, allowDelete: true, allowExcelUpload: false, isEnabled: true, displayOrder: 8 },
@@ -2395,7 +2368,7 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
   ref_lng_terminal_detail: [
     { facilityId: 4, terminalType: 'IMPORT_REGAS', regasCapacityMmscmd: 28.0, liquefactionCapacityMtpa: null, storageCapacityCbm: 540000, numStorageTanks: 3, numBerths: 2, minCargoSizeCbm: 90000, maxCargoSizeCbm: 217000, notes: 'Gate Terminal Rotterdam — one of the largest LNG import terminals in NW Europe, expandable send-out capacity.' },
   ],
-  commodity_grade_standard: [
+  product_grade_standard: [
     { gradeStandardId: 1, productId: 12, issuingBody: 'USDA', gradeCode: 'US_NO_2_YELLOW_CORN', gradeName: 'US No. 2 Yellow Corn', isParGrade: true,  priceAdjustmentPerUom: 0.00,  adjustmentCurrencyId: 1, adjustmentCurrencyCode: 'USD', adjustmentUomId: 6, adjustmentUomCode: 'BUSHEL', description: 'CBOT contract par grade — max 5% damaged kernels, 3% foreign material, 15.5% moisture, test weight 54 lb/bu minimum.', isActive: true },
     { gradeStandardId: 2, productId: 12, issuingBody: 'USDA', gradeCode: 'US_NO_3_YELLOW_CORN', gradeName: 'US No. 3 Yellow Corn', isParGrade: false, priceAdjustmentPerUom: -0.04, adjustmentCurrencyId: 1, adjustmentCurrencyCode: 'USD', adjustmentUomId: 6, adjustmentUomCode: 'BUSHEL', description: 'Deliverable at a fixed discount to par — max 7% damaged kernels, test weight 52 lb/bu minimum.', isActive: true },
     { gradeStandardId: 3, productId: 12, issuingBody: 'USDA', gradeCode: 'US_NO_1_YELLOW_CORN', gradeName: 'US No. 1 Yellow Corn', isParGrade: false, priceAdjustmentPerUom: 0.02,  adjustmentCurrencyId: 1, adjustmentCurrencyCode: 'USD', adjustmentUomId: 6, adjustmentUomCode: 'BUSHEL', description: 'Deliverable at a premium to par — max 3% damaged kernels, test weight 56 lb/bu minimum.', isActive: true },
@@ -2644,13 +2617,6 @@ export const rowSeed: Record<string, ReferenceDataRow[]> = {
   ref_loading_rack: [
     { rackId: 1, facilityId: 1, rackNumber: 'RACK-01', meterType: 'POSITIVE_DISPLACEMENT', proverType: 'SMALL_VOLUME_PROVER', proverCertNumber: 'PVC-CUSH-01', lastCalibrationDate: '2026-01-15', nextCalibrationDate: '2026-07-15', maxFlowRateM3h: 450.0, productId: 1, motTypeId: 3, isActive: true, notes: 'Truck loading rack, crude/refined products.' },
     { rackId: 2, facilityId: 4, rackNumber: 'RACK-LNG-1', meterType: 'CORIOLIS', proverType: null, proverCertNumber: null, lastCalibrationDate: '2026-02-01', nextCalibrationDate: '2026-08-01', maxFlowRateM3h: 1200.0, productId: null, motTypeId: 1, isActive: true, notes: 'LNG loading arm metering, marine transfer.' },
-  ],
-  ref_blend_recipe: [
-    { blendRecipeId: 1, recipeCode: 'GAS97-E3', recipeName: 'Gasoline 97 E3 Splash Blend', targetProductId: 15, commodityType: 'OIL', tolerancePct: 0.5, description: 'ULSD/ethanol splash blend to produce Gasoline 97 E3 at the rack.', isActive: true },
-  ],
-  ref_blend_recipe_component: [
-    { componentId: 1, blendRecipeId: 1, componentProductId: 13, targetPct: 97.0, minPct: 96.5, maxPct: 97.5, sortOrder: 1 },
-    { componentId: 2, blendRecipeId: 1, componentProductId: 14, targetPct: 3.0,  minPct: 2.5,  maxPct: 3.5,  sortOrder: 2 },
   ],
   ref_throughput_agreement: [
     { agreementId: 1, agreementCode: 'TA-CUSH-001', counterpartyId: 1, facilityId: 1, agreementType: 'THROUGHPUT', contractedCapacity: 50000, capacityUomId: 1, tariffRate: 0.35, tariffCurrencyId: 1, tariffUomId: 1, motTypeId: null, effectiveFrom: '2026-01-01', effectiveTo: '2026-12-31', isActive: true, notes: 'Third-party throughput rights at Cushing Tank Farm T-1.' },

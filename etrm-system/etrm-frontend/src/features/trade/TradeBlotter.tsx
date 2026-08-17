@@ -683,14 +683,14 @@ function FxSection({ currencyOpts, direction }: { currencyOpts: SelectOpt[]; dir
 }
 
 // ─── Price adjustments (physical legs) ───────────────────────────────────────
-/** A product's published grade differential schedule (dbo.commodity_grade_standard,
+/** A product's published grade differential schedule (dbo.product_grade_standard,
  *  V67/V69) — scoped per product/contract, since real exchange schedules are
  *  contract-specific (CBOT Corn's differs from CBOT Wheat's, even though both
  *  are grains). Picking a grade here auto-adds a price adjustment row instead
  *  of the trader having to know/type the published differential by hand. */
 function GradeDeliveredSelect({ onPick }: { onPick: (grade: Record<string, unknown>) => void }) {
   const productId = Form.useWatch('productId') as number | undefined;
-  const { data: gradeRows = [] } = useTableRows('ref_commodity_grade_standard');
+  const { data: gradeRows = [] } = useTableRows('ref_product_grade_standard');
   const grades = gradeRows.filter(
     (g) => g.productId === productId && g.isActive,
   );

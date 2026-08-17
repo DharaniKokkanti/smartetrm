@@ -236,7 +236,7 @@ export interface PriceAdjustment {
   adjustmentValue: number;       // positive = adds to price; negative = subtracts
   adjustmentCurrencyId: number | null;
   adjustmentUomId: number | null;
-  // Traces this adjustment back to the published commodity_grade_standard
+  // Traces this adjustment back to the published product_grade_standard
   // row it was auto-derived from (V69) — null for manually-entered or
   // assay-computed adjustments (crude API gravity/sulfur, LNG cargo, etc.).
   gradeStandardId?: number | null;
