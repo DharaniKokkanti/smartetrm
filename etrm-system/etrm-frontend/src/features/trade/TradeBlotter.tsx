@@ -47,7 +47,7 @@ import {
 } from './types';
 import { useTraders } from '@features/organization/traders/hooks';
 import { useBooks } from '@features/organization/books/hooks';
-import { useProducts, useProductSpecTemplates, useSpecValues } from '@features/markets/products/hooks';
+import { useProducts, useProductSpecTemplates, useSpecValues, useProductBlendComponents } from '@features/markets/products/hooks';
 import { resolveCommodityType, type CommodityRow, type ProductSpecValue } from '@features/markets/products/types';
 import { useMarkets } from '@features/markets/markets/hooks';
 import type { CommodityType } from '@features/reference/commodity-types/types';
@@ -682,6 +682,35 @@ function FxSection({ currencyOpts, direction }: { currencyOpts: SelectOpt[]; dir
   );
 }
 
+// ─── Blend composition (V255 base product + blend cascade) ──────────────────
+/** Shown right under the Product field when the selected base product is a
+ * blend (ref_product.isBlend) — read-only display of its recipe, sourced
+ * from ref_product_blend_component. The base component's own % is
+ * server-computed (100% minus the additives), never hand-entered. */
+function BlendCompositionInfo() {
+  const productId = Form.useWatch('productId') as number | undefined;
+  const { data: products = [] } = useProducts();
+  const product = (products as { productId: number; isBlend: boolean }[]).find((p) => p.productId === productId);
+  const { data: components = [] } = useProductBlendComponents(product?.isBlend ? productId ?? null : null);
+  if (!product?.isBlend || components.length === 0) return null;
+  return (
+    <Alert
+      type="info" showIcon style={{ marginBottom: 8 }}
+      message="Blend composition"
+      description={
+        <Space direction="vertical" size={0} style={{ fontSize: 12 }}>
+          {components.map((c) => (
+            <span key={c.blendComponentId}>
+              {c.isBaseComponent && <Tag color="blue" style={{ fontSize: 10, marginRight: 4 }}>BASE</Tag>}
+              {c.componentCode} — {c.targetPct}%
+            </span>
+          ))}
+        </Space>
+      }
+    />
+  );
+}
+
 // ─── Price adjustments (physical legs) ───────────────────────────────────────
 /** A product's published grade differential schedule (dbo.product_grade_standard,
  *  V67/V69) — scoped per product/contract, since real exchange schedules are
@@ -894,6 +923,7 @@ function DeliveryFields({
       <Col span={12} style={{ borderRight: '1px solid rgba(125,125,125,0.15)' }}>
 
       {sectionTitle('Product & Market')}
+      <BlendCompositionInfo />
       <Row gutter={16}>
         <Col span={12}>
           <Form.Item name="productId" label="Product">
@@ -1593,12 +1623,15 @@ export function TradeBlotter() {
   }, [locations]);
   // Product options scoped to a commodity via the broad commodity bucket resolved from Product.commodityId — mirrors
   // the filter ProductsPage.tsx already applies to its own list, just never applied here before.
+  // Also scoped to tradable products only (V255: isTradable = (isOtc ||
+  // isExchangeTraded) && today within the trading window) — a product can
+  // exist in the catalog long before it's actually approved to trade.
   const productOptionsFor = useMemo(() => {
-    const rows = products as { productId: number; productCode: string; productName: string; commodityId: number }[];
+    const rows = products as { productId: number; productCode: string; productName: string; commodityId: number; isTradable: boolean }[];
     return (commodityType: CommodityTypeTrade) => {
       const broad = COMMODITY_TRADE_TO_BROAD[commodityType];
       return rows
-        .filter((p) => broad && resolveCommodityType(commodityRows, p.commodityId) === broad)
+        .filter((p) => broad && resolveCommodityType(commodityRows, p.commodityId) === broad && p.isTradable)
         .map((p) => ({ value: p.productId, label: `${p.productCode} — ${p.productName}` }));
     };
   }, [products, commodityRows]);
@@ -1981,6 +2014,7 @@ export function TradeBlotter() {
   const itemColumns = [
     { title: 'Seq', dataIndex: 'itemSequence', width: 50 },
     { title: 'Product', dataIndex: 'productCode', width: 120, render: (v: string | null) => v ?? <span style={{ color: color.textSecondary }}>—</span> },
+    { title: 'Grade', dataIndex: 'grade', width: 100, render: (v: string | null) => v ?? <span style={{ color: color.textSecondary }}>—</span> },
     { title: 'Description', dataIndex: 'description', ellipsis: true },
     { title: 'Qty', dataIndex: 'quantity', width: 90, render: (v: number) => v.toLocaleString() },
     { title: 'UoM', dataIndex: 'uomCode', width: 65 },
@@ -2724,6 +2758,9 @@ export function TradeBlotter() {
               options={productOptionsFor(selectedTrade?.commodityType ?? 'OIL')}
               placeholder="Select product" showSearch allowClear
             />
+          </Form.Item>
+          <Form.Item name="grade" label={hint('Grade', 'Free-text grade for this item — can differ per item even within the same leg/order. Not the same as the price-adjustment Grade Delivered picker.')}>
+            <Input placeholder="e.g. US No. 2 Yellow Corn" maxLength={50} />
           </Form.Item>
           <Form.Item name="description" label="Description" rules={[{ required: true }]}>
             <Input placeholder="e.g. Main cargo, Operational tolerance, Pricing component" />

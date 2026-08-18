@@ -105,6 +105,14 @@ public class ProductBlendComponent {
     @Column(name = "needs_position_gen", nullable = false)
     private Boolean needsPositionGen = false;
 
+    // Marks the base/carrier component of the blend -- exactly one true row
+    // per parentProductId, mirrored onto Product.baseProductId. Kept in
+    // sync by ProductBlendComponentService, not settable independently by
+    // callers. V255.
+    @NotNull
+    @Column(name = "is_base_component", nullable = false)
+    private Boolean isBaseComponent = false;
+
     @Column(name = "created_src_id", nullable = false, updatable = false)
     private Short createdSrcId;
 
@@ -264,6 +272,14 @@ public class ProductBlendComponent {
 
     public void setNeedsPositionGen(Boolean needsPositionGen) {
         this.needsPositionGen = needsPositionGen;
+    }
+
+    public Boolean getIsBaseComponent() {
+        return isBaseComponent;
+    }
+
+    public void setIsBaseComponent(Boolean isBaseComponent) {
+        this.isBaseComponent = isBaseComponent;
     }
 
     public Short getCreatedSrcId() {

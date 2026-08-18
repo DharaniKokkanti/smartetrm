@@ -17,6 +17,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -113,6 +114,28 @@ public class Product {
     @Size(max = 500)
     @Column(name = "blend_notes", length = 500)
     private String blendNotes;
+
+    // Tradability rule: (isOtc || isExchangeTraded) && today between these
+    // two dates. V255.
+    @Column(name = "trading_start_date")
+    private LocalDate tradingStartDate;
+
+    @Column(name = "trading_end_date")
+    private LocalDate tradingEndDate;
+
+    // FK -> dbo.ref_product(product_id), self-referencing. The base/carrier
+    // component of a blend (e.g. GAS97-E3's base is ULSD) -- mandatory when
+    // isBlend, enforced by chk_product_base_required_for_blend. V255.
+    @Column(name = "base_product_id")
+    private Integer baseProductId;
+
+    @Transient
+    private String baseProductCode;
+
+    // Computed by ProductService.hydrate() from isOtc/isExchangeTraded +
+    // tradingStartDate/tradingEndDate -- never persisted. V255.
+    @Transient
+    private Boolean isTradable;
 
     @Column(name = "density_estimate_kg_m3")
     private BigDecimal densityEstimateKgM3;
@@ -338,6 +361,50 @@ public class Product {
 
     public void setBlendNotes(String blendNotes) {
         this.blendNotes = blendNotes;
+    }
+
+    public LocalDate getTradingStartDate() {
+        return tradingStartDate;
+    }
+
+    public void setTradingStartDate(LocalDate tradingStartDate) {
+        this.tradingStartDate = tradingStartDate;
+    }
+
+    public LocalDate getTradingEndDate() {
+        return tradingEndDate;
+    }
+
+    public void setTradingEndDate(LocalDate tradingEndDate) {
+        this.tradingEndDate = tradingEndDate;
+    }
+
+    public Integer getBaseProductId() {
+        return baseProductId;
+    }
+
+    public void setBaseProductId(Integer baseProductId) {
+        this.baseProductId = baseProductId;
+    }
+
+    @JsonProperty("baseProductCode")
+    public String getBaseProductCode() {
+        return baseProductCode;
+    }
+
+    @JsonProperty("baseProductCode")
+    public void setBaseProductCode(String baseProductCode) {
+        this.baseProductCode = baseProductCode;
+    }
+
+    @JsonProperty("isTradable")
+    public Boolean getIsTradable() {
+        return isTradable;
+    }
+
+    @JsonProperty("isTradable")
+    public void setIsTradable(Boolean isTradable) {
+        this.isTradable = isTradable;
     }
 
     public BigDecimal getDensityEstimateKgM3() {

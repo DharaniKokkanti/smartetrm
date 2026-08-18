@@ -591,6 +591,10 @@ export interface TradeItem {
   currencyId: number;
   currencyCode: string;
   notes: string | null;
+  // Free-text grade, entered manually per item — distinct from the
+  // ref_product_grade_standard-driven price adjustment picker on the leg,
+  // which stays a separate mechanism (V257).
+  grade: string | null;
 }
 
 export type TradeItemInput = Omit<TradeItem, 'itemId' | 'productCode' | 'uomCode' | 'currencyCode'>;

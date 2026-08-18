@@ -1,9 +1,11 @@
 import { useMemo, useState } from 'react';
+import dayjs, { type Dayjs } from 'dayjs';
 import {
   Button, Space, Popconfirm, Tag, Drawer, Form, Input, Select,
   InputNumber, Switch, Divider, Typography, Tabs, Table,
   Tooltip, Collapse, Alert, Empty, Spin, Modal,
 } from 'antd';
+import { AppDatePicker } from '@components/smart/AppDatePicker';
 import {
   EditOutlined, StopOutlined, LinkOutlined, DeleteOutlined,
   GlobalOutlined, ExperimentOutlined, ApartmentOutlined,
@@ -530,10 +532,11 @@ function TemplateCollapseHeader({ t }: { t: ProductSpecTemplate }) {
 const BLEND_COMPONENT_COLS = (onRemove: (id: number) => void): ColumnsType<BlendComponent> => [
   { title: '#', dataIndex: 'sequenceNo', width: 40, align: 'center' as const },
   {
-    title: 'Component', dataIndex: 'componentCode', width: 180,
+    title: 'Component', dataIndex: 'componentCode', width: 200,
     render: (v: string, r: BlendComponent) => (
       <div>
         <code style={{ fontSize: 12 }}>{v}</code>
+        {r.isBaseComponent && <Tag color="blue" style={{ fontSize: 10, marginLeft: 6 }}>BASE</Tag>}
         <div style={{ fontSize: 11, color: color.textSecondary }}>{r.componentName}</div>
       </div>
     ),
@@ -562,7 +565,11 @@ const BLEND_COMPONENT_COLS = (onRemove: (id: number) => void): ColumnsType<Blend
   },
   {
     title: '', width: 50, align: 'center' as const,
-    render: (_: unknown, r: BlendComponent) => (
+    render: (_: unknown, r: BlendComponent) => r.isBaseComponent ? (
+      <Tooltip title="The base component is set via the product's Base Product field, not removed here.">
+        <Button type="text" size="small" disabled icon={<DeleteOutlined />} />
+      </Tooltip>
+    ) : (
       <Popconfirm title="Remove blend component?" onConfirm={() => onRemove(r.blendComponentId)}
         okText="Remove" okButtonProps={{ danger: true }}>
         <Button type="text" size="small" danger icon={<DeleteOutlined />} />
@@ -594,12 +601,14 @@ function SpecsTab({ product, isBlend }: { product: Product; isBlend: boolean }) 
 
   const componentProductOptions = useMemo(
     () => allProducts
-      .filter((p) => p.productId !== product.productId && p.isActive)
+      // The base component (product.baseProductId) is added/managed via the
+      // Base Product field on the product form, not as a regular additive here.
+      .filter((p) => p.productId !== product.productId && p.productId !== product.baseProductId && p.isActive)
       .map((p) => ({
         value: p.productId,
         label: `${p.productCode} — ${p.productName}`,
       })),
-    [allProducts, product.productId],
+    [allProducts, product.productId, product.baseProductId],
   );
 
   async function submitAddComp() {
@@ -860,6 +869,9 @@ export function ProductsPage() {
       isOtc:                  p.isOtc,
       isBlend:                p.isBlend,
       blendNotes:             p.blendNotes ?? undefined,
+      baseProductId:          p.baseProductId ?? undefined,
+      tradingStartDate:       p.tradingStartDate ? dayjs(p.tradingStartDate) : undefined,
+      tradingEndDate:         p.tradingEndDate ? dayjs(p.tradingEndDate) : undefined,
       description:            p.description ?? undefined,
       isActive:               p.isActive,
       // Pricing basis
@@ -870,14 +882,21 @@ export function ProductsPage() {
       purityBasisPct:         p.purityBasisPct ?? undefined,
       moistureBasisPct:       p.moistureBasisPct ?? undefined,
       proteinBasisPct:        p.proteinBasisPct ?? undefined,
-    });
+    } as unknown as ProductInput);
     setDrawerOpen(true);
   }
 
   async function submit(closeAfter = true) {
-    const v = await form.validateFields();
-    if (v.productCode) v.productCode = v.productCode.toUpperCase();
-    const saved = await save.mutateAsync({ id: editing?.productId ?? null, input: v });
+    const values = await form.validateFields();
+    if (values.productCode) values.productCode = values.productCode.toUpperCase();
+    const v = values as unknown as Record<string, Dayjs | undefined>;
+    const input: ProductInput = {
+      ...values,
+      tradingStartDate: v.tradingStartDate ? v.tradingStartDate.format('YYYY-MM-DD') : null,
+      tradingEndDate: v.tradingEndDate ? v.tradingEndDate.format('YYYY-MM-DD') : null,
+      baseProductId: values.isBlend ? values.baseProductId : null,
+    };
+    const saved = await save.mutateAsync({ id: editing?.productId ?? null, input });
     setEditing(saved);
     if (closeAfter) setDrawerOpen(false);
   }
@@ -939,6 +958,14 @@ export function ProductsPage() {
           {p.data.isExchangeTraded && <Tooltip title="Exchange-traded"><Tag color="purple" style={{ marginRight: 0 }}>EXCH</Tag></Tooltip>}
           {p.data.isOtc           && <Tooltip title="OTC"><Tag color="cyan" style={{ marginRight: 0 }}>OTC</Tag></Tooltip>}
         </Space>
+      ),
+    },
+    {
+      field: 'isTradable', headerName: 'Tradable', width: 100,
+      cellRenderer: (p: { value: boolean }) => (
+        <Tooltip title={p.value ? 'Selectable at trade creation' : 'Not tradable — check venue flags and trading window'}>
+          <Tag color={p.value ? 'green' : 'default'} style={{ marginRight: 0 }}>{p.value ? 'Yes' : 'No'}</Tag>
+        </Tooltip>
       ),
     },
     { field: 'isActive', headerName: 'Status', width: 100, cellRenderer: (p: { value: boolean }) => <ActiveTag active={p.value} /> },
@@ -1233,10 +1260,37 @@ export function ProductsPage() {
             </Form.Item>
           </Space>
 
-          {isBlendWatched && (
-            <Form.Item name="blendNotes" label={hint('Blend Notes', 'Recipe summary shown on the Specs tab and trade confirmations for blended products.', '97%vol ULSD + 3%vol Ethanol')}>
-              <Input.TextArea rows={2} placeholder="97%vol ULSD-10PPM + 3%vol Denatured Ethanol — EN228 Euro-5 compliant" />
+          <Space style={{ width: '100%' }} size={12}>
+            <Form.Item name="tradingStartDate"
+              label={hint('Trading Start Date', 'Tradability window opens on this date — combined with the Exchange-Traded/OTC flags to decide whether this product is selectable at trade creation. Leave blank for no start restriction.')}
+              style={{ flex: 1 }}>
+              <AppDatePicker style={{ width: '100%' }} />
             </Form.Item>
+            <Form.Item name="tradingEndDate"
+              label={hint('Trading End Date', 'Tradability window closes on this date. Leave blank for no end restriction.')}
+              style={{ flex: 1 }}>
+              <AppDatePicker style={{ width: '100%' }} />
+            </Form.Item>
+          </Space>
+
+          {isBlendWatched && (
+            <>
+              <Form.Item name="baseProductId"
+                label={hint('Base Product', 'The base/carrier product this blend is built on (e.g. ULSD for a GAS97 ethanol splash blend) — required for a blend product. The blend’s recipe is completed on the Specs tab: the base component’s own % is calculated automatically as 100% minus the additive components you add there.')}
+                rules={[{ required: true, message: 'A blend product requires a base product' }]}>
+                <Select
+                  showSearch
+                  placeholder="Search by code or name…"
+                  optionFilterProp="label"
+                  options={(data ?? [])
+                    .filter((p) => p.productId !== editing?.productId && p.isActive)
+                    .map((p) => ({ value: p.productId, label: `${p.productCode} — ${p.productName}` }))}
+                />
+              </Form.Item>
+              <Form.Item name="blendNotes" label={hint('Blend Notes', 'Recipe summary shown on the Specs tab and trade confirmations for blended products.', '97%vol ULSD + 3%vol Ethanol')}>
+                <Input.TextArea rows={2} placeholder="97%vol ULSD-10PPM + 3%vol Denatured Ethanol — EN228 Euro-5 compliant" />
+              </Form.Item>
+            </>
           )}
 
           <Form.Item name="description" label="Description">

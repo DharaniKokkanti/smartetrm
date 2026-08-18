@@ -34,6 +34,17 @@ export interface Product {
   isBlend: boolean;
   /** Recipe notes for blended products */
   blendNotes: string | null;
+  // ── Tradability window (V255) — tradable = (isOtc || isExchangeTraded) &&
+  // today between these two dates (either side null = unrestricted on that
+  // side). Computed server-side into `isTradable`, don't recompute here.
+  tradingStartDate: string | null;
+  tradingEndDate: string | null;
+  isTradable: boolean;
+  // Base/carrier component of a blend (e.g. GAS97-BLEND's base is ULSD) —
+  // mandatory when isBlend. Mirrors whichever ref_product_blend_component
+  // row has isBaseComponent=true (V255).
+  baseProductId: number | null;
+  baseProductCode: string | null;
   // ── Pricing basis fields (used for position unit-conversion) ─────────────────
   /** OIL — cargo density used to convert BBL↔MT at trade entry (kg/m³) */
   densityEstimateKgM3: number | null;
@@ -55,7 +66,9 @@ export interface Product {
   updatedAt: string;
 }
 
-export type ProductInput = Omit<Product, 'productId' | 'createdAt' | 'updatedAt'>;
+// isTradable/baseProductCode are server-computed/hydrated, never sent by the
+// client.
+export type ProductInput = Omit<Product, 'productId' | 'createdAt' | 'updatedAt' | 'isTradable' | 'baseProductCode'>;
 
 // ── Commodity resolver (Product.commodityId → broad CommodityType) ────────────
 // Shared between ProductsPage.tsx and BrokerFeeAgreementsPage.tsx: both filter
@@ -158,6 +171,10 @@ export interface BlendComponent {
   notes: string | null;
   isActive: boolean;
   needsPositionGen: boolean;
+  /** True for the base/carrier component — set via the product's Base
+   * Product field, never directly (server rejects a direct POST with this
+   * true). Its targetPct is server-computed as 100 minus the additives. */
+  isBaseComponent: boolean;
 }
 
 export type BlendComponentInput = {
