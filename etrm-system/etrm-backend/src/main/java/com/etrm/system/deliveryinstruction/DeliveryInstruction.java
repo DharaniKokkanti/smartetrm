@@ -21,9 +21,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * dbo.delivery_instruction's order_id has no TradeOrder JPA entity to join
- * against anywhere in this codebase (same scoping note as Nomination) —
- * orderId is a plain Integer and orderReference always serializes as null.
+ * tran_delivery_instruction's order_id identifies a LEG (tran_leg, renamed
+ * from tran_trade_order in V258) but has no Leg JPA entity to join against
+ * anywhere in this codebase (same scoping note as Nomination) — orderId is a
+ * plain Integer and orderReference always serializes as null.
  */
 @Entity
 @Table(name = "tran_delivery_instruction")

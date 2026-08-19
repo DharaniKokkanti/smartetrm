@@ -3,7 +3,8 @@ import { App as AntApp } from 'antd';
 import {
   fetchTrades, createTrade, updateTrade, cancelTrade, confirmTrade,
   fetchCounterparties, fetchLegalEntities, fetchIncoterms, fetchBrokers, fetchPipelines,
-  fetchTradeOrders, createTradeOrder, updateTradeOrder, cancelTradeOrder, confirmTradeOrder,
+  fetchTradeOrders, createTradeOrder, updateTradeOrder,
+  fetchTradeLegs, createTradeLeg, updateTradeLeg, cancelTradeLeg, confirmTradeLeg,
   fetchTradeItems, createTradeItem, updateTradeItem, deleteTradeItem,
   fetchTradeCosts, createTradeCost, updateTradeCost, deleteTradeCost,
   fetchLegCosts, createLegCost, updateLegCost, deleteLegCost,
@@ -13,9 +14,9 @@ import {
   fetchLegCustomFieldValues, saveLegCustomFieldValue, deleteLegCustomFieldValue,
 } from './api';
 import type {
-  TradeInput, TradeFilter, TradeOrderInput, TradeItemInput,
-  TradeCostInput, TradeOrderCostInput, TradeAssayResultInput,
-  CustomFieldDefinitionInput, TradeCustomFieldValueInput, TradeOrderCustomFieldValueInput,
+  TradeInput, TradeFilter, TradeOrderInput, TradeLegInput, TradeItemInput,
+  TradeCostInput, TradeLegCostInput, TradeAssayResultInput,
+  CustomFieldDefinitionInput, TradeCustomFieldValueInput, TradeLegCustomFieldValueInput,
 } from './types';
 import type { ProblemDetail } from '@services/api';
 
@@ -78,11 +79,14 @@ export function useConfirmTrade() {
   });
 }
 
-// ─── Trade Orders ─────────────────────────────────────────────────────────────
+// ─── Orders (the commercial order header — V258) ───────────────────────────────
+// Today's UI creates one order 1:1 with each leg it creates (see useSaveTradeLeg
+// below) — these hooks let a leg form read/save its paired order's own fields
+// (order quantity, order execution date, order type).
 
 export function useTradeOrders(tradeId: number | null) {
   return useQuery({
-    queryKey: ['trade-orders', tradeId],
+    queryKey: ['orders', tradeId],
     queryFn: () => fetchTradeOrders(tradeId!),
     enabled: tradeId !== null,
     staleTime: STALE,
@@ -96,34 +100,58 @@ export function useSaveTradeOrder() {
     mutationFn: ({ id, input }: { id: number | null; input: TradeOrderInput }) =>
       id ? updateTradeOrder(id, input) : createTradeOrder(input),
     onSuccess: (_, vars) => {
-      void qc.invalidateQueries({ queryKey: ['trade-orders', vars.input.tradeId] });
+      void qc.invalidateQueries({ queryKey: ['orders', vars.input.tradeId] });
+    },
+    onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Save failed.'),
+  });
+}
+
+// ─── Trade Legs (RENAME of the old "Trade Orders" — V258) ─────────────────────
+
+export function useTradeLegs(tradeId: number | null) {
+  return useQuery({
+    queryKey: ['trade-legs', tradeId],
+    queryFn: () => fetchTradeLegs(tradeId!),
+    enabled: tradeId !== null,
+    staleTime: STALE,
+  });
+}
+
+export function useSaveTradeLeg() {
+  const qc = useQueryClient();
+  const { message } = AntApp.useApp();
+  return useMutation({
+    mutationFn: ({ id, input }: { id: number | null; input: TradeLegInput }) =>
+      id ? updateTradeLeg(id, input) : createTradeLeg(input),
+    onSuccess: (_, vars) => {
+      void qc.invalidateQueries({ queryKey: ['trade-legs', vars.input.tradeId] });
       void qc.invalidateQueries({ queryKey: ['trades'] });
     },
     onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Save failed.'),
   });
 }
 
-export function useCancelTradeOrder() {
+export function useCancelTradeLeg() {
   const qc = useQueryClient();
   const { message } = AntApp.useApp();
   return useMutation({
     mutationFn: ({ id, tradeId }: { id: number; tradeId: number }) =>
-      cancelTradeOrder(id).then((r) => ({ r, tradeId })),
+      cancelTradeLeg(id).then((r) => ({ r, tradeId })),
     onSuccess: (res) => {
-      void qc.invalidateQueries({ queryKey: ['trade-orders', res.tradeId] });
+      void qc.invalidateQueries({ queryKey: ['trade-legs', res.tradeId] });
     },
     onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Cancel failed.'),
   });
 }
 
-export function useConfirmTradeOrder() {
+export function useConfirmTradeLeg() {
   const qc = useQueryClient();
   const { message } = AntApp.useApp();
   return useMutation({
     mutationFn: ({ id, tradeId }: { id: number; tradeId: number }) =>
-      confirmTradeOrder(id).then((r) => ({ r, tradeId })),
+      confirmTradeLeg(id).then((r) => ({ r, tradeId })),
     onSuccess: (res) => {
-      void qc.invalidateQueries({ queryKey: ['trade-orders', res.tradeId] });
+      void qc.invalidateQueries({ queryKey: ['trade-legs', res.tradeId] });
     },
     onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Confirm failed.'),
   });
@@ -131,11 +159,11 @@ export function useConfirmTradeOrder() {
 
 // ─── Trade Items ──────────────────────────────────────────────────────────────
 
-export function useTradeItems(orderId: number | null) {
+export function useTradeItems(legId: number | null) {
   return useQuery({
-    queryKey: ['trade-items', orderId],
-    queryFn: () => fetchTradeItems(orderId!),
-    enabled: orderId !== null,
+    queryKey: ['trade-items', legId],
+    queryFn: () => fetchTradeItems(legId!),
+    enabled: legId !== null,
     staleTime: STALE,
   });
 }
@@ -147,7 +175,7 @@ export function useSaveTradeItem() {
     mutationFn: ({ id, input }: { id: number | null; input: TradeItemInput }) =>
       id ? updateTradeItem(id, input) : createTradeItem(input),
     onSuccess: (_, vars) => {
-      void qc.invalidateQueries({ queryKey: ['trade-items', vars.input.orderId] });
+      void qc.invalidateQueries({ queryKey: ['trade-items', vars.input.legId] });
     },
     onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Save failed.'),
   });
@@ -157,10 +185,10 @@ export function useDeleteTradeItem() {
   const qc = useQueryClient();
   const { message } = AntApp.useApp();
   return useMutation({
-    mutationFn: ({ id, orderId }: { id: number; orderId: number }) =>
-      deleteTradeItem(id).then(() => orderId),
-    onSuccess: (orderId) => {
-      void qc.invalidateQueries({ queryKey: ['trade-items', orderId] });
+    mutationFn: ({ id, legId }: { id: number; legId: number }) =>
+      deleteTradeItem(id).then(() => legId),
+    onSuccess: (legId) => {
+      void qc.invalidateQueries({ queryKey: ['trade-items', legId] });
     },
     onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Delete failed.'),
   });
@@ -203,13 +231,13 @@ export function useDeleteTradeCost() {
   });
 }
 
-// ─── Leg Costs (order-level secondary costs, V88) ────────────────────────────
+// ─── Leg Costs (leg-level secondary costs, V88; tran_leg_cost since V258) ────
 
-export function useLegCosts(orderId: number | null) {
+export function useLegCosts(legId: number | null) {
   return useQuery({
-    queryKey: ['leg-costs', orderId],
-    queryFn: () => fetchLegCosts(orderId!),
-    enabled: orderId !== null,
+    queryKey: ['leg-costs', legId],
+    queryFn: () => fetchLegCosts(legId!),
+    enabled: legId !== null,
     staleTime: STALE,
   });
 }
@@ -218,10 +246,10 @@ export function useSaveLegCost() {
   const qc = useQueryClient();
   const { message } = AntApp.useApp();
   return useMutation({
-    mutationFn: ({ id, input }: { id: number | null; input: TradeOrderCostInput }) =>
+    mutationFn: ({ id, input }: { id: number | null; input: TradeLegCostInput }) =>
       id ? updateLegCost(id, input) : createLegCost(input),
     onSuccess: (_, vars) => {
-      void qc.invalidateQueries({ queryKey: ['leg-costs', vars.input.orderId] });
+      void qc.invalidateQueries({ queryKey: ['leg-costs', vars.input.legId] });
     },
     onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Save failed.'),
   });
@@ -231,10 +259,10 @@ export function useDeleteLegCost() {
   const qc = useQueryClient();
   const { message } = AntApp.useApp();
   return useMutation({
-    mutationFn: ({ id, orderId }: { id: number; orderId: number }) =>
-      deleteLegCost(id).then(() => orderId),
-    onSuccess: (orderId) => {
-      void qc.invalidateQueries({ queryKey: ['leg-costs', orderId] });
+    mutationFn: ({ id, legId }: { id: number; legId: number }) =>
+      deleteLegCost(id).then(() => legId),
+    onSuccess: (legId) => {
+      void qc.invalidateQueries({ queryKey: ['leg-costs', legId] });
     },
     onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Delete failed.'),
   });
@@ -242,11 +270,11 @@ export function useDeleteLegCost() {
 
 // ─── Assay Results (physical-leg quality results, V88) ───────────────────────
 
-export function useAssayResults(orderId: number | null) {
+export function useAssayResults(legId: number | null) {
   return useQuery({
-    queryKey: ['assay-results', orderId],
-    queryFn: () => fetchAssayResults(orderId!),
-    enabled: orderId !== null,
+    queryKey: ['assay-results', legId],
+    queryFn: () => fetchAssayResults(legId!),
+    enabled: legId !== null,
     staleTime: STALE,
   });
 }
@@ -258,7 +286,7 @@ export function useSaveAssayResult() {
     mutationFn: ({ id, input }: { id: number | null; input: TradeAssayResultInput }) =>
       id ? updateAssayResult(id, input) : createAssayResult(input),
     onSuccess: (_, vars) => {
-      void qc.invalidateQueries({ queryKey: ['assay-results', vars.input.orderId] });
+      void qc.invalidateQueries({ queryKey: ['assay-results', vars.input.legId] });
     },
     onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Save failed.'),
   });
@@ -268,10 +296,10 @@ export function useDeleteAssayResult() {
   const qc = useQueryClient();
   const { message } = AntApp.useApp();
   return useMutation({
-    mutationFn: ({ id, orderId }: { id: number; orderId: number }) =>
-      deleteAssayResult(id).then(() => orderId),
-    onSuccess: (orderId) => {
-      void qc.invalidateQueries({ queryKey: ['assay-results', orderId] });
+    mutationFn: ({ id, legId }: { id: number; legId: number }) =>
+      deleteAssayResult(id).then(() => legId),
+    onSuccess: (legId) => {
+      void qc.invalidateQueries({ queryKey: ['assay-results', legId] });
     },
     onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Delete failed.'),
   });
@@ -334,11 +362,11 @@ export function useDeleteTradeCustomFieldValue() {
   });
 }
 
-export function useLegCustomFieldValues(orderId: number | null) {
+export function useLegCustomFieldValues(legId: number | null) {
   return useQuery({
-    queryKey: ['leg-custom-field-values', orderId],
-    queryFn: () => fetchLegCustomFieldValues(orderId!),
-    enabled: orderId !== null,
+    queryKey: ['leg-custom-field-values', legId],
+    queryFn: () => fetchLegCustomFieldValues(legId!),
+    enabled: legId !== null,
     staleTime: STALE,
   });
 }
@@ -347,9 +375,9 @@ export function useSaveLegCustomFieldValue() {
   const qc = useQueryClient();
   const { message } = AntApp.useApp();
   return useMutation({
-    mutationFn: (input: TradeOrderCustomFieldValueInput) => saveLegCustomFieldValue(input),
+    mutationFn: (input: TradeLegCustomFieldValueInput) => saveLegCustomFieldValue(input),
     onSuccess: (_, vars) => {
-      void qc.invalidateQueries({ queryKey: ['leg-custom-field-values', vars.orderId] });
+      void qc.invalidateQueries({ queryKey: ['leg-custom-field-values', vars.legId] });
     },
     onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Save failed.'),
   });
@@ -359,10 +387,10 @@ export function useDeleteLegCustomFieldValue() {
   const qc = useQueryClient();
   const { message } = AntApp.useApp();
   return useMutation({
-    mutationFn: ({ id, orderId }: { id: number; orderId: number }) =>
-      deleteLegCustomFieldValue(id).then(() => orderId),
-    onSuccess: (orderId) => {
-      void qc.invalidateQueries({ queryKey: ['leg-custom-field-values', orderId] });
+    mutationFn: ({ id, legId }: { id: number; legId: number }) =>
+      deleteLegCustomFieldValue(id).then(() => legId),
+    onSuccess: (legId) => {
+      void qc.invalidateQueries({ queryKey: ['leg-custom-field-values', legId] });
     },
     onError: (e: ProblemDetail) => message.error(e.detail ?? e.title ?? 'Delete failed.'),
   });

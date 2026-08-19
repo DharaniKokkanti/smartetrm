@@ -10,17 +10,18 @@ import java.util.Map;
 /**
  * Stub — GET /api/v1/pricing/tas-positions returns an empty list rather than
  * 404ing (matches TasDashboardPage.tsx's own path). This is deliberately a
- * stub, not a bug: the real feature is a live view over trade order legs
- * with an active TAS (Trade-at-Settlement) pricing rule — but this codebase
- * has never modeled trade/trade_order as a JPA entity at all (an explicit,
- * repeatedly-confirmed scope boundary from earlier sessions: "trade/
- * trade_order/trade_item/position remain explicitly out of the Master Data
- * build's scope"), so there is nothing to query yet. The PATCH
- * .../{orderId}/lock-price action is intentionally NOT implemented here —
- * with no real rows there's nothing to lock, and an unmapped PATCH now
- * correctly 405s (GlobalExceptionHandler's HttpRequestMethodNotSupported
- * handler, fixed this same session) rather than crashing with a 500.
- * Replace this stub once a real TradeOrder entity exists.
+ * stub, not a bug: the real feature is a live view over trade legs
+ * (tran_leg, renamed from tran_trade_order in V258) with an active TAS
+ * (Trade-at-Settlement) pricing rule — but this codebase has never modeled
+ * trade/tran_leg as a JPA entity at all (an explicit, repeatedly-confirmed
+ * scope boundary from earlier sessions: "trade/trade_order/trade_item/
+ * position remain explicitly out of the Master Data build's scope"), so
+ * there is nothing to query yet. The PATCH .../{orderId}/lock-price action
+ * is intentionally NOT implemented here — with no real rows there's nothing
+ * to lock, and an unmapped PATCH now correctly 405s
+ * (GlobalExceptionHandler's HttpRequestMethodNotSupported handler, fixed
+ * this same session) rather than crashing with a 500.
+ * Replace this stub once a real Leg entity exists.
  */
 @RestController
 @RequestMapping("/api/v1/pricing/tas-positions")

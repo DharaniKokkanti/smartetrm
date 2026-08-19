@@ -473,7 +473,7 @@ export interface Trade {
   parentTradeId: number | null;
   amendmentNumber: number;
   isLatestVersion: boolean;
-  orderCount: number; // computed from leg rows
+  legCount: number; // computed from leg rows
   createdAt: string;
   updatedAt: string;
 }
@@ -483,19 +483,54 @@ export interface Trade {
 // (which screen/endpoint is calling), not a form field the caller fills in.
 export type TradeInput = Omit<Trade,
   'tradeId' | 'tradeReference' | 'counterpartyName' | 'traderCode' |
-  'orderCount' | 'amendmentNumber' | 'isLatestVersion' | 'createdAt' | 'updatedAt' |
+  'legCount' | 'amendmentNumber' | 'isLatestVersion' | 'createdAt' | 'updatedAt' |
   'createdSrcId' | 'createdSourceSystemCode' | 'updatedSrcId' | 'updatedSourceSystemCode'
 >;
 
-// ─── TradeOrder (one delivery leg per period) ─────────────────────────────────
-// For SPOT trades there is one order. For TERM/MONTHLY trades one order per period
-// (monthly cargo, quarterly period, etc.). Commodity-specific detail lives here.
+// ─── TradeOrder (the commercial order header — V258) ──────────────────────────
+// One negotiated order: the quantity/execution date/status a trader actually
+// agreed to. A single order can decompose into multiple delivery legs (see
+// TradeLeg below) — e.g. a term deal's monthly cargoes all sharing one order.
+// Today's UI still creates orders 1:1 with legs (matches the V258 migration's
+// own backfill default) — true multi-leg-per-order capture is later work.
+
+export const ORDER_TYPES = ['OUTRIGHT', 'SPREAD', 'TERM'] as const;
+export type OrderType = (typeof ORDER_TYPES)[number];
 
 export interface TradeOrder {
   orderId: number;
   tradeId: number;
   orderSequence: number;
   orderReference: string;
+  status: OrderStatus;
+  orderExecutionDate: string;
+  orderQuantity: number;
+  uomId: number;
+  uomCode: string;
+  price: number | null;
+  currencyId: number;
+  currencyCode: string;
+  orderType: OrderType;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+export type TradeOrderInput = Omit<TradeOrder,
+  'orderId' | 'orderReference' | 'uomCode' | 'currencyCode' | 'createdAt' | 'updatedAt'
+>;
+
+// ─── TradeLeg (one delivery leg per period, RENAME of the old TradeOrder — V258) ──
+// For SPOT trades there is one leg. For TERM/MONTHLY trades one leg per period
+// (monthly cargo, quarterly period, etc.). Commodity-specific detail lives here.
+// Every leg belongs to exactly one TradeOrder (orderId).
+
+export interface TradeLeg {
+  legId: number;
+  orderId: number;
+  orderReference: string; // denormalized from the parent TradeOrder, for display
+  tradeId: number;
+  legSequence: number;
+  legReference: string;
   isTemplate: boolean; // first leg = template; others inherit from it
   status: OrderStatus;
   periodCode: string | null;
@@ -567,19 +602,19 @@ export interface TradeOrder {
   updatedAt: string;
 }
 
-export type TradeOrderInput = Omit<TradeOrder,
-  'orderId' | 'orderReference' | 'productCode' | 'productName' | 'marketCode' | 'pricingRuleCode' |
+export type TradeLegInput = Omit<TradeLeg,
+  'legId' | 'orderReference' | 'legReference' | 'productCode' | 'productName' | 'marketCode' | 'pricingRuleCode' |
   'legalEntityName' | 'bookCode' | 'brokerCode' | 'brokerName' | 'createdAt' | 'updatedAt' |
   'uomCode' | 'deliveryLocationName' | 'currencyCode'
 >;
 
-// ─── TradeItem (line item within an order) ───────────────────────────────────
-// Optional sub-items under an order — multiple products per delivery, pricing
-// components, or partial shipments under one order.
+// ─── TradeItem (line item within a leg) ───────────────────────────────────────
+// Optional sub-items under a leg — multiple products per delivery, pricing
+// components, or partial shipments under one leg.
 
 export interface TradeItem {
   itemId: number;
-  orderId: number;
+  legId: number;
   itemSequence: number;
   productId: number | null;
   productCode: string | null;
@@ -599,7 +634,7 @@ export interface TradeItem {
 
 export type TradeItemInput = Omit<TradeItem, 'itemId' | 'productCode' | 'uomCode' | 'currencyCode'>;
 
-// ─── TradeCost / TradeOrderCost (secondary costs, V88) ───────────────────────
+// ─── TradeCost / TradeLegCost (secondary costs, V88) ─────────────────────────
 export interface TradeCost {
   costId: number;
   tradeId: number;
@@ -613,9 +648,9 @@ export interface TradeCost {
 }
 export type TradeCostInput = Omit<TradeCost, 'costId' | 'currencyCode'>;
 
-export interface TradeOrderCost {
+export interface TradeLegCost {
   costId: number;
-  orderId: number;
+  legId: number;
   costType: TradeCostType;
   description: string | null;
   amount: number;
@@ -624,7 +659,7 @@ export interface TradeOrderCost {
   isEstimated: boolean;
   notes: string | null;
 }
-export type TradeOrderCostInput = Omit<TradeOrderCost, 'costId' | 'currencyCode'>;
+export type TradeLegCostInput = Omit<TradeLegCost, 'costId' | 'currencyCode'>;
 
 // ─── TradeAssayResult (physical-leg quality results, V88) ────────────────────
 // Actual measured values captured against the product's existing quality spec
@@ -635,7 +670,7 @@ export type TradeOrderCostInput = Omit<TradeOrderCost, 'costId' | 'currencyCode'
 // used by TradeItem above.
 export interface TradeAssayResult {
   assayResultId: number;
-  orderId: number;
+  legId: number;
   specValueId: number;
   parameterCode: string;
   parameterName: string;
@@ -699,11 +734,11 @@ export interface TradeCustomFieldValue extends CustomFieldValueBase {
 }
 export type TradeCustomFieldValueInput = Omit<TradeCustomFieldValue, 'valueId'>;
 
-export interface TradeOrderCustomFieldValue extends CustomFieldValueBase {
+export interface TradeLegCustomFieldValue extends CustomFieldValueBase {
   valueId: number;
-  orderId: number;
+  legId: number;
 }
-export type TradeOrderCustomFieldValueInput = Omit<TradeOrderCustomFieldValue, 'valueId'>;
+export type TradeLegCustomFieldValueInput = Omit<TradeLegCustomFieldValue, 'valueId'>;
 
 export interface TradeFilter {
   commodityType?: CommodityTypeTrade;

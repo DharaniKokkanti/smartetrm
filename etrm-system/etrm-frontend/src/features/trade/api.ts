@@ -1,8 +1,9 @@
 import type {
-  Trade, TradeInput, TradeFilter, TradeOrder, TradeOrderInput, TradeItem, TradeItemInput,
-  TradeCost, TradeCostInput, TradeOrderCost, TradeOrderCostInput, TradeAssayResult, TradeAssayResultInput,
+  Trade, TradeInput, TradeFilter, TradeOrder, TradeOrderInput, TradeLeg, TradeLegInput,
+  TradeItem, TradeItemInput,
+  TradeCost, TradeCostInput, TradeLegCost, TradeLegCostInput, TradeAssayResult, TradeAssayResultInput,
   CustomFieldDefinition, CustomFieldDefinitionInput, TradeCustomFieldValue, TradeCustomFieldValueInput,
-  TradeOrderCustomFieldValue, TradeOrderCustomFieldValueInput, CommodityTypeTrade,
+  TradeLegCustomFieldValue, TradeLegCustomFieldValueInput, CommodityTypeTrade,
 } from './types';
 import type { Counterparty } from '@features/tier1/counterparty/types';
 import type { LegalEntity } from '@features/tier1/legal-entity/types';
@@ -46,32 +47,48 @@ export async function confirmTrade(id: number): Promise<Trade> {
   return apiClient.patch<Trade>(`/trades/${id}/confirm`).then((r) => r.data);
 }
 
-// ─── Trade Orders ─────────────────────────────────────────────────────────────
+// ─── Orders (the commercial order header — V258) ───────────────────────────────
+// One negotiated order; today's UI creates one 1:1 with each leg (see TradeLeg
+// below) — this fetches/creates the order itself, not its legs.
 
 export async function fetchTradeOrders(tradeId: number): Promise<TradeOrder[]> {
-  return apiClient.get<TradeOrder[]>('/trade-orders', { params: { tradeId } }).then((r) => r.data);
+  return apiClient.get<TradeOrder[]>('/orders', { params: { tradeId } }).then((r) => r.data);
 }
 
 export async function createTradeOrder(input: TradeOrderInput): Promise<TradeOrder> {
-  return apiClient.post<TradeOrder>('/trade-orders', input).then((r) => r.data);
+  return apiClient.post<TradeOrder>('/orders', input).then((r) => r.data);
 }
 
 export async function updateTradeOrder(id: number, input: Partial<TradeOrderInput>): Promise<TradeOrder> {
-  return apiClient.put<TradeOrder>(`/trade-orders/${id}`, input).then((r) => r.data);
+  return apiClient.put<TradeOrder>(`/orders/${id}`, input).then((r) => r.data);
 }
 
-export async function cancelTradeOrder(id: number): Promise<TradeOrder> {
-  return apiClient.patch<TradeOrder>(`/trade-orders/${id}/cancel`).then((r) => r.data);
+// ─── Trade Legs (RENAME of the old "Trade Orders" — V258) ─────────────────────
+
+export async function fetchTradeLegs(tradeId: number): Promise<TradeLeg[]> {
+  return apiClient.get<TradeLeg[]>('/trade-legs', { params: { tradeId } }).then((r) => r.data);
 }
 
-export async function confirmTradeOrder(id: number): Promise<TradeOrder> {
-  return apiClient.patch<TradeOrder>(`/trade-orders/${id}/confirm`).then((r) => r.data);
+export async function createTradeLeg(input: TradeLegInput): Promise<TradeLeg> {
+  return apiClient.post<TradeLeg>('/trade-legs', input).then((r) => r.data);
+}
+
+export async function updateTradeLeg(id: number, input: Partial<TradeLegInput>): Promise<TradeLeg> {
+  return apiClient.put<TradeLeg>(`/trade-legs/${id}`, input).then((r) => r.data);
+}
+
+export async function cancelTradeLeg(id: number): Promise<TradeLeg> {
+  return apiClient.patch<TradeLeg>(`/trade-legs/${id}/cancel`).then((r) => r.data);
+}
+
+export async function confirmTradeLeg(id: number): Promise<TradeLeg> {
+  return apiClient.patch<TradeLeg>(`/trade-legs/${id}/confirm`).then((r) => r.data);
 }
 
 // ─── Trade Items ──────────────────────────────────────────────────────────────
 
-export async function fetchTradeItems(orderId: number): Promise<TradeItem[]> {
-  return apiClient.get<TradeItem[]>('/trade-items', { params: { orderId } }).then((r) => r.data);
+export async function fetchTradeItems(legId: number): Promise<TradeItem[]> {
+  return apiClient.get<TradeItem[]>('/trade-items', { params: { legId } }).then((r) => r.data);
 }
 
 export async function createTradeItem(input: TradeItemInput): Promise<TradeItem> {
@@ -104,40 +121,40 @@ export async function deleteTradeCost(id: number): Promise<void> {
   await apiClient.delete(`/trade-costs/${id}`);
 }
 
-// ─── Leg Costs (order-level secondary costs, V88) ────────────────────────────
+// ─── Leg Costs (leg-level secondary costs, V88; tran_leg_cost since V258) ────
 
-export async function fetchLegCosts(orderId: number): Promise<TradeOrderCost[]> {
-  return apiClient.get<TradeOrderCost[]>('/trade-order-costs', { params: { orderId } }).then((r) => r.data);
+export async function fetchLegCosts(legId: number): Promise<TradeLegCost[]> {
+  return apiClient.get<TradeLegCost[]>('/trade-leg-costs', { params: { legId } }).then((r) => r.data);
 }
 
-export async function createLegCost(input: TradeOrderCostInput): Promise<TradeOrderCost> {
-  return apiClient.post<TradeOrderCost>('/trade-order-costs', input).then((r) => r.data);
+export async function createLegCost(input: TradeLegCostInput): Promise<TradeLegCost> {
+  return apiClient.post<TradeLegCost>('/trade-leg-costs', input).then((r) => r.data);
 }
 
-export async function updateLegCost(id: number, input: Partial<TradeOrderCostInput>): Promise<TradeOrderCost> {
-  return apiClient.put<TradeOrderCost>(`/trade-order-costs/${id}`, input).then((r) => r.data);
+export async function updateLegCost(id: number, input: Partial<TradeLegCostInput>): Promise<TradeLegCost> {
+  return apiClient.put<TradeLegCost>(`/trade-leg-costs/${id}`, input).then((r) => r.data);
 }
 
 export async function deleteLegCost(id: number): Promise<void> {
-  await apiClient.delete(`/trade-order-costs/${id}`);
+  await apiClient.delete(`/trade-leg-costs/${id}`);
 }
 
 // ─── Assay Results (physical-leg quality results, V88) ───────────────────────
 
-export async function fetchAssayResults(orderId: number): Promise<TradeAssayResult[]> {
-  return apiClient.get<TradeAssayResult[]>('/trade-order-assay-results', { params: { orderId } }).then((r) => r.data);
+export async function fetchAssayResults(legId: number): Promise<TradeAssayResult[]> {
+  return apiClient.get<TradeAssayResult[]>('/trade-leg-assay-results', { params: { legId } }).then((r) => r.data);
 }
 
 export async function createAssayResult(input: TradeAssayResultInput): Promise<TradeAssayResult> {
-  return apiClient.post<TradeAssayResult>('/trade-order-assay-results', input).then((r) => r.data);
+  return apiClient.post<TradeAssayResult>('/trade-leg-assay-results', input).then((r) => r.data);
 }
 
 export async function updateAssayResult(id: number, input: Partial<TradeAssayResultInput>): Promise<TradeAssayResult> {
-  return apiClient.put<TradeAssayResult>(`/trade-order-assay-results/${id}`, input).then((r) => r.data);
+  return apiClient.put<TradeAssayResult>(`/trade-leg-assay-results/${id}`, input).then((r) => r.data);
 }
 
 export async function deleteAssayResult(id: number): Promise<void> {
-  await apiClient.delete(`/trade-order-assay-results/${id}`);
+  await apiClient.delete(`/trade-leg-assay-results/${id}`);
 }
 
 // ─── Custom field definitions (governed registry, V89) ────────────────────────
@@ -170,16 +187,16 @@ export async function deleteTradeCustomFieldValue(id: number): Promise<void> {
 
 // ─── Leg-level custom field values (V89) ──────────────────────────────────────
 
-export async function fetchLegCustomFieldValues(orderId: number): Promise<TradeOrderCustomFieldValue[]> {
-  return apiClient.get<TradeOrderCustomFieldValue[]>('/trade-order-custom-field-values', { params: { orderId } }).then((r) => r.data);
+export async function fetchLegCustomFieldValues(legId: number): Promise<TradeLegCustomFieldValue[]> {
+  return apiClient.get<TradeLegCustomFieldValue[]>('/trade-leg-custom-field-values', { params: { legId } }).then((r) => r.data);
 }
 
-export async function saveLegCustomFieldValue(input: TradeOrderCustomFieldValueInput): Promise<TradeOrderCustomFieldValue> {
-  return apiClient.post<TradeOrderCustomFieldValue>('/trade-order-custom-field-values', input).then((r) => r.data);
+export async function saveLegCustomFieldValue(input: TradeLegCustomFieldValueInput): Promise<TradeLegCustomFieldValue> {
+  return apiClient.post<TradeLegCustomFieldValue>('/trade-leg-custom-field-values', input).then((r) => r.data);
 }
 
 export async function deleteLegCustomFieldValue(id: number): Promise<void> {
-  await apiClient.delete(`/trade-order-custom-field-values/${id}`);
+  await apiClient.delete(`/trade-leg-custom-field-values/${id}`);
 }
 
 // ─── Reference data dropdowns ─────────────────────────────────────────────────

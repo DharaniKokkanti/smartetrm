@@ -20,9 +20,11 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * bolmo_leg.order_id has no TradeOrder JPA entity to join against anywhere in
- * this codebase (same scoping note as Nomination/DeliveryInstruction) —
- * orderId is a plain Integer and orderReference always serializes as null.
+ * bolmo_leg.order_id identifies a LEG (tran_leg, renamed from
+ * tran_trade_order in V258) but has no Leg JPA entity to join against
+ * anywhere in this codebase (same scoping note as Nomination/
+ * DeliveryInstruction) — orderId is a plain Integer and orderReference
+ * always serializes as null.
  */
 @Entity
 @Table(name = "tran_bolmo_leg")

@@ -19,7 +19,7 @@ import { color } from '@theme/tokens';
 import {
   useTrades, useSaveTrade, useCancelTrade, useConfirmTrade,
   useCounterparties, useLegalEntities, useIncoterms, useBrokers, usePipelines,
-  useTradeOrders, useSaveTradeOrder, useCancelTradeOrder, useConfirmTradeOrder,
+  useTradeLegs, useSaveTradeLeg, useCancelTradeLeg, useConfirmTradeLeg,
   useTradeItems, useSaveTradeItem, useDeleteTradeItem,
   useTradeCosts, useSaveTradeCost, useDeleteTradeCost,
   useLegCosts, useSaveLegCost, useDeleteLegCost,
@@ -29,8 +29,8 @@ import {
   useLegCustomFieldValues, useSaveLegCustomFieldValue,
 } from './hooks';
 import type {
-  Trade, TradeInput, TradeOrder, TradeOrderInput, TradeItem, TradeItemInput,
-  TradeCost, TradeCostInput, TradeOrderCost, TradeOrderCostInput,
+  Trade, TradeInput, TradeLeg, TradeLegInput, TradeItem, TradeItemInput,
+  TradeCost, TradeCostInput, TradeLegCost, TradeLegCostInput,
   TradeAssayResult, TradeAssayResultInput, CommodityTypeTrade,
   CustomFieldDefinition, CustomFieldDataType, Direction, FxDetail,
 } from './types';
@@ -1131,15 +1131,15 @@ function TradeCostsSection({ tradeId, currencyOpts }: { tradeId: number; currenc
   );
 }
 
-function LegCostsSection({ orderId, currencyOpts }: { orderId: number; currencyOpts: SelectOpt[] }) {
-  const { data: costs = [], isLoading } = useLegCosts(orderId);
+function LegCostsSection({ legId, currencyOpts }: { legId: number; currencyOpts: SelectOpt[] }) {
+  const { data: costs = [], isLoading } = useLegCosts(legId);
   const saveCost = useSaveLegCost();
   const deleteCost = useDeleteLegCost();
   return (
-    <CostsEditor<TradeOrderCost>
+    <CostsEditor<TradeLegCost>
       costs={costs} isLoading={isLoading} adding={saveCost.isPending}
-      onAdd={(v) => saveCost.mutate({ id: null, input: { orderId, ...v } as TradeOrderCostInput })}
-      onDelete={(costId) => deleteCost.mutate({ id: costId, orderId })}
+      onAdd={(v) => saveCost.mutate({ id: null, input: { legId, ...v } as TradeLegCostInput })}
+      onDelete={(costId) => deleteCost.mutate({ id: costId, legId })}
       currencyOpts={currencyOpts}
     />
   );
@@ -1245,16 +1245,16 @@ function TradeCustomFieldsSection({ tradeId, commodityType }: { tradeId: number;
   );
 }
 
-function LegCustomFieldsSection({ orderId, commodityType }: { orderId: number; commodityType: CommodityTypeTrade }) {
+function LegCustomFieldsSection({ legId, commodityType }: { legId: number; commodityType: CommodityTypeTrade }) {
   const { data: definitions = [] } = useCustomFieldDefinitions();
-  const { data: values = [] } = useLegCustomFieldValues(orderId);
+  const { data: values = [] } = useLegCustomFieldValues(legId);
   const saveValue = useSaveLegCustomFieldValue();
   const scoped = definitions.filter((d) => d.appliesTo === 'LEG' && d.isActive && (d.commodityType == null || d.commodityType === commodityType));
   return (
     <CustomFieldsForm
       definitions={scoped} values={values} saving={saveValue.isPending}
       onSave={(definitionId, dataType, raw) => {
-        const patch = { orderId, definitionId, valueText: null, valueNumber: null, valueDate: null, valueBoolean: null, [customFieldValueKey(dataType)]: raw };
+        const patch = { legId, definitionId, valueText: null, valueNumber: null, valueDate: null, valueBoolean: null, [customFieldValueKey(dataType)]: raw };
         saveValue.mutate(patch as never);
       }}
     />
@@ -1379,8 +1379,8 @@ function SpecificationsSection({ productIds, products }: { productIds: number[];
 }
 
 // ─── Assay / quality results (actual values captured against the spec) ──────
-function AssayResultsSection({ orderId, productId }: { orderId: number; productId: number | null }) {
-  const { data: results = [], isLoading } = useAssayResults(orderId);
+function AssayResultsSection({ legId, productId }: { legId: number; productId: number | null }) {
+  const { data: results = [], isLoading } = useAssayResults(legId);
   const saveResult = useSaveAssayResult();
   const deleteResult = useDeleteAssayResult();
   const { data: templates = [] } = useProductSpecTemplates(productId);
@@ -1429,7 +1429,7 @@ function AssayResultsSection({ orderId, productId }: { orderId: number; productI
     {
       title: '', width: 50,
       render: (_: unknown, r: TradeAssayResult) => (
-        <Popconfirm title="Delete result?" onConfirm={() => deleteResult.mutate({ id: r.assayResultId, orderId })} okText="Delete" okButtonProps={{ danger: true }}>
+        <Popconfirm title="Delete result?" onConfirm={() => deleteResult.mutate({ id: r.assayResultId, legId })} okText="Delete" okButtonProps={{ danger: true }}>
           <Tooltip title="Delete"><Button type="text" size="small" danger icon={<DeleteOutlined />} /></Tooltip>
         </Popconfirm>
       ),
@@ -1449,7 +1449,7 @@ function AssayResultsSection({ orderId, productId }: { orderId: number; productI
           saveResult.mutate({
             id: null,
             input: {
-              orderId, specValueId: v.specValueId, actualValue: v.actualValue ?? null, actualText: null,
+              legId, specValueId: v.specValueId, actualValue: v.actualValue ?? null, actualText: null,
               samplePoint: v.samplePoint ?? null, recordedDate: recordedDate ? recordedDate.format('YYYY-MM-DD') : null,
               notes: v.notes ?? null,
             } as TradeAssayResultInput,
@@ -1534,14 +1534,14 @@ export function TradeBlotter() {
   // ── Selected trade ──
   const [selectedTradeId, setSelectedTradeId] = useState<number | null>(null);
   const selectedTrade = useMemo(() => trades.find((t) => t.tradeId === selectedTradeId) ?? null, [trades, selectedTradeId]);
-  const { data: orders = [], isLoading: ordersLoading } = useTradeOrders(selectedTradeId);
-  const saveOrder = useSaveTradeOrder();
-  const cancelOrder = useCancelTradeOrder();
-  const confirmOrder = useConfirmTradeOrder();
+  const { data: orders = [], isLoading: legsLoading } = useTradeLegs(selectedTradeId);
+  const saveLeg = useSaveTradeLeg();
+  const cancelLeg = useCancelTradeLeg();
+  const confirmLeg = useConfirmTradeLeg();
 
   // ── Selected order (for items panel) ──
-  const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
-  const { data: items = [] } = useTradeItems(selectedOrderId);
+  const [selectedLegId, setSelectedLegId] = useState<number | null>(null);
+  const { data: items = [] } = useTradeItems(selectedLegId);
   const saveItem = useSaveTradeItem();
   const deleteItem = useDeleteTradeItem();
 
@@ -1574,17 +1574,17 @@ export function TradeBlotter() {
   // Auto-select the first leg once a trade's legs load, so Items/Costs/Assay
   // tabs show data without requiring an extra click.
   useEffect(() => {
-    if (selectedTrade && orders.length > 0 && selectedOrderId === null) {
-      setSelectedOrderId(orders[0].orderId);
+    if (selectedTrade && orders.length > 0 && selectedLegId === null) {
+      setSelectedLegId(orders[0].legId);
     }
-  }, [selectedTrade, orders, selectedOrderId]);
+  }, [selectedTrade, orders, selectedLegId]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   // ── Order / leg drawer ──
   const [orderOpen, setOrderOpen] = useState(false);
-  const [editingOrder, setEditingOrder] = useState<TradeOrder | null>(null);
+  const [editingLeg, setEditingOrder] = useState<TradeLeg | null>(null);
   const [orderCommodity, setOrderCommodity] = useState<CommodityTypeTrade>('OIL');
-  const [orderForm] = Form.useForm<TradeOrderInput>();
+  const [orderForm] = Form.useForm<TradeLegInput>();
   const watchedOrderPricingRuleId = Form.useWatch('pricingRuleId', orderForm);
   const watchedToleranceType = Form.useWatch('toleranceType', orderForm);
   const isTasPricing = useMemo(
@@ -1705,7 +1705,7 @@ export function TradeBlotter() {
     onRestore: (_v, ex) => setTradeCommodity((ex?.['commodity'] as CommodityTypeTrade | undefined) ?? 'OIL'),
   });
   useFormDraft('trade-leg', {
-    form: orderForm, open: orderOpen, setOpen: setOrderOpen, editing: editingOrder, setEditing: setEditingOrder,
+    form: orderForm, open: orderOpen, setOpen: setOrderOpen, editing: editingLeg, setEditing: setEditingOrder,
     extra: () => ({ commodity: orderCommodity }),
     onRestore: (_v, ex) => setOrderCommodity((ex?.['commodity'] as CommodityTypeTrade | undefined) ?? 'OIL'),
   });
@@ -1713,7 +1713,7 @@ export function TradeBlotter() {
 
   function openNewTrade() {
     setSelectedTradeId(null);
-    setSelectedOrderId(null);
+    setSelectedLegId(null);
     setEditingTrade(null);
     setTradeCommodity('OIL');
     tradeForm.resetFields();
@@ -1781,7 +1781,7 @@ export function TradeBlotter() {
     });
     setOrderOpen(true);
   }
-  function openEditOrder(o: TradeOrder) {
+  function openEditOrder(o: TradeLeg) {
     setEditingOrder(o);
     if (selectedTrade) setOrderCommodity(selectedTrade.commodityType);
     orderForm.resetFields();
@@ -1803,7 +1803,7 @@ export function TradeBlotter() {
       fxDetail:      detailToForm(o.fxDetail,      ['valueDate', 'fixingDate']),
       riskStartDate: o.riskStartDate ? dayjs(o.riskStartDate) : undefined,
       riskEndDate:   o.riskEndDate   ? dayjs(o.riskEndDate) : undefined,
-    } as unknown as TradeOrderInput);
+    } as unknown as TradeLegInput);
     setOrderOpen(true);
   }
   async function submitOrder(closeAfter = true) {
@@ -1844,8 +1844,8 @@ export function TradeBlotter() {
         uomId: fxUomId,
         settlementType: 'FINANCIAL',
       } : {}),
-    } as unknown as TradeOrderInput;
-    const saved = await saveOrder.mutateAsync({ id: editingOrder?.orderId ?? null, input });
+    } as unknown as TradeLegInput;
+    const saved = await saveLeg.mutateAsync({ id: editingLeg?.legId ?? null, input });
     if (closeAfter) setOrderOpen(false); else setEditingOrder(saved);
   }
 
@@ -1853,7 +1853,7 @@ export function TradeBlotter() {
   function openNewItem() {
     setEditingItem(null);
     itemForm.resetFields();
-    itemForm.setFieldsValue({ orderId: selectedOrderId ?? 0, currencyId: 1 });
+    itemForm.setFieldsValue({ legId: selectedLegId ?? 0, currencyId: 1 });
     setItemOpen(true);
   }
   function openEditItem(item: TradeItem) {
@@ -1909,7 +1909,7 @@ export function TradeBlotter() {
     },
     { field: 'contractNumber', headerName: 'Contract #', width: 140, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },
     {
-      field: 'orderCount', headerName: 'Legs', width: 58,
+      field: 'legCount', headerName: 'Legs', width: 58,
       cellRenderer: (p: { value: number }) => (
         <Tag color={p.value > 1 ? 'geekblue' : 'default'} style={{ fontSize: 10 }}>{p.value}</Tag>
       ),
@@ -1948,13 +1948,13 @@ export function TradeBlotter() {
   ], [cancelTrade, confirmTrade, selectedTradeId, tradeTypeOptions]);
 
   // ── Legs grid columns ──
-  const orderColDefs = useMemo<ColDef<TradeOrder>[]>(() => [
+  const orderColDefs = useMemo<ColDef<TradeLeg>[]>(() => [
     {
       headerName: '', width: 95, pinned: 'left', sortable: false, filter: false,
-      cellRenderer: (p: { data: TradeOrder }) => (
+      cellRenderer: (p: { data: TradeLeg }) => (
         p.data.isTemplate
           ? <Tag color="purple" style={{ fontSize: 10, margin: 0 }}>TEMPLATE</Tag>
-          : <Tag color="default" style={{ fontSize: 10, margin: 0 }}>Leg {p.data.orderSequence}</Tag>
+          : <Tag color="default" style={{ fontSize: 10, margin: 0 }}>Leg {p.data.legSequence}</Tag>
       ),
     },
     { field: 'orderReference', headerName: 'Leg Ref', width: 175, cellClass: 'cell-mono' },
@@ -1984,31 +1984,31 @@ export function TradeBlotter() {
     },
     {
       headerName: 'Actions', width: 155, sortable: false, filter: false, pinned: 'right',
-      cellRenderer: (p: { data: TradeOrder }) => (
+      cellRenderer: (p: { data: TradeLeg }) => (
         <Space size={2}>
           <Tooltip title="Edit Leg"><Button type="text" size="small" icon={<EditOutlined />} onClick={() => openEditOrder(p.data)} /></Tooltip>
           <Button
             type="text" size="small"
             icon={<UnorderedListOutlined />}
-            style={{ color: selectedOrderId === p.data.orderId ? color.secondary : undefined }}
-            onClick={() => setSelectedOrderId((prev) => (prev === p.data.orderId ? null : p.data.orderId))}
+            style={{ color: selectedLegId === p.data.legId ? color.secondary : undefined }}
+            onClick={() => setSelectedLegId((prev) => (prev === p.data.legId ? null : p.data.legId))}
           >
             <span style={{ fontSize: 11 }}>Items</span>
           </Button>
           {p.data.status === 'WORKING' && (
             <Tooltip title="Confirm Leg">
-              <Button type="text" size="small" icon={<CheckCircleOutlined />} style={{ color: color.success }} onClick={() => confirmOrder.mutate({ id: p.data.orderId, tradeId: p.data.tradeId })} />
+              <Button type="text" size="small" icon={<CheckCircleOutlined />} style={{ color: color.success }} onClick={() => confirmLeg.mutate({ id: p.data.legId, tradeId: p.data.tradeId })} />
             </Tooltip>
           )}
           {(p.data.status === 'WORKING' || p.data.status === 'CONFIRMED') && (
-            <Popconfirm title="Cancel leg?" onConfirm={() => cancelOrder.mutate({ id: p.data.orderId, tradeId: p.data.tradeId })} okText="Cancel" okButtonProps={{ danger: true }}>
+            <Popconfirm title="Cancel leg?" onConfirm={() => cancelLeg.mutate({ id: p.data.legId, tradeId: p.data.tradeId })} okText="Cancel" okButtonProps={{ danger: true }}>
               <Tooltip title="Cancel Leg"><Button type="text" size="small" danger icon={<StopOutlined />} /></Tooltip>
             </Popconfirm>
           )}
         </Space>
       ),
     },
-  ], [cancelOrder, confirmOrder, selectedOrderId]);
+  ], [cancelLeg, confirmLeg, selectedLegId]);
 
   // ── Items table columns ──
   const itemColumns = [
@@ -2025,7 +2025,7 @@ export function TradeBlotter() {
       render: (_: unknown, record: TradeItem) => (
         <Space size={2}>
           <Tooltip title="Edit"><Button type="text" size="small" icon={<EditOutlined />} onClick={() => openEditItem(record)} /></Tooltip>
-          <Popconfirm title="Delete item?" onConfirm={() => deleteItem.mutate({ id: record.itemId, orderId: record.orderId })} okText="Delete" okButtonProps={{ danger: true }}>
+          <Popconfirm title="Delete item?" onConfirm={() => deleteItem.mutate({ id: record.itemId, legId: record.legId })} okText="Delete" okButtonProps={{ danger: true }}>
             <Tooltip title="Delete"><Button type="text" size="small" danger icon={<DeleteOutlined />} /></Tooltip>
           </Popconfirm>
         </Space>
@@ -2039,15 +2039,15 @@ export function TradeBlotter() {
   const isPhysicalTrade = selectedTrade
     ? tradeTypeOptions.find((o) => o.value === selectedTrade.tradeType)?.label === 'Physical'
     : false;
-  const selectedOrder = orders.find((o) => o.orderId === selectedOrderId) ?? null;
+  const selectedLeg = orders.find((o) => o.legId === selectedLegId) ?? null;
   // Shared leg picker for the Items / Leg Costs / Assay tabs
   const legSelector = (
     <Space style={{ marginBottom: 10 }}>
       <Text type="secondary" style={{ fontSize: 12 }}>Leg:</Text>
       <Select
-        size="small" style={{ width: 280 }} value={selectedOrderId}
-        onChange={(v) => setSelectedOrderId(v)}
-        options={orders.map((o) => ({ value: o.orderId, label: `${o.orderReference} (${o.periodCode ?? '—'})` }))}
+        size="small" style={{ width: 280 }} value={selectedLegId}
+        onChange={(v) => setSelectedLegId(v)}
+        options={orders.map((o) => ({ value: o.legId, label: `${o.orderReference} (${o.periodCode ?? '—'})` }))}
         placeholder="Select leg"
       />
     </Space>
@@ -2079,7 +2079,7 @@ export function TradeBlotter() {
           onRowClicked={(e) => {
             const id = (e.data as Trade).tradeId;
             setSelectedTradeId((prev) => (prev === id ? null : id));
-            setSelectedOrderId(null);
+            setSelectedLegId(null);
           }}
           getRowStyle={(p) => (p.data as Trade).tradeId === selectedTradeId ? { background: 'rgba(22,119,255,0.06)' } : undefined}
         />
@@ -2461,14 +2461,14 @@ export function TradeBlotter() {
                         <SmartGrid
                           columnDefs={orderColDefs}
                           rowData={orders}
-                          loading={ordersLoading}
+                          loading={legsLoading}
                           height={260}
-                          getRowId={(p) => String(p.data.orderId)}
+                          getRowId={(p) => String(p.data.legId)}
                           onRowClicked={(e) => {
-                            const id = (e.data as TradeOrder).orderId;
-                            setSelectedOrderId((prev) => (prev === id ? null : id));
+                            const id = (e.data as TradeLeg).legId;
+                            setSelectedLegId((prev) => (prev === id ? null : id));
                           }}
-                          getRowStyle={(p) => (p.data as TradeOrder).orderId === selectedOrderId ? { background: 'rgba(22,119,255,0.05)' } : undefined}
+                          getRowStyle={(p) => (p.data as TradeLeg).legId === selectedLegId ? { background: 'rgba(22,119,255,0.05)' } : undefined}
                         />
                       </>
                     ),
@@ -2480,9 +2480,9 @@ export function TradeBlotter() {
                       <>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           {legSelector}
-                          <Button size="small" icon={<PlusOutlined />} onClick={openNewItem} disabled={selectedOrderId === null}>Add Item</Button>
+                          <Button size="small" icon={<PlusOutlined />} onClick={openNewItem} disabled={selectedLegId === null}>Add Item</Button>
                         </div>
-                        {selectedOrderId === null
+                        {selectedLegId === null
                           ? <Alert type="info" style={{ fontSize: 12 }} message="Select a leg to view its items." />
                           : items.length === 0
                             ? <Alert type="info" style={{ fontSize: 12 }} message="No items yet — items are optional sub-lines (multiple products, pricing components, partial shipments)." />
@@ -2508,9 +2508,9 @@ export function TradeBlotter() {
                             children: (
                               <>
                                 {legSelector}
-                                {selectedOrderId === null
+                                {selectedLegId === null
                                   ? <Alert type="info" style={{ fontSize: 12 }} message="Select a leg to record its costs." />
-                                  : <LegCostsSection orderId={selectedOrderId} currencyOpts={currencyOpts} />}
+                                  : <LegCostsSection legId={selectedLegId} currencyOpts={currencyOpts} />}
                               </>
                             ),
                           },
@@ -2539,9 +2539,9 @@ export function TradeBlotter() {
                               children: (
                                 <>
                                   {legSelector}
-                                  {selectedOrderId === null
+                                  {selectedLegId === null
                                     ? <Alert type="info" style={{ fontSize: 12 }} message="Select a leg to fill in its custom fields." />
-                                    : <LegCustomFieldsSection orderId={selectedOrderId} commodityType={selectedTrade.commodityType} />}
+                                    : <LegCustomFieldsSection legId={selectedLegId} commodityType={selectedTrade.commodityType} />}
                                 </>
                               ),
                             },
@@ -2567,9 +2567,9 @@ export function TradeBlotter() {
                       children: (
                         <>
                           {legSelector}
-                          {selectedOrderId === null
+                          {selectedLegId === null
                             ? <Alert type="info" style={{ fontSize: 12 }} message="Select a leg to capture assay results." />
-                            : <AssayResultsSection orderId={selectedOrderId} productId={selectedOrder?.productId ?? null} />}
+                            : <AssayResultsSection legId={selectedLegId} productId={selectedLeg?.productId ?? null} />}
                         </>
                       ),
                     },
@@ -2605,8 +2605,8 @@ export function TradeBlotter() {
         title={
           <Space>
             <SwapOutlined />
-            {editingOrder
-              ? `Edit Leg — ${editingOrder.orderReference}${editingOrder.isTemplate ? ' (TEMPLATE)' : ''}`
+            {editingLeg
+              ? `Edit Leg — ${editingLeg.orderReference}${editingLeg.isTemplate ? ' (TEMPLATE)' : ''}`
               : `New Leg — ${selectedTrade?.tradeReference ?? ''}`}
           </Space>
         }
@@ -2616,9 +2616,9 @@ export function TradeBlotter() {
         footer={
           <Space style={{ justifyContent: 'flex-end', display: 'flex' }}>
             <Button onClick={() => setOrderOpen(false)}>Cancel</Button>
-            <Button onClick={() => { void submitOrder(false); }} loading={saveOrder.isPending}>Save</Button>
-            <Button type="primary" onClick={() => { void submitOrder(true); }} loading={saveOrder.isPending}>
-              {editingOrder ? 'Update & Close' : 'Add & Close'}
+            <Button onClick={() => { void submitOrder(false); }} loading={saveLeg.isPending}>Save</Button>
+            <Button type="primary" onClick={() => { void submitOrder(true); }} loading={saveLeg.isPending}>
+              {editingLeg ? 'Update & Close' : 'Add & Close'}
             </Button>
           </Space>
         }
@@ -2752,7 +2752,7 @@ export function TradeBlotter() {
         }
       >
         <Form form={itemForm} layout="vertical" size="small">
-          <Form.Item name="orderId" hidden><Input /></Form.Item>
+          <Form.Item name="legId" hidden><Input /></Form.Item>
           <Form.Item name="productId" label="Product">
             <Select
               options={productOptionsFor(selectedTrade?.commodityType ?? 'OIL')}

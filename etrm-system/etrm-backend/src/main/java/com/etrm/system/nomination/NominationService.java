@@ -44,7 +44,7 @@ public class NominationService {
     }
 
     private Nomination hydrate(Nomination nomination) {
-        // No TradeOrder entity exists in this codebase yet — orderReference always null.
+        // No Leg entity (tran_leg, renamed from tran_trade_order in V258) exists in this codebase yet — orderReference always null.
         nomination.setOrderReference(null);
         uomRepository.findById(nomination.getUomId()).ifPresent(u -> nomination.setUomCode(u.getUomCode()));
         if (nomination.getLocationId() != null) {

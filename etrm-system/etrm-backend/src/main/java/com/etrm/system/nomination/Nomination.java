@@ -21,13 +21,16 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * dbo.nomination has no real order_id FK it can be joined against yet — there
- * is no TradeOrder JPA entity anywhere in this codebase per an earlier
- * session's own scoping note ("trade/trade_order/trade_item/position remain
- * explicitly out of the Master Data build's scope"). orderId is therefore
- * stored/returned as a plain Integer and orderReference always serializes as
- * null, matching the frontend's nullable typing — no reader is invented ahead
- * of a future TradeOrder batch.
+ * tran_nomination.order_id identifies a LEG (tran_leg.leg_id, renamed from
+ * tran_trade_order.order_id in V258 — nomination's own column name wasn't
+ * renamed since its table name never claimed to be order-level) but has no
+ * real FK it can be joined against yet — there is no Leg JPA entity anywhere
+ * in this codebase per an earlier session's own scoping note
+ * ("trade/trade_order/trade_item/position remain explicitly out of the
+ * Master Data build's scope"). orderId is therefore stored/returned as a
+ * plain Integer and orderReference always serializes as null, matching the
+ * frontend's nullable typing — no reader is invented ahead of a future Leg
+ * entity batch.
  */
 @Entity
 @Table(name = "tran_nomination")

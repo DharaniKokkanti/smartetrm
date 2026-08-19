@@ -35,10 +35,10 @@ public class NominationController {
     }
 
     /**
-     * Stub pending a future TradeOrder entity — no TradeOrder table/entity is
-     * reachable from this codebase yet, so there is no data to build a picker
-     * option list from. Returns an empty list rather than querying a
-     * nonexistent join.
+     * Stub pending a future Leg entity (tran_leg, renamed from
+     * tran_trade_order in V258) — no such table/entity is reachable from
+     * this codebase yet, so there is no data to build a picker option list
+     * from. Returns an empty list rather than querying a nonexistent join.
      */
     @GetMapping("/trade-order-options")
     public List<TradeOrderOption> tradeOrderOptions() {

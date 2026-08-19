@@ -85,7 +85,7 @@ export function TradeBlotterMonitor() {
     },
     { field: 'contractNumber', headerName: 'Contract #', width: 140, cellClass: 'cell-mono', valueFormatter: (p) => p.value ?? '—' },
     {
-      field: 'orderCount', headerName: 'Legs', width: 58,
+      field: 'legCount', headerName: 'Legs', width: 58,
       cellRenderer: (p: { value: number }) => (
         <Tag color={p.value > 1 ? 'geekblue' : 'default'} style={{ fontSize: 10 }}>{p.value}</Tag>
       ),

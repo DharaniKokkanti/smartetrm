@@ -40,7 +40,7 @@ public class DeliveryInstructionService {
     }
 
     private DeliveryInstruction hydrate(DeliveryInstruction di) {
-        // No TradeOrder entity exists in this codebase yet — orderReference always null.
+        // No Leg entity (tran_leg, renamed from tran_trade_order in V258) exists in this codebase yet — orderReference always null.
         di.setOrderReference(null);
         if (di.getNominationId() != null) {
             nominationRepository.findById(di.getNominationId())

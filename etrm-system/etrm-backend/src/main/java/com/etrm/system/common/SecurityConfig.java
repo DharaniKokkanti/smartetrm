@@ -253,8 +253,9 @@ public class SecurityConfig {
                     .hasAuthority("PERM_MD_DELETE_WRITE")
 
                 // Trade Management (TRADE_*) has no backend controller yet —
-                // trade/trade_order/trade_item are frontend-mocks-only today
-                // (see handoff doc). Nothing to gate; codes stay reserved.
+                // trade/tran_order/tran_leg/tran_leg_item (renamed from
+                // trade_order/trade_item in V258) are frontend-mocks-only
+                // today (see handoff doc). Nothing to gate; codes stay reserved.
 
                 .anyRequest().authenticated()
             )

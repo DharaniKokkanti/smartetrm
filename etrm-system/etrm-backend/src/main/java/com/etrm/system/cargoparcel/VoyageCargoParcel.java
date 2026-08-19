@@ -17,12 +17,14 @@ import java.math.BigDecimal;
 
 /**
  * The commodity-agnostic bridge between a voyage and the existing trade
- * book. trade_order_id/trade_item_id reference dbo.trade_order/trade_item
- * by id only — those tables have no JPA entity in this codebase yet
- * (trade/trade_order/trade_item/position are explicitly out of scope for
- * the Master Data build per the project handoff), so these two fields stay
- * plain, undenormalized ids rather than inventing a reader entity ahead of
- * that future batch.
+ * book. trade_order_id/trade_item_id reference dbo.tran_leg/tran_leg_item
+ * (renamed from tran_trade_order/tran_trade_item in V258) by id only —
+ * those tables have no JPA entity in this codebase yet (trade/trade_order/
+ * trade_item/position are explicitly out of scope for the Master Data
+ * build per the project handoff), so these two fields stay plain,
+ * undenormalized ids rather than inventing a reader entity ahead of that
+ * future batch. Column names left as trade_order_id/trade_item_id — this
+ * table's own name never claimed to be order-level, so V258 didn't rename it.
  */
 @Entity
 @Table(name = "tran_voyage_cargo_parcel")
