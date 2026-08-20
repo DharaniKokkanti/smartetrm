@@ -32,6 +32,11 @@ export type TradeStatus = (typeof TRADE_STATUSES)[number];
 export const ORDER_STATUSES = ['WORKING', 'CONFIRMED', 'SETTLED', 'CANCELLED'] as const;
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
+// FX conversion convention when applying fxHedgeRate to a leg's tradeValue —
+// MULTIPLY or DIVIDE, per whether the rate is quoted direct or indirect.
+export const FX_RATE_OPERATORS = ['MULTIPLY', 'DIVIDE'] as const;
+export type FxRateOperator = (typeof FX_RATE_OPERATORS)[number];
+
 export const SETTLEMENT_TYPES_TRADE = ['PHYSICAL', 'FINANCIAL', 'NETTED'] as const;
 export type SettlementTypeTrade = (typeof SETTLEMENT_TYPES_TRADE)[number];
 
@@ -565,6 +570,8 @@ export interface TradeLeg {
   currencyId: number;
   currencyCode: string;
   incotermCode: string | null;
+  loadLocationId: number | null;
+  loadLocationName: string | null;
   deliveryLocationId: number | null;
   deliveryLocationName: string | null;
   settlementType: SettlementTypeTrade;
@@ -597,6 +604,28 @@ export interface TradeLeg {
   fxDetail?: FxDetail | null;
   storageAgreementDetail?: StorageAgreementDetail | null;
   transportAgreementDetail?: TransportAgreementDetail | null;
+  // ── Valuation snapshot (V259/V260) — the leg's own cached latest MTM, not
+  // history (dbo.position_valuation is the book-level valuation history;
+  // this is a single as-of snapshot for trade-level blotter/P&L display).
+  // Valued against the existing `price` above (V260 dropped the separate
+  // tradeLegPrice this originally had — redundant with `price`).
+  mtmPrice: number | null;
+  asofDate: string | null;
+  tradeValue: number | null;
+  marketValue: number | null;
+  unrealizedPnl: number | null;
+  // Denormalized pricing-nature flags (V260) — fast filtering/reporting
+  // without joining to pricingRule every time.
+  mktFormulaInd: boolean;        // price is driven by a market index/formula, not a flat fixed price
+  legPriceFormulaInd: boolean;   // this leg's own price is formula-derived
+  legPrelimFormulaInd: boolean;  // current price is a preliminary/provisional formula value, not yet finalized
+  // ── FX conversion (trade currency -> reporting/base currency) ───────────
+  fxCurrencyId: number | null;
+  fxCurrencyCode: string | null;
+  fxHedgeRate: number | null;
+  fxHedgeInd: boolean;
+  fxRateOperator: FxRateOperator;
+  baseCurrencyValue: number | null;
   notes: string | null;
   createdAt: string;
   updatedAt: string;
@@ -605,7 +634,7 @@ export interface TradeLeg {
 export type TradeLegInput = Omit<TradeLeg,
   'legId' | 'orderReference' | 'legReference' | 'productCode' | 'productName' | 'marketCode' | 'pricingRuleCode' |
   'legalEntityName' | 'bookCode' | 'brokerCode' | 'brokerName' | 'createdAt' | 'updatedAt' |
-  'uomCode' | 'deliveryLocationName' | 'currencyCode'
+  'uomCode' | 'deliveryLocationName' | 'loadLocationName' | 'currencyCode' | 'fxCurrencyCode'
 >;
 
 // ─── TradeItem (line item within a leg) ───────────────────────────────────────

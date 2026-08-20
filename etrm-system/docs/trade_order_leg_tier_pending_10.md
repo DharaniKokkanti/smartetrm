@@ -1,6 +1,6 @@
 # Trade capture: insert a real Order tier above Leg
 
-**Status (2026-08-19): frontend done and verified live (types/api/hooks/mocks/TradeBlotter.tsx — see handoff doc §0). Backend migration (V258) still drafted-only, not applied to a real DB — no `etrm-sqlserver` container was running this session (`docker ps` empty). Next session: `docker ps` first; if a real DB is up, run V258, start the backend, confirm Flyway applies clean.**
+**Status (2026-08-19): DONE — frontend live, backend migration actually applied and verified against a real SQL Server (Docker started this session, `etrm-sqlserver` came up healthy). V258 failed twice for real (trigger name, uom_code/currency_code schema drift, row_version guard) before applying clean on the third try — see handoff doc §0 for the full debug trail. `V259` (leg-level MTM/FX fields) followed, applied clean on the first attempt against the same DB.**
 
 ## Problem
 
