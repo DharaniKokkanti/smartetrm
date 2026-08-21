@@ -1007,7 +1007,7 @@ function DeliveryFields({
 
       {sectionTitle('Delivery')}
       <Row gutter={16}>
-        <Col span={hasVesselPhysical ? 8 : 12}>
+        <Col span={hasVesselPhysical ? 6 : 8}>
           <Form.Item name="incotermCode" label={hint('Incoterm', 'FOB, CIF, DES.')}>
             <Select
               options={(incoterms as { incotermCode: string; incotermName: string }[]).map((i) => ({ value: i.incotermCode, label: `${i.incotermCode} — ${i.incotermName}` }))}
@@ -1015,13 +1015,18 @@ function DeliveryFields({
             />
           </Form.Item>
         </Col>
-        <Col span={hasVesselPhysical ? 8 : 12}>
+        <Col span={hasVesselPhysical ? 6 : 8}>
+          <Form.Item name="loadLocationId" label="Load Location">
+            <Select options={locationOpts} placeholder="Load point" showSearch allowClear />
+          </Form.Item>
+        </Col>
+        <Col span={hasVesselPhysical ? 6 : 8}>
           <Form.Item name="deliveryLocationId" label="Delivery Location">
             <Select options={locationOpts} placeholder="Delivery point" showSearch allowClear />
           </Form.Item>
         </Col>
         {hasVesselPhysical && (
-          <Col span={8}>
+          <Col span={6}>
             <Form.Item
               name="originCountryId"
               label={hint('Origin Country', 'ISO 3166-1 alpha-2 country where the commodity was produced. Required for sanctions screening — e.g. GB (Forties), RU (Urals), SA (Arab Light).')}
@@ -2723,6 +2728,32 @@ export function TradeBlotter() {
                       <Switch />
                     </Form.Item>
                   </Col>
+                )}
+              </Row>
+            </>
+          )}
+
+          {editingLeg?.mtmPrice != null && (
+            <>
+              {sectionTitle('Valuation (system-populated, read-only)')}
+              <Row gutter={16}>
+                <Col span={6}><Typography.Text type="secondary">As Of</Typography.Text><br /><Typography.Text>{editingLeg.asofDate ?? '—'}</Typography.Text></Col>
+                <Col span={6}><Typography.Text type="secondary">Mark Price</Typography.Text><br /><Typography.Text>{editingLeg.mtmPrice}</Typography.Text></Col>
+                <Col span={6}><Typography.Text type="secondary">Trade Value</Typography.Text><br /><Typography.Text>{editingLeg.tradeValue?.toLocaleString()}</Typography.Text></Col>
+                <Col span={6}><Typography.Text type="secondary">Market Value</Typography.Text><br /><Typography.Text>{editingLeg.marketValue?.toLocaleString()}</Typography.Text></Col>
+              </Row>
+              <Row gutter={16} style={{ marginTop: 8 }}>
+                <Col span={6}>
+                  <Typography.Text type="secondary">Unrealized P&L</Typography.Text><br />
+                  <Typography.Text style={{ color: (editingLeg.unrealizedPnl ?? 0) >= 0 ? color.success : color.error }}>
+                    {editingLeg.unrealizedPnl?.toLocaleString()}
+                  </Typography.Text>
+                </Col>
+                {editingLeg.fxHedgeInd && (
+                  <>
+                    <Col span={6}><Typography.Text type="secondary">FX Rate</Typography.Text><br /><Typography.Text>{editingLeg.fxHedgeRate} ({editingLeg.fxRateOperator})</Typography.Text></Col>
+                    <Col span={6}><Typography.Text type="secondary">Base Ccy Value</Typography.Text><br /><Typography.Text>{editingLeg.fxCurrencyCode} {editingLeg.baseCurrencyValue?.toLocaleString()}</Typography.Text></Col>
+                  </>
                 )}
               </Row>
             </>
